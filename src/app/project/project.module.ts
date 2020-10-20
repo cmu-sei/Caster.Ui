@@ -32,7 +32,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule, Routes } from '@angular/router';
-import { ComnAuthGuardService } from '@crucible/common';
+import { ComnAuthGuardService } from '@cmusei/crucible-common';
 import { ResizableModule } from 'angular-resizable-element';
 import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { DirectoriesModule } from '../directories';

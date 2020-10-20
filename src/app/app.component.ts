@@ -12,7 +12,7 @@ import { OverlayContainer } from '@angular/cdk/overlay';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
-import { ComnSettingsService, Theme } from '@crucible/common';
+import { ComnSettingsService, Theme } from '@cmusei/crucible-common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from './users/state';

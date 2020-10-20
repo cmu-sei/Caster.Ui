@@ -14,7 +14,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { ComnAuthQuery, ComnSettingsService, Theme } from '@crucible/common';
+import { ComnAuthQuery, ComnSettingsService, Theme } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FileQuery } from 'src/app/files/state';

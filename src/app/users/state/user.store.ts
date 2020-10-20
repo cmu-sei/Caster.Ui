@@ -9,7 +9,7 @@ DM20-0181
 */
 
 import { Injectable } from '@angular/core';
-import { Theme } from '@crucible/common';
+import { Theme } from "@cmusei/crucible-common"
 import {
   EntityState,
   EntityStore,

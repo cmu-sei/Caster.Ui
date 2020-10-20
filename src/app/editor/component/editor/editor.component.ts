@@ -23,7 +23,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { Theme } from '@crucible/common';
+import { Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { switchMap, take, takeUntil } from 'rxjs/operators';
 import {

@@ -45,6 +45,7 @@
     "@angular/platform-browser": "^9.1.6",
     "@angular/platform-browser-dynamic": "^9.1.6",
     "@angular/router": "^9.1.6",
+    "@cmusei/crucible-common": "0.0.5",
     "@datorama/akita": "^4.23.1",
     "@datorama/akita-ng-router-store": "^5.1.0",
     "@datorama/akita-ngdevtools": "^4.0.0",
@@ -66,8 +67,7 @@
     "webpack": "^4.40.2",
     "xterm": "^4.8.1",
     "xterm-addon-fit": "^0.4.0",
-    "zone.js": "~0.10.2",
-    "@crucible/common": "file:modules/crucible-common-0.0.2.tgz"
+    "zone.js": "~0.10.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.901.5",

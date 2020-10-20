@@ -16,7 +16,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
-import { ComnAuthQuery, ComnAuthService, Theme } from '@crucible/common';
+import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { filter, takeUntil, tap } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';

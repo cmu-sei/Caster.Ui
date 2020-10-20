@@ -10,7 +10,7 @@ DM20-0181
 
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ComnAuthGuardService } from '@crucible/common';
+import { ComnAuthGuardService } from '@cmusei/crucible-common';
 import { AdminContainerComponent } from './admin-app/component/admin-container/admin-container.component';
 import { ProjectListContainerComponent } from './project/component/project-home/project-list-container/project-list-container.component';
 
