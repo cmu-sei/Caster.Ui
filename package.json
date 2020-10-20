@@ -58,7 +58,7 @@
     "bootstrap-scss": "^4.3.1",
     "core-js": "^3.2.1",
     "domsanitizer": "^0.2.2",
-    "monaco-editor": "^0.20.0",
+    "monaco-editor": "^0.21.2",
     "ngx-clipboard": "^13.0.1",
     "oidc-client": "^1.10.1",
     "rxjs": "~6.5.5",
