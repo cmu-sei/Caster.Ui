@@ -9,7 +9,7 @@ DM20-0181
 */
 
 import { Injectable } from '@angular/core';
-import { ComnAuthService, Theme } from '@crucible/common';
+import { ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {

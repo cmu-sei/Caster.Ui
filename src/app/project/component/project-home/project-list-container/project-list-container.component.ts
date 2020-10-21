@@ -9,7 +9,7 @@ DM20-0181
 */
 import { Component, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { ComnAuthService, ComnSettingsService } from '@crucible/common';
+import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
