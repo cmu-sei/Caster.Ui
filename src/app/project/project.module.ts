@@ -39,7 +39,8 @@ import { DirectoriesModule } from '../directories';
 import { EditorModule } from '../editor/editor.module';
 import { ConfirmDialogComponent } from '../sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
-import { NameDialogComponent } from '../sei-cwd-common/name-dialog/name-dialog.component';
+import { SeiCwdCommonModule } from '../sei-cwd-common/sei-cwd-common.module';
+import { SharedModule } from '../shared/shared.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { TopbarComponent } from './../shared/components/top-bar/topbar.component';
 import { ProjectBreadcrumbComponent } from './component/project-details/project-breadcrumb/project-breadcrumb.component';
@@ -75,7 +76,6 @@ const projectRoutes: Routes = [
     ProjectNavigationContainerComponent,
     ProjectCollapseContainerComponent,
     ConfirmDialogComponent,
-    NameDialogComponent,
     DirectoryPanelComponent,
     ProjectBreadcrumbComponent,
     ProjectTabComponent,
@@ -115,6 +115,8 @@ const projectRoutes: Routes = [
     MatSlideToggleModule,
     MatSelectModule,
     MatToolbarModule,
+    SharedModule,
+    SeiCwdCommonModule,
   ],
   exports: [
     ProjectComponent,
@@ -124,10 +126,6 @@ const projectRoutes: Routes = [
     ProjectTabComponent,
     TopbarComponent,
   ],
-  entryComponents: [
-    ConfirmDialogComponent,
-    NameDialogComponent,
-    ProjectExportComponent,
-  ],
+  entryComponents: [ConfirmDialogComponent, ProjectExportComponent],
 })
 export class ProjectModule {}

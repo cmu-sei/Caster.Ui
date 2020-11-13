@@ -7,12 +7,13 @@ Released under a MIT (SEI)-style license, please see license.txt or contact perm
 Carnegie Mellon(R) and CERT(R) are registered in the U.S. Patent and Trademark Office by Carnegie Mellon University.
 DM20-0181
 */
-
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
 import { ComnSettingsService, Theme } from '@cmusei/crucible-common';
+import { HotkeysHelpComponent, HotkeysService } from '@ngneat/hotkeys';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from './users/state';
@@ -32,7 +33,9 @@ export class AppComponent implements OnDestroy {
     private currentUserQuery: CurrentUserQuery,
     public sanitizer: DomSanitizer,
     public titleService: Title,
-    public settingsService: ComnSettingsService
+    public settingsService: ComnSettingsService,
+    private HotkeysService: HotkeysService,
+    private hotkeysDialog: MatDialog
   ) {
     this.currentUserQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
@@ -128,6 +131,24 @@ export class AppComponent implements OnDestroy {
         'assets/svg-icons/ic_crucible_caster.svg'
       )
     );
+
+    // Register hotkeys
+    const helpFcn: () => void = () => {
+      const ref = this.hotkeysDialog.open(HotkeysHelpComponent, {
+        width: '500px',
+      });
+      ref.componentInstance.title = 'Shortcuts Help';
+      ref.componentInstance.dimiss.subscribe(() => ref.close());
+    };
+    const hotkeys = this.settingsService.settings.Hotkeys;
+    this.HotkeysService.registerHelpModal(helpFcn);
+
+    for (const k in hotkeys) {
+      const v = hotkeys[k];
+      this.HotkeysService.addShortcut(v)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe();
+    }
   }
 
   setTheme(theme: Theme) {
