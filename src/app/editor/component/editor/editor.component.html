@@ -105,6 +105,7 @@ DM20-0181
           </button>
           <button
             mat-icon-button
+            hotkeyAction="FILE_SAVE"
             color="primary"
             fxFlexAlign="center"
             [disabled]="isSaved$ | async"
@@ -146,6 +147,7 @@ DM20-0181
           </button>
           <button
             mat-icon-button
+            hotkeyAction="FILE_LOCK_TOGGLE"
             fxFlexAlign="center"
             *ngIf="file && !file.lockedById"
             color="primary"
@@ -156,6 +158,7 @@ DM20-0181
           </button>
           <button
             mat-icon-button
+            hotkeyAction="FILE_LOCK_TOGGLE"
             fxFlexAlign="center"
             *ngIf="file && file.lockedById === currentUserId"
             [disabled]="file.editorContent !== file.content"
@@ -165,18 +168,21 @@ DM20-0181
           >
             <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-edit"></mat-icon>
           </button>
-          <mat-divider vertical style="height: 100%;"></mat-divider>
+          <mat-divider vertical style="height: 100%"></mat-divider>
           <div *ngIf="filename.endsWith('.tf')">
             <mat-button-toggle-group
               #sidebar="matButtonToggleGroup"
               [value]="sidebarView"
               fxLayout="row"
               fxLayoutAlign="center space-around"
+              hotkeyAction="FILE_VERSIONS"
+              (hotkeyFn)="sidebarChangedFn($event, sidebarOpen)"
               (valueChange)="sidebarChangedFn($event, sidebarOpen)"
             >
               <mat-button-toggle
                 value="modules"
                 aria-label="modules"
+                hotkeyAction="FILE_MODULES"
                 (change)="toggleSidebar($event, true)"
               >
                 <div>
@@ -191,6 +197,7 @@ DM20-0181
               <mat-button-toggle
                 value="versions"
                 aria-label="versions"
+                hotkeyAction="FILE_VERSIONS"
                 (change)="toggleSidebar($event, true)"
               >
                 <div>
@@ -228,9 +235,7 @@ DM20-0181
           fxLayout="row"
           fxLayoutAlign="space-between center"
         >
-          <span class="left-version-text">
-            CURRENT
-          </span>
+          <span class="left-version-text"> CURRENT </span>
           <span class="right-version-text">
             {{ selectedVersionForDiff.dateSaved | date: 'yyyy-MM-dd HH:mm' }} by
             {{ selectedVersionForDiff.modifiedByName }} as

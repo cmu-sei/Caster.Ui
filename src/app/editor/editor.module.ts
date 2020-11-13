@@ -8,8 +8,9 @@ Carnegie Mellon(R) and CERT(R) are registered in the U.S. Patent and Trademark O
 DM20-0181
 */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -30,15 +31,15 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
-import { EditorComponent } from './component/editor/editor.component';
-import { FilesModule } from '../files/files.module';
+import { ResizableModule } from 'angular-resizable-element';
 import { DirectoriesModule } from '../directories';
+import { FilesModule } from '../files/files.module';
 import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
-import { FlexLayoutModule } from '@angular/flex-layout';
+import { SharedModule } from '../shared/shared.module';
+import { EditorComponent } from './component/editor/editor.component';
 import { ModuleListComponent } from './component/module-list/module-list.component';
 import { ModuleVariablesComponent } from './component/module-variables/module-variables.component';
 import { VersionListComponent } from './component/version-list/version-list.component';
-import { ResizableModule } from 'angular-resizable-element';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import { ResizableModule } from 'angular-resizable-element';
     FilesModule,
     DirectoriesModule,
     ResizableModule,
+    SharedModule,
   ],
   entryComponents: [ModuleVariablesComponent],
   providers: [],

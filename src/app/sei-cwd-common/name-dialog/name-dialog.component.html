@@ -9,7 +9,7 @@ DM20-0181
 -->
 
 <h1 mat-dialog-title>{{ title }}</h1>
-<div style="font-family: 'open_sansregular', sans-serif;">{{ message }}</div>
+<div style="font-family: 'open_sansregular', sans-serif">{{ message }}</div>
 
 <form class="name-form">
   <mat-form-field class="form-full-width">
@@ -25,6 +25,7 @@ DM20-0181
 <mat-dialog-actions fxLayout="row" fxLayoutAlign="space-around center">
   <button
     mat-stroked-button
+    hotkeyAction="ENTER"
     (click)="onClick()"
     [disabled]="name === ''"
     tabindex="3"

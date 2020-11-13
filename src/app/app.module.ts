@@ -29,6 +29,7 @@ import {
 } from '@cmusei/crucible-common';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
+import { HotkeysModule } from '@ngneat/hotkeys';
 import { environment } from '../environments/environment';
 import { AdminAppModule } from './admin-app/admin-app.module';
 import { AppRoutingModule } from './app-routing.module';
@@ -74,6 +75,7 @@ export function getBasePath(settings: ComnSettingsService) {
     HttpClientModule,
     FlexLayoutModule,
     OverlayModule,
+    HotkeysModule,
   ],
   providers: [
     {

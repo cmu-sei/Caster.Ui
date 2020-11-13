@@ -35,7 +35,7 @@ DM20-0181
           matTooltip="Clear Search"
           mat-icon-button
           (click)="clearFilter()"
-          style="outline: none;"
+          style="outline: none"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
         </button>
@@ -43,6 +43,7 @@ DM20-0181
         <button
           mat-icon-button
           matTooltip="Add New Project"
+          hotkeyAction="PROJECT_NEW"
           (click)="createRequest()"
         >
           <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
@@ -98,7 +99,7 @@ DM20-0181
   <!-- Loading Spinner -->
   <mat-card
     *ngIf="!projects || isLoading"
-    style="display: flex; justify-content: center; align-items: center;"
+    style="display: flex; justify-content: center; align-items: center"
   >
     <mat-progress-spinner color="primary" mode="indeterminate">
     </mat-progress-spinner>
