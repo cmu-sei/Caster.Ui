@@ -43,6 +43,6 @@
       "group": "Editor",
       "description": "Save a file",
       "allowIn": ["INPUT", "TEXTAREA"]
-    },
+    }
   }
 }
