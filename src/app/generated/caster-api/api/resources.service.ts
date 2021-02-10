@@ -20,8 +20,11 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { ImportResourceCommand } from '../model/importResourceCommand';
 import { ProblemDetails } from '../model/problemDetails';
+import { RemoveResourcesCommand } from '../model/removeResourcesCommand';
 import { Resource } from '../model/resource';
+import { ResourceCommandResult } from '../model/resourceCommandResult';
 import { TaintResourcesCommand } from '../model/taintResourcesCommand';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -160,14 +163,73 @@ export class ResourcesService {
     }
 
     /**
+     * Import a Resource
+     * @param workspaceId 
+     * @param ImportResourceCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
+    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
+    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
+    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+        if (workspaceId === null || workspaceId === undefined) {
+            throw new Error('Required parameter workspaceId was null or undefined when calling importResources.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (oauth2) required
+        if (this.configuration.accessToken) {
+            const accessToken = typeof this.configuration.accessToken === 'function'
+                ? this.configuration.accessToken()
+                : this.configuration.accessToken;
+            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        }
+
+        // to determine the Accept header
+        const httpHeaderAccepts: string[] = [
+            'text/plain',
+            'application/json',
+            'text/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/_*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/import`,
+            ImportResourceCommand,
+            {
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Refresh the Workspace\&#39;s Resources
      * @param workspaceId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public refreshResources(workspaceId: string, observe?: 'body', reportProgress?: boolean): Observable<Array<Resource>>;
-    public refreshResources(workspaceId: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<Array<Resource>>>;
-    public refreshResources(workspaceId: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<Array<Resource>>>;
+    public refreshResources(workspaceId: string, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
+    public refreshResources(workspaceId: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
+    public refreshResources(workspaceId: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
     public refreshResources(workspaceId: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling refreshResources.');
@@ -195,8 +257,67 @@ export class ResourcesService {
         }
 
 
-        return this.httpClient.post<Array<Resource>>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/refresh`,
+        return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/refresh`,
             null,
+            {
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Remove selected Resources
+     * @param workspaceId 
+     * @param RemoveResourcesCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
+    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
+    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
+    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+        if (workspaceId === null || workspaceId === undefined) {
+            throw new Error('Required parameter workspaceId was null or undefined when calling removeResources.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (oauth2) required
+        if (this.configuration.accessToken) {
+            const accessToken = typeof this.configuration.accessToken === 'function'
+                ? this.configuration.accessToken()
+                : this.configuration.accessToken;
+            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        }
+
+        // to determine the Accept header
+        const httpHeaderAccepts: string[] = [
+            'text/plain',
+            'application/json',
+            'text/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/_*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/remove`,
+            RemoveResourcesCommand,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -213,9 +334,9 @@ export class ResourcesService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<Array<Resource>>;
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<Array<Resource>>>;
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<Array<Resource>>>;
+    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
+    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
+    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
     public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling taintResources.');
@@ -254,7 +375,7 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<Array<Resource>>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/taint`,
+        return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/taint`,
             TaintResourcesCommand,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -272,9 +393,9 @@ export class ResourcesService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<Array<Resource>>;
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<Array<Resource>>>;
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<Array<Resource>>>;
+    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
+    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
+    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
     public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling untaintResources.');
@@ -313,7 +434,7 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<Array<Resource>>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/untaint`,
+        return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/untaint`,
             TaintResourcesCommand,
             {
                 withCredentials: this.configuration.withCredentials,

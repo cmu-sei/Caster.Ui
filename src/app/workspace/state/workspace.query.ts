@@ -21,7 +21,11 @@ import {
   RunStatus,
 } from '../../generated/caster-api';
 import { Injectable } from '@angular/core';
-import { StatusFilter, WorkspaceEntityUi } from './workspace.model';
+import {
+  ResourceActions,
+  StatusFilter,
+  WorkspaceEntityUi,
+} from './workspace.model';
 import { combineLatest, Observable, of } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 
@@ -98,6 +102,10 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
       workspaceId,
       (entity) => entity.resourceActions
     );
+  }
+
+  resourceAction$(workspaceId): Observable<ResourceActions> {
+    return this.ui.selectEntity(workspaceId, (entity) => entity.resourceAction);
   }
 
   expandedResources$(workspaceId: string): Observable<string[]> {

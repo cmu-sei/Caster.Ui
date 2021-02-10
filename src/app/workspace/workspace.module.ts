@@ -33,6 +33,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { WorkspaceVersionComponent } from './components/workspace-version/workspace-version.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ImportResourceComponent } from './components/import-resource/import-resource.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     WorkspaceEditContainerComponent,
     WorkspaceEditComponent,
     WorkspaceVersionComponent,
+    ImportResourceComponent,
   ],
   imports: [
     CommonModule,

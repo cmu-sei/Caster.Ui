@@ -8,8 +8,8 @@ import {
   StoreConfig,
 } from '@datorama/akita';
 import { Workspace } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
-import { WorkspaceEntityUi } from './workspace.model';
+import { Injectable } from '@angular/core';
+import { ResourceActions, WorkspaceEntityUi } from './workspace.model';
 
 export interface WorkspaceState extends EntityState<Workspace> {
   lockingEnabled?: boolean;
@@ -24,6 +24,7 @@ export const initialWorkspaceEntityUiState: WorkspaceEntityUi = {
   selectedRuns: [],
   statusFilter: [],
   workspaceView: 'runs',
+  resourceAction: ResourceActions.None,
 };
 
 @Injectable({

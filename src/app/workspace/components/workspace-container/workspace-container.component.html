@@ -159,6 +159,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           >
             Refresh
           </button>
+          <button
+            *ngIf="this.currentUserQuery.isSuperUser$ | async"
+            mat-flat-button
+            color="primary"
+            [disabled]="loading$ | async"
+            (click)="openImportResourceDialog()"
+            matTooltip="Import an existing resource into this workspace"
+          >
+            Import
+          </button>
         </div>
         <div
           *cwdTableItemAction="let item"
@@ -166,44 +176,73 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           fxLayoutAlign="start space-between"
           fxLayoutGap="10px"
         >
-          <button
-            mat-flat-button
-            color="primary"
-            [ngSwitch]="
-              (resourceActionIds$ | async).includes(item.id) && !item.tainted
-            "
-            [fxShow]="!item.tainted"
-            [disabled]="item.tainted"
-            (click)="taint($event, item)"
+          <ng-container
+            *ngIf="{
+              value: (resourceActionIds$ | async).includes(item.id),
+              action: (resourceAction$ | async)
+            } as loading"
           >
-            <mat-progress-spinner
-              *ngSwitchCase="true"
-              color="accent"
-              diameter="35"
-              mode="indeterminate"
+            <button
+              mat-flat-button
+              color="primary"
+              [ngSwitch]="
+                loading.value &&
+                loading.action == resourceActions.Taint &&
+                !item.tainted
+              "
+              [fxShow]="!item.tainted"
+              [disabled]="loading.action != resourceActions.None"
+              (click)="taint($event, item)"
             >
-            </mat-progress-spinner>
-            <span *ngSwitchDefault>Taint</span>
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            [ngSwitch]="
-              (resourceActionIds$ | async).includes(item.id) && item.tainted
-            "
-            [fxShow]="item.tainted"
-            [disabled]="!item.tainted"
-            (click)="untaint($event, item)"
-          >
-            <mat-progress-spinner
-              *ngSwitchCase="true"
-              color="accent"
-              diameter="35"
-              mode="indeterminate"
+              <mat-progress-spinner
+                *ngSwitchCase="true"
+                color="accent"
+                diameter="35"
+                mode="indeterminate"
+              >
+              </mat-progress-spinner>
+              <span *ngSwitchDefault>Taint</span>
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              [ngSwitch]="
+                loading.value &&
+                loading.action == resourceActions.Taint &&
+                item.tainted
+              "
+              [fxShow]="item.tainted"
+              [disabled]="loading.action != resourceActions.None"
+              (click)="untaint($event, item)"
             >
-            </mat-progress-spinner>
-            <span *ngSwitchDefault>Untaint</span>
-          </button>
+              <mat-progress-spinner
+                *ngSwitchCase="true"
+                color="accent"
+                diameter="35"
+                mode="indeterminate"
+              >
+              </mat-progress-spinner>
+              <span *ngSwitchDefault>Untaint</span>
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              [ngSwitch]="
+                loading.value && loading.action == resourceActions.Remove
+              "
+              [disabled]="loading.action != resourceActions.None"
+              (click)="remove($event, item)"
+            >
+              <mat-progress-spinner
+                *ngSwitchCase="true"
+                color="accent"
+                diameter="35"
+                mode="indeterminate"
+              >
+              </mat-progress-spinner>
+              <span *ngSwitchDefault>Remove</span>
+            </button>
+          </ng-container>
         </div>
         <div *cwdTableItemContent="let item">
           <ng-container
@@ -216,3 +255,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
   </ng-container>
 </div>
+
+<ng-template #importResourceDialog>
+  <cas-import-resource
+    [workspaceId]="(workspace$ | async).id"
+    [loading]="loading$ | async"
+    (importComplete)="onImportComplete()"
+  >
+  </cas-import-resource>
+</ng-template>
+
+<ng-template #errorDialog>
+  <cas-output [output]="errorMessage" [loading]="false"> </cas-output>
+</ng-template>

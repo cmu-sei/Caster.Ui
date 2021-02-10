@@ -15,6 +15,6 @@
 
 
 export interface InlineObject1 { 
-    Archive?: Blob | null;
+    Archive?: Blob;
 }
 
