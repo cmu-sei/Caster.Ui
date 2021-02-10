@@ -1,4 +1,4 @@
-# CasterUi
+# CasterUi Readme
 
 Caster is the primary deployment component of the Crucible framework. Caster is built upon Terraform, an open source "Infrastructure as Code" tool. Caster provides a web interface that gives exercise developers a way to create, share, and manage topology configurations.
 
@@ -16,4 +16,4 @@ Include the reasons why you're requesting the new feature and how it might benef
 
 ## License
 
-Copyright 2020 Carnegie Mellon University. See the [LICENSE.md](./LICENSE.md) files for details.
+Copyright 2021 Carnegie Mellon University. See the [LICENSE.md](./LICENSE.md) files for details.
