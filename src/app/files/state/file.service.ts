@@ -1,14 +1,14 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { FileStore } from './file.store';
-import { FilesService, ModelFile } from '../../generated/caster-api';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
-import { FileQuery } from './file.query';
-import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
+import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
+import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
+import { FilesService, ModelFile } from '../../generated/caster-api';
+import { FileQuery } from './file.query';
+import { FileStore } from './file.store';
 
 @Injectable({
   providedIn: 'root',
@@ -116,15 +116,18 @@ export class FileService {
   }
 
   private upsertFile(file: ModelFile) {
-    this.fileStore.upsert(file.id, (entity) => {
-      return {
-        ...entity,
+    this.fileStore.upsert(
+      file.id,
+      (f) => ({
         ...file,
-        content: file.content === null ? entity.content : file.content,
-        editorContent:
-          file.content === null ? entity.editorContent : file.content,
-      };
-    });
+      }),
+      (id, f) => ({
+        id,
+        ...f,
+        content: file.content,
+        editorContent: file.editorContent,
+      })
+    );
   }
 
   updateEditorContent(fileId: string, editorContent: string) {

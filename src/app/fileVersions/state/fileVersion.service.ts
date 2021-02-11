@@ -1,15 +1,13 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { FileVersionStore } from './fileVersion.store';
-import { Injectable, InjectionToken } from '@angular/core';
-import {
-  FilesService,
-  FileVersion,
-  CreateSnippetCommand,
-} from '../../generated/caster-api';
-import { tap, take } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { take, tap } from 'rxjs/operators';
+import { isUpdate } from 'src/app/shared/utilities/functions';
+import { FilesService, FileVersion } from '../../generated/caster-api';
+import { FileVersionUi } from './fileVersion.model';
+import { FileVersionStore } from './fileVersion.store';
 
 @Injectable({
   providedIn: 'root',
@@ -59,8 +57,8 @@ export class FileVersionService {
   }
 
   toggleSelected(id: string) {
-    this.fileVersionStore.ui.upsert(id, (entity) => ({
-      isSelected: !entity.isSelected,
+    this.fileVersionStore.ui.upsert(id, (v) => ({
+      isSelected: isUpdate<FileVersionUi>(v) ? !v.isSelected : undefined,
     }));
   }
 
