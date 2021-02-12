@@ -1,16 +1,18 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { ModuleStore } from './module.store';
-import { Injectable, InjectionToken } from '@angular/core';
-import {
-  ModulesService,
-  Module,
-  CreateSnippetCommand,
-  CreateModuleRepositoryCommand,
-} from '../../generated/caster-api';
-import { tap } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { ModuleUi } from '.';
+import {
+  CreateModuleRepositoryCommand,
+  CreateSnippetCommand,
+  Module,
+  ModulesService,
+} from '../../generated/caster-api';
+import { isUpdate } from '../../shared/utilities/functions';
+import { ModuleStore } from './module.store';
 
 @Injectable({
   providedIn: 'root',
@@ -78,9 +80,11 @@ export class ModuleService {
   }
 
   toggleSelected(id: string) {
-    this.moduleStore.ui.upsert(id, (entity) => ({
-      isSelected: !entity.isSelected,
-    }));
+    this.moduleStore.ui.upsert(id, (entity) => {
+      return {
+        isSelected: isUpdate<ModuleUi>(entity) ? !entity.isSelected : undefined,
+      };
+    });
   }
 
   // saved state is not toggled, set explicitly.

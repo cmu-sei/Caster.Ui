@@ -13,7 +13,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon
         class="mdi-24px"
         fontIcon="mdi-magnify"
-        style="margin-right: 5px;"
+        style="margin-right: 5px"
       ></mat-icon>
       <mat-form-field class="search-input">
         <input
@@ -28,7 +28,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         matTooltip="Clear Search"
         mat-icon-button
         (click)="clearFilter()"
-        style="outline: none;"
+        style="outline: none"
       >
         <mat-icon class="mdi-18px" fontIcon="mdi-close-circle"></mat-icon>
       </button>
@@ -60,7 +60,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <!-- Variables Dialog -->
 <ng-template #variablesDialog>
   <cas-module-variables
-    [selectedModule]="selectedModule"
+    [selectedModule]="_selectedModule"
     [readOnly]="!isEditing"
     (variablesSelected)="variablesSelected($event)"
   >
