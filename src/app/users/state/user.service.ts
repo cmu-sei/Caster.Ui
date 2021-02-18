@@ -112,12 +112,6 @@ export class UserService {
     this.currentUserStore.update({ theme });
   }
 
-  toggleSelected(id: string) {
-    this.userStore.ui.upsert(id, (entity) => ({
-      isSelected: !entity.isSelected,
-    }));
-  }
-
   setActive(id) {
     this.userStore.setActive(id);
     this.userStore.ui.setActive(id);

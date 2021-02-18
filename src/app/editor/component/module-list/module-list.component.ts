@@ -6,17 +6,15 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnChanges,
   OnInit,
   Output,
-  SimpleChanges,
-  ViewEncapsulation,
   TemplateRef,
   ViewChild,
+  ViewEncapsulation,
 } from '@angular/core';
-import { Module, CreateSnippetCommand } from '../../../generated/caster-api';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
+import { CreateSnippetCommand, Module } from '../../../generated/caster-api';
 import { ModuleVariablesComponent } from '../module-variables/module-variables.component';
 
 @Component({
@@ -26,48 +24,36 @@ import { ModuleVariablesComponent } from '../module-variables/module-variables.c
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class ModuleListComponent implements OnChanges, OnInit {
-  @Input() modules: Module[];
-  @Input() selectedModule: Module;
+export class ModuleListComponent implements OnInit {
+  @Input() set modules(val: Module[]) {
+    this._modules = val;
+    this.updateDataSource();
+  }
+
+  @Input() set selectedModule(val: Module) {
+    this._selectedModule = val;
+    this.updateSelected();
+  }
   @Input() isEditing: boolean;
 
-  @Output() insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<
-    CreateSnippetCommand
-  >();
+  @Output()
+  insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<CreateSnippetCommand>();
   @Output() getModule: EventEmitter<{ id: string }> = new EventEmitter();
+  private _modules: Module[];
+  private _selectedModule: Module;
   code: string;
   dataSource = new MatTableDataSource();
   filterString = '';
   isDialogOpen = false;
   variablesDialogRef: MatDialogRef<ModuleVariablesComponent>;
 
-  @ViewChild('variablesDialog') variablesTemplate: TemplateRef<
-    ModuleVariablesComponent
-  >;
+  @ViewChild('variablesDialog')
+  variablesTemplate: TemplateRef<ModuleVariablesComponent>;
 
   constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
-    this.dataSource.data = this.modules;
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.modules) {
-      this.dataSource.data = changes.modules.currentValue;
-    }
-
-    if (
-      !this.isDialogOpen &&
-      changes.selectedModule &&
-      !!this.selectedModule &&
-      !!this.selectedModule.versions &&
-      this.selectedModule.versions.length > 0
-    ) {
-      this.isDialogOpen = true;
-      this.variablesDialogRef = this.dialog.open(this.variablesTemplate, {
-        disableClose: true,
-      });
-    }
+    this.dataSource.data = this._modules;
   }
 
   variablesSelected(command: CreateSnippetCommand) {
@@ -94,5 +80,22 @@ export class ModuleListComponent implements OnChanges, OnInit {
 
   selectModuleFn(module) {
     this.getModule.emit({ id: module.id });
+  }
+  private updateDataSource() {
+    this.dataSource.data = this._modules;
+  }
+
+  private updateSelected() {
+    if (
+      !this.isDialogOpen &&
+      !!this._selectedModule &&
+      !!this._selectedModule.versions &&
+      this._selectedModule.versions.length > 0
+    ) {
+      this.isDialogOpen = true;
+      this.variablesDialogRef = this.dialog.open(this.variablesTemplate, {
+        disableClose: true,
+      });
+    }
   }
 }

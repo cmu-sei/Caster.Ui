@@ -1,9 +1,11 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { WorkspaceStore } from './workspace.store';
 import { Injectable } from '@angular/core';
-import { StatusFilter } from './workspace.model';
+import { arrayToggle, arrayUpsert, coerceArray } from '@datorama/akita';
+import { Observable, of } from 'rxjs';
+import { concatMap, take, tap } from 'rxjs/operators';
+import { FileService } from 'src/app/files/state';
 import {
   AppliesService,
   PlansService,
@@ -11,21 +13,14 @@ import {
   ResourcesService,
   Run,
   RunsService,
+  RunStatus,
   Workspace,
   WorkspacesService,
-  RunStatus,
 } from '../../generated/caster-api';
-import { concatMap, take, tap } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
-import {
-  arrayAdd,
-  arrayRemove,
-  arrayUpsert,
-  coerceArray,
-} from '@datorama/akita';
+import { isUpdate } from '../../shared/utilities/functions';
+import { StatusFilter, WorkspaceEntityUi } from './workspace.model';
 import { WorkspaceQuery } from './workspace.query';
-import { FileService } from 'src/app/files/state';
-
+import { WorkspaceStore } from './workspace.store';
 @Injectable({
   providedIn: 'root',
 })
@@ -326,63 +321,38 @@ export class WorkspaceService {
   }
 
   expandRun(expand, run) {
-    this.workspaceStore.ui.upsert(run.workspaceId, (entity) => {
-      if (!entity.expandedRuns) {
-        return;
-      }
-      const exists = entity.expandedRuns.includes(run.id);
-      if (!exists && expand) {
-        return { expandedRuns: arrayAdd(entity.expandedRuns, run.id) };
-      }
-      if (exists && !expand) {
-        return { expandedRuns: arrayRemove(entity.expandedRuns, run.id) };
-      }
-
-      return { expandedRuns: entity.expandedRuns };
-    });
+    this.workspaceStore.ui.upsert(run.workspaceId, (w) => ({
+      expandedRuns: isUpdate<WorkspaceEntityUi>(w)
+        ? arrayToggle(w.expandedRuns, run.id)
+        : undefined,
+    }));
   }
 
   resourceAction(workspaceId, resourceId) {
-    this.workspaceStore.ui.upsert(workspaceId, (entity) => {
-      if (!entity.resourceActions) {
-        return;
-      }
-      const exists = entity.resourceActions.includes(resourceId);
-      if (!exists) {
-        return {
-          resourceActions: arrayAdd(entity.resourceActions, resourceId),
-        };
-      } else {
-        return {
-          resourceActions: arrayRemove(entity.resourceActions, resourceId),
-        };
-      }
-    });
+    this.workspaceStore.ui.upsert(workspaceId, (entity) => ({
+      resourceActions: isUpdate<WorkspaceEntityUi>(entity)
+        ? arrayToggle(entity.resourceActions, resourceId)
+        : undefined,
+    }));
   }
 
   expandResource(expand, workspaceId, resource) {
-    this.workspaceStore.ui.upsert(workspaceId, (entity) => {
-      if (!entity.expandedResources) {
-        return;
-      }
-      const exists = entity.expandedResources.includes(resource.id);
-      if (!exists && expand) {
-        return {
-          expandedResources: arrayAdd(entity.expandedResources, resource.id),
-        };
-      }
-      if (exists && !expand) {
-        return {
-          expandedResources: arrayRemove(entity.expandedResources, resource.id),
-        };
-      }
-    });
+    this.workspaceStore.ui.upsert(workspaceId, (w) => ({
+      expandedResources: isUpdate<WorkspaceEntityUi>(w)
+        ? arrayToggle(w.expandedResources, resource.id)
+        : undefined,
+    }));
   }
 
   toggleIsExpanded(workspaceId: string) {
-    this.workspaceStore.ui.upsert(workspaceId, (w) => ({
-      isExpanded: !w.isExpanded,
-    }));
+    this.workspaceStore.ui.upsert(
+      workspaceId,
+      (entity) => {
+        const ent = this.workspaceQuery.ui.getEntity(workspaceId);
+        return { ...ent, isExpanded: !ent.isExpanded };
+      },
+      (id, w) => ({ id, ...w, isExpanded: !w.isExpanded })
+    );
   }
 
   isExpanded(workspaceId: string) {

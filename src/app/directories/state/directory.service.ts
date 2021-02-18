@@ -1,23 +1,24 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { DirectoryStore } from './directory.store';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { FileService } from 'src/app/files/state';
+import { FileDownload } from 'src/app/shared/models/file-download';
+import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
+import { WorkspaceService } from 'src/app/workspace/state';
 import {
+  ArchiveType,
   DirectoriesService,
   Directory,
-  Workspace,
   ModelFile,
-  ArchiveType,
+  Workspace,
 } from '../../generated/caster-api';
+import { isUpdate } from '../../shared/utilities/functions';
 import { DirectoryUI } from './directory.model';
-import { Observable } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
 import { DirectoryQuery } from './directory.query';
-import { FileService } from 'src/app/files/state';
-import { WorkspaceService } from 'src/app/workspace/state';
-import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
-import { FileDownload } from 'src/app/shared/models/file-download';
+import { DirectoryStore } from './directory.store';
 
 @Injectable({
   providedIn: 'root',
@@ -96,25 +97,31 @@ export class DirectoryService {
 
   toggleIsExpanded(directoryUI: DirectoryUI) {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
-      isExpanded: !d.isExpanded,
+      isExpanded: isUpdate<DirectoryUI>(d) ? !d.isExpanded : undefined,
     }));
   }
 
   toggleIsFilesExpanded(directoryUI: DirectoryUI) {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
-      isFilesExpanded: !d.isFilesExpanded,
+      isFilesExpanded: isUpdate<DirectoryUI>(d)
+        ? !d.isFilesExpanded
+        : undefined,
     }));
   }
 
   toggleIsWorkspacesExpanded(directoryUI: DirectoryUI) {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
-      isWorkspacesExpanded: !d.isWorkspacesExpanded,
+      isWorkspacesExpanded: isUpdate<DirectoryUI>(d)
+        ? !d.isWorkspacesExpanded
+        : undefined,
     }));
   }
 
   toggleIsDirectoriesExpanded(directoryUI: DirectoryUI) {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
-      isDirectoriesExpanded: !d.isDirectoriesExpanded,
+      isDirectoriesExpanded: isUpdate<DirectoryUI>(d)
+        ? !d.isDirectoriesExpanded
+        : undefined,
     }));
   }
 

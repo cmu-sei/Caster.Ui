@@ -55,7 +55,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public code: string;
   public codeTheme: Theme;
   public editorOptions = {
-    theme: this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light',
+    theme: 'vs-light',
     language: 'ruby',
     automaticLayout: true,
     readOnly: true,
