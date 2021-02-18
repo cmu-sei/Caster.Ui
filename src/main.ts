@@ -6,12 +6,7 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
-import {
-  akitaDevtools,
-  enableAkitaProdMode,
-  HashMap,
-  persistState,
-} from '@datorama/akita';
+import { enableAkitaProdMode, HashMap, persistState } from '@datorama/akita';
 import { debounceTime } from 'rxjs/operators';
 import {
   ResourceActions,
