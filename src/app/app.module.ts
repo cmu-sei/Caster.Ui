@@ -60,7 +60,7 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    environment.production ? [] : AkitaNgDevtools,
+    environment.production ? [] : AkitaNgDevtools.forRoot(),
     AkitaNgRouterStoreModule,
     AppRoutingModule,
     ComnSettingsModule.forRoot(),

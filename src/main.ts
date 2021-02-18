@@ -6,7 +6,12 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
-import { HashMap, persistState } from '@datorama/akita';
+import {
+  akitaDevtools,
+  enableAkitaProdMode,
+  HashMap,
+  persistState,
+} from '@datorama/akita';
 import { debounceTime } from 'rxjs/operators';
 import {
   ResourceActions,
@@ -56,6 +61,7 @@ export const storage = persistState({
 
 if (environment.production) {
   enableProdMode();
+  enableAkitaProdMode();
 }
 
 platformBrowserDynamic()
