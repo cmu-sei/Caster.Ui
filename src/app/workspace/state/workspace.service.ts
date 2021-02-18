@@ -355,12 +355,6 @@ export class WorkspaceService {
     }));
   }
 
-  // resourceAction(workspaceId, resourceId) {
-  //   this.workspaceStore.ui.upsert(workspaceId, (entity) => ({
-  //     resourceActions: isUpdate<WorkspaceEntityUi>(entity)
-  //       ? arrayToggle(entity.resourceActions, resourceId)
-  //       : undefined,
-
   startResourceAction(
     workspaceId: string,
     items: Resource | Resource[],
@@ -401,8 +395,8 @@ export class WorkspaceService {
       (entity) => {
         const ent = this.workspaceQuery.ui.getEntity(workspaceId);
         return { ...ent, isExpanded: !ent.isExpanded };
-      }
-      // (id, w) => ({ id, ...w, isExpanded: !w.isExpanded })
+      },
+      (id, w) => ({ id, ...w, isExpanded: !w.isExpanded })
     );
   }
 
