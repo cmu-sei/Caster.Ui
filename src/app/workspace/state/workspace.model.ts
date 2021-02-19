@@ -38,6 +38,13 @@ declare module 'src/app/generated/caster-api/model/workspace' {
   }
 }
 
+export enum ResourceActions {
+  None,
+  Taint,
+  Remove,
+  Refresh,
+}
+
 export interface WorkspaceEntityUi {
   id?: string;
   isExpanded: boolean;
@@ -47,6 +54,7 @@ export interface WorkspaceEntityUi {
   selectedRuns: string[];
   statusFilter: StatusFilter[];
   workspaceView: string;
+  resourceAction: ResourceActions;
 }
 
 export function createWorkspace({

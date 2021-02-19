@@ -1,0 +1,56 @@
+<!--
+ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<h2>Import Resource</h2>
+
+<form [formGroup]="form" (ngSubmit)="import()">
+  <div fxLayout="column">
+    <mat-form-field floatLabel="always">
+      <mat-label>Address</mat-label>
+      <input
+        matInput
+        formControlName="address"
+        matTooltip="Address of the Resource to import"
+      />
+    </mat-form-field>
+
+    <mat-form-field floatLabel="always">
+      <mat-label>Id</mat-label>
+      <input
+        matInput
+        formControlName="id"
+        matTooltip="Id of the Resource to import. The format of this field is Resource specific."
+      />
+    </mat-form-field>
+
+    <div fxLayout="row" fxLayoutAlign="space-around center">
+      <button
+        type="submit"
+        color="primary"
+        mat-raised-button
+        [disabled]="!form.valid"
+      >
+        <div *ngIf="!loading; else spinner">Import</div>
+
+        <ng-template #spinner>
+          <mat-progress-spinner
+            color="accent"
+            diameter="35"
+            mode="indeterminate"
+          >
+          </mat-progress-spinner>
+        </ng-template>
+      </button>
+
+      <button type="reset" color="primary" mat-raised-button (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+
+    <div class="output" matTooltip="Results of the import command">
+      <cas-output [loading]="false" [output]="message"></cas-output>
+    </div>
+  </div>
+</form>

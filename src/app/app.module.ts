@@ -11,7 +11,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import {
+  MatTooltipDefaultOptions,
+  MatTooltipModule,
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+} from '@angular/material/tooltip';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -44,12 +48,19 @@ export function getBasePath(settings: ComnSettingsService) {
   return settings.settings.ApiUrl;
 }
 
+/** Custom options to configure the tooltip's default show/hide delays. */
+export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 1000,
+  hideDelay: 0,
+  touchendHideDelay: 1000,
+};
+
 @NgModule({
   declarations: [AppComponent, SystemMessageComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    environment.production ? [] : AkitaNgDevtools,
+    environment.production ? [] : AkitaNgDevtools.forRoot(),
     AkitaNgRouterStoreModule,
     AppRoutingModule,
     ComnSettingsModule.forRoot(),
@@ -78,6 +89,7 @@ export function getBasePath(settings: ComnSettingsService) {
     },
     { provide: ErrorHandler, useClass: ErrorService },
     SystemMessageService,
+    { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
   ],
   bootstrap: [AppComponent],
   entryComponents: [SystemMessageComponent],

@@ -9,18 +9,31 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   Resource,
+  ResourceCommandResult,
   Run,
   RunStatus,
   Workspace,
 } from '../../../generated/caster-api';
-import { StatusFilter, WorkspaceQuery, WorkspaceService } from '../../state';
+import {
+  ResourceActions,
+  StatusFilter,
+  WorkspaceQuery,
+  WorkspaceService,
+} from '../../state';
 import { shareReplay, take, tap } from 'rxjs/operators';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { Breadcrumb } from 'src/app/project/state';
+import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { ImportResourceComponent } from '../import-resource/import-resource.component';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { CurrentUserQuery } from 'src/app/users/state';
+import { OutputComponent } from '../output/output.component';
 
 @Component({
   selector: 'cas-workspace-container',
@@ -42,16 +55,30 @@ export class WorkspaceContainerComponent
   expandedResourceIds$: Observable<string[]>;
   selectedRunIds$: Observable<any>;
   resourceActionIds$: Observable<string[]>;
+  resourceAction$: Observable<ResourceActions>;
   workspaceRuns$: Observable<Run[]>;
   workspaceResources$: Observable<Resource[]>;
   workspace$: Observable<Workspace>;
   statusFilter$: Observable<StatusFilter[]>;
   breadcrumbString = '';
+  resourceActions = ResourceActions;
+
+  @ViewChild('importResourceDialog')
+  importResourceDialog: TemplateRef<ImportResourceComponent>;
+  private importResourceDialogRef: MatDialogRef<ImportResourceComponent>;
+
+  @ViewChild('errorDialog')
+  errorDialog: TemplateRef<OutputComponent>;
+  private errorDialogRef: MatDialogRef<OutputComponent>;
+  private errorMessage: string;
 
   constructor(
     private workspaceService: WorkspaceService,
     private workspaceQuery: WorkspaceQuery,
-    private signalrService: SignalRService
+    private signalrService: SignalRService,
+    private confirmService: ConfirmDialogService,
+    private currentUserQuery: CurrentUserQuery,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -79,6 +106,9 @@ export class WorkspaceContainerComponent
     this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(this.workspaceId);
     this.resourceActionIds$ = this.workspaceQuery
       .resourceActions$(this.workspaceId)
+      .pipe(shareReplay(1));
+    this.resourceAction$ = this.workspaceQuery
+      .resourceAction$(this.workspaceId)
       .pipe(shareReplay(1));
     this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId);
     // This value is used in multiple times in the template. So we use the shareReplay() operator to prevent multiple
@@ -149,7 +179,9 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .taint(this.workspaceId, item)
       .pipe(take(1))
-      .subscribe();
+      .subscribe((result) => {
+        this.showResult(result);
+      });
   }
 
   untaint(event: Event, item: Resource) {
@@ -157,14 +189,52 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .untaint(this.workspaceId, item)
       .pipe(take(1))
-      .subscribe();
+      .subscribe((result) => {
+        this.showResult(result);
+      });
+  }
+
+  remove(event: Event, item: Resource) {
+    event.stopPropagation();
+    this.confirmService
+      .confirmDialog(
+        'Confirm Remove',
+        `Are you sure you want to remove ${item.name}? This will only remove it from the Workspace State. It will NOT change any infrastructure.`
+      )
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (!result[this.confirmService.WAS_CANCELLED]) {
+          this.workspaceService
+            .remove(this.workspaceId, item)
+            .pipe(take(1))
+            .subscribe((result) => {
+              this.showResult(result);
+            });
+        }
+      });
   }
 
   refreshResources() {
     this.workspaceService
       .refreshResources(this.workspaceId)
       .pipe(take(1))
-      .subscribe();
+      .subscribe((result) => {
+        this.showResult(result);
+      });
+  }
+
+  private showResult(result: ResourceCommandResult) {
+    if (result.errors.length > 0) {
+      this.errorMessage = '';
+      result.errors.forEach((e) => (this.errorMessage += `${e}\n`));
+      this.dialog.open(this.errorDialog, { width: '75%' });
+    }
+  }
+
+  openImportResourceDialog() {
+    this.importResourceDialogRef = this.dialog.open(this.importResourceDialog, {
+      width: '75%',
+    });
   }
 
   expandRun(event) {
@@ -269,6 +339,10 @@ export class WorkspaceContainerComponent
 
   applyOutput(output: string, item: Run) {
     this.workspaceService.applyOutputUpdated(item.workspaceId, item.id, output);
+  }
+
+  onImportComplete() {
+    this.importResourceDialogRef.close();
   }
 
   ngOnDestroy() {

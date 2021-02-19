@@ -16,9 +16,15 @@ import {
   RunStatus,
   Workspace,
   WorkspacesService,
+  ResourceCommandResult,
+  ImportResourceCommand,
 } from '../../generated/caster-api';
 import { isUpdate } from '../../shared/utilities/functions';
-import { StatusFilter, WorkspaceEntityUi } from './workspace.model';
+import {
+  ResourceActions,
+  StatusFilter,
+  WorkspaceEntityUi,
+} from './workspace.model';
 import { WorkspaceQuery } from './workspace.query';
 import { WorkspaceStore } from './workspace.store';
 @Injectable({
@@ -125,43 +131,64 @@ export class WorkspaceService {
   }
 
   taint(workspaceId: string, items: Resource | Resource[]) {
-    items = coerceArray(items);
-    const resourceAddresses = items.map((i) => i.address);
-    items.forEach((i) => this.resourceAction(workspaceId, i.id));
+    const resourceAddresses = this.startResourceAction(
+      workspaceId,
+      items,
+      ResourceActions.Taint
+    );
+
     return this.resourceService
       .taintResources(workspaceId, { resourceAddresses })
       .pipe(
-        tap((resources: Resource[]) => {
-          this.workspaceStore.upsert(workspaceId, (entity) => ({
-            resources,
-          }));
-        }),
-        tap((resources) =>
-          (items as Resource[]).forEach((i) =>
-            this.resourceAction(workspaceId, i.id)
-          )
-        )
+        tap((result: ResourceCommandResult) => {
+          this.finishResourceAction(workspaceId, result);
+        })
       );
   }
 
   untaint(workspaceId: string, items: Resource | Resource[]) {
-    items = coerceArray(items);
-    const resourceAddresses = items.map((i) => i.address);
-    items.forEach((i) => this.resourceAction(workspaceId, i.id));
+    const resourceAddresses = this.startResourceAction(
+      workspaceId,
+      items,
+      ResourceActions.Taint
+    );
+
     return this.resourceService
       .untaintResources(workspaceId, { resourceAddresses })
       .pipe(
-        tap((resources: Resource[]) => {
-          this.workspaceStore.upsert(workspaceId, (entity) => ({
-            resources,
-          }));
-        }),
-        tap((resources) =>
-          (items as Resource[]).forEach((i) =>
-            this.resourceAction(workspaceId, i.id)
-          )
-        )
+        tap((result: ResourceCommandResult) => {
+          this.finishResourceAction(workspaceId, result);
+        })
       );
+  }
+
+  remove(workspaceId: string, items: Resource | Resource[]) {
+    const resourceAddresses = this.startResourceAction(
+      workspaceId,
+      items,
+      ResourceActions.Remove
+    );
+
+    return this.resourceService
+      .removeResources(workspaceId, { resourceAddresses })
+      .pipe(
+        tap((result: ResourceCommandResult) => {
+          this.finishResourceAction(workspaceId, result);
+        })
+      );
+  }
+
+  import(workspaceId: string, command: ImportResourceCommand) {
+    this.workspaceStore.setLoading(true);
+    return this.resourceService.importResources(workspaceId, command).pipe(
+      tap((result: ResourceCommandResult) => {
+        this.workspaceStore.update(workspaceId, () => ({
+          resources: result.resources,
+        }));
+
+        this.workspaceStore.setLoading(false);
+      })
+    );
   }
 
   setActive(workspace: Workspace | null) {
@@ -311,9 +338,9 @@ export class WorkspaceService {
   refreshResources(workspaceId: string) {
     this.workspaceStore.setLoading(true);
     return this.resourceService.refreshResources(workspaceId).pipe(
-      tap((resources) =>
+      tap((result: ResourceCommandResult) =>
         this.workspaceStore.update(workspaceId, (entity) => ({
-          resources,
+          resources: result.resources,
         }))
       ),
       tap(() => this.workspaceStore.setLoading(false))
@@ -328,11 +355,29 @@ export class WorkspaceService {
     }));
   }
 
-  resourceAction(workspaceId, resourceId) {
-    this.workspaceStore.ui.upsert(workspaceId, (entity) => ({
-      resourceActions: isUpdate<WorkspaceEntityUi>(entity)
-        ? arrayToggle(entity.resourceActions, resourceId)
-        : undefined,
+  startResourceAction(
+    workspaceId: string,
+    items: Resource | Resource[],
+    action: ResourceActions
+  ): string[] {
+    const itemsArray = coerceArray(items);
+
+    this.workspaceStore.ui.upsert(workspaceId, () => ({
+      resourceActions: itemsArray.map((i) => i.id),
+      resourceAction: action,
+    }));
+
+    return itemsArray.map((i) => i.address);
+  }
+
+  finishResourceAction(workspaceId: string, result: ResourceCommandResult) {
+    this.workspaceStore.upsert(workspaceId, () => ({
+      resources: result.resources,
+    }));
+
+    this.workspaceStore.ui.upsert(workspaceId, () => ({
+      resourceActions: [],
+      resourceAction: ResourceActions.None,
     }));
   }
 
