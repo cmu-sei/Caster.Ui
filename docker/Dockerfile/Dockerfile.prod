@@ -10,7 +10,7 @@ RUN npm set progress=false && \
   npm cache clean --force && \
   npm config set unsafe-perm true
 
-RUN npm i && mkdir /ng-app && cp -R ./node_modules ./ng-app
+RUN npm ci && mkdir /ng-app && cp -R ./node_modules ./ng-app
 
 WORKDIR /ng-app
 
