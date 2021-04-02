@@ -88,8 +88,6 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.disposeStream();
     this.resetOutput();
 
-    let streamResult;
-
     if (this.run.applyId !== null) {
       this.isApply = true;
 
