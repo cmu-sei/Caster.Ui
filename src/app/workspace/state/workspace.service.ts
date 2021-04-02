@@ -2,22 +2,27 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable } from '@angular/core';
-import { arrayToggle, arrayUpsert, coerceArray } from '@datorama/akita';
+import {
+  arrayRemove,
+  arrayToggle,
+  arrayUpsert,
+  coerceArray,
+} from '@datorama/akita';
 import { Observable, of } from 'rxjs';
 import { concatMap, take, tap } from 'rxjs/operators';
 import { FileService } from 'src/app/files/state';
 import {
   AppliesService,
+  ImportResourceCommand,
   PlansService,
   Resource,
+  ResourceCommandResult,
   ResourcesService,
   Run,
   RunsService,
   RunStatus,
   Workspace,
   WorkspacesService,
-  ResourceCommandResult,
-  ImportResourceCommand,
 } from '../../generated/caster-api';
 import { isUpdate } from '../../shared/utilities/functions';
 import {
@@ -232,12 +237,15 @@ export class WorkspaceService {
       .pipe(
         concatMap((_id: string) =>
           this.runsService.createRun({ workspaceId: _id, isDestroy })
-        )
+        ),
+        tap((run) => this.expandRun(true, run))
       );
   }
 
   applyRun(workspaceId: string, id: string) {
-    return this.appliesService.applyRun(id);
+    return this.appliesService
+      .applyRun(id)
+      .pipe(tap((run) => this.expandRun(true, run)));
   }
 
   rejectRun(workspaceId, runId: string) {
@@ -348,11 +356,21 @@ export class WorkspaceService {
   }
 
   expandRun(expand, run) {
-    this.workspaceStore.ui.upsert(run.workspaceId, (w) => ({
-      expandedRuns: isUpdate<WorkspaceEntityUi>(w)
-        ? arrayToggle(w.expandedRuns, run.id)
-        : undefined,
-    }));
+    this.workspaceStore.ui.upsert(
+      run.workspaceId,
+      (workspace: WorkspaceEntityUi) => {
+        const exists = workspace.expandedRuns.includes(run.id);
+        if (!exists && expand) {
+          return {
+            expandedRuns: arrayUpsert(workspace.expandedRuns, run.id, run.id),
+          };
+        } else if (exists && !expand) {
+          return { expandedRuns: arrayRemove(workspace.expandedRuns, run.id) };
+        }
+        // No Change
+        return { expandedRuns: workspace.expandedRuns };
+      }
+    );
   }
 
   startResourceAction(

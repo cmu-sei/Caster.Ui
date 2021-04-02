@@ -12,7 +12,13 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
+import { shareReplay, take, tap } from 'rxjs/operators';
+import { Breadcrumb } from 'src/app/project/state';
+import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { CurrentUserQuery } from 'src/app/users/state';
 import {
   Resource,
   ResourceCommandResult,
@@ -26,13 +32,7 @@ import {
   WorkspaceQuery,
   WorkspaceService,
 } from '../../state';
-import { shareReplay, take, tap } from 'rxjs/operators';
-import { SignalRService } from 'src/app/shared/signalr/signalr.service';
-import { Breadcrumb } from 'src/app/project/state';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { ImportResourceComponent } from '../import-resource/import-resource.component';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { CurrentUserQuery } from 'src/app/users/state';
 import { OutputComponent } from '../output/output.component';
 
 @Component({
@@ -98,24 +98,24 @@ export class WorkspaceContainerComponent
       .expandedRuns$(this.workspaceId)
       .pipe(
         tap(() => console.log(`Updating expandedRunIds`)),
-        shareReplay(1)
+        shareReplay({ bufferSize: 1, refCount: true })
       );
     this.expandedResourceIds$ = this.workspaceQuery
       .expandedResources$(this.workspaceId)
-      .pipe(shareReplay(1));
+      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(this.workspaceId);
     this.resourceActionIds$ = this.workspaceQuery
       .resourceActions$(this.workspaceId)
-      .pipe(shareReplay(1));
+      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     this.resourceAction$ = this.workspaceQuery
       .resourceAction$(this.workspaceId)
-      .pipe(shareReplay(1));
+      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId);
     // This value is used in multiple times in the template. So we use the shareReplay() operator to prevent multiple
     // subscriptions.
     this.workspaceView$ = this.workspaceQuery
       .getWorkspaceView(this.workspaceId)
-      .pipe(shareReplay(1));
+      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
 
     this.signalrService.joinWorkspace(this.workspaceId);
   }

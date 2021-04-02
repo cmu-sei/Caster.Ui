@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
-import { filter, takeUntil, tap } from 'rxjs/operators';
+import { filter, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
@@ -47,9 +47,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),
-      tap((user) => {
-        const test = 0;
-      }),
       takeUntil(this.unsubscribe$)
     );
 

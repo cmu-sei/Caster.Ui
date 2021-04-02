@@ -10,11 +10,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     -->
   </div>
   <mat-icon
-    style="margin-left: 50px; transform: scale(0.85); margin-right: 5px;"
+    style="margin-left: 50px; transform: scale(0.85); margin-right: 5px"
     class="mdi mdi-18px"
     fontIcon="mdi-magnify-outline"
   ></mat-icon>
-  <mat-form-field style="width: 320px;">
+  <mat-form-field style="width: 320px">
     <input
       matInput
       [(ngModel)]="filterString"
@@ -22,17 +22,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       placeholder="Search"
     />
   </mat-form-field>
-  <div style="width: 50px;">
+  <div style="width: 50px">
     <button
       *ngIf="filterString != ''"
       fxLayoutAlign="start center"
       mat-icon-button
       (click)="clearFilter()"
-      style="outline: none;"
+      style="outline: none"
       title="Clear Search"
     >
       <mat-icon
-        style="transform: scale(0.85);"
+        style="transform: scale(0.85)"
         svgIcon="ic_cancel_circle"
       ></mat-icon>
     </button>
@@ -53,7 +53,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-card
   *ngIf="loading"
-  style="display: flex; justify-content: center; align-items: center;"
+  style="display: flex; justify-content: center; align-items: center"
 >
   <mat-progress-spinner color="primary" mode="indeterminate">
   </mat-progress-spinner>
@@ -66,7 +66,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
   </section>
   <mat-expansion-panel
-    *ngFor="let item of displayedRows$ | async; trackBy: trackByFn"
+    *ngFor="let item of displayedRows$ | async; trackBy: trackByFn.bind(this)"
     [expanded]="isExpanded(item)"
     (afterExpand)="afterExpand($event, item)"
     (afterCollapse)="afterCollapse($event, item)"
