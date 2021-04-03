@@ -2,23 +2,23 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
-  Component,
-  Input,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  NgZone,
   OnChanges,
   OnDestroy,
-  ViewChild,
-  ElementRef,
   Output,
-  EventEmitter,
-  AfterViewInit,
-  NgZone,
-  HostListener,
+  ViewChild,
 } from '@angular/core';
-import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { ISubscription } from '@microsoft/signalr';
+import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
-import { Terminal, ITerminalOptions } from 'xterm';
+import { ITerminalOptions, Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
 @Component({
@@ -88,8 +88,6 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.disposeStream();
     this.resetOutput();
 
-    let streamResult;
-
     if (this.run.applyId !== null) {
       this.isApply = true;
 
@@ -97,7 +95,9 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.addOutput(this.run.apply.output);
         return;
       } else {
-        streamResult = this.signalRService.streamApplyOutput(this.run.applyId);
+        this.signalRService.startConnection().then(() => {
+          this.stream(this.signalRService.streamApplyOutput(this.run.applyId));
+        });
       }
     } else if (this.run.planId !== null) {
       this.isPlan = true;
@@ -106,10 +106,14 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.addOutput(this.run.plan.output);
         return;
       } else {
-        streamResult = this.signalRService.streamPlanOutput(this.run.planId);
+        this.signalRService.startConnection().then(() => {
+          this.stream(this.signalRService.streamPlanOutput(this.run.planId));
+        });
       }
     }
+  }
 
+  private stream(streamResult) {
     if (streamResult) {
       this.streamSub = streamResult.subscribe({
         next: (item: string) => {
