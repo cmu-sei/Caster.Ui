@@ -1,6 +1,6 @@
 ### Stage 2: Build ###
 
-FROM node:14.13.1-stretch as builder
+FROM node as builder
 
 COPY package.json package-lock.json ./
 
@@ -27,9 +27,13 @@ COPY ./docker/nginx-basehref.sh /docker-entrypoint.d/90-basehref.sh
 
 RUN rm -rf /usr/share/nginx/html/*
 
+RUN adduser --disabled-password caster && chown -R caster /usr/share/nginx/html
+
 COPY --from=builder /ng-app/dist/caster-ui /usr/share/nginx/html
 
 # Build Angular app in production mode and store artifacts in dist folder
 RUN rm -f ./src/assets/config/settings.env.json
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+USER caster
