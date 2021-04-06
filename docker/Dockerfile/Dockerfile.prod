@@ -27,13 +27,12 @@ COPY ./docker/nginx-basehref.sh /docker-entrypoint.d/90-basehref.sh
 
 RUN rm -rf /usr/share/nginx/html/*
 
-RUN adduser --disabled-password caster    && \
-    chown -R caster /usr/share/nginx/html && \
-    chown -R caster /var/cache/nginx      && \
-    chown -R caster /var/log/nginx        && \
-    chown -R caster /etc/nginx/conf.d
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx      && \
+    chown -R nginx:nginx /var/log/nginx        && \
+    chown -R nginx:nginx /etc/nginx/conf.d
 
-USER caster
+USER nginx
 
 COPY --from=builder /ng-app/dist/caster-ui /usr/share/nginx/html
 
