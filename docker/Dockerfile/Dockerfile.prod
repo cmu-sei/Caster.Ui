@@ -30,7 +30,8 @@ RUN rm -rf /usr/share/nginx/html/*
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx      && \
     chown -R nginx:nginx /var/log/nginx        && \
-    chown -R nginx:nginx /etc/nginx/conf.d
+    chown -R nginx:nginx /etc/nginx/conf.d     && \
+    sed -i 's,/var/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf
 
 USER nginx
 
