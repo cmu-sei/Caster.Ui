@@ -41,4 +41,6 @@ COPY --from=builder /ng-app/dist/caster-ui /usr/share/nginx/html
 # Build Angular app in production mode and store artifacts in dist folder
 RUN rm -f ./src/assets/config/settings.env.json
 
+EXPOSE 8080
+
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
