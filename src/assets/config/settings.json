@@ -10,7 +10,7 @@
     "automaticSilentRenew": true,
     "silent_redirect_uri": "http://localhost:4310/auth-callback-silent/"
   },
-  "UseLocalAuthStorage": true,
+  "UseLocalAuthStorage": false,
   "AppTopBarHexColor": "#E9831C",
   "AppTopBarHexTextColor": "#FFFFFF",
   "AppTopBarText": "Caster",
