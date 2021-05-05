@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 README.md
 api.module.ts
 api/api.ts
@@ -25,6 +24,7 @@ index.ts
 model/apply.ts
 model/applyStatus.ts
 model/archiveType.ts
+model/cancelRunCommand.ts
 model/createDirectoryCommand.ts
 model/createFileCommand.ts
 model/createHostCommand.ts

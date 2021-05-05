@@ -11,10 +11,10 @@
  */
 
 
-export interface RemoveResourcesCommand { 
+export interface CancelRunCommand { 
     /**
-     * List of Resource addresses to remove
+     * If true, will forcefully terminate the Run.  If false, will attempt to gracefully cancel the Run.
      */
-    resourceAddresses?: Array<string> | null;
+    force?: boolean;
 }
 

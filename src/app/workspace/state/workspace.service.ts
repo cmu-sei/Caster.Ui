@@ -252,6 +252,10 @@ export class WorkspaceService {
     return this.runsService.rejectRun(runId);
   }
 
+  cancelRun(workspaceId, runId: string, force: boolean) {
+    return this.runsService.cancelRun(runId, { force: force });
+  }
+
   saveState(runId: string) {
     this.workspaceStore.setLoading(true);
     return this.runsService
