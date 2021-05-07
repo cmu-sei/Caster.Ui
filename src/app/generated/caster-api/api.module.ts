@@ -1,14 +1,16 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core';
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
-
 import { AppliesService } from './api/applies.service';
 import { DirectoriesService } from './api/directories.service';
 import { FilesService } from './api/files.service';
+import { HealthService } from './api/health.service';
 import { HostsService } from './api/hosts.service';
 import { ModulesService } from './api/modules.service';
 import { PermissionsService } from './api/permissions.service';
@@ -25,21 +27,7 @@ import { WorkspacesService } from './api/workspaces.service';
   imports:      [],
   declarations: [],
   exports:      [],
-  providers: [
-    AppliesService,
-    DirectoriesService,
-    FilesService,
-    HostsService,
-    ModulesService,
-    PermissionsService,
-    PlansService,
-    ProjectsService,
-    ResourcesService,
-    RunsService,
-    TerraformService,
-    UserPermissionsService,
-    UsersService,
-    WorkspacesService ]
+  providers: []
 })
 export class ApiModule {
     public static forRoot(configurationFactory: () => Configuration): ModuleWithProviders<ApiModule> {

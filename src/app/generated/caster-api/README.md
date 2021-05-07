@@ -1,8 +1,3 @@
-<!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
--->
-
 ## @
 
 ### Building
@@ -15,7 +10,7 @@ npm run build
 
 ### publishing
 
-First build the package then run ```npm publish```
+First build the package then run ```npm publish dist``` (don't forget to specify the `dist` folder!)
 
 ### consuming
 
@@ -30,14 +25,14 @@ npm install @ --save
 _without publishing (not recommended):_
 
 ```
-npm install PATH_TO_GENERATED_PACKAGE/-.tgz --save
+npm install PATH_TO_GENERATED_PACKAGE/dist.tgz --save
 ```
 
 _It's important to take the tgz file, otherwise you'll get trouble with links on windows_
 
 _using `npm link`:_
 
-In PATH_TO_GENERATED_PACKAGE:
+In PATH_TO_GENERATED_PACKAGE/dist:
 ```
 npm link
 ```
@@ -62,7 +57,6 @@ In your Angular project:
 import { ApiModule } from '';
 import { HttpClientModule } from '@angular/common/http';
 
-
 @NgModule({
     imports: [
         ApiModule,
@@ -81,7 +75,7 @@ export class AppModule {}
 // configuring providers
 import { ApiModule, Configuration, ConfigurationParameters } from '';
 
-export function apiConfigFactory (): Configuration => {
+export function apiConfigFactory (): Configuration {
   const params: ConfigurationParameters = {
     // set configuration parameters here.
   }
@@ -98,10 +92,35 @@ export class AppModule {}
 ```
 
 ```
+// configuring providers with an authentication service that manages your access tokens
+import { ApiModule, Configuration } from '';
+
+@NgModule({
+    imports: [ ApiModule ],
+    declarations: [ AppComponent ],
+    providers: [
+      {
+        provide: Configuration,
+        useFactory: (authService: AuthService) => new Configuration(
+          {
+            basePath: environment.apiUrl,
+            accessToken: authService.getAccessToken.bind(authService)
+          }
+        ),
+        deps: [AuthService],
+        multi: false
+      }
+    ],
+    bootstrap: [ AppComponent ]
+})
+export class AppModule {}
+```
+
+```
 import { DefaultApi } from '';
 
 export class AppComponent {
-	 constructor(private apiGateway: DefaultApi) { }
+    constructor(private apiGateway: DefaultApi) { }
 }
 ```
 
@@ -116,7 +135,6 @@ in order to avoid naming conflicts:
 import { ApiModule } from 'my-api-path';
 import { ApiModule as OtherApiModule } from 'my-other-api-path';
 import { HttpClientModule } from '@angular/common/http';
-
 
 @NgModule({
   imports: [

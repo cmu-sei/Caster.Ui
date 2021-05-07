@@ -1,26 +1,52 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 import { HttpParameterCodec } from '@angular/common/http';
 
 export interface ConfigurationParameters {
+    /**
+     *  @deprecated Since 5.0. Use credentials instead
+     */
     apiKeys?: {[ key: string ]: string};
     username?: string;
     password?: string;
+    /**
+     *  @deprecated Since 5.0. Use credentials instead
+     */
     accessToken?: string | (() => string);
     basePath?: string;
     withCredentials?: boolean;
     encoder?: HttpParameterCodec;
+    /**
+     * The keys are the names in the securitySchemes section of the OpenAPI
+     * document. They should map to the value used for authentication
+     * minus any standard prefixes such as 'Basic' or 'Bearer'.
+     */
+    credentials?: {[ key: string ]: string | (() => string | undefined)};
 }
 
 export class Configuration {
+    /**
+     *  @deprecated Since 5.0. Use credentials instead
+     */
     apiKeys?: {[ key: string ]: string};
     username?: string;
     password?: string;
+    /**
+     *  @deprecated Since 5.0. Use credentials instead
+     */
     accessToken?: string | (() => string);
     basePath?: string;
     withCredentials?: boolean;
     encoder?: HttpParameterCodec;
+    /**
+     * The keys are the names in the securitySchemes section of the OpenAPI
+     * document. They should map to the value used for authentication
+     * minus any standard prefixes such as 'Basic' or 'Bearer'.
+     */
+    credentials: {[ key: string ]: string | (() => string | undefined)};
 
     constructor(configurationParameters: ConfigurationParameters = {}) {
         this.apiKeys = configurationParameters.apiKeys;
@@ -30,6 +56,21 @@ export class Configuration {
         this.basePath = configurationParameters.basePath;
         this.withCredentials = configurationParameters.withCredentials;
         this.encoder = configurationParameters.encoder;
+        if (configurationParameters.credentials) {
+            this.credentials = configurationParameters.credentials;
+        }
+        else {
+            this.credentials = {};
+        }
+
+        // init default oauth2 credential
+        if (!this.credentials['oauth2']) {
+            this.credentials['oauth2'] = () => {
+                return typeof this.accessToken === 'function'
+                    ? this.accessToken()
+                    : this.accessToken;
+            };
+        }
     }
 
     /**
@@ -83,5 +124,12 @@ export class Configuration {
     public isJsonMime(mime: string): boolean {
         const jsonMime: RegExp = new RegExp('^(application\/json|[^;/ \t]+\/[^;/ \t]+[+]json)[ \t]*(;.*)?$', 'i');
         return mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === 'application/json-patch+json');
+    }
+
+    public lookupCredential(key: string): string | undefined {
+        const value = this.credentials[key];
+        return typeof value === 'function'
+            ? value()
+            : value;
     }
 }

@@ -1,5 +1,7 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 /**
  * Caster API
@@ -42,10 +44,10 @@ export interface Resource {
     /**
      * Type-specific additional attributes for searching on. Always returned.
      */
-    searchableAttributes?: { [key: string]: object; } | null;
+    searchableAttributes?: { [key: string]: any; } | null;
     /**
      * Raw json of all additional type-specific attributes. Only returned when requesting a single Resource; otherwise null.
      */
-    attributes?: object | null;
+    attributes?: any | null;
 }
 

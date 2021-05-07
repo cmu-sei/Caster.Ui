@@ -1,5 +1,7 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 /**
  * Caster API
@@ -27,10 +29,6 @@ export interface Run {
      */
     workspaceId?: string;
     /**
-     * The time in UTC that this Run was initially created
-     */
-    createdAt?: Date;
-    /**
      * Wether or not this Run was for a Destroy command
      */
     isDestroy?: boolean;
@@ -49,5 +47,29 @@ export interface Run {
      * The Id of the Apply for this Run. Null if no Apply exists.
      */
     applyId?: string | null;
+    /**
+     * The time in UTC that this Run was initially created
+     */
+    createdAt?: string;
+    /**
+     * The Id of the User who created this Run
+     */
+    createdById?: string | null;
+    /**
+     * The Name of the User who created this Run
+     */
+    createdBy?: string | null;
+    /**
+     * The time in UTC that this Run was last modified (Applied, Rejected, etc)
+     */
+    modifiedAt?: string | null;
+    /**
+     * The Id of the User who last modified this Run
+     */
+    modifiedById?: string | null;
+    /**
+     * The Name of the User who last modified this Run
+     */
+    modifiedBy?: string | null;
 }
 

@@ -1,5 +1,7 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 export * from './apply';
 export * from './applyStatus';
@@ -24,12 +26,11 @@ export * from './editUserCommand';
 export * from './editUserPermissionCommand';
 export * from './editWorkspaceCommand';
 export * from './fileVersion';
+export * from './healthStatus';
 export * from './host';
 export * from './importDirectoryResult';
 export * from './importProjectResult';
 export * from './importResourceCommand';
-export * from './inlineObject';
-export * from './inlineObject1';
 export * from './file';
 export * from './module';
 export * from './moduleVariable';

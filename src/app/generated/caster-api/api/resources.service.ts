@@ -1,5 +1,7 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
-// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
 
 /**
  * Caster API
@@ -20,15 +22,16 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
-import { ImportResourceCommand } from '../model/importResourceCommand';
-import { ProblemDetails } from '../model/problemDetails';
-import { RemoveResourcesCommand } from '../model/removeResourcesCommand';
-import { Resource } from '../model/resource';
-import { ResourceCommandResult } from '../model/resourceCommandResult';
-import { TaintResourcesCommand } from '../model/taintResourcesCommand';
+import { ImportResourceCommand } from '../model/models';
+import { ProblemDetails } from '../model/models';
+import { RemoveResourcesCommand } from '../model/models';
+import { Resource } from '../model/models';
+import { ResourceCommandResult } from '../model/models';
+import { TaintResourcesCommand } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
+
 
 
 @Injectable({
@@ -55,59 +58,103 @@ export class ResourcesService {
     }
 
 
+    private addToHttpParams(httpParams: HttpParams, value: any, key?: string): HttpParams {
+        if (typeof value === "object" && value instanceof Date === false) {
+            httpParams = this.addToHttpParamsRecursive(httpParams, value);
+        } else {
+            httpParams = this.addToHttpParamsRecursive(httpParams, value, key);
+        }
+        return httpParams;
+    }
+
+    private addToHttpParamsRecursive(httpParams: HttpParams, value?: any, key?: string): HttpParams {
+        if (value == null) {
+            return httpParams;
+        }
+
+        if (typeof value === "object") {
+            if (Array.isArray(value)) {
+                (value as any[]).forEach( elem => httpParams = this.addToHttpParamsRecursive(httpParams, elem, key));
+            } else if (value instanceof Date) {
+                if (key != null) {
+                    httpParams = httpParams.append(key,
+                        (value as Date).toISOString().substr(0, 10));
+                } else {
+                   throw Error("key may not be null if value is Date");
+                }
+            } else {
+                Object.keys(value).forEach( k => httpParams = this.addToHttpParamsRecursive(
+                    httpParams, value[k], key != null ? `${key}.${k}` : k));
+            }
+        } else if (key != null) {
+            httpParams = httpParams.append(key, value);
+        } else {
+            throw Error("key may not be null if value is not object or array");
+        }
+        return httpParams;
+    }
 
     /**
      * Get a single resource in a Workspace.
      * @param workspaceId 
      * @param id 
-     * @param Type Type of the Resource.
+     * @param type Type of the Resource.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getResource(workspaceId: string, id: string, Type: string, observe?: 'body', reportProgress?: boolean): Observable<Resource>;
-    public getResource(workspaceId: string, id: string, Type: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<Resource>>;
-    public getResource(workspaceId: string, id: string, Type: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<Resource>>;
-    public getResource(workspaceId: string, id: string, Type: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public getResource(workspaceId: string, id: string, type: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<Resource>;
+    public getResource(workspaceId: string, id: string, type: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<Resource>>;
+    public getResource(workspaceId: string, id: string, type: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<Resource>>;
+    public getResource(workspaceId: string, id: string, type: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling getResource.');
         }
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling getResource.');
         }
-        if (Type === null || Type === undefined) {
-            throw new Error('Required parameter Type was null or undefined when calling getResource.');
+        if (type === null || type === undefined) {
+            throw new Error('Required parameter type was null or undefined when calling getResource.');
         }
 
         let queryParameters = new HttpParams({encoder: this.encoder});
-        if (Type !== undefined && Type !== null) {
-            queryParameters = queryParameters.set('Type', <any>Type);
+        if (type !== undefined && type !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>type, 'Type');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
 
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.get<Resource>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/${encodeURIComponent(String(id))}`,
             {
                 params: queryParameters,
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -122,38 +169,46 @@ export class ResourcesService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getResourcesByWorkspace(workspaceId: string, observe?: 'body', reportProgress?: boolean): Observable<Array<Resource>>;
-    public getResourcesByWorkspace(workspaceId: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<Array<Resource>>>;
-    public getResourcesByWorkspace(workspaceId: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<Array<Resource>>>;
-    public getResourcesByWorkspace(workspaceId: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public getResourcesByWorkspace(workspaceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<Array<Resource>>;
+    public getResourcesByWorkspace(workspaceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<Array<Resource>>>;
+    public getResourcesByWorkspace(workspaceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<Array<Resource>>>;
+    public getResourcesByWorkspace(workspaceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling getResourcesByWorkspace.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
 
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.get<Array<Resource>>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources`,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -165,35 +220,37 @@ export class ResourcesService {
     /**
      * Import a Resource
      * @param workspaceId 
-     * @param ImportResourceCommand 
+     * @param importResourceCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
-    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
-    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
-    public importResources(workspaceId: string, ImportResourceCommand?: ImportResourceCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public importResources(workspaceId: string, importResourceCommand?: ImportResourceCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<ResourceCommandResult>;
+    public importResources(workspaceId: string, importResourceCommand?: ImportResourceCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<ResourceCommandResult>>;
+    public importResources(workspaceId: string, importResourceCommand?: ImportResourceCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<ResourceCommandResult>>;
+    public importResources(workspaceId: string, importResourceCommand?: ImportResourceCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling importResources.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
@@ -210,9 +267,15 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/import`,
-            ImportResourceCommand,
+            importResourceCommand,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -227,39 +290,47 @@ export class ResourcesService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public refreshResources(workspaceId: string, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
-    public refreshResources(workspaceId: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
-    public refreshResources(workspaceId: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
-    public refreshResources(workspaceId: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public refreshResources(workspaceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<ResourceCommandResult>;
+    public refreshResources(workspaceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<ResourceCommandResult>>;
+    public refreshResources(workspaceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<ResourceCommandResult>>;
+    public refreshResources(workspaceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling refreshResources.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
 
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/refresh`,
             null,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -271,35 +342,37 @@ export class ResourcesService {
     /**
      * Remove selected Resources
      * @param workspaceId 
-     * @param RemoveResourcesCommand 
+     * @param removeResourcesCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
-    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
-    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
-    public removeResources(workspaceId: string, RemoveResourcesCommand?: RemoveResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public removeResources(workspaceId: string, removeResourcesCommand?: RemoveResourcesCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<ResourceCommandResult>;
+    public removeResources(workspaceId: string, removeResourcesCommand?: RemoveResourcesCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<ResourceCommandResult>>;
+    public removeResources(workspaceId: string, removeResourcesCommand?: RemoveResourcesCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<ResourceCommandResult>>;
+    public removeResources(workspaceId: string, removeResourcesCommand?: RemoveResourcesCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling removeResources.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
@@ -316,9 +389,15 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/remove`,
-            RemoveResourcesCommand,
+            removeResourcesCommand,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -330,35 +409,37 @@ export class ResourcesService {
     /**
      * Taint selected Resources
      * @param workspaceId 
-     * @param TaintResourcesCommand 
+     * @param taintResourcesCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
-    public taintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public taintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<ResourceCommandResult>;
+    public taintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<ResourceCommandResult>>;
+    public taintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<ResourceCommandResult>>;
+    public taintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling taintResources.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
@@ -375,9 +456,15 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/taint`,
-            TaintResourcesCommand,
+            taintResourcesCommand,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
@@ -389,35 +476,37 @@ export class ResourcesService {
     /**
      * Untaint selected Resources
      * @param workspaceId 
-     * @param TaintResourcesCommand 
+     * @param taintResourcesCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean): Observable<ResourceCommandResult>;
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<ResourceCommandResult>>;
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<ResourceCommandResult>>;
-    public untaintResources(workspaceId: string, TaintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public untaintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<ResourceCommandResult>;
+    public untaintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpResponse<ResourceCommandResult>>;
+    public untaintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<HttpEvent<ResourceCommandResult>>;
+    public untaintResources(workspaceId: string, taintResourcesCommand?: TaintResourcesCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json'}): Observable<any> {
         if (workspaceId === null || workspaceId === undefined) {
             throw new Error('Required parameter workspaceId was null or undefined when calling untaintResources.');
         }
 
         let headers = this.defaultHeaders;
 
+        let credential: string | undefined;
         // authentication (oauth2) required
-        if (this.configuration.accessToken) {
-            const accessToken = typeof this.configuration.accessToken === 'function'
-                ? this.configuration.accessToken()
-                : this.configuration.accessToken;
-            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        credential = this.configuration.lookupCredential('oauth2');
+        if (credential) {
+            headers = headers.set('Authorization', 'Bearer ' + credential);
         }
 
-        // to determine the Accept header
-        const httpHeaderAccepts: string[] = [
-            'text/plain',
-            'application/json',
-            'text/json'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (httpHeaderAcceptSelected !== undefined) {
             headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
@@ -434,9 +523,15 @@ export class ResourcesService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
         return this.httpClient.post<ResourceCommandResult>(`${this.configuration.basePath}/api/workspaces/${encodeURIComponent(String(workspaceId))}/resources/actions/untaint`,
-            TaintResourcesCommand,
+            taintResourcesCommand,
             {
+                responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,
