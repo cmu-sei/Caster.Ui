@@ -212,8 +212,8 @@ export class WorkspaceService {
       }));
     } else {
       // Filters are saved in persistent storage if they exist we will load them instead of the defaults
-      const persistedStatusFilters = this.workspaceQuery.ui.getValue()
-        .statusFilter;
+      const persistedStatusFilters =
+        this.workspaceQuery.ui.getValue().statusFilter;
 
       if (persistedStatusFilters && persistedStatusFilters.length > 0) {
         this.workspaceStore.ui.update(workspaceId, (state) => ({

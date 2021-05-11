@@ -9,11 +9,13 @@ describe('ProjectBreadcrumbComponent', () => {
   let component: ProjectBreadcrumbComponent;
   let fixture: ComponentFixture<ProjectBreadcrumbComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ProjectBreadcrumbComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ProjectBreadcrumbComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectBreadcrumbComponent);

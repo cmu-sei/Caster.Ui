@@ -13,7 +13,8 @@ export interface CanComponentDeactivate {
   providedIn: 'root',
 })
 export class CanDeactivateGuard
-  implements CanDeactivate<CanComponentDeactivate> {
+  implements CanDeactivate<CanComponentDeactivate>
+{
   canDeactivate(
     component: CanComponentDeactivate
   ): Observable<boolean> | Promise<boolean> | boolean {

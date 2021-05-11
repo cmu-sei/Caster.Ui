@@ -4,12 +4,6 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
-  "files": [
-    "src/main.playground.ts",
-    "src/polyfills.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts",
-    "src/**/*.sandbox.ts"
-  ]
+  "files": ["src/main.playground.ts", "src/polyfills.ts"],
+  "include": ["src/**/*.d.ts", "src/**/*.sandbox.ts"]
 }

@@ -9,11 +9,13 @@ describe('NavigationListComponent', () => {
   let component: ProjectNavigationContainerComponent;
   let fixture: ComponentFixture<ProjectNavigationContainerComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ProjectNavigationContainerComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ProjectNavigationContainerComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectNavigationContainerComponent);

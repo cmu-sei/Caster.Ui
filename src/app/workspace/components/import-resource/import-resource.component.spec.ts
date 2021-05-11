@@ -11,9 +11,8 @@ describe('ImportResourceComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ImportResourceComponent ]
-    })
-    .compileComponents();
+      declarations: [ImportResourceComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

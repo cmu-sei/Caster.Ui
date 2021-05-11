@@ -9,11 +9,13 @@ describe('ProjectTabComponent', () => {
   let component: ProjectTabComponent;
   let fixture: ComponentFixture<ProjectTabComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ProjectTabComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ProjectTabComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectTabComponent);

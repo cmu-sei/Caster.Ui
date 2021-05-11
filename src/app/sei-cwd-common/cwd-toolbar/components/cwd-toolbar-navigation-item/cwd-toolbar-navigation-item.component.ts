@@ -25,7 +25,8 @@ import {
   styleUrls: ['./cwd-toolbar-navigation-item.component.scss'],
 })
 export class CwdToolbarNavigationItemComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
   @ViewChild('cwdToolbarNavigation', { static: true }) cwdNavigationTmplRef;

@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div *ngIf="useButtonStyleBreadcrumbs" style="margin: 10px;">
+<div *ngIf="useButtonStyleBreadcrumbs" style="margin: 10px">
   <ng-container *ngFor="let breadcrumb of breadcrumbs; let i = index">
     <button
       mat-button
@@ -30,7 +30,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </ng-container>
 </div>
 
-<div *ngIf="!useButtonStyleBreadcrumbs" style="margin: 10px;">
+<div *ngIf="!useButtonStyleBreadcrumbs" style="margin: 10px">
   <ng-container *ngFor="let breadcrumb of breadcrumbs; let i = index">
     <span [ngClass]="i === 0 ? 'breadcrumb-item-first' : 'breadcrumb-item'">
       <mat-icon
@@ -48,7 +48,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         class="mdi-18px icon"
         fontIcon="mdi-briefcase"
       ></mat-icon>
-      <span style="font-size: 14px;">
+      <span style="font-size: 14px">
         {{ breadcrumb?.name }}
       </span>
     </span>

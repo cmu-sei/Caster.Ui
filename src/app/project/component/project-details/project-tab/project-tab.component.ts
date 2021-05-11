@@ -60,7 +60,8 @@ type TabSubscription = { id: string; subscription: Subscription };
   styleUrls: ['./project-tab.component.scss'],
 })
 export class ProjectTabComponent
-  implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate {
+  implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate
+{
   @Input() project: Project;
   @Input() projectUI: ProjectUI;
   @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
@@ -270,18 +271,18 @@ export class ProjectTabComponent
           if (!alreadyWatching) {
             switch (tab.type) {
               case ProjectObjectType.FILE:
-                this.nonactiveTabSubscriptions[
-                  tab.id
-                ] = this.fileQuery.selectEntity(tab.id).subscribe((f) => {
-                  this.fileChangeHandler(f);
-                });
+                this.nonactiveTabSubscriptions[tab.id] = this.fileQuery
+                  .selectEntity(tab.id)
+                  .subscribe((f) => {
+                    this.fileChangeHandler(f);
+                  });
                 break;
               case ProjectObjectType.WORKSPACE:
-                this.nonactiveTabSubscriptions[
-                  tab.id
-                ] = this.workspaceQuery.selectEntity(tab.id).subscribe((f) => {
-                  this.workspaceChangeHandler(f);
-                });
+                this.nonactiveTabSubscriptions[tab.id] = this.workspaceQuery
+                  .selectEntity(tab.id)
+                  .subscribe((f) => {
+                    this.workspaceChangeHandler(f);
+                  });
                 break;
               default:
                 break;

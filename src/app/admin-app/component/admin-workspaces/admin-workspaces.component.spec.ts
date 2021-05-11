@@ -9,11 +9,13 @@ describe('AdminWorkspacesComponent', () => {
   let component: AdminWorkspacesComponent;
   let fixture: ComponentFixture<AdminWorkspacesComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [AdminWorkspacesComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [AdminWorkspacesComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AdminWorkspacesComponent);

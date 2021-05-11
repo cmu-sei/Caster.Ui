@@ -71,14 +71,12 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
 
-  @ViewChild('workspaceEditDialog') workspaceEditDialog: TemplateRef<
-    WorkspaceEditContainerComponent
-  >;
+  @ViewChild('workspaceEditDialog')
+  workspaceEditDialog: TemplateRef<WorkspaceEditContainerComponent>;
   private workspaceEditDialogRef: MatDialogRef<WorkspaceEditContainerComponent>;
 
-  @ViewChild('directoryEditDialog') directoryEditDialog: TemplateRef<
-    DirectoryEditContainerComponent
-  >;
+  @ViewChild('directoryEditDialog')
+  directoryEditDialog: TemplateRef<DirectoryEditContainerComponent>;
   private directoryEditDialogRef: MatDialogRef<DirectoryEditContainerComponent>;
 
   contextMenuPosition = { x: '0px', y: '0px' };

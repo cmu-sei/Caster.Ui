@@ -42,7 +42,8 @@ import { OutputComponent } from '../output/output.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkspaceContainerComponent
-  implements OnInit, OnDestroy, OnChanges {
+  implements OnInit, OnDestroy, OnChanges
+{
   @Input() workspaceId: string;
   @Input() breadcrumb: Breadcrumb[];
   workspaceRuns: Run[];

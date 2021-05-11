@@ -9,11 +9,13 @@ describe('CwdToolbarComponent', () => {
   let component: CwdToolbarComponent;
   let fixture: ComponentFixture<CwdToolbarComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [CwdToolbarComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [CwdToolbarComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CwdToolbarComponent);
