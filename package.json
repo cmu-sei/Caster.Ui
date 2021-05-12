@@ -52,7 +52,7 @@
     "@datorama/akita-ngdevtools": "^6.0.0",
     "@materia-ui/ngx-monaco-editor": "^5.0.0",
     "@mdi/font": "^5.9.55",
-    "@microsoft/signalr": "^5.0.5",
+    "@microsoft/signalr": "^5.0.6",
     "@ng-bootstrap/ng-bootstrap": "^9.1.0",
     "@ngneat/hotkeys": "^1.1.2",
     "angular-resizable-element": "^3.3.5",
