@@ -9,11 +9,13 @@ describe('ProjectExportComponent', () => {
   let component: ProjectExportComponent;
   let fixture: ComponentFixture<ProjectExportComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ProjectExportComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ProjectExportComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectExportComponent);

@@ -9,11 +9,13 @@ describe('CwdToolbarActionItemComponent', () => {
   let component: CwdToolbarActionItemComponent;
   let fixture: ComponentFixture<CwdToolbarActionItemComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [CwdToolbarActionItemComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [CwdToolbarActionItemComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CwdToolbarActionItemComponent);

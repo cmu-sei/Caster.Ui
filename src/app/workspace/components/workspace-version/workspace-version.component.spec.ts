@@ -9,12 +9,13 @@ describe('WorkspaceVersionComponent', () => {
   let component: WorkspaceVersionComponent;
   let fixture: ComponentFixture<WorkspaceVersionComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ WorkspaceVersionComponent ]
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [WorkspaceVersionComponent],
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(WorkspaceVersionComponent);

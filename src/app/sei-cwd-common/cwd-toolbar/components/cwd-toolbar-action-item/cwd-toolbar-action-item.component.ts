@@ -26,7 +26,8 @@ import {
   styleUrls: ['./cwd-toolbar-action-item.component.scss'],
 })
 export class CwdToolbarActionItemComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
   @Input() selector: string;

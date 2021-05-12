@@ -9,11 +9,13 @@ describe('LockingStatusComponent', () => {
   let component: LockingStatusComponent;
   let fixture: ComponentFixture<LockingStatusComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [LockingStatusComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [LockingStatusComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LockingStatusComponent);

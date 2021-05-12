@@ -9,11 +9,13 @@ describe('ProjectCollapseContainerComponent', () => {
   let component: ProjectCollapseContainerComponent;
   let fixture: ComponentFixture<ProjectCollapseContainerComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ProjectCollapseContainerComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ProjectCollapseContainerComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectCollapseContainerComponent);

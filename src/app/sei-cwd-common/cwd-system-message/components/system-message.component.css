@@ -4,26 +4,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 */
 
 .icon {
-    min-width: 100px; 
-    padding-left: 20px;
+  min-width: 100px;
+  padding-left: 20px;
 }
 
 .messagebody {
-    min-width: 600px;
-    
+  min-width: 600px;
 }
 
 .pre-wrap {
-    white-space: pre-wrap;
-    max-height: 400px;
-    overflow-y: scroll;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: scroll;
 }
 
 .no-outline {
-    outline: none;
-    padding-right: 20px;
+  outline: none;
+  padding-right: 20px;
 }
-  
-  
-  
-

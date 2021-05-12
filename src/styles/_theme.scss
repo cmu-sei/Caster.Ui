@@ -79,7 +79,7 @@ $cmu-dark-theme-background: (
   app-bar: map_get($mat-grey, 900),
   background: #373739,
   // #303030,
-    hover: map_get($mat-gray, 800),
+  hover: map_get($mat-gray, 800),
   card: map_get($mat-grey, 900),
   dialog: map_get($mat-grey, 900),
   button: map_get($mat-cmu-tartan, default),

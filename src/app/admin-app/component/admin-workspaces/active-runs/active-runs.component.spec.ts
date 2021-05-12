@@ -9,11 +9,13 @@ describe('ActiveRunsComponent', () => {
   let component: ActiveRunsComponent;
   let fixture: ComponentFixture<ActiveRunsComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ActiveRunsComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ActiveRunsComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ActiveRunsComponent);

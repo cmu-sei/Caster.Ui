@@ -65,12 +65,10 @@ export class UserListComponent implements OnInit, OnChanges {
   @Input() permissions: Permission[] = [];
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @Output() addUserPermission: EventEmitter<UserPermission> = new EventEmitter<
-    UserPermission
-  >();
-  @Output() removeUserPermission: EventEmitter<
-    UserPermission
-  > = new EventEmitter<UserPermission>();
+  @Output() addUserPermission: EventEmitter<UserPermission> =
+    new EventEmitter<UserPermission>();
+  @Output() removeUserPermission: EventEmitter<UserPermission> =
+    new EventEmitter<UserPermission>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
