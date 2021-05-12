@@ -9,12 +9,13 @@ describe('WorkspaceEditComponent', () => {
   let component: WorkspaceEditComponent;
   let fixture: ComponentFixture<WorkspaceEditComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ WorkspaceEditComponent ]
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [WorkspaceEditComponent],
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(WorkspaceEditComponent);

@@ -9,11 +9,13 @@ describe('DirectoryPanelComponent', () => {
   let component: DirectoryPanelComponent;
   let fixture: ComponentFixture<DirectoryPanelComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [DirectoryPanelComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [DirectoryPanelComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DirectoryPanelComponent);

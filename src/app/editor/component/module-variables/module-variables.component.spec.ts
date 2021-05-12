@@ -9,11 +9,13 @@ describe('ModuleVariablesComponent', () => {
   let component: ModuleVariablesComponent;
   let fixture: ComponentFixture<ModuleVariablesComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ModuleVariablesComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ModuleVariablesComponent],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ModuleVariablesComponent);

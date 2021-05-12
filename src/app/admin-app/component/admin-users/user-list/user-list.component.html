@@ -8,10 +8,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
   </div>
   <mat-icon
-    style="margin-left: 40px; transform: scale(0.85); margin-right: 5px;"
+    style="margin-left: 40px; transform: scale(0.85); margin-right: 5px"
     svgIcon="ic_magnify_search"
   ></mat-icon>
-  <mat-form-field style="width: 300px;">
+  <mat-form-field style="width: 300px">
     <input
       matInput
       [(ngModel)]="filterString"
@@ -19,19 +19,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       placeholder="Search"
     />
   </mat-form-field>
-  <div style="width: 30px;">
+  <div style="width: 30px">
     <button
       *ngIf="!!filterString"
       fxLayoutAlign="start center"
       mat-icon-button
       (click)="clearFilter()"
-      style="outline: none;"
+      style="outline: none"
       title="Clear Search"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
     </button>
   </div>
-  <div style="width: 100px;">
+  <div style="width: 100px">
     <button mat-stroked-button (click)="addingNewUser = true">Add User</button>
   </div>
   <div class="button-end">
@@ -121,7 +121,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-checkbox
               [checked]="hasPermission(permission.id, item)"
               (change)="toggleUserPermission(item, permission.id)"
-              style="margin-right: 20px;"
+              style="margin-right: 20px"
               >{{ permission.key }}</mat-checkbox
             >
           </div>
@@ -151,7 +151,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-card
   *ngIf="isLoading"
-  style="display: flex; justify-content: center; align-items: center;"
+  style="display: flex; justify-content: center; align-items: center"
 >
   <mat-progress-spinner color="primary" mode="indeterminate">
   </mat-progress-spinner>

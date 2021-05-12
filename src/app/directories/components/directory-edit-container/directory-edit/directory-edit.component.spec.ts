@@ -9,12 +9,13 @@ describe('DirectoryEditComponent', () => {
   let component: DirectoryEditComponent;
   let fixture: ComponentFixture<DirectoryEditComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ DirectoryEditComponent ]
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [DirectoryEditComponent],
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DirectoryEditComponent);

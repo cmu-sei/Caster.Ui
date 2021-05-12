@@ -33,4 +33,20 @@ export * from './users.service';
 import { UsersService } from './users.service';
 export * from './workspaces.service';
 import { WorkspacesService } from './workspaces.service';
-export const APIS = [AppliesService, DirectoriesService, FilesService, HealthService, HostsService, ModulesService, PermissionsService, PlansService, ProjectsService, ResourcesService, RunsService, TerraformService, UserPermissionsService, UsersService, WorkspacesService];
+export const APIS = [
+  AppliesService,
+  DirectoriesService,
+  FilesService,
+  HealthService,
+  HostsService,
+  ModulesService,
+  PermissionsService,
+  PlansService,
+  ProjectsService,
+  ResourcesService,
+  RunsService,
+  TerraformService,
+  UserPermissionsService,
+  UsersService,
+  WorkspacesService,
+];

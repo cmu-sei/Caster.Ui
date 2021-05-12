@@ -24,7 +24,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   min-height: 48px;
 }
 
-.mat-row, .mat-header-row {
+.mat-row,
+.mat-header-row {
   display: flex;
   border-bottom-width: 1px;
   border-bottom-style: solid;
@@ -33,7 +34,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   box-sizing: border-box;
 }
 
-.mat-cell, .mat-header-cell {
+.mat-cell,
+.mat-header-cell {
   flex: 1;
   overflow: hidden;
   word-wrap: break-word;
@@ -56,5 +58,3 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 .mat-expansion-panel-header.mat-row {
   border-bottom: none;
 }
-
-
