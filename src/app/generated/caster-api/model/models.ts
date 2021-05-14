@@ -6,6 +6,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 export * from './apply';
 export * from './applyStatus';
 export * from './archiveType';
+export * from './cancelRunCommand';
 export * from './createDirectoryCommand';
 export * from './createFileCommand';
 export * from './createHostCommand';

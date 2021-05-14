@@ -16,10 +16,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface ImportDirectoryResult { 
+export interface CancelRunCommand { 
     /**
-     * A list of Files that were unable to be updated because  they were locked or the current user does not have permission to lock them
+     * If true, will forcefully terminate the Run.  If false, will attempt to gracefully cancel the Run.
      */
-    lockedFiles?: Array<string> | null;
+    force?: boolean;
 }
 

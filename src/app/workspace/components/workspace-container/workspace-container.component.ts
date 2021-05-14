@@ -63,6 +63,7 @@ export class WorkspaceContainerComponent
   statusFilter$: Observable<StatusFilter[]>;
   breadcrumbString = '';
   resourceActions = ResourceActions;
+  forceCancel = false;
 
   @ViewChild('importResourceDialog')
   importResourceDialog: TemplateRef<ImportResourceComponent>;
@@ -150,6 +151,31 @@ export class WorkspaceContainerComponent
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
+  }
+
+  cancel(event: Event, run: Run) {
+    event.stopPropagation();
+
+    let message = `Are you sure you want to cancel this Run? Data loss may occur.`;
+
+    if (this.forceCancel) {
+      message = `Are you sure you want to forcefully cancel this Run? Data loss WILL occur.`;
+    }
+
+    this.confirmService
+      .confirmDialog('Confirm Cancel', message)
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (!result[this.confirmService.WAS_CANCELLED]) {
+          this.workspaceService
+            .cancelRun(this.workspaceId, run.id, this.forceCancel)
+            .pipe(
+              take(1)
+              // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
+            )
+            .subscribe();
+        }
+      });
   }
 
   apply(event: Event, run: Run) {
@@ -282,6 +308,13 @@ export class WorkspaceContainerComponent
     return (
       this.hasStatus(RunStatus.AppliedStateError, run) ||
       this.hasStatus(RunStatus.FailedStateError, run)
+    );
+  }
+
+  isCancelable(run?: Run) {
+    return (
+      this.hasStatus(RunStatus.Planning, run) ||
+      this.hasStatus(RunStatus.Applying, run)
     );
   }
 

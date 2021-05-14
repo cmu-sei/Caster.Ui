@@ -110,6 +110,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           >
             Reject
           </button>
+          <div
+            *ngIf="isCancelable(item)"
+            fxLayout="row"
+            fxLayoutAlign="start center"
+            fxLayoutGap="1em"
+          >
+            <button
+              mat-flat-button
+              color="primary"
+              matTooltip="Attempt to cancel the Run. Data loss may occur"
+              (click)="cancel($event, item)"
+            >
+              Cancel
+            </button>
+            <mat-checkbox
+              matTooltip="When cancelling, forcefully terminate the Run immediately"
+              (click)="$event.stopPropagation()"
+              [(ngModel)]="forceCancel"
+            >
+              force
+            </mat-checkbox>
+          </div>
           <button
             mat-flat-button
             color="primary"
