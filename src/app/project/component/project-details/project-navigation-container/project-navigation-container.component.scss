@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+@use '~@angular/material' as mat;
 @import 'theme';
-@import '~@angular/material/theming';
 
 .add-icon {
   margin-left: 24px;
@@ -13,5 +13,5 @@
   cursor: pointer;
   font-size: small;
   margin-top: 10px;
-  color: mat-color($primary);
+  color: mat.get-color-from-palette($primary);
 }

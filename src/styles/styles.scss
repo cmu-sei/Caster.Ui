@@ -1,13 +1,13 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 /* VENDOR IMPORTS */
+@use '~@angular/material' as mat;
 @import '~xterm/css/xterm.css';
 
 $mdi-font-path: '~@mdi/font/fonts';
 @import '~@mdi/font/scss/materialdesignicons';
-@import '~@angular/material/theming';
 @import '~@fortawesome/fontawesome-free/css/all.css';
-@include mat-core();
+@include mat.core();
 
 /* END VENDOR IMPORTS */
 
@@ -17,13 +17,13 @@ $mdi-font-path: '~@mdi/font/fonts';
 /* END LOCAL IMPORTS */
 
 .light-theme {
-  @include angular-material-theme($light-theme);
+  @include mat.all-component-themes($light-theme);
   @include cwd-toolbar-theme($light-theme);
   @include globals($light-theme);
 }
 
 .dark-theme {
-  @include angular-material-theme($dark-theme);
+  @include mat.all-component-themes($dark-theme);
   @include cwd-toolbar-theme($dark-theme);
   @include globals($dark-theme);
 }
