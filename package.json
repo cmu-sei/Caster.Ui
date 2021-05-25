@@ -57,7 +57,7 @@
     "@ngneat/hotkeys": "^1.1.2",
     "angular-resizable-element": "^3.3.5",
     "autoprefixer": "^10.2.5",
-    "bootstrap-scss": "^4.6.0",
+    "bootstrap-scss": "^5.0.1",
     "core-js": "^3.12.1",
     "depcheck": "^1.4.1",
     "domsanitizer": "^0.2.3",
