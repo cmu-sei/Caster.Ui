@@ -172,7 +172,7 @@ export class ProjectCollapseContainerComponent
   }
 
   ngOnDestroy() {
-    this.unsubscribe$.next();
+    this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
     this.signalRService.leaveProject(this.projectQuery.getActive().id);
   }

@@ -33,13 +33,21 @@ import {
   Module,
   Workspace,
 } from 'src/app/generated/caster-api';
-import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
+import {
+  EMPTY,
+  iif,
+  merge,
+  Observable,
+  Subject,
+  Subscription,
+  ReplaySubject,
+} from 'rxjs';
 import {
   catchError,
   filter,
   map,
   mergeMap,
-  shareReplay,
+  share,
   switchMap,
   take,
   takeUntil,
@@ -173,7 +181,9 @@ export class ProjectTabComponent
               return EMPTY;
           }
         }),
-        shareReplay(),
+        share({
+          connector: () => new ReplaySubject(),
+        }),
         // unsubscribe automatically when the component is destroyed.
         takeUntil(this.unsubscribe$)
       )
@@ -198,7 +208,9 @@ export class ProjectTabComponent
         tap((obj) => {
           this.watchForChanges();
         }),
-        shareReplay(),
+        share({
+          connector: () => new ReplaySubject(),
+        }),
         takeUntil(this.unsubscribe$),
         catchError((err) => {
           console.log(err);
@@ -414,7 +426,7 @@ export class ProjectTabComponent
 
   tabChangeClickHandler($event) {
     this.tabChanged.emit($event);
-    this.tabChangeRequested$.next();
+    this.tabChangeRequested$.next(null);
   }
 
   isFileContentChanged(fileId: string): boolean {
@@ -465,9 +477,9 @@ export class ProjectTabComponent
   }
 
   ngOnDestroy() {
-    this.unsubscribe$.next();
+    this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
-    this.tabChangeRequested$.next();
+    this.tabChangeRequested$.next(null);
     this.tabChangeRequested$.complete();
   }
 }

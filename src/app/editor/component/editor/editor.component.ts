@@ -332,7 +332,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.unsubscribe$.next();
+    this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
   }
 }

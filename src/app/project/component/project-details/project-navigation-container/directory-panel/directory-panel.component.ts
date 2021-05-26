@@ -119,7 +119,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this._destroyed$.next();
+    this._destroyed$.next(null);
     this._destroyed$.complete();
   }
 
