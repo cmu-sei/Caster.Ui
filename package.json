@@ -61,7 +61,7 @@
     "core-js": "^3.14.0",
     "depcheck": "^1.4.1",
     "domsanitizer": "^0.2.3",
-    "monaco-editor": "^0.24.0",
+    "monaco-editor": "^0.25.1",
     "ngx-clipboard": "^14.0.1",
     "oidc-client": "^1.11.5",
     "rxjs": "^7.1.0",
