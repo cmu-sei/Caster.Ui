@@ -56,7 +56,7 @@
     "@ng-bootstrap/ng-bootstrap": "^10.0.0",
     "@ngneat/hotkeys": "^1.1.2",
     "angular-resizable-element": "^3.4.0",
-    "autoprefixer": "^10.2.6",
+    "autoprefixer": "^10.3.1",
     "bootstrap-scss": "^5.0.2",
     "core-js": "^3.15.2",
     "depcheck": "^1.4.2",
