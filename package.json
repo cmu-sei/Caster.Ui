@@ -52,7 +52,7 @@
     "@datorama/akita-ngdevtools": "^6.0.1",
     "@materia-ui/ngx-monaco-editor": "^5.1.0",
     "@mdi/font": "^5.9.55",
-    "@microsoft/signalr": "^5.0.7",
+    "@microsoft/signalr": "^5.0.8",
     "@ng-bootstrap/ng-bootstrap": "^10.0.0",
     "@ngneat/hotkeys": "^1.1.2",
     "angular-resizable-element": "^3.4.0",
@@ -73,7 +73,7 @@
   "devDependencies": {
     "@angular-devkit/build-angular": "^12.1.2",
     "@angular-devkit/schematics": "^12.1.1",
-    "@angular/cli": "^12.1.1",
+    "@angular/cli": "^12.1.2",
     "@angular/compiler-cli": "^12.1.0",
     "@angular/language-service": "^12.1.2",
     "@fortawesome/fontawesome-free": "^5.15.3",
