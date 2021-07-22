@@ -27,7 +27,7 @@ import {
   WorkspaceEntityUi,
 } from './workspace.model';
 import { combineLatest, Observable, of, ReplaySubject } from 'rxjs';
-import { map, share } from 'rxjs/operators';
+import { map, share, shareReplay } from 'rxjs/operators';
 
 @QueryConfig({
   sortBy: 'name',
@@ -128,9 +128,10 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
   selectResourceById$(workspaceId, resourceId) {
     return this.selectEntity(workspaceId, 'resources').pipe(
       arrayFind(resourceId),
-      share({
-        connector: () => new ReplaySubject(1),
-      })
+      shareReplay(1)
+      // share({
+      //   connector: () => new ReplaySubject(1),
+      // })
     );
   }
 

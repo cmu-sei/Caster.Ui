@@ -48,6 +48,7 @@ import {
   map,
   mergeMap,
   share,
+  shareReplay,
   switchMap,
   take,
   takeUntil,
@@ -181,9 +182,11 @@ export class ProjectTabComponent
               return EMPTY;
           }
         }),
-        share({
-          connector: () => new ReplaySubject(),
-        }),
+        shareReplay()
+	      //share({
+        //    connector: () => new ReplaySubject(),
+        //  })
+        ,
         // unsubscribe automatically when the component is destroyed.
         takeUntil(this.unsubscribe$)
       )
@@ -208,9 +211,11 @@ export class ProjectTabComponent
         tap((obj) => {
           this.watchForChanges();
         }),
-        share({
-          connector: () => new ReplaySubject(),
-        }),
+        shareReplay()
+	      //share({
+        //    connector: () => new ReplaySubject(),
+        //  })
+        ,
         takeUntil(this.unsubscribe$),
         catchError((err) => {
           console.log(err);
