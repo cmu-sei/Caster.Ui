@@ -78,7 +78,7 @@
     "@angular/language-service": "^12.1.4",
     "@fortawesome/fontawesome-free": "^5.15.3",
     "@openapitools/openapi-generator-cli": "^2.3.8",
-    "@types/jasmine": "^3.8.1",
+    "@types/jasmine": "^3.8.2",
     "@types/jasminewd2": "^2.0.10",
     "@types/node": "^16.4.6",
     "angular-playground": "^8.1.4",
