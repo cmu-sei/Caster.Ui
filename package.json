@@ -1,6 +1,6 @@
 {
   "name": "caster-ui",
-  "version": "0.0.0",
+  "version": "3.0.5",
   "scriptComments": {
     "swagger:gen": "// uses swagger-codegen to generate Angular services and models from the API swagger specification",
     "swagger:gen-win": "// use instead of swagger-gen when running from a Windows machine",
@@ -24,12 +24,6 @@
     "postinstall": "ngcc",
     "swagger:gen": "curl --insecure http://localhost:4309/swagger/v1/swagger.json --output swagger.json && node_modules/@openapitools/openapi-generator-cli/bin/openapi-generator generate -i ./swagger.json -g typescript-angular -o src/app/generated/caster-api --additional-properties ngVersion=11.2 --additional-properties useRxJS6=true --additional-properties modelPropertyNaming=original --skip-validate-spec",
     "swagger:gen-win": "docker run --rm -v %CD%:/local openapitools/openapi-generator-cli:v5.1.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api --additional-properties ngVersion=11.2 --additional-properties useRxJS6=true --additional-properties modelPropertyNaming=original --skip-validate-spec",
-    "docker:identity": "docker stack deploy -c docker-compose.yml -c ./docker/docker-compose/identity.yml identity_stack",
-    "docker:stack": "docker stack deploy -c docker-compose.yml -c ./docker/docker-compose/identity.yml -c ./docker/docker-compose/api.yml caster_stack",
-    "docker:stack:proxy": "docker stack deploy -c docker-compose.yml -c ./docker/docker-compose/identity.yml -c ./docker/docker-compose/api.yml -c ./docker/docker-compose/api-proxy.yml caster_stack",
-    "docker:build:ui:dev": "docker build -t caster-ui:development -f ./docker/Dockerfile/Dockerfile.dev .",
-    "docker:build:ui:prod": "docker build -t caster-ui:development -f ./docker/Dockerfile/Dockerfile.prod .",
-    "docker:destroy": "docker stack rm caster_stack",
     "playground": "angular-playground"
   },
   "private": true,

@@ -43,80 +43,78 @@ export class AppComponent implements OnDestroy {
     matIconRegistry.addSvgIcon(
       'ic_apps_white_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_apps_white_24px.svg'
+        'assets/svg-icons/ic_apps_white_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_chevron_left_white_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_chevron_left_white_24px.svg'
+        'assets/svg-icons/ic_chevron_left_white_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_chevron_right_black_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_chevron_right_black_24px.svg'
+        'assets/svg-icons/ic_chevron_right_black_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_chevron_right_white_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_chevron_right_white_24px.svg'
+        'assets/svg-icons/ic_chevron_right_white_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_expand_more_white_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_expand_more_white_24px.svg'
+        'assets/svg-icons/ic_expand_more_white_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_clear_black_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_clear_black_24px.svg'
+        'assets/svg-icons/ic_clear_black_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_expand_more_black_24px',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_expand_more_black_24px.svg'
+        'assets/svg-icons/ic_expand_more_black_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_cancel_circle',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_cancel_circle.svg'
+        'assets/svg-icons/ic_cancel_circle.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_back_arrow',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_back_arrow_24px.svg'
+        'assets/svg-icons/ic_back_arrow_24px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_magnify_search',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_magnify_glass_48px.svg'
+        'assets/svg-icons/ic_magnify_glass_48px.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_clipboard_copy',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_clipboard_copy.svg'
+        'assets/svg-icons/ic_clipboard_copy.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_trash_can',
       sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_trash_can.svg'
+        'assets/svg-icons/ic_trash_can.svg'
       )
     );
     matIconRegistry.addSvgIcon(
       'ic_pencil',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        '/assets/svg-icons/ic_pencil.svg'
-      )
+      sanitizer.bypassSecurityTrustResourceUrl('assets/svg-icons/ic_pencil.svg')
     );
     matIconRegistry.addSvgIcon(
       'ic_crucible_caster',
