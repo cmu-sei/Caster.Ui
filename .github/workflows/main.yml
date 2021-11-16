@@ -63,7 +63,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./docker/Dockerfile/Dockerfile.prod
+        file: ./Dockerfile
         push: ${{ steps.prep.outputs.push }}
         pull: true
         tags: ${{ steps.prep.outputs.tags }}
