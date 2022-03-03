@@ -22,6 +22,7 @@ export const initialDirectoryUIState: DirectoryUI = {
   isFilesExpanded: false,
   isWorkspacesExpanded: false,
   isDirectoriesExpanded: false,
+  isDesignsExpanded: false,
 };
 
 @Injectable({

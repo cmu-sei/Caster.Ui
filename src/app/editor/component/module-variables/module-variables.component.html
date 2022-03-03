@@ -3,77 +3,160 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div>
+<div fxLayout="row" fxLayoutAlign="start center">
   <mat-icon
     *ngIf="readOnly"
     class="mdi-24px"
     fontIcon="mdi-alert-octagon"
     matTooltip="Read-only because the current file is not in edit mode"
+    matTooltipShowDelay="0"
   ></mat-icon>
-  <h1>{{ selectedModule.name }}</h1>
+  <button
+    *ngIf="promptForReload"
+    mat-icon-button
+    matTooltip="Reload this module to view changes. Unsaved changes will be lost."
+    matTooltipShowDelay="0"
+    (click)="reload()"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-alert-circle"> </mat-icon>
+  </button>
+  <h1 [ngClass]="promptForReload ? 'alert' : ''">
+    {{ selectedModule.name }}
+  </h1>
 </div>
 <div style="margin-top: -20px">{{ selectedModule.path }}</div>
 <div style="margin-bottom: 20px">{{ selectedModule.description }}</div>
-<mat-form-field>
-  <mat-label>Version</mat-label>
-  <mat-select
-    [(ngModel)]="selectedVersion"
-    name="selectedVersion"
-    (ngModelChange)="setModuleValues()"
-  >
-    <mat-option
-      *ngFor="let version of selectedModule.versions"
-      [value]="version"
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-form-field>
+    <mat-label>Version</mat-label>
+    <mat-select
+      formControlName="selectedVersion"
+      (selectionChange)="onSelectedVersionChanged($event.value)"
     >
-      Version {{ version.name }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+      <mat-option
+        *ngFor="let version of selectedModule.versions"
+        [value]="version"
+      >
+        {{ version.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 
-<div fxflex fxLayout="column" style="overflow-y: scroll; height: 400px">
-  <mat-card>
-    <mat-form-field>
-      <mat-label>Name of this instance</mat-label>
-      <input
-        [disabled]="readOnly"
-        matInput
-        placeholder="Name of this module instance"
-        [(ngModel)]="newName"
-      />
-    </mat-form-field>
-  </mat-card>
-  <mat-card *ngFor="let moduleValue of moduleValues">
-    <mat-form-field [hintLabel]="moduleValue.isOptional ? '' : 'Required'">
-      <mat-label>{{ moduleValue.name }}</mat-label>
-      <input
-        *ngIf="!moduleValue.isMultiLine(); else largeInput"
-        [disabled]="readOnly"
-        matInput
-        placeholder="{{ moduleValue.name }}"
-        [(ngModel)]="moduleValue.value"
-        matTooltip="{{ moduleValue.description }}"
-      />
-      <ng-template #largeInput>
-        <textarea
-          [disabled]="readOnly"
+  <div fxflex fxLayout="column" style="overflow-y: scroll; height: 400px">
+    <mat-card>
+      <mat-form-field>
+        <mat-label [ngClass]="nameChanged ? 'changed-hint' : ''"
+          >Name of this instance</mat-label
+        >
+        <input
           matInput
-          placeholder="{{ moduleValue.name }}"
-          [(ngModel)]="moduleValue.value"
-          matTooltip="{{ moduleValue.description }}"
-          cdkTextareaAutosize
-          #autosize="cdkTextareaAutosize"
-        ></textarea>
-      </ng-template>
-    </mat-form-field>
-  </mat-card>
-</div>
+          placeholder="Name of this module instance"
+          formControlName="newName"
+        />
+        <mat-hint
+          *ngIf="nameChanged"
+          align="end"
+          class="changed-hint"
+          [matTooltip]="'Click to accept new name:\n' + newName"
+          [matTooltipShowDelay]="0"
+          (click)="acceptName()"
+          >Changed</mat-hint
+        >
+      </mat-form-field>
+    </mat-card>
+    <ng-container formGroupName="values">
+      <mat-card *ngFor="let moduleField of moduleFields">
+        <mat-form-field>
+          <mat-hint *ngIf="!moduleField.isOptional">Required</mat-hint>
+          <mat-hint
+            *ngIf="moduleField.changed"
+            align="end"
+            class="changed-hint"
+            [matTooltip]="'Click to accept new value:\n' + moduleField.value"
+            [matTooltipShowDelay]="0"
+            (click)="acceptValue(moduleField)"
+            >Changed</mat-hint
+          >
+          <mat-label [ngClass]="moduleField.changed ? 'changed-hint' : ''">{{
+            moduleField.name
+          }}</mat-label>
+          <input
+            *ngIf="!moduleField.isMultiLine(); else largeInput"
+            matInput
+            placeholder="{{ moduleField.name }}"
+            matTooltip="{{ moduleField.description }}"
+            formControlName="{{ moduleField.name }}"
+          />
+          <ng-template #largeInput>
+            <textarea
+              matInput
+              placeholder="{{ moduleField.name }}"
+              matTooltip="{{ moduleField.description }}"
+              cdkTextareaAutosize
+              #autosize="cdkTextareaAutosize"
+              formControlName="{{ moduleField.name }}"
+            ></textarea>
+          </ng-template>
+          <button
+            *ngIf="variables.length > 0 || outputs.length > 0"
+            color="primary"
+            mat-icon-button
+            (click)="
+              trigger.panelOpen ? trigger.closePanel() : trigger.openPanel()
+            "
+            matTooltip="View variables and outputs"
+            matSuffix
+          >
+            <mat-icon class="mdi-16px" fontIcon="mdi-text"> </mat-icon>
+          </button>
+          <input
+            class="hidden"
+            [matAutocomplete]="autoGroup"
+            #trigger="matAutocompleteTrigger"
+          />
+          <mat-autocomplete #autoGroup>
+            <mat-optgroup label="Variables" *ngIf="variables.length > 0">
+              <mat-option
+                *ngFor="let variable of variables"
+                [value]="variable.terraform"
+              >
+                {{ variable.name }}
+              </mat-option>
+            </mat-optgroup>
+            <mat-optgroup label="Outputs" *ngIf="outputs.length > 0">
+              <mat-option
+                *ngFor="let output of outputs"
+                [value]="output.terraform"
+              >
+                {{ output.designModuleName }}.{{ output.name }}
+              </mat-option>
+            </mat-optgroup>
+          </mat-autocomplete>
+        </mat-form-field>
+      </mat-card>
+    </ng-container>
+  </div>
 
-<div>
-  <button mat-button (click)="onClick(true)" [disabled]="readOnly" tabindex="1">
-    <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
-      Submit
-    </span>
-  </button>
-  <button mat-button (click)="onClick(false)" tabIndex="2">Cancel</button>
-  <div></div>
-</div>
+  <div fxLayout="row" fxLayoutGap="1em" class="form-actions">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="readOnly || !form.valid || !form.dirty || isSaving"
+      tabindex="1"
+    >
+      <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
+        {{ isSaving ? 'Saving...' : submitButtonText }}
+      </span>
+    </button>
+    <button
+      type="button"
+      mat-raised-button
+      color="primary"
+      (click)="cancel()"
+      tabIndex="2"
+    >
+      Cancel
+    </button>
+  </div>
+</form>

@@ -42,7 +42,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </mat-expansion-panel-header>
           <mat-list>
             <mat-list-item
-              *ngFor="let obj of files$ | async | filesFilter"
+              *ngFor="let obj of files$ | async | filesFilter: null"
               (contextmenu)="onContextMenu($event, obj, ProjectObjectType.FILE)"
             >
               <div
@@ -316,6 +316,74 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </mat-expansion-panel>
       </mat-accordion>
+
+      <mat-divider></mat-divider>
+
+      <mat-accordion>
+        <mat-expansion-panel
+          class="mat-elevation-z0"
+          [expanded]="parentDirectoryUI.isDesignsExpanded"
+        >
+          <mat-expansion-panel-header
+            (click)="toggleIsDesignsExpanded(parentDirectoryUI)"
+          >
+            <mat-panel-title>
+              <span
+                MatBadgeSize="small"
+                matBadge="{{ (designs$ | async).length }}"
+                matBadgeOverlap="false"
+                class="panel-header"
+                ><strong>DESIGNS</strong></span
+              >
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <mat-list>
+            <mat-list-item
+              *ngFor="let obj of designs$ | async"
+              (contextmenu)="
+                onContextMenu($event, obj, ProjectObjectType.DESIGN)
+              "
+            >
+              <div
+                [ngClass]="obj.enabled ? '' : 'disabled-text'"
+                [matTooltip]="obj.enabled ? '' : 'Disabled'"
+                class="highlight"
+                fxLayout="row"
+                fxLayoutAlign="start center"
+                fxFill
+                fxFlexOffset="2"
+              >
+                <mat-icon
+                  class="mdi-18px show-pointer"
+                  fontIcon="mdi-file"
+                  (click)="openDesign(obj)"
+                ></mat-icon>
+                <a class="link-text" (click)="openDesign(obj)">{{
+                  obj.name
+                }}</a>
+              </div>
+            </mat-list-item>
+
+            <mat-list-item>
+              <div fxLayout="row" fxLayoutAlign="start center" fxFlexOffset="2">
+                <mat-icon
+                  (click)="createDesign(parentDirectory.id)"
+                  matTooltip="Add New Design to {{ parentDirectory.name }}"
+                  class="icon-space mdi-18px"
+                  fontIcon="mdi-file-plus-outline"
+                ></mat-icon>
+                <a
+                  class="add-link-text"
+                  matTooltip="Add New Design to {{ parentDirectory.name }}"
+                  (click)="createDesign(parentDirectory.id)"
+                >
+                  Add Design
+                </a>
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </mat-expansion-panel>
+      </mat-accordion>
     </mat-expansion-panel>
   </mat-accordion>
 </div>
@@ -329,6 +397,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent let-item="item">
+    <button
+      *ngIf="canEnable(item)"
+      mat-menu-item
+      (click)="onContextEnable(item)"
+      fxLayout="row"
+    >
+      {{ item.object.enabled ? 'Disable' : 'Enable' }}
+    </button>
     <button
       *ngIf="canRename(item)"
       mat-menu-item

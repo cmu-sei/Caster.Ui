@@ -1,0 +1,137 @@
+<mat-card class="mat-elevation-z4">
+  <mat-card-title>{{ variable.name }}</mat-card-title>
+  <mat-card-actions>
+    <button color="primary" mat-icon-button (click)="edit()" matTooltip="Edit">
+      <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      ngxClipboard
+      color="primary"
+      [cbContent]="variable.terraform"
+      (click)="$event.stopPropagation()"
+      (cbOnSuccess)="onClipboardSuccess()"
+      matTooltip="Copy Terraform"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+    </button>
+    <button
+      color="primary"
+      mat-icon-button
+      (click)="delete()"
+      matTooltip="Delete"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
+    </button>
+  </mat-card-actions>
+  <mat-card-content>
+    <form *ngIf="isEditing" [formGroup]="form" (ngSubmit)="save()">
+      <div fxLayout="column">
+        <mat-form-field floatLabel="always">
+          <mat-label [ngClass]="pendingChanges['name'] ? 'changed-hint' : ''"
+            >Name</mat-label
+          >
+          <input
+            matInput
+            formControlName="name"
+            matTooltip="Name of the variable"
+            required
+          />
+          <mat-hint
+            *ngIf="pendingChanges['name']"
+            align="end"
+            class="changed-hint"
+            [matTooltip]="'Click to accept new value:\n' + variable.name"
+            [matTooltipShowDelay]="0"
+            (click)="acceptChange('name')"
+          >
+            Changed
+          </mat-hint>
+        </mat-form-field>
+
+        <mat-form-field floatLabel="always">
+          <mat-label [ngClass]="pendingChanges['type'] ? 'changed-hint' : ''"
+            >Type</mat-label
+          >
+          <mat-select
+            formControlName="type"
+            required
+            (selectionChange)="onTypeChanged($event.value)"
+          >
+            <mat-option
+              *ngFor="let option of typeOptions | keyvalue"
+              [value]="option.value"
+            >
+              {{ option.key }}
+            </mat-option>
+          </mat-select>
+          <mat-hint
+            *ngIf="pendingChanges['type']"
+            align="end"
+            class="changed-hint"
+            [matTooltip]="'Click to accept new value:\n' + variable.type"
+            [matTooltipShowDelay]="0"
+            (click)="acceptChange('type')"
+          >
+            Changed
+          </mat-hint>
+        </mat-form-field>
+
+        <mat-form-field
+          floatLabel="always"
+          matTooltip="Default value for the variable (optional)"
+        >
+          <mat-label
+            [ngClass]="pendingChanges['defaultValue'] ? 'changed-hint' : ''"
+          >
+            Default
+          </mat-label>
+          <input *ngIf="!isMultiline" matInput formControlName="defaultValue" />
+          <textarea
+            *ngIf="isMultiline"
+            matInput
+            formControlName="defaultValue"
+            cdkTextareaAutosize
+            #autosize="cdkTextareaAutosize"
+          ></textarea>
+          <mat-hint
+            *ngIf="pendingChanges['defaultValue']"
+            align="end"
+            class="changed-hint"
+            [matTooltip]="
+              'Click to accept new value:\n' + variable.defaultValue
+            "
+            [matTooltipShowDelay]="0"
+            (click)="acceptChange('defaultValue')"
+          >
+            Changed
+          </mat-hint>
+        </mat-form-field>
+
+        <div fxLayout="row" fxLayoutAlign="space-around center">
+          <button
+            type="submit"
+            color="primary"
+            mat-raised-button
+            *ngIf="{ value: isSaving$ | async } as isSaving"
+            [disabled]="!form.valid || !form.dirty || isSaving.value"
+          >
+            <span *ngIf="!isSaving.value; else saving">Save</span>
+            <ng-template #saving>
+              <span>Saving...</span>
+            </ng-template>
+          </button>
+
+          <button
+            type="reset"
+            color="primary"
+            mat-raised-button
+            (click)="cancel()"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

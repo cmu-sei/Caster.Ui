@@ -1,0 +1,14 @@
+<div fxLayout="row" fxLayoutAlign="start center">
+  <button
+    mat-icon-button
+    ngxClipboard
+    color="primary"
+    [cbContent]="toTerraform()"
+    (click)="$event.stopPropagation()"
+    (cbOnSuccess)="onClipboardSuccess()"
+    matTooltip="Copy Terraform"
+  >
+    <mat-icon class="mdi-18px" fontIcon="mdi-content-copy"></mat-icon>
+  </button>
+  <div matTooltip="{{ output.description }}">{{ output.name }}</div>
+</div>

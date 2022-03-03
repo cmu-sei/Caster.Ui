@@ -13,6 +13,7 @@ import {
   ProjectsService,
   ModelFile,
   ArchiveType,
+  Design,
 } from 'src/app/generated/caster-api';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
@@ -117,7 +118,7 @@ export class ProjectService {
     }
   }
 
-  openTab(obj: ModelFile | Workspace, objType: ProjectObjectType) {
+  openTab(obj: ModelFile | Workspace | Design, objType: ProjectObjectType) {
     const project = this.projectQuery.getActive();
     if (project) {
       const projectUI = this.projectQuery.ui.getEntity(project.id);
@@ -192,7 +193,7 @@ export class ProjectService {
 
   createBreadcrumb(
     project: Project,
-    obj: ModelFile | Workspace | Tab,
+    obj: ModelFile | Workspace | Design | Tab,
     objType: ProjectObjectType
   ): Array<Breadcrumb> {
     const breadcrumb: Breadcrumb[] = [];

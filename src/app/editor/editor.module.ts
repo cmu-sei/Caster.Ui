@@ -33,6 +33,7 @@ import { EditorComponent } from './component/editor/editor.component';
 import { ModuleListComponent } from './component/module-list/module-list.component';
 import { ModuleVariablesComponent } from './component/module-variables/module-variables.component';
 import { VersionListComponent } from './component/version-list/version-list.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,7 @@ import { VersionListComponent } from './component/version-list/version-list.comp
     ModuleVariablesComponent,
     VersionListComponent,
   ],
-  exports: [EditorComponent],
+  exports: [EditorComponent, ModuleListComponent, ModuleVariablesComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -71,6 +72,7 @@ import { VersionListComponent } from './component/version-list/version-list.comp
     DirectoriesModule,
     ResizableModule,
     SharedModule,
+    MatAutocompleteModule,
   ],
   entryComponents: [ModuleVariablesComponent],
   providers: [],

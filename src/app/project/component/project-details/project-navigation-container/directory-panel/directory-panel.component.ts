@@ -8,7 +8,6 @@ import {
   OnInit,
   TemplateRef,
   ViewChild,
-  ViewEncapsulation,
 } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import {
@@ -27,6 +26,7 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import {
+  Design,
   Directory,
   ModelFile,
   Run,
@@ -38,6 +38,8 @@ import { ProjectExportComponent } from '../../project-export/project-export.comp
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
 import { WorkspaceEditContainerComponent } from 'src/app/workspace/components/workspace-edit-container/workspace-edit-container.component';
 import { DirectoryEditContainerComponent } from 'src/app/directories/components/directory-edit-container/directory-edit-container.component';
+import { DesignQuery } from 'src/app/designs/state/design.query';
+import { DesignService } from 'src/app/designs/state/design.service';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -55,6 +57,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   public files$: Observable<ModelFile[]>;
   public parentFiles$: Observable<ModelFile[]>;
   public workspaces$: Observable<Workspace[]>;
+  public designs$: Observable<Design[]>;
   public ProjectObjectType = ProjectObjectType; // For usage in html
 
   public exportId: string;
@@ -89,7 +92,9 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     private workspaceQuery: WorkspaceQuery,
     private workspaceService: WorkspaceService,
     private projectService: ProjectService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private designQuery: DesignQuery,
+    private designService: DesignService
   ) {}
 
   ngOnInit() {
@@ -114,6 +119,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
       this.workspaces$ = this.workspaceQuery.selectAll({
         filterBy: (w) => w.directoryId === this.parentDirectory.id,
+      });
+
+      this.designs$ = this.designQuery.selectAll({
+        filterBy: (d) => d.directoryId === this.parentDirectory.id,
       });
     }
   }
@@ -262,6 +271,41 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     });
   }
 
+  createDesign(dirId: string) {
+    this.nameDialog('Create New Design?', '', { nameValue: '' }).subscribe(
+      (result) => {
+        if (!result[WAS_CANCELLED]) {
+          const newDesign = {
+            directoryId: dirId,
+            name: result[NAME_VALUE],
+          } as Design;
+          this.designService.create(newDesign);
+        }
+      }
+    );
+  }
+
+  renameDesign(design: Design) {
+    this.nameDialog('Rename ' + design.name, '', {
+      nameValue: design.name,
+    }).subscribe((result) => {
+      if (!result[WAS_CANCELLED]) {
+        const newDesign = { ...design, name: result[NAME_VALUE] };
+        this.designService.edit(design.id, newDesign);
+      }
+    });
+  }
+
+  deleteDesign(design: Design) {
+    this.confirmDialog('Delete design?', 'Delete design ' + design.name + '?', {
+      buttonTrueText: 'Delete',
+    }).subscribe((result) => {
+      if (!result[WAS_CANCELLED]) {
+        this.designService.delete(design.id);
+      }
+    });
+  }
+
   toggleIsExpanded(dirUI: DirectoryUI) {
     this.directoryService.toggleIsExpanded(dirUI);
   }
@@ -278,6 +322,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.directoryService.toggleIsDirectoriesExpanded(dirUI);
   }
 
+  toggleIsDesignsExpanded(dirUI: DirectoryUI) {
+    this.directoryService.toggleIsDesignsExpanded(dirUI);
+  }
+
   openFile(file: ModelFile) {
     // open a file type tab
     this.projectService.openTab(file, ProjectObjectType.FILE);
@@ -285,6 +333,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   openWorkspace(workspace: Workspace) {
     this.projectService.openTab(workspace, ProjectObjectType.WORKSPACE);
+  }
+
+  openDesign(design: Design) {
+    this.projectService.openTab(design, ProjectObjectType.DESIGN);
   }
 
   toggleIsWorkspaceExpanded(workspaceId: string) {
@@ -297,7 +349,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   onContextMenu(
     event: MouseEvent,
-    obj: ModelFile | Workspace | Directory,
+    obj: ModelFile | Workspace | Directory | Design,
     objectType: ProjectObjectType
   ) {
     event.preventDefault();
@@ -321,6 +373,21 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       }
       case ProjectObjectType.FILE: {
         this.renameFile(obj.object as ModelFile);
+        break;
+      }
+      case ProjectObjectType.DESIGN: {
+        this.renameDesign(obj.object as Design);
+        break;
+      }
+    }
+  }
+
+  onContextEnable(obj: any) {
+    const type = obj.type as ProjectObjectType;
+    switch (type) {
+      case ProjectObjectType.DESIGN: {
+        this.designService.toggleEnabled(obj.object as Design);
+        break;
       }
     }
   }
@@ -370,6 +437,11 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       }
       case ProjectObjectType.FILE: {
         this.deleteFile(obj.object as ModelFile);
+        break;
+      }
+      case ProjectObjectType.DESIGN: {
+        this.deleteDesign(obj.object as Design);
+        break;
       }
     }
   }
@@ -410,6 +482,9 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       case ProjectObjectType.FILE: {
         return true;
       }
+      case ProjectObjectType.DESIGN: {
+        return false;
+      }
     }
   }
 
@@ -428,6 +503,30 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       case ProjectObjectType.FILE: {
         return true;
       }
+      case ProjectObjectType.DESIGN: {
+        return true;
+      }
+    }
+  }
+
+  canEnable(obj: any) {
+    const type = obj.type as ProjectObjectType;
+    switch (type) {
+      case ProjectObjectType.DIRECTORY: {
+        return false;
+      }
+      case ProjectObjectType.WORKSPACE: {
+        return false;
+      }
+      case ProjectObjectType.PROJECT: {
+        return false;
+      }
+      case ProjectObjectType.FILE: {
+        return false;
+      }
+      case ProjectObjectType.DESIGN: {
+        return true;
+      }
     }
   }
 
@@ -444,6 +543,9 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         return false;
       }
       case ProjectObjectType.FILE: {
+        return false;
+      }
+      case ProjectObjectType.DESIGN: {
         return false;
       }
     }

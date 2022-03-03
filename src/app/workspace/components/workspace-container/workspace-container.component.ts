@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable, ReplaySubject } from 'rxjs';
-import { share,shareReplay, take, tap } from 'rxjs/operators';
+import { share, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -72,14 +72,14 @@ export class WorkspaceContainerComponent
   @ViewChild('errorDialog')
   errorDialog: TemplateRef<OutputComponent>;
   private errorDialogRef: MatDialogRef<OutputComponent>;
-  private errorMessage: string;
+  public errorMessage: string;
 
   constructor(
     private workspaceService: WorkspaceService,
     private workspaceQuery: WorkspaceQuery,
     private signalrService: SignalRService,
     private confirmService: ConfirmDialogService,
-    private currentUserQuery: CurrentUserQuery,
+    public currentUserQuery: CurrentUserQuery,
     private dialog: MatDialog
   ) {}
 

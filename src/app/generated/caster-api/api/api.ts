@@ -1,10 +1,9 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 export * from './applies.service';
 import { AppliesService } from './applies.service';
+export * from './designs.service';
+import { DesignsService } from './designs.service';
+export * from './designsModules.service';
+import { DesignsModulesService } from './designsModules.service';
 export * from './directories.service';
 import { DirectoriesService } from './directories.service';
 export * from './files.service';
@@ -31,6 +30,8 @@ export * from './userPermissions.service';
 import { UserPermissionsService } from './userPermissions.service';
 export * from './users.service';
 import { UsersService } from './users.service';
+export * from './variables.service';
+import { VariablesService } from './variables.service';
 export * from './workspaces.service';
 import { WorkspacesService } from './workspaces.service';
-export const APIS = [AppliesService, DirectoriesService, FilesService, HealthService, HostsService, ModulesService, PermissionsService, PlansService, ProjectsService, ResourcesService, RunsService, TerraformService, UserPermissionsService, UsersService, WorkspacesService];
+export const APIS = [AppliesService, DesignsService, DesignsModulesService, DirectoriesService, FilesService, HealthService, HostsService, ModulesService, PermissionsService, PlansService, ProjectsService, ResourcesService, RunsService, TerraformService, UserPermissionsService, UsersService, VariablesService, WorkspacesService];

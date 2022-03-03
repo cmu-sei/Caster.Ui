@@ -1,7 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   Component,
   OnInit,
@@ -9,16 +8,18 @@ import {
   Input,
   Output,
   EventEmitter,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import {
   Module,
   ModuleVersion,
-  CreateSnippetCommand,
+  ModuleValue,
+  Variable,
 } from '../../../generated/caster-api';
-import { Observable } from 'rxjs';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
-
-const WAS_CANCELLED = 'wasCancelled';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 
 @Component({
   selector: 'cas-module-variables',
@@ -26,97 +27,270 @@ const WAS_CANCELLED = 'wasCancelled';
   styleUrls: ['./module-variables.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModuleVariablesComponent implements OnInit {
-  @Input() selectedModule: Module;
+export class ModuleVariablesComponent implements OnInit, OnChanges {
+  @Input() name: string;
+  @Input() submitButtonText = 'Save';
   @Input() readOnly: boolean;
-  @Input() isEditing: boolean;
+  @Input() selectedVersionName: string;
+  @Input() selectedModule: Module;
+  @Input() values: ModuleValue[] = [];
+  @Input() isSaving = false;
 
-  @Output() variablesSelected = new EventEmitter<CreateSnippetCommand>();
+  // autocomplete sources
+  @Input() variables: Variable[] = [];
+  @Input() outputs = [];
+
+  @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
 
   selectedVersion: ModuleVersion;
-  moduleValues: EnteredValue[] = [];
+  moduleFields: ModuleField[] = [];
   newName = '';
+  form: FormGroup;
+  promptForReload = false;
+  nameChanged = false;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private confirmDialogService: ConfirmDialogService,
+    private formBuilder: FormBuilder
+  ) {}
 
   ngOnInit() {
-    this.selectedVersion = this.selectedModule.versions[0];
-    this.newName = this.selectedModule.name;
-    this.setModuleValues();
+    this.newName = this.name ?? this.selectedModule.name;
+    this.setVersion();
+    this.createModuleFields();
+    this.createForm();
   }
 
-  setModuleValues() {
-    this.moduleValues.length = 0;
-    this.selectedVersion.variables.forEach((variable) => {
-      const enteredValue = new EnteredValue();
-      enteredValue.name = variable.name;
-      enteredValue.value = variable.defaultValue;
-      enteredValue.description = variable.description;
-      enteredValue.isOptional = variable.isOptional;
-      enteredValue.type = variable.variableType;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.values && !changes.values.firstChange) {
+      this.onValuesChanged();
+    }
 
-      this.moduleValues.push(enteredValue);
-    });
-  }
+    if (changes.name && !changes.name.firstChange) {
+      this.onNameChanged();
+    }
 
-  // Submit or Cancel has been clicked
-  onClick(useThis: boolean): void {
-    if (useThis) {
-      const createSnippetCommand: CreateSnippetCommand = {
-        versionId: this.selectedVersion.id,
-        moduleName: this.newName,
-        variableValues: this.moduleValues,
-      };
-      const hasBlankValues = this.moduleValues.some((mv) => {
-        return !mv.isOptional && (!mv.value || mv.value.length === 0);
-      });
-      if (hasBlankValues) {
-        this.confirmDialog(
-          'Some REQUIRED variable values have been left blank!',
-          'Are you sure that you want to insert this module with blank REQUIRED values?',
-          { buttonTrueText: 'Insert' }
-        ).subscribe((result) => {
-          if (!result[WAS_CANCELLED]) {
-            // return the snippet command with blank variable values
-            this.variablesSelected.emit(createSnippetCommand);
-          }
-        });
-      } else {
-        // all variables have values. Return the snippet command
-        this.variablesSelected.emit(createSnippetCommand);
+    if (changes.isSaving && !changes.isSaving.firstChange) {
+      this.onSavingChanged(
+        changes.isSaving.currentValue,
+        changes.isSaving.previousValue
+      );
+    }
+
+    if (
+      (changes.selectedVersionName &&
+        !changes.selectedVersionName.firstChange) ||
+      (changes.selectedModule && !changes.selectedModule.firstChange)
+    ) {
+      if (this.form?.pristine) {
+        this.reload();
+      } else if (!this.isSaving) {
+        this.promptForReload = true;
       }
-    } else {
-      // Cancel by closing with no return value
-      this.variablesSelected.emit(null);
     }
   }
 
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed();
+  createForm(): void {
+    this.form = this.formBuilder.group({
+      selectedVersion: [this.selectedVersion],
+      newName: [{ value: this.newName, disabled: this.readOnly }],
+      values: this.createValuesForm(),
+    });
   }
-}
 
-export class EnteredValue {
-  name = '';
-  value = '';
-  description = '';
-  isOptional = false;
-  type = 'string';
+  createValuesForm(): FormGroup {
+    const controls = {};
 
-  isMultiLine() {
-    return !(
-      this.type === 'string' ||
-      this.type === 'number' ||
-      this.type === 'bool'
-    );
+    this.moduleFields.forEach((x) => {
+      controls[x.name] = [{ value: x.value, disabled: this.readOnly }];
+    });
+
+    return this.formBuilder.group(controls);
+  }
+
+  createModuleFields() {
+    this.moduleFields.length = 0;
+    this.selectedVersion.variables.forEach((variable) => {
+      const moduleField = new ModuleField();
+      moduleField.name = variable.name;
+      moduleField.description = variable.description;
+      moduleField.isOptional = variable.isOptional;
+      moduleField.type = variable.variableType;
+
+      if (this.values) {
+        const val = this.values.find((x) => x.name == variable.name);
+
+        if (val) {
+          moduleField.value = val.value;
+        } else {
+          moduleField.value = variable.defaultValue;
+        }
+      } else {
+        moduleField.value = variable.defaultValue;
+      }
+
+      this.moduleFields.push(moduleField);
+    });
+  }
+
+  onValuesChanged(): void {
+    this.moduleFields.forEach((moduleField) => {
+      const value = this.values.find((x) => x.name == moduleField.name);
+      const formControl = this.form?.get(['values', moduleField.name]);
+
+      moduleField.value = value ? value.value : null;
+
+      if (formControl != null) {
+        // if the update was from us or if we didn't change this formControl,
+        // update to the new value
+        if (this.isSaving || !formControl.dirty) {
+          formControl.setValue(value ? value.value : null);
+        } else {
+          // if the update is different than what we changed it to, mark it as changed
+          // if the update is the same as what we changed it to, mark the control as pristine
+          // since it is now the same as the latest api value
+          if (moduleField.value != formControl.value) {
+            moduleField.changed = true;
+          } else {
+            formControl.markAsPristine();
+          }
+        }
+      }
+    });
+  }
+
+  onSelectedVersionChanged(version: ModuleVersion) {
+    this.selectedVersion = version;
+    this.createModuleFields();
+    this.createForm();
+    this.form.get('selectedVersion')?.markAsDirty(); // ensure submit button is enabled
+  }
+
+  onNameChanged() {
+    this.newName = this.name ?? this.selectedModule.name;
+    const formControl = this.form?.get('newName');
+
+    if (formControl != null) {
+      if (this.isSaving || !formControl.dirty) {
+        formControl.setValue(this.newName);
+      } else {
+        this.nameChanged = true;
+      }
+    }
+  }
+
+  onSavingChanged(currentValue: boolean, previousValue: boolean) {
+    if (currentValue == false && previousValue == true) {
+      this.form.markAsPristine();
+      this.moduleFields.forEach((x) => (x.changed = false));
+    }
+  }
+
+  reload() {
+    this.ngOnInit();
+    this.promptForReload = false;
+  }
+
+  setVersion() {
+    if (this.selectedVersionName) {
+      const version = this.selectedModule.versions.find(
+        (x) => x.name == this.selectedVersionName
+      );
+
+      if (version) {
+        this.selectedVersion = version;
+      }
+    }
+
+    if (!this.selectedVersion) {
+      this.selectedVersion = this.selectedModule.versions[0];
+    }
+  }
+
+  acceptValue(value: ModuleField) {
+    const formControl = this.form.get(['values', value.name]);
+
+    if (formControl) {
+      formControl.setValue(value.value);
+      formControl.markAsPristine();
+      value.changed = false;
+    }
+  }
+
+  acceptName() {
+    const formControl = this.form.get('newName');
+
+    if (formControl) {
+      formControl.setValue(this.newName);
+      formControl.markAsPristine();
+      this.nameChanged = false;
+    }
+  }
+
+  submit(): void {
+    const moduleValues = new Array<ModuleValue>();
+
+    Object.keys(this.form.value.values).forEach((x) => {
+      moduleValues.push({
+        name: x,
+        value: this.form.value.values[x],
+      });
+    });
+
+    const result: ModuleVariablesResult = {
+      versionId: this.selectedVersion.id,
+      moduleName: this.form.value.newName,
+      variableValues: moduleValues,
+      versionName: this.selectedVersion.name,
+      changedVariables: this.getChangedVariables(),
+    };
+
+    if (this.hasBlankValues()) {
+      this.confirmDialogService
+        .confirmDialog(
+          'Some REQUIRED variable values have been left blank!',
+          'Are you sure that you want to insert this module with blank REQUIRED values?',
+          { buttonTrueText: 'Insert' }
+        )
+        .subscribe((x) => {
+          if (!x.wasCancelled) {
+            // return the snippet command with blank variable values
+            this.variablesSelected.emit(result);
+          }
+        });
+    } else {
+      // all variables have values. Return the snippet command
+      this.variablesSelected.emit(result);
+    }
+  }
+
+  private getChangedVariables(): Array<string> {
+    const valueControls = (this.form.get('values') as FormGroup).controls;
+    const changedVariables = Object.entries(valueControls)
+      .filter((x) => x[1].dirty)
+      .map((x) => x[0]);
+
+    return changedVariables;
+  }
+
+  private hasBlankValues() {
+    const hasBlankValues = this.moduleFields.some((mv) => {
+      if (mv.isOptional) {
+        return false;
+      }
+
+      const formControl = this.form.get(['values', mv.name]);
+      if (formControl == null) {
+        return false;
+      }
+
+      return !formControl.value || formControl.value.length === 0;
+    });
+
+    return hasBlankValues;
+  }
+
+  cancel() {
+    this.variablesSelected.emit(null);
   }
 }

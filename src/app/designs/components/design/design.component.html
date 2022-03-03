@@ -1,0 +1,26 @@
+<div class="content">
+  <ng-container *ngIf="design$ | async as design">
+    <h3
+      *ngIf="!design.enabled"
+      class="disabled"
+      matTooltip="This Design will not be included in a Workspace until it is enabled"
+    >
+      Disabled
+    </h3>
+  </ng-container>
+
+  <mat-expansion-panel (opened)="loadVariables()">
+    <mat-expansion-panel-header>
+      <mat-panel-title> Variables </mat-panel-title>
+      <mat-panel-description>
+        Manage re-usable values to customize your Design
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <ng-template matExpansionPanelContent>
+      <cas-variables [designId]="designId"></cas-variables>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <cas-design-modules [designId]="designId"></cas-design-modules>
+</div>

@@ -38,6 +38,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [breadcrumb]="breadcrumb$ | async"
         >
         </cas-workspace-container>
+        <cas-design
+          *ngIf="tab.type === tabType.DESIGN"
+          [designId]="tab.id"
+        ></cas-design>
       </ng-template>
     </mat-tab>
   </mat-tab-group>

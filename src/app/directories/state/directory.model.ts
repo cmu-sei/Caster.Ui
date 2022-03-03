@@ -7,4 +7,5 @@ export interface DirectoryUI {
   isFilesExpanded: boolean;
   isWorkspacesExpanded: boolean;
   isDirectoriesExpanded: boolean;
+  isDesignsExpanded: boolean;
 }

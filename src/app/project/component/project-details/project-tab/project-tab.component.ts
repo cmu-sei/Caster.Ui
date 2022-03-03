@@ -59,6 +59,7 @@ import { ModuleQuery, ModuleService } from 'src/app/modules/state';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { CurrentUserQuery } from 'src/app/users/state';
+import { DesignQuery } from 'src/app/designs/state/design.query';
 
 const WAS_CANCELLED = 'wasCancelled';
 type TabSubscription = { id: string; subscription: Subscription };
@@ -104,14 +105,15 @@ export class ProjectTabComponent
     private fileService: FileService,
     private dialog: MatDialog,
     private currentUserQuery: CurrentUserQuery,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private designQuery: DesignQuery
   ) {}
 
   /**
    * ngOninit handles initialization required for all open tabs
    */
   ngOnInit() {
-    this.moduleService.load().pipe(take(1)).subscribe();
+    this.moduleService.load(false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
     this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
     this.sidebarView$ = this.projectQuery.getRightSidebarView$(this.project.id);
@@ -165,6 +167,11 @@ export class ProjectTabComponent
                 // replaces the results selector and returns the tab along with the directory entity.
                 map((directory) => [tab, directory])
               );
+            case ProjectObjectType.DESIGN:
+              return this.designQuery.selectEntity(tab.id).pipe(
+                // replaces the results selector and returns the tab along with the directory entity.
+                map((design) => [tab, design])
+              );
           }
         }),
         // Filter for undefined entities. Typically undefined on initial load. (prevents errors)
@@ -180,13 +187,14 @@ export class ProjectTabComponent
 
             case ProjectObjectType.WORKSPACE:
               return EMPTY;
+            case ProjectObjectType.DESIGN:
+              return EMPTY;
           }
         }),
-        shareReplay()
-	      //share({
+        shareReplay(),
+        //share({
         //    connector: () => new ReplaySubject(),
         //  })
-        ,
         // unsubscribe automatically when the component is destroyed.
         takeUntil(this.unsubscribe$)
       )
@@ -211,11 +219,10 @@ export class ProjectTabComponent
         tap((obj) => {
           this.watchForChanges();
         }),
-        shareReplay()
-	      //share({
+        shareReplay(),
+        //share({
         //    connector: () => new ReplaySubject(),
         //  })
-        ,
         takeUntil(this.unsubscribe$),
         catchError((err) => {
           console.log(err);
@@ -364,6 +371,9 @@ export class ProjectTabComponent
       case ProjectObjectType.WORKSPACE:
         obj = this.workspaceQuery.getEntity(tab.id);
         break;
+      case ProjectObjectType.DESIGN:
+        obj = this.designQuery.getEntity(tab.id);
+        break;
     }
     if (obj) {
       this.projectObjectNames[tab.id] = obj.name;
@@ -403,10 +413,8 @@ export class ProjectTabComponent
           this.closeFileTab(tab.id);
         }
         break;
-      case ProjectObjectType.WORKSPACE:
-        this.closeTab.emit(tab.id);
-        break;
       default:
+        this.closeTab.emit(tab.id);
         break;
     }
   }

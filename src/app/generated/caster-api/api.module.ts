@@ -1,13 +1,10 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core';
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
 import { AppliesService } from './api/applies.service';
+import { DesignsService } from './api/designs.service';
+import { DesignsModulesService } from './api/designsModules.service';
 import { DirectoriesService } from './api/directories.service';
 import { FilesService } from './api/files.service';
 import { HealthService } from './api/health.service';
@@ -21,6 +18,7 @@ import { RunsService } from './api/runs.service';
 import { TerraformService } from './api/terraform.service';
 import { UserPermissionsService } from './api/userPermissions.service';
 import { UsersService } from './api/users.service';
+import { VariablesService } from './api/variables.service';
 import { WorkspacesService } from './api/workspaces.service';
 
 @NgModule({

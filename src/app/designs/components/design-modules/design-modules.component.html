@@ -1,0 +1,33 @@
+<h3>Modules</h3>
+
+<div fxLayout="row" fxLayoutGap="1em" class="header">
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="showModuleList = !showModuleList"
+  >
+    <ng-container *ngIf="!(showModuleList$ | async); else close"
+      >Add Module</ng-container
+    >
+    <ng-template #close>Close</ng-template>
+  </button>
+</div>
+
+<cas-module-list
+  *ngIf="showModuleList$ | async"
+  [modules]="modules$ | async"
+  [isEditing]="true"
+  (getModule)="getModuleFn($event.id)"
+></cas-module-list>
+
+<div fxLayout="row wrap" fxLayoutGap="1em grid" *ngIf="!showModuleList">
+  <div
+    class="module"
+    *ngFor="let designModule of designModules$ | async; trackBy: trackByFn"
+  >
+    <cas-design-module
+      [designModule]="designModule"
+      [module]="moduleQuery.selectByModuleId(designModule.moduleId) | async"
+    ></cas-design-module>
+  </div>
+</div>

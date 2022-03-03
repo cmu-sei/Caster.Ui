@@ -6,6 +6,7 @@ export enum ProjectObjectType {
   DIRECTORY = 'DIRECTORY',
   FILE = 'FILE',
   WORKSPACE = 'WORKSPACE',
+  DESIGN = 'DESIGN',
 }
 
 export interface Breadcrumb {

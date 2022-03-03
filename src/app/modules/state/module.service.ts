@@ -23,16 +23,48 @@ export class ModuleService {
     private modulesService: ModulesService
   ) {}
 
-  load(): Observable<Module[]> {
+  load(includeVersions: boolean): Observable<Module[]> {
     this.moduleStore.setLoading(true);
-    return this.modulesService.getAllModules().pipe(
+    return this.modulesService.getAllModules(includeVersions).pipe(
       tap((modules: Module[]) => {
-        this.moduleStore.set(modules);
+        this.upsertMany(modules, includeVersions);
       }),
       tap(() => {
         this.moduleStore.setLoading(false);
       })
     );
+  }
+
+  loadByDesignId(
+    designId: string,
+    includeVersions: boolean
+  ): Observable<Module[]> {
+    this.moduleStore.setLoading(true);
+    return this.modulesService
+      .getAllModules(includeVersions, false, designId)
+      .pipe(
+        tap((modules: Module[]) => {
+          this.upsertMany(modules, includeVersions);
+        }),
+        tap(() => {
+          this.moduleStore.setLoading(false);
+        })
+      );
+  }
+
+  private upsertMany(modules: Module[], includeVersions: boolean) {
+    let objs = modules;
+
+    if (!includeVersions) {
+      // this call does not include versions, so don't
+      // overwrite any we already have
+      objs = modules.map((x) => {
+        delete x.versions;
+        return x;
+      });
+    }
+
+    this.moduleStore.upsertMany(objs);
   }
 
   loadModuleById(id: string): Observable<Module> {

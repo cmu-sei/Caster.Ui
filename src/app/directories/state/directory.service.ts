@@ -4,12 +4,14 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { DesignService } from 'src/app/designs/state/design.service';
 import { FileService } from 'src/app/files/state';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { WorkspaceService } from 'src/app/workspace/state';
 import {
   ArchiveType,
+  Design,
   DirectoriesService,
   Directory,
   ModelFile,
@@ -29,7 +31,8 @@ export class DirectoryService {
     private directoryQuery: DirectoryQuery,
     private directoriesService: DirectoriesService,
     private fileService: FileService,
-    private workspaceService: WorkspaceService
+    private workspaceService: WorkspaceService,
+    private designService: DesignService
   ) {}
 
   loadDirectories(projectId: string): Observable<Directory[]> {
@@ -40,6 +43,7 @@ export class DirectoryService {
           // First capture file and workspace data to load
           let files: ModelFile[] = [];
           let workspaces: Workspace[] = [];
+          let designs: Design[] = [];
           const directoryUIs = this.directoryQuery.ui.getAll();
           this.directoryStore.set(directories);
           directories.forEach((dir) => {
@@ -49,9 +53,11 @@ export class DirectoryService {
             }
             files = files.concat(dir.files);
             workspaces = workspaces.concat(dir.workspaces);
+            designs = designs.concat(dir.designs);
           });
           this.fileService.filesUpdated(files);
           this.workspaceService.setWorkspaces(workspaces);
+          this.designService.setDesigns(designs);
         })
       );
   }
@@ -121,6 +127,14 @@ export class DirectoryService {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
       isDirectoriesExpanded: isUpdate<DirectoryUI>(d)
         ? !d.isDirectoriesExpanded
+        : undefined,
+    }));
+  }
+
+  toggleIsDesignsExpanded(directoryUI: DirectoryUI) {
+    this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
+      isDesignsExpanded: isUpdate<DirectoryUI>(d)
+        ? !d.isDesignsExpanded
         : undefined,
     }));
   }

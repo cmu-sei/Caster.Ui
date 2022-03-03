@@ -10,6 +10,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import {
+  MatSnackBarConfig,
+  MAT_SNACK_BAR_DEFAULT_OPTIONS,
+} from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import {
   MatTooltipDefaultOptions,
@@ -31,6 +35,7 @@ import { environment } from '../environments/environment';
 import { AdminAppModule } from './admin-app/admin-app.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { DesignModule } from './designs/design.module';
 import { ApiModule, BASE_PATH } from './generated/caster-api';
 import { ProjectModule } from './project/project.module';
 import { ErrorService } from './sei-cwd-common/cwd-error/error.service';
@@ -53,6 +58,10 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
   showDelay: 1000,
   hideDelay: 0,
   touchendHideDelay: 1000,
+};
+
+export const myCustomSnackBarDefaults: MatSnackBarConfig = {
+  duration: 2000,
 };
 
 @NgModule({
@@ -80,6 +89,7 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
     FlexLayoutModule,
     OverlayModule,
     HotkeysModule,
+    DesignModule,
   ],
   providers: [
     {
@@ -90,6 +100,10 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
     { provide: ErrorHandler, useClass: ErrorService },
     SystemMessageService,
     { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: myCustomSnackBarDefaults,
+    },
   ],
   bootstrap: [AppComponent],
   entryComponents: [SystemMessageComponent],

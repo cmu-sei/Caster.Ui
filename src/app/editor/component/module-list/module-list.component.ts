@@ -40,12 +40,13 @@ export class ModuleListComponent implements OnInit {
   insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<CreateSnippetCommand>();
   @Output() getModule: EventEmitter<{ id: string }> = new EventEmitter();
   private _modules: Module[];
-  private _selectedModule: Module;
+  _selectedModule: Module;
   code: string;
-  dataSource = new MatTableDataSource();
+  dataSource = new MatTableDataSource<Module>();
   filterString = '';
   isDialogOpen = false;
   variablesDialogRef: MatDialogRef<ModuleVariablesComponent>;
+  initialized = false;
 
   @ViewChild('variablesDialog')
   variablesTemplate: TemplateRef<ModuleVariablesComponent>;
@@ -54,6 +55,7 @@ export class ModuleListComponent implements OnInit {
 
   ngOnInit(): void {
     this.dataSource.data = this._modules;
+    this.initialized = true;
   }
 
   variablesSelected(command: CreateSnippetCommand) {
@@ -87,6 +89,7 @@ export class ModuleListComponent implements OnInit {
 
   private updateSelected() {
     if (
+      this.initialized &&
       !this.isDialogOpen &&
       !!this._selectedModule &&
       !!this._selectedModule.versions &&

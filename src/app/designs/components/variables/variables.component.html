@@ -1,0 +1,15 @@
+<div class="button-row">
+  <button mat-raised-button color="primary" (click)="addVariable()">Add</button>
+</div>
+
+<div *ngIf="variables$ | async as variables">
+  <ng-container *ngIf="variables.length; else empty">
+    <div fxLayout="row wrap" fxLayoutGap="1em grid">
+      <cas-variable
+        *ngFor="let item of variables; trackBy: trackByFn"
+        [variable]="item"
+      ></cas-variable>
+    </div>
+  </ng-container>
+  <ng-template #empty>This Design doesn't have any Variables yet.</ng-template>
+</div>
