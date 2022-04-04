@@ -10,7 +10,7 @@ import {
   Input,
   OnChanges,
 } from '@angular/core';
-import { BehaviorSubject, forkJoin, Observable, of } from 'rxjs';
+import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { DesignModuleQuery } from 'src/app/designs/state/design-modules/design-module.query';
 import { DesignModuleService } from 'src/app/designs/state/design-modules/design-module.service';
@@ -25,7 +25,6 @@ import {
 } from 'src/app/generated/caster-api/model/models';
 import { ModuleService } from 'src/app/modules/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
-import { textChangeRangeIsUnchanged } from 'typescript';
 
 @Component({
   selector: 'cas-design-module',
