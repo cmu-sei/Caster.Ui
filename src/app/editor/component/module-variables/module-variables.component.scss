@@ -1,6 +1,8 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+@import '/src/styles/theme';
+
 h1 {
   display: inline-block;
 }
@@ -14,12 +16,12 @@ mat-form-field {
 }
 
 .changed-hint {
-  color: red !important;
+  color: mat-color($warn) !important;
   cursor: pointer;
 }
 
 .alert {
-  color: red !important;
+  color: mat-color($warn) !important;
 }
 
 .hidden {
