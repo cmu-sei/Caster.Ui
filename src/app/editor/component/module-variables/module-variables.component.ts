@@ -20,6 +20,7 @@ import {
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'cas-module-variables',
@@ -224,6 +225,18 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
       formControl.setValue(this.newName);
       formControl.markAsPristine();
       this.nameChanged = false;
+    }
+  }
+
+  autocompleteSelected(
+    formControlName: string,
+    event: MatAutocompleteSelectedEvent
+  ) {
+    const formControl = this.form.get(['values', formControlName]);
+
+    if (formControl) {
+      formControl.setValue(event.option.value);
+      formControl.markAsDirty();
     }
   }
 

@@ -115,7 +115,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [matAutocomplete]="autoGroup"
             #trigger="matAutocompleteTrigger"
           />
-          <mat-autocomplete #autoGroup>
+          <mat-autocomplete
+            #autoGroup
+            (optionSelected)="autocompleteSelected(moduleField.name, $event)"
+          >
             <mat-optgroup label="Variables" *ngIf="variables.length > 0">
               <mat-option
                 *ngFor="let variable of variables"
