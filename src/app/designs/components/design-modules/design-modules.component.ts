@@ -56,7 +56,7 @@ export class DesignModulesComponent implements OnInit {
     this.designModulesService.loadByDesignId(this.designId).subscribe();
   }
 
-  trackByFn(index, item) {
+  trackByFn(_index, item) {
     return item.id;
   }
 
