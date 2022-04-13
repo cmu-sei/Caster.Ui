@@ -75,7 +75,7 @@
     "@types/jasmine": "^3.8.2",
     "@types/jasminewd2": "^2.0.10",
     "@types/node": "^16.4.11",
-    "angular-playground": "^8.1.4",
+    "angular-playground": "^8.2.0",
     "codelyzer": "^6.0.2",
     "cross-var": "^1.1.0",
     "jasmine-core": "^3.8.0",
