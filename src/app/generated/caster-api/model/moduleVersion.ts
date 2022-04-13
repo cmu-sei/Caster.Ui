@@ -15,6 +15,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * Do not edit the class manually.
  */
 import { ModuleVariable } from './moduleVariable';
+import { ModuleOutput } from './moduleOutput';
 
 
 export interface ModuleVersion { 
@@ -24,6 +25,6 @@ export interface ModuleVersion {
     urlLink?: string | null;
     dateCreated?: string;
     variables?: Array<ModuleVariable> | null;
-    outputs?: Array<string> | null;
+    outputs?: Array<ModuleOutput> | null;
 }
 

@@ -11,6 +11,9 @@
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
+        },
+        "@datorama/akita:component": {
+          "styleext": "scss"
         }
       },
       "architect": {
@@ -158,7 +161,8 @@
             "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
-            "namedChunks": true
+            "namedChunks": true,
+            "serviceWorker": false
           },
           "configurations": {
             "production": {

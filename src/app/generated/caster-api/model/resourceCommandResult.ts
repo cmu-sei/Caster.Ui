@@ -29,5 +29,6 @@ export interface ResourceCommandResult {
      * a list of errors, if any, encountered during execution of the command
      */
     errors?: Array<string> | null;
+    outputs?: any | null;
 }
 

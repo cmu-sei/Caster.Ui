@@ -28,6 +28,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ComnAuthGuardService } from '@cmusei/crucible-common';
 import { ResizableModule } from 'angular-resizable-element';
 import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
+import { DesignModule } from '../designs/design.module';
 import { DirectoriesModule } from '../directories';
 import { EditorModule } from '../editor/editor.module';
 import { ConfirmDialogComponent } from '../sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
@@ -110,6 +111,7 @@ const projectRoutes: Routes = [
     MatToolbarModule,
     SharedModule,
     SeiCwdCommonModule,
+    DesignModule,
   ],
   exports: [
     ProjectComponent,

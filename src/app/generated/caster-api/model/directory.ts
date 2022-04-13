@@ -14,6 +14,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Design } from './design';
 import { Workspace } from './workspace';
 
 
@@ -42,6 +43,10 @@ export interface Directory {
      * List of workspaces in the directory. Null if not requested
      */
     workspaces?: Array<Workspace> | null;
+    /**
+     * List of designs in the directory. Null if not requested
+     */
+    designs?: Array<Design> | null;
     /**
      * The version of Terraform that will be set Workspaces created in this Directory.  If not set, will traverse parents until a version is found.  If still not set, the default version will be used.
      */
