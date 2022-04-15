@@ -130,6 +130,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
         moduleField.value = variable.defaultValue;
       }
 
+      moduleField.defaultValue = variable.defaultValue;
       this.moduleFields.push(moduleField);
     });
   }
@@ -139,13 +140,13 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
       const value = this.values.find((x) => x.name == moduleField.name);
       const formControl = this.form?.get(['values', moduleField.name]);
 
-      moduleField.value = value ? value.value : null;
+      moduleField.value = value ? value.value : moduleField.defaultValue;
 
       if (formControl != null) {
         // if the update was from us or if we didn't change this formControl,
         // update to the new value
         if (this.isSaving || !formControl.dirty) {
-          formControl.setValue(value ? value.value : null);
+          formControl.setValue(value ? value.value : moduleField.defaultValue);
         } else {
           // if the update is different than what we changed it to, mark it as changed
           // if the update is the same as what we changed it to, mark the control as pristine
