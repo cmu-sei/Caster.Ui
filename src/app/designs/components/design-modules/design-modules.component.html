@@ -22,7 +22,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   *ngIf="showModuleList$ | async"
   [modules]="modules$ | async"
   [isEditing]="true"
-  (getModule)="getModuleFn($event.id)"
+  (getModule)="getModuleFn($event.id, $event.name)"
 ></cas-module-list>
 
 <div fxLayout="row wrap" fxLayoutGap="1em grid" *ngIf="!showModuleList">
