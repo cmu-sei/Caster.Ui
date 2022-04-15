@@ -23,6 +23,7 @@ export class ModuleField {
   type = 'string';
   previousValue = this.value;
   changed = false;
+  defaultValue: string;
 
   isMultiLine() {
     return !(

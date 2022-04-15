@@ -60,12 +60,12 @@ export class DesignModulesComponent implements OnInit {
     return item.id;
   }
 
-  getModuleFn(moduleId: string) {
+  getModuleFn(moduleId: string, moduleName: string) {
     this.designModulesService
       .create({
         designId: this.designId,
         moduleId: moduleId,
-        name: 'New Module',
+        name: moduleName.replace(/ /g, '_'),
         values: [],
       })
       .subscribe(() => {

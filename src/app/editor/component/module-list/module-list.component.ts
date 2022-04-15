@@ -38,7 +38,8 @@ export class ModuleListComponent implements OnInit {
 
   @Output()
   insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<CreateSnippetCommand>();
-  @Output() getModule: EventEmitter<{ id: string }> = new EventEmitter();
+  @Output() getModule: EventEmitter<{ id: string; name: string }> =
+    new EventEmitter();
   private _modules: Module[];
   _selectedModule: Module;
   code: string;
@@ -81,7 +82,10 @@ export class ModuleListComponent implements OnInit {
   }
 
   selectModuleFn(module) {
-    this.getModule.emit({ id: module.id });
+    this.getModule.emit({
+      id: module.id,
+      name: module.name,
+    });
   }
   private updateDataSource() {
     this.dataSource.data = this._modules;
