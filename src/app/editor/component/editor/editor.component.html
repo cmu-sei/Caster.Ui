@@ -10,48 +10,52 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     mwlResizable
     [style.min-width.px]="sidenavWidth"
     [style.max-width.px]="sidenavWidth"
-    [resizeCursorPrecision]="10"
-    [resizeEdges]="{ left: true }"
     (resizing)="resizingFn($event)"
     (resizeEnd)="resizeEndFn($event)"
     [(opened)]="sidebarOpen"
     position="end"
   >
-    <div fxLayout="column" fxLayoutAlign="center space-between">
-      <button
-        *ngIf="sidebarOpen"
-        mat-icon-button
-        (click)="resetSidebar()"
-        matTooltip="Close Side Bar"
-      >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-chevron-double-right"
-        ></mat-icon>
-      </button>
-      <ng-container [ngSwitch]="sidebar?.value">
-        <div *ngSwitchCase="'modules'">
-          <cas-module-list
-            *ngIf="filename.endsWith('.tf')"
-            [modules]="modules"
-            [selectedModule]="selectedModule$ | async"
-            [isEditing]="isEditing$ | async"
-            (getModule)="getModuleFn($event)"
-            (insertModule)="insertModuleFn($event)"
-          ></cas-module-list>
-        </div>
-        <div *ngSwitchCase="'versions'">
-          <cas-version-list
-            *ngSwitchCase="'versions'"
-            [fileId]="fileId"
-            [selectedVersionId]="
-              selectedVersionForDiff ? selectedVersionForDiff.id : ''
-            "
-            (getVersion)="getVersionFn($event)"
-            (revertToVersion)="revertToVersionFn($event)"
-          ></cas-version-list>
-        </div>
-      </ng-container>
+    <div *ngIf="sidebarOpen" class="grid">
+      <div
+        class="resize-handle-left"
+        mwlResizeHandle
+        [resizeEdges]="{ left: true }"
+      ></div>
+      <div fxLayout="column" fxLayoutAlign="center space-between">
+        <button
+          mat-icon-button
+          (click)="resetSidebar()"
+          matTooltip="Close Side Bar"
+        >
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-chevron-double-right"
+          ></mat-icon>
+        </button>
+        <ng-container [ngSwitch]="sidebar?.value">
+          <div *ngSwitchCase="'modules'">
+            <cas-module-list
+              *ngIf="filename.endsWith('.tf')"
+              [modules]="modules"
+              [selectedModule]="selectedModule$ | async"
+              [isEditing]="isEditing$ | async"
+              (getModule)="getModuleFn($event)"
+              (insertModule)="insertModuleFn($event)"
+            ></cas-module-list>
+          </div>
+          <div *ngSwitchCase="'versions'">
+            <cas-version-list
+              *ngSwitchCase="'versions'"
+              [fileId]="fileId"
+              [selectedVersionId]="
+                selectedVersionForDiff ? selectedVersionForDiff.id : ''
+              "
+              (getVersion)="getVersionFn($event)"
+              (revertToVersion)="revertToVersionFn($event)"
+            ></cas-version-list>
+          </div>
+        </ng-container>
+      </div>
     </div>
   </mat-sidenav>
 
@@ -168,8 +172,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-button-toggle-group
               #sidebar="matButtonToggleGroup"
               [value]="sidebarView"
-              fxLayout="row"
-              fxLayoutAlign="center space-around"
               hotkeyAction="FILE_VERSIONS"
               (hotkeyFn)="sidebarChangedFn($event, sidebarOpen)"
               (valueChange)="sidebarChangedFn($event, sidebarOpen)"
@@ -180,14 +182,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 hotkeyAction="FILE_MODULES"
                 (change)="toggleSidebar($event, true)"
               >
-                <div>
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-code"
-                    matTooltip="Open Modules"
-                  ></mat-icon>
-                </div>
+                <mat-icon
+                  color="primary"
+                  fontSet="fas"
+                  fontIcon="fa-code"
+                  matTooltip="Open Modules"
+                ></mat-icon>
               </mat-button-toggle>
               <mat-button-toggle
                 value="versions"
@@ -195,14 +195,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 hotkeyAction="FILE_VERSIONS"
                 (change)="toggleSidebar($event, true)"
               >
-                <div>
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-history"
-                    matTooltip="Open File Versions"
-                  ></mat-icon>
-                </div>
+                <mat-icon
+                  color="primary"
+                  fontSet="fas"
+                  fontIcon="fa-history"
+                  matTooltip="Open File Versions"
+                ></mat-icon>
               </mat-button-toggle>
             </mat-button-toggle-group>
           </div>

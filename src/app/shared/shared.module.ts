@@ -7,9 +7,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive';
 
 @NgModule({
-  declarations: [CrucibleHotkeyDirective],
-  imports: [CommonModule, BrowserModule],
-  exports: [CrucibleHotkeyDirective],
-  entryComponents: [CrucibleHotkeyDirective],
+    declarations: [CrucibleHotkeyDirective],
+    imports: [CommonModule, BrowserModule],
+    exports: [CrucibleHotkeyDirective]
 })
 export class SharedModule {}

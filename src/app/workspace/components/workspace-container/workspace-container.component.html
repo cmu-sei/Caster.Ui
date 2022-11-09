@@ -17,27 +17,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-button-toggle-group
         #sidebar="matButtonToggleGroup"
         [value]="workspaceView$ | async"
-        fxLayout="row"
-        fxLayoutAlign="center space-around"
         (valueChange)="viewChangedFn($event)"
       >
         <mat-button-toggle value="runs" aria-label="modules">
-          <div>
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-view-list"
-              matTooltip="Runs View"
-            ></mat-icon>
-          </div>
+          <mat-icon
+            class="mdi-24px icon"
+            fontIcon="mdi-view-list"
+            matTooltip="Runs View"
+          ></mat-icon>
         </mat-button-toggle>
         <mat-button-toggle value="state" aria-label="versions">
-          <div>
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-monitor-multiple"
-              matTooltip="State View"
-            ></mat-icon>
-          </div>
+          <mat-icon
+            class="mdi-24px icon"
+            fontIcon="mdi-monitor-multiple"
+            matTooltip="State View"
+          ></mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
     </mat-toolbar-row>

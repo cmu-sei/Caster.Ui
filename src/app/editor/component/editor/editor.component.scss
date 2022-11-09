@@ -58,3 +58,18 @@ mat-button-toggle {
   font-size: 14px;
   color: inherit;
 }
+
+.resize-handle-left {
+  height: 100%;
+  cursor: col-resize;
+  width: 10px;
+  position: relative;
+  z-index: 1;
+  right: 2px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 0px 1fr;
+  height: 100%;
+}

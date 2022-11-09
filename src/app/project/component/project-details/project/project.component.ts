@@ -23,7 +23,7 @@ export class ProjectComponent {
   @Input() loading: boolean;
   @Input() project: Project;
   @Input() projectUI: ProjectUI;
-  @Output() closeTab: EventEmitter<Tab> = new EventEmitter<Tab>();
+  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
   @Output() tabChanged: EventEmitter<{
     index: number;
     tab: MatTab;

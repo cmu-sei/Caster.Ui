@@ -192,5 +192,7 @@
       }
     }
   },
-  "defaultProject": "caster-ui"
+  "cli": {
+    "analytics": false
+  }
 }
