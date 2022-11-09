@@ -14,10 +14,16 @@ import {
   DesignModule,
   Directory,
   ModelFile,
+  Partition,
+  Pool,
   Run,
   Variable,
+  Vlan,
   Workspace,
 } from 'src/app/generated/caster-api';
+import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
+import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { WorkspaceService } from 'src/app/workspace/state';
 import { ProjectService } from '../../project/state';
 
@@ -30,6 +36,7 @@ export class SignalRService {
   private workspaceIds: string[] = [];
   private designIds: string[] = [];
   private joinedWorkspacesAdmin = false;
+  private joinedVlansAdmin = false;
   private connectionPromise: Promise<void>;
 
   constructor(
@@ -41,7 +48,10 @@ export class SignalRService {
     private settingsService: ComnSettingsService,
     private designService: DesignService,
     private variableService: VariableService,
-    private designModuleService: DesignModuleService
+    private designModuleService: DesignModuleService,
+    private poolService: PoolService,
+    private partitionService: PartitionService,
+    private vlanService: VlanService
   ) {}
 
   public startConnection(): Promise<void> {
@@ -84,6 +94,10 @@ export class SignalRService {
 
     if (this.designIds) {
       this.designIds.forEach((x) => this.joinDesign(x));
+    }
+
+    if (this.joinedVlansAdmin) {
+      this.joinVlansAdmin();
     }
   }
 
@@ -139,6 +153,19 @@ export class SignalRService {
     this.hubConnection.invoke('LeaveDesign', designId);
   }
 
+  public joinVlansAdmin() {
+    this.joinedVlansAdmin = true;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinVlansAdmin');
+    }
+  }
+
+  public leaveVlansAdmin() {
+    this.joinedVlansAdmin = false;
+    this.hubConnection.invoke('LeaveVlansAdmin');
+  }
+
   public streamPlanOutput(planId: string) {
     return this.hubConnection.stream('GetPlanOutput', planId);
   }
@@ -155,6 +182,9 @@ export class SignalRService {
     this.addDesignHandlers();
     this.addVariableHandlers();
     this.addDesignModuleHandlers();
+    this.addPoolHandlers();
+    this.addPartitionHandlers();
+    this.addVlanHandlers();
   }
 
   private addFileHandlers() {
@@ -261,6 +291,66 @@ export class SignalRService {
 
     this.hubConnection.on('DesignModuleDeleted', (id: string) => {
       this.designModuleService.remove(id);
+    });
+  }
+
+  private addPoolHandlers() {
+    this.hubConnection.on('PoolCreated', (pool: Pool) => {
+      this.poolService.add(pool);
+    });
+
+    this.hubConnection.on(
+      'PoolUpdated',
+      (pool: Pool, modifiedProperties: string[]) => {
+        this.poolService.update(
+          pool.id,
+          this.getModified(pool, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('PoolDeleted', (id: string) => {
+      this.poolService.remove(id);
+    });
+  }
+
+  private addPartitionHandlers() {
+    this.hubConnection.on('PartitionCreated', (partition: Partition) => {
+      this.partitionService.add(partition);
+    });
+
+    this.hubConnection.on(
+      'PartitionUpdated',
+      (partition: Partition, modifiedProperties: string[]) => {
+        this.partitionService.update(
+          partition.id,
+          this.getModified(partition, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('PartitionDeleted', (id: string) => {
+      this.partitionService.remove(id);
+    });
+  }
+
+  private addVlanHandlers() {
+    this.hubConnection.on('VlanCreated', (vlan: Vlan) => {
+      this.vlanService.add(vlan);
+    });
+
+    this.hubConnection.on(
+      'VlanUpdated',
+      (vlan: Vlan, modifiedProperties: string[]) => {
+        this.vlanService.update(
+          vlan.id,
+          this.getModified(vlan, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('VlanDeleted', (id: string) => {
+      this.vlanService.remove(id);
     });
   }
 

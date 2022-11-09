@@ -14,8 +14,9 @@ import {
   ModelFile,
   ArchiveType,
   Design,
+  VlansService,
 } from 'src/app/generated/caster-api';
-import { Observable } from 'rxjs';
+import { Observable, partition } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { WorkspaceQuery } from 'src/app/workspace/state';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
@@ -30,7 +31,8 @@ export class ProjectService {
     private directoryQuery: DirectoryQuery,
     private workspaceQuery: WorkspaceQuery,
     private projectQuery: ProjectQuery,
-    private projectsService: ProjectsService
+    private projectsService: ProjectsService,
+    private vlanService: VlansService
   ) {}
 
   loadProjects(): Observable<Project[]> {
@@ -272,5 +274,23 @@ export class ProjectService {
           };
         })
       );
+  }
+
+  assignPartition(projectId: string, partitionId: string) {
+    let obs: Observable<Project>;
+
+    if (partitionId) {
+      obs = this.vlanService.assignPartition(partitionId, {
+        projectId: projectId,
+      });
+    } else {
+      obs = this.vlanService.unassignPartition({
+        projectId: projectId,
+      });
+    }
+
+    return obs.pipe(
+      tap((project) => this.projectStore.upsert(project.id, project))
+    );
   }
 }

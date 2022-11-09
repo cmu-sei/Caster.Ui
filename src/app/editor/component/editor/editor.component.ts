@@ -23,11 +23,11 @@ import {
   FileVersionQuery,
   FileVersionService,
 } from 'src/app/fileVersions/state';
+import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { FileQuery, FileService } from '../../../files/state';
-import { FileVersion, ModelFile, Module } from '../../../generated/caster-api';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 
 const SIDEBAR_MIN_WIDTH = 300;

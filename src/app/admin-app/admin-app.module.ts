@@ -8,7 +8,6 @@ import { AdminContainerComponent } from './component/admin-container/admin-conta
 import { UsersComponent } from './component/admin-users/users.component';
 import { UserListComponent } from './component/admin-users/user-list/user-list.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { ProjectModule } from '../project/project.module';
 import { RouterModule } from '@angular/router';
 import { ClipboardModule } from 'ngx-clipboard';
 import { AdminModuleListComponent } from './component/admin-modules/modules-list/module-list.component';
@@ -35,6 +34,22 @@ import { LockingStatusComponent } from './component/admin-workspaces/locking-sta
 import { ActiveRunsComponent } from './component/admin-workspaces/active-runs/active-runs.component';
 import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { VlansComponent } from './component/admin-vlans/vlans.component';
+import { PoolListComponent } from './component/admin-vlans/pool-list/pool-list.component';
+import { PartitionListComponent } from './component/admin-vlans/partition-list/partition-list.component';
+import { PartitionComponent } from './component/admin-vlans/partition/partition.component';
+import { MatSliderModule } from '@angular/material/slider';
+import { VlanListComponent } from './component/admin-vlans/vlan-list/vlan-list.component';
+import { MatTableModule } from '@angular/material/table';
+import { TableVirtualScrollModule } from 'ng-table-virtual-scroll';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { MatSelectModule } from '@angular/material/select';
+import { PoolsComponent } from './component/admin-vlans/pools/pools.component';
+import { ProjectVlansComponent } from './component/admin-vlans/project-vlans/project-vlans.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { PoolListItemComponent } from './component/admin-vlans/pool-list-item/pool-list-item.component';
+import { AdminAppRoutingModule } from './admin-app-routing.module';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -46,13 +61,27 @@ import { WorkspaceModule } from '../workspace/workspace.module';
     AdminWorkspacesComponent,
     LockingStatusComponent,
     ActiveRunsComponent,
+    VlansComponent,
+    PoolListComponent,
+    PartitionListComponent,
+    PartitionComponent,
+    VlanListComponent,
+    PoolsComponent,
+    ProjectVlansComponent,
+    PoolListItemComponent,
   ],
   imports: [
     ClipboardModule,
     CommonModule,
-    ProjectModule,
+    SharedModule,
+    RouterModule,
     FlexLayoutModule,
     FormsModule,
+    CwdTableModule,
+    WorkspaceModule,
+    ScrollingModule,
+    TableVirtualScrollModule,
+    AdminAppRoutingModule,
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
@@ -66,19 +95,15 @@ import { WorkspaceModule } from '../workspace/workspace.module';
     MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSidenavModule,
+    MatSlideToggleModule,
     MatSortModule,
     MatTooltipModule,
     MatTreeModule,
-    RouterModule,
-    MatSlideToggleModule,
-    CwdTableModule,
-    WorkspaceModule,
+    MatSelectModule,
+    MatTabsModule,
+    MatSliderModule,
+    MatTableModule,
   ],
-  exports: [
-    AdminContainerComponent,
-    MatPaginatorModule,
-    UsersComponent,
-    UserListComponent,
-  ],
+  exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })
 export class AdminAppModule {}

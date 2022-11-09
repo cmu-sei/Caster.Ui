@@ -1,0 +1,129 @@
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title class="title">
+      <ng-container *ngIf="partition">
+        <button mat-icon-button>
+          <mat-icon
+            *ngIf="partition?.isDefault"
+            class="mdi-24px"
+            fontIcon="mdi-check-circle"
+            color="primary"
+            matTooltip="Unset Default"
+            (click)="unsetDefault($event, partition.id)"
+          >
+          </mat-icon>
+          <mat-icon
+            *ngIf="!partition?.isDefault"
+            class="mdi-24px"
+            fontIcon="mdi-check-circle-outline"
+            color="primary"
+            matTooltip="Set Default"
+            (click)="setDefault($event, partition.id)"
+          >
+          </mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          ngxClipboard
+          [cbContent]="partition.id"
+          (cbOnSuccess)="onClipboardSuccess()"
+          (click)="$event.stopPropagation()"
+          title="Copy:  {{ partition.id }}"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+        </button>
+        <ng-container *ngIf="!editing">
+          <h4>{{ partition?.name }}</h4>
+          <button
+            mat-icon-button
+            color="primary"
+            matTooltip="Edit Name"
+            (click)="editing = true"
+            (click)="$event.stopPropagation()"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline">
+            </mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="editing">
+          <mat-form-field (keydown.Space)="$event.stopPropagation()">
+            <input
+              #nameInput
+              matInput
+              [value]="partition?.name"
+              (keydown.enter)="rename($event, $event.target)"
+              (click)="$event.stopPropagation()"
+            />
+          </mat-form-field>
+          <button
+            mat-icon-button
+            color="primary"
+            matTooltip="Rename"
+            (click)="rename($event, nameInput)"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            color="primary"
+            matTooltip="Cancel"
+            (click)="editing = false"
+            (click)="$event.stopPropagation()"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+          </button>
+        </ng-container>
+      </ng-container>
+      <h4 *ngIf="!partition">Unassigned</h4>
+    </mat-panel-title>
+    <mat-panel-description class="header-description">
+      <div *ngIf="vlans$ | async as vlans">{{ vlans.length }} VLANs</div>
+    </mat-panel-description>
+    <div *ngIf="partition">
+      <mat-form-field
+        class="vlan-amount"
+        matTooltip="Number of VLANs to add or remove"
+      >
+        <input
+          #vlanAmount
+          type="number"
+          matInput
+          [max]="4096"
+          value="0"
+          (click)="$event.stopPropagation()"
+        />
+      </mat-form-field>
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Remove VLANs"
+        (click)="removeVlans($event, vlanAmount.value)"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle"> </mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Add VLANs"
+        (click)="addVlans($event, vlanAmount.value)"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Delete"
+        (click)="delete($event)"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
+      </button>
+    </div>
+  </mat-expansion-panel-header>
+  <ng-template matExpansionPanelContent>
+    <cas-vlan-list
+      [showUnassigned]="this.partition ? true : false"
+      [vlans]="vlans$ | async"
+      [partitions]="otherPartitions$ | async"
+    ></cas-vlan-list>
+  </ng-template>
+</mat-expansion-panel>

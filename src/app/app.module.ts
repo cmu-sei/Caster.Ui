@@ -7,6 +7,7 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -32,12 +33,12 @@ import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { HotkeysModule } from '@ngneat/hotkeys';
 import { environment } from '../environments/environment';
-import { AdminAppModule } from './admin-app/admin-app.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DesignModule } from './designs/design.module';
 import { ApiModule, BASE_PATH } from './generated/caster-api';
 import { ProjectModule } from './project/project.module';
+import { CwdDialogsModule } from './sei-cwd-common/confirm-dialog/cwd-dialogs.module';
 import { ErrorService } from './sei-cwd-common/cwd-error/error.service';
 import { SystemMessageComponent } from './sei-cwd-common/cwd-system-message/components/system-message.component';
 import { SystemMessageService } from './sei-cwd-common/cwd-system-message/services/system-message.service';
@@ -65,46 +66,47 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
 };
 
 @NgModule({
-    declarations: [AppComponent, SystemMessageComponent],
-    imports: [
-        BrowserModule,
-        BrowserAnimationsModule,
-        environment.production ? [] : AkitaNgDevtools.forRoot(),
-        AkitaNgRouterStoreModule,
-        AppRoutingModule,
-        ComnSettingsModule.forRoot(),
-        ComnAuthModule.forRoot(),
-        AdminAppModule,
-        ApiModule,
-        CwdToolbarModule,
-        MatMenuModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatBottomSheetModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        ProjectModule,
-        HttpClientModule,
-        FlexLayoutModule,
-        OverlayModule,
-        HotkeysModule,
-        DesignModule,
-    ],
-    providers: [
-        {
-            provide: BASE_PATH,
-            useFactory: getBasePath,
-            deps: [ComnSettingsService],
-        },
-        { provide: ErrorHandler, useClass: ErrorService },
-        SystemMessageService,
-        { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
-        {
-            provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
-            useValue: myCustomSnackBarDefaults,
-        },
-    ],
-    bootstrap: [AppComponent]
+  declarations: [AppComponent, SystemMessageComponent],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    environment.production ? [] : AkitaNgDevtools.forRoot(),
+    AkitaNgRouterStoreModule,
+    AppRoutingModule,
+    ComnSettingsModule.forRoot(),
+    ComnAuthModule.forRoot(),
+    ApiModule,
+    CwdToolbarModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatBottomSheetModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    ProjectModule,
+    HttpClientModule,
+    FlexLayoutModule,
+    OverlayModule,
+    HotkeysModule,
+    DesignModule,
+    MatCheckboxModule,
+    CwdDialogsModule,
+  ],
+  providers: [
+    {
+      provide: BASE_PATH,
+      useFactory: getBasePath,
+      deps: [ComnSettingsService],
+    },
+    { provide: ErrorHandler, useClass: ErrorService },
+    SystemMessageService,
+    { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: myCustomSnackBarDefaults,
+    },
+  ],
+  bootstrap: [AppComponent],
 })
 export class AppModule {}

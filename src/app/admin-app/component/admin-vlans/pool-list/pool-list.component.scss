@@ -1,0 +1,10 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 5% 1%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}

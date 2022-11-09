@@ -6,6 +6,7 @@ import { InjectionToken, NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +16,6 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BrowserModule } from '@angular/platform-browser';
 import { SharedModule } from '../shared/shared.module';
 import { NameDialogComponent } from './name-dialog/name-dialog.component';
 
@@ -25,7 +25,6 @@ export const CWD_SETTINGS_TOKEN = new InjectionToken('CwdSettings');
   declarations: [NameDialogComponent],
   imports: [
     CommonModule,
-    BrowserModule,
     SharedModule,
     MatCardModule,
     MatProgressSpinnerModule,
@@ -39,6 +38,7 @@ export const CWD_SETTINGS_TOKEN = new InjectionToken('CwdSettings');
     MatTooltipModule,
     MatTabsModule,
     MatDialogModule,
+    MatCheckboxModule,
   ],
   exports: [NameDialogComponent],
 })

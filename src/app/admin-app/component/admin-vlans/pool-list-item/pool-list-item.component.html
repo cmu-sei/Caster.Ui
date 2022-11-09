@@ -1,0 +1,70 @@
+<mat-card>
+  <mat-card-title class="flex">
+    <h4 *ngIf="!editing" class="header">{{ pool?.name }}</h4>
+    <mat-form-field *ngIf="editing" class="header">
+      <input
+        #nameInput
+        matInput
+        [value]="pool?.name"
+        (keydown.enter)="rename($event.target)"
+        (keydown.esc)="editing = false"
+        autocomplete="off"
+      />
+    </mat-form-field>
+    <mat-icon
+      *ngIf="pool?.isDefault"
+      class="mdi-24px icon"
+      fontIcon="mdi-check-circle"
+      color="primary"
+      matTooltip="Contains The Default Partition"
+    >
+    </mat-icon>
+  </mat-card-title>
+  <mat-card-actions class="flex">
+    <button
+      *ngIf="!editing"
+      mat-icon-button
+      color="primary"
+      matTooltip="Edit Name"
+      (click)="editing = !editing"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
+    </button>
+    <ng-container *ngIf="editing">
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Rename"
+        (click)="rename(nameInput)"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Cancel"
+        (click)="editing = false"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+      </button>
+    </ng-container>
+    <button
+      mat-icon-button
+      color="primary"
+      matTooltip="Open"
+      (click)="selectPool(pool)"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-launch"> </mat-icon>
+    </button>
+    <div class="align-right">
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Delete"
+        (click)="deletePool(pool)"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
+      </button>
+    </div>
+  </mat-card-actions>
+</mat-card>

@@ -2,16 +2,16 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { ComnAuthGuardService } from '@cmusei/crucible-common';
-import { AdminContainerComponent } from './admin-app/component/admin-container/admin-container.component';
 import { ProjectListContainerComponent } from './project/component/project-home/project-list-container/project-list-container.component';
 
 const routes: Routes = [
   {
     path: 'admin',
-    component: AdminContainerComponent,
     pathMatch: 'full',
+    loadChildren: () =>
+      import('./admin-app/admin-app.module').then((m) => m.AdminAppModule),
     canActivate: [ComnAuthGuardService],
   },
   {
@@ -28,6 +28,7 @@ const routes: Routes = [
       paramsInheritanceStrategy: 'always',
       onSameUrlNavigation: 'reload',
       relativeLinkResolution: 'legacy',
+      preloadingStrategy: PreloadAllModules,
     }),
   ],
   exports: [RouterModule],
