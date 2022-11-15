@@ -33,21 +33,12 @@ import {
   Module,
   Workspace,
 } from 'src/app/generated/caster-api';
-import {
-  EMPTY,
-  iif,
-  merge,
-  Observable,
-  Subject,
-  Subscription,
-  ReplaySubject,
-} from 'rxjs';
+import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
   catchError,
   filter,
   map,
   mergeMap,
-  share,
   shareReplay,
   switchMap,
   take,

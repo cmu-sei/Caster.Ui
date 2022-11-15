@@ -7,9 +7,8 @@ import {
   EventEmitter,
   Input,
   Output,
-  ViewEncapsulation,
 } from '@angular/core';
-import { Tab, ProjectUI } from '../../../state';
+import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
 

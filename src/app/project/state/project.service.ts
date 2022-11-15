@@ -17,7 +17,7 @@ import {
 } from 'src/app/generated/caster-api';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
-import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
+import { WorkspaceQuery } from 'src/app/workspace/state';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FileDownload } from 'src/app/shared/models/file-download';
 

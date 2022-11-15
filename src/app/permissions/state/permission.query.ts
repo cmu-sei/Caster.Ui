@@ -1,13 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import {
-  EntityUIQuery,
-  HashMap,
-  Order,
-  QueryConfig,
-  QueryEntity,
-} from '@datorama/akita';
+import { Order, QueryConfig, QueryEntity } from '@datorama/akita';
 import { PermissionsState, PermissionStore } from './permission.store';
 import { Permission } from '../../generated/caster-api';
 import { Injectable, InjectionToken } from '@angular/core';

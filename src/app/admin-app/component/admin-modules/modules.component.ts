@@ -1,27 +1,13 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import {
-  Component,
-  OnInit,
-  EventEmitter,
-  Output,
-  NgZone,
-  ViewChild,
-  Input,
-} from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { MatStepper } from '@angular/material/stepper';
-import {
-  UntypedFormControl,
-  FormGroupDirective,
-  NgForm,
-  Validators,
-} from '@angular/forms';
+import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ModuleService, ModuleQuery } from '../../../modules/state';
 import { Module } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'cas-admin-modules',
@@ -70,7 +56,7 @@ export class AdminModulesComponent implements OnInit {
     this.moduleService.createOrUpdateModuleById(id).pipe(take(1)).subscribe();
   }
 
-  delete(id: string) {
+  deleteModule(id: string) {
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService.delete(id).pipe(take(1)).subscribe();
   }

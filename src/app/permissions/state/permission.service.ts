@@ -2,8 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { PermissionStore } from './permission.store';
-import { PermissionQuery } from './permission.query';
-import { Inject, Injectable, InjectionToken } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { PermissionsService, Permission } from '../../generated/caster-api';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';

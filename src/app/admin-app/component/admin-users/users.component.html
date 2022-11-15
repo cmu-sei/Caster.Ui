@@ -12,7 +12,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [permissions]="permissions$ | async"
         [isLoading]="isLoading$ | async"
         (create)="create($event)"
-        (delete)="delete($event)"
+        (delete)="deleteUser($event)"
         (addUserPermission)="addUserPermission($event)"
         (removeUserPermission)="removeUserPermission($event)"
       >

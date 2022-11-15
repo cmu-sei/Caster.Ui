@@ -10,9 +10,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         *ngIf="!!modules$ && !!isLoading$"
         [modules]="modules$ | async"
         [isLoading]="isLoading$ | async"
-        (load)="load($event)"
+        (load)="load()"
         (loadModuleById)="createOrUpdateById($event)"
-        (delete)="delete($event)"
+        (delete)="deleteModule($event)"
       >
       </cas-admin-module-list>
     </div>

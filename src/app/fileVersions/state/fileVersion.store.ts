@@ -8,7 +8,7 @@ import {
   StoreConfig,
 } from '@datorama/akita';
 import { FileVersion } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FileVersionUi } from './fileVersion.model';
 
 export interface FileVersionsState extends EntityState<FileVersion> {}

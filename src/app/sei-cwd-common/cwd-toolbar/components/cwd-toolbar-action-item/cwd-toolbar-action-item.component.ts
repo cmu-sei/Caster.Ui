@@ -15,7 +15,6 @@ import {
 } from '@angular/core';
 import {
   DomPortalOutlet,
-  Portal,
   PortalOutlet,
   TemplatePortal,
 } from '@angular/cdk/portal';

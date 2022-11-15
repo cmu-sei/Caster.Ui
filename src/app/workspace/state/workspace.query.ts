@@ -26,8 +26,8 @@ import {
   StatusFilter,
   WorkspaceEntityUi,
 } from './workspace.model';
-import { combineLatest, Observable, of, ReplaySubject } from 'rxjs';
-import { map, share, shareReplay } from 'rxjs/operators';
+import { combineLatest, Observable, of } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 @QueryConfig({
   sortBy: 'name',

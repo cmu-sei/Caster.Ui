@@ -3,7 +3,6 @@
 
 import {
   EntityUIQuery,
-  HashMap,
   Order,
   Query,
   QueryConfig,
@@ -17,7 +16,7 @@ import {
   CurrentUserStore,
 } from './user.store';
 import { User } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @QueryConfig({

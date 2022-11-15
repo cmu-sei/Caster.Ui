@@ -3,7 +3,6 @@
 
 import {
   EntityUIQuery,
-  HashMap,
   Order,
   QueryConfig,
   QueryEntity,

@@ -8,7 +8,7 @@ import {
   StoreConfig,
 } from '@datorama/akita';
 import { Module } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { ModuleUi } from './module.model';
 
 export interface ModulesState extends EntityState<Module> {}

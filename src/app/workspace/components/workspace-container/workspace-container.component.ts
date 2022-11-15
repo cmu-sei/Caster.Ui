@@ -13,8 +13,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Observable, ReplaySubject } from 'rxjs';
-import { share, shareReplay, take, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
