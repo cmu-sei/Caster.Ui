@@ -23,8 +23,7 @@
     "e2e": "ng e2e caster-ui",
     "postinstall": "ngcc",
     "swagger:gen": "curl --insecure http://localhost:4309/swagger/v1/swagger.json --output swagger.json && node_modules/@openapitools/openapi-generator-cli/bin/openapi-generator generate -i ./swagger.json -g typescript-angular -o src/app/generated/caster-api --additional-properties ngVersion=12.1 --additional-properties useRxJS6=true --additional-properties modelPropertyNaming=original --skip-validate-spec",
-    "swagger:gen-win": "docker run --rm -v %CD%:/local openapitools/openapi-generator-cli:v5.3.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api --additional-properties ngVersion=12.1 --additional-properties useRxJS6=true --additional-properties modelPropertyNaming=original --skip-validate-spec",
-    "playground": "angular-playground"
+    "swagger:gen-win": "docker run --rm -v %CD%:/local openapitools/openapi-generator-cli:v5.3.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api --additional-properties ngVersion=12.1 --additional-properties useRxJS6=true --additional-properties modelPropertyNaming=original --skip-validate-spec"
   },
   "private": true,
   "dependencies": {
@@ -75,7 +74,6 @@
     "@types/jasmine": "^3.8.2",
     "@types/jasminewd2": "^2.0.10",
     "@types/node": "^16.4.11",
-    "angular-playground": "^8.1.4",
     "codelyzer": "^6.0.2",
     "cross-var": "^1.1.0",
     "jasmine-core": "^3.8.0",
