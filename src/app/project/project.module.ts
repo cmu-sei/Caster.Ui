@@ -31,12 +31,10 @@ import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-
 import { DesignModule } from '../designs/design.module';
 import { DirectoriesModule } from '../directories';
 import { EditorModule } from '../editor/editor.module';
-import { ConfirmDialogComponent } from '../sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
 import { SeiCwdCommonModule } from '../sei-cwd-common/sei-cwd-common.module';
 import { SharedModule } from '../shared/shared.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
-import { TopbarComponent } from './../shared/components/top-bar/topbar.component';
 import { ProjectBreadcrumbComponent } from './component/project-details/project-breadcrumb/project-breadcrumb.component';
 import { ProjectCollapseContainerComponent } from './component/project-details/project-collapse-container/project-collapse-container.component';
 import { ProjectExportComponent } from './component/project-details/project-export/project-export.component';

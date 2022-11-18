@@ -9,11 +9,10 @@ import {
   ChangeDetectionStrategy,
   Input,
 } from '@angular/core';
-import { forkJoin, Observable } from 'rxjs';
-import { Partition, Vlan } from 'src/app/generated/caster-api';
+import { Observable } from 'rxjs';
+import { Partition } from 'src/app/generated/caster-api';
 import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
-import { VlanQuery } from 'src/app/vlans/state/vlan/vlan.query';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 
 @Component({

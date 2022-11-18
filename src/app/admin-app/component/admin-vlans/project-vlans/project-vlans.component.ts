@@ -15,10 +15,9 @@ import {
   combineLatest,
   forkJoin,
   Observable,
-  pipe,
   timer,
 } from 'rxjs';
-import { finalize, map, switchMap, take } from 'rxjs/operators';
+import { finalize, map, take } from 'rxjs/operators';
 import { Partition } from 'src/app/generated/caster-api';
 import { Pool } from 'src/app/generated/caster-api';
 import { Project } from 'src/app/generated/caster-api';

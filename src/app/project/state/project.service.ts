@@ -16,7 +16,7 @@ import {
   Design,
   VlansService,
 } from 'src/app/generated/caster-api';
-import { Observable, partition } from 'rxjs';
+import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { WorkspaceQuery } from 'src/app/workspace/state';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';

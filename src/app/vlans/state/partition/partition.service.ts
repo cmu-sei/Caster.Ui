@@ -4,7 +4,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
   EditPartitionCommand,
