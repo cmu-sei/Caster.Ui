@@ -13,7 +13,7 @@ import {
   Workspace,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'cas-workspace-edit',
@@ -27,9 +27,9 @@ export class WorkspaceEditComponent implements OnInit {
 
   @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: UntypedFormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({

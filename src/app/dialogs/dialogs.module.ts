@@ -3,13 +3,12 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule } from '@angular/material';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [ConfirmDialogComponent],
   exports: [],
   imports: [CommonModule, MatDialogModule],
-  entryComponents: [ConfirmDialogComponent],
 })
 export class DialogsModule {}

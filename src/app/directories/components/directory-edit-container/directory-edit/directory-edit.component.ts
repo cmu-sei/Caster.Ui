@@ -13,7 +13,7 @@ import {
   Directory,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'cas-directory-edit',
@@ -27,9 +27,9 @@ export class DirectoryEditComponent implements OnInit {
 
   @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: UntypedFormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({

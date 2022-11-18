@@ -1,23 +1,9 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import {
-  Component,
-  OnInit,
-  EventEmitter,
-  Output,
-  NgZone,
-  ViewChild,
-  Input,
-} from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { MatStepper } from '@angular/material/stepper';
-import {
-  FormControl,
-  FormGroupDirective,
-  NgForm,
-  Validators,
-} from '@angular/forms';
+import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { PermissionService, PermissionQuery } from '../../../permissions/state';
 import { UserService, UserQuery } from '../../../users/state';
 import {
@@ -25,8 +11,8 @@ import {
   Permission,
   UserPermission,
 } from '../../../generated/caster-api';
-import { Subject, Observable, of } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'cas-users',
@@ -64,7 +50,7 @@ export class UsersComponent implements OnInit {
     this.userService.create(newUser).pipe(take(1)).subscribe();
   }
 
-  delete(userId: string) {
+  deleteUser(userId: string) {
     this.userService.delete(userId).pipe(take(1)).subscribe();
   }
 
@@ -86,7 +72,7 @@ export class UsersComponent implements OnInit {
 /** Error when invalid control is dirty, touched, or submitted. */
 export class UserErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(
-    control: FormControl | null,
+    control: UntypedFormControl | null,
     form: FormGroupDirective | NgForm | null
   ): boolean {
     const isSubmitted = form && form.submitted;

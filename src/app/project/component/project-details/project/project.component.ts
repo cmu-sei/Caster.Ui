@@ -7,9 +7,8 @@ import {
   EventEmitter,
   Input,
   Output,
-  ViewEncapsulation,
 } from '@angular/core';
-import { Tab, ProjectUI } from '../../../state';
+import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
 
@@ -23,7 +22,7 @@ export class ProjectComponent {
   @Input() loading: boolean;
   @Input() project: Project;
   @Input() projectUI: ProjectUI;
-  @Output() closeTab: EventEmitter<Tab> = new EventEmitter<Tab>();
+  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
   @Output() tabChanged: EventEmitter<{
     index: number;
     tab: MatTab;

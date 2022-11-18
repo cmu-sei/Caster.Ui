@@ -11,7 +11,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { ITerminalAddon, Terminal } from 'xterm';
+import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
 @Component({
@@ -29,10 +29,10 @@ export class OutputComponent implements OnInit, OnChanges {
   constructor() {}
 
   ngOnInit() {
-    this.xterm.setOption('convertEol', true);
+    this.xterm.options.convertEol = true;
     this.xterm.open(this.eleXtern.nativeElement);
     this.xterm.loadAddon(this.fitAddon);
-    this.xterm.setOption('scrollback', 9999999); // there is no infinite scrolling for xterm.  Set number of lines to very large number!
+    this.xterm.options.scrollback = 9999999; // there is no infinite scrolling for xterm.  Set number of lines to very large number!
     this.fitAddon.fit();
   }
 

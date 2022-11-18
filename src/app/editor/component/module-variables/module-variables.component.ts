@@ -17,7 +17,7 @@ import {
   ModuleValue,
   Variable,
 } from '../../../generated/caster-api';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -46,13 +46,13 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   selectedVersion: ModuleVersion;
   moduleFields: ModuleField[] = [];
   newName = '';
-  form: FormGroup;
+  form: UntypedFormGroup;
   promptForReload = false;
   nameChanged = false;
 
   constructor(
     private confirmDialogService: ConfirmDialogService,
-    private formBuilder: FormBuilder
+    private formBuilder: UntypedFormBuilder
   ) {}
 
   ngOnInit() {
@@ -99,7 +99,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     });
   }
 
-  createValuesForm(): FormGroup {
+  createValuesForm(): UntypedFormGroup {
     const controls = {};
 
     this.moduleFields.forEach((x) => {
@@ -279,7 +279,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   private getChangedVariables(): Array<string> {
-    const valueControls = (this.form.get('values') as FormGroup).controls;
+    const valueControls = (this.form.get('values') as UntypedFormGroup).controls;
     const changedVariables = Object.entries(valueControls)
       .filter((x) => x[1].dirty)
       .map((x) => x[0]);

@@ -11,7 +11,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -35,7 +35,7 @@ export class VariableComponent implements OnInit, OnChanges {
   public isEditing = false;
   public isMultiline = false;
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   public typeOptions = VariableType;
 
@@ -48,7 +48,7 @@ export class VariableComponent implements OnInit, OnChanges {
   constructor(
     private variableService: VariableService,
     private confirmDialogService: ConfirmDialogService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private snackBar: MatSnackBar
   ) {}
 

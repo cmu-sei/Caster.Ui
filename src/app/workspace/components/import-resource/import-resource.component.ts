@@ -9,7 +9,7 @@ import {
   EventEmitter,
   Output,
 } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { take } from 'rxjs/operators';
 import { ResourceCommandResult } from 'src/app/generated/caster-api';
 import { WorkspaceService } from '../../state';
@@ -26,11 +26,11 @@ export class ImportResourceComponent implements OnInit {
 
   @Output() importComplete = new EventEmitter<boolean>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
   message: string = '';
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private workspaceService: WorkspaceService
   ) {
     this.form = formBuilder.group({

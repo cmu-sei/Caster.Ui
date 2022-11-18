@@ -30,6 +30,8 @@ import { FileQuery, FileService } from '../../../files/state';
 import { FileVersion, ModelFile, Module } from '../../../generated/caster-api';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 
+const SIDEBAR_MIN_WIDTH = 300;
+
 @Component({
   selector: 'cas-editor',
   templateUrl: './editor.component.html',
@@ -308,11 +310,13 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   resizingFn(event) {
-    this.sidenavWidth = event.rectangle.width;
+    this.sidenavWidth = Math.max(event.rectangle.width, SIDEBAR_MIN_WIDTH);
   }
 
   resizeEndFn(event) {
-    this.sidenavWidthChanged.emit(event.rectangle.width);
+    this.sidenavWidthChanged.emit(
+      Math.max(event.rectangle.width, SIDEBAR_MIN_WIDTH)
+    );
   }
 
   lockFile() {

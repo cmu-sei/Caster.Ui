@@ -60,3 +60,5 @@ src/assets/config/settings.[Ee]nv.json
 /docker/**/*.json
 /docker/**/gitconfig
 /docker/docker-compose
+
+.angular/cache

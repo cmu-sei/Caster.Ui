@@ -14,7 +14,7 @@ import { DirectoryService } from 'src/app/directories';
 import { FileService } from 'src/app/files/state';
 import { ArchiveType } from 'src/app/generated/caster-api';
 import { take } from 'rxjs/operators';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
 
 @Component({
@@ -35,7 +35,7 @@ export class ProjectExportComponent implements OnInit {
 
   @Output() exportComplete = new EventEmitter<boolean>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
   isArchiveable: boolean;
   archiveTypes = Object.keys(ArchiveType);
   typeString: string;
@@ -46,7 +46,7 @@ export class ProjectExportComponent implements OnInit {
     private directoryService: DirectoryService,
     private projectService: ProjectService,
     private fileService: FileService,
-    private formBuilder: FormBuilder
+    private formBuilder: UntypedFormBuilder
   ) {
     this.form = formBuilder.group({
       archiveType: [this.archiveTypes[0]],

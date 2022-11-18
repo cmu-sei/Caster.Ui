@@ -2,17 +2,10 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { Observable, of, combineLatest, concat, defer, merge } from 'rxjs';
+import { Observable, of, combineLatest, concat, defer } from 'rxjs';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
-import {
-  distinctUntilChanged,
-  map,
-  startWith,
-  switchMap,
-  tap,
-} from 'rxjs/operators';
-import { QueryList } from '@angular/core';
+import { map } from 'rxjs/operators';
 
 export class SimpleDataSource<T> extends DataSource<T> {
   constructor(private rows$: Observable<T[]>) {

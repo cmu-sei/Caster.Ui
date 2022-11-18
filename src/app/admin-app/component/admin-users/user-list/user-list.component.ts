@@ -19,12 +19,10 @@ import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/co
 import {
   User,
   Permission,
-  PermissionsService,
   UserPermission,
-  UserPermissionsService,
 } from '../../../../generated/caster-api';
-import { Subject, Observable, of } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   fromMatSort,
   sortRows,
