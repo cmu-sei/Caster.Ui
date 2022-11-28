@@ -3,12 +3,28 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { FlexLayoutModule } from '@angular/flex-layout';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterModule } from '@angular/router';
+import { TopbarComponent } from './components/top-bar/topbar.component';
 import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive';
 
 @NgModule({
-    declarations: [CrucibleHotkeyDirective],
-    imports: [CommonModule, BrowserModule],
-    exports: [CrucibleHotkeyDirective]
+  declarations: [CrucibleHotkeyDirective, TopbarComponent],
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatSlideToggleModule,
+    MatIconModule,
+    FlexLayoutModule,
+    RouterModule,
+  ],
+  exports: [CrucibleHotkeyDirective, TopbarComponent],
 })
 export class SharedModule {}

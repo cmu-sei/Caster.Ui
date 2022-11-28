@@ -1,0 +1,19 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<mat-tab-group>
+  <mat-tab label="Pools">
+    <ng-template matTabContent>
+      <cas-pools class="tab-content"></cas-pools>
+    </ng-template>
+  </mat-tab>
+  <mat-tab label="Projects"
+    ><ng-template matTabContent>
+      <cas-project-vlans
+        class="tab-content"
+        [projects]="projects$ | async"
+      ></cas-project-vlans></ng-template
+  ></mat-tab>
+</mat-tab-group>

@@ -26,13 +26,6 @@ import { FileQuery, FileService } from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTab } from '@angular/material/tabs';
-import {
-  Directory,
-  Project,
-  ModelFile,
-  Module,
-  Workspace,
-} from 'src/app/generated/caster-api';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
   catchError,
@@ -51,6 +44,13 @@ import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/co
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { DesignQuery } from 'src/app/designs/state/design.query';
+import {
+  Directory,
+  ModelFile,
+  Module,
+  Project,
+  Workspace,
+} from 'src/app/generated/caster-api';
 
 const WAS_CANCELLED = 'wasCancelled';
 type TabSubscription = { id: string; subscription: Subscription };

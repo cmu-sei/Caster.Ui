@@ -24,6 +24,7 @@ import { TerraformService } from './api/terraform.service';
 import { UserPermissionsService } from './api/userPermissions.service';
 import { UsersService } from './api/users.service';
 import { VariablesService } from './api/variables.service';
+import { VlansService } from './api/vlans.service';
 import { WorkspacesService } from './api/workspaces.service';
 
 @NgModule({

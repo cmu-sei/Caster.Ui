@@ -16,7 +16,18 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface SetEnabledDesignModuleCommand { 
-    enabled?: boolean;
+export interface ReassignVlansCommand { 
+    /**
+     * The Id of the partition the VLANs are being reassigned from
+     */
+    fromPartitionId?: string;
+    /**
+     * The Id of the partition the VLANs should be reassigned to
+     */
+    toPartitionId?: string;
+    /**
+     * The VLANs to reassign
+     */
+    vlanIds?: Array<string> | null;
 }
 

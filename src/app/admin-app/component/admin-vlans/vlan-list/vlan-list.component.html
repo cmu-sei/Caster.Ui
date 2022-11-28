@@ -1,0 +1,189 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="header-row">
+  <mat-form-field appearance="standard">
+    <mat-label>Search</mat-label>
+    <input
+      matInput
+      (keyup)="applyFilter($event)"
+      placeholder="Search"
+      #input
+      autocomplete="off"
+    />
+  </mat-form-field>
+
+  <div class="right">
+    <mat-form-field appearance="fill">
+      <mat-label>Partition</mat-label>
+      <mat-select #partitionSelect>
+        <mat-option *ngIf="showUnassigned" [value]="unassigned">
+          Unassigned
+        </mat-option>
+        <mat-option *ngFor="let partition of partitions" [value]="partition.id">
+          {{ partition.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="reassignSelected(partitionSelect.value)"
+      [disabled]="selection.isEmpty() || !partitionSelect.value"
+    >
+      Reassign
+    </button>
+  </div>
+</div>
+
+<cdk-virtual-scroll-viewport
+  tvsItemSize="itemSize"
+  headerHeight="headerSize"
+  [ngStyle]="{ height: tableHeight }"
+>
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    class="mat-elevation-z8 full-width"
+    matSort
+  >
+    <!-- Checkbox Column -->
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <mat-checkbox
+          (change)="$event ? toggleAllRows() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        >
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        >
+        </mat-checkbox>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="vlanId">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Id</th>
+      <td mat-cell *matCellDef="let element">{{ element.vlanId }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="inUse">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>In Use</th>
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [matTooltip]="
+          !element.partitionId
+            ? 'VLAN must be assigned to a partition before use'
+            : ''
+        "
+      >
+        <button
+          mat-button
+          [color]="element.inUse ? 'warn' : 'basic'"
+          (click)="toggleInUse(element)"
+          [disabled]="!element.partitionId || loading.get(element.id)"
+        >
+          {{ element.inUse }}
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="reserved">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Reserved</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-button
+          [color]="element.reserved ? 'warn' : 'basic'"
+          (click)="toggleReserved(element)"
+          [disabled]="loading.get(element.id)"
+        >
+          {{ element.reserved }}
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="tag">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Tag</th>
+      <td mat-cell *matCellDef="let element">
+        <div class="tag">
+          <ng-container *ngIf="editingId != element.id">
+            <p>{{ element.tag }}</p>
+            <button
+              mat-icon-button
+              color="primary"
+              matTooltip="Edit Tag"
+              (click)="editingId = element.id"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline">
+              </mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="editingId == element.id">
+            <mat-form-field>
+              <input
+                #tagInput
+                matInput
+                [value]="element.tag"
+                (keydown.enter)="editTag(element.id, $event.target)"
+                (keydown.esc)="editingId = null"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              color="primary"
+              matTooltip="Confirm Edit"
+              (click)="editTag(element.id, tagInput)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="primary"
+              matTooltip="Cancel Edit"
+              (click)="editingId = null"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+            </button>
+          </ng-container>
+        </div></td
+    ></ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [matTooltip]="element.inUse ? 'Cannot remove VLANs in use' : ''"
+      >
+        <button
+          *ngIf="element.partitionId"
+          mat-icon-button
+          color="primary"
+          (click)="removeFromPartition(element)"
+          matTooltip="Remove VLAN from this Partition"
+          [disabled]="element.inUse"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <!-- Row shown when there is no matching data. -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">
+        No data matching the filter "{{ input.value }}"
+      </td>
+    </tr>
+  </table>
+</cdk-virtual-scroll-viewport>

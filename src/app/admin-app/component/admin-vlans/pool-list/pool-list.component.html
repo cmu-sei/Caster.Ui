@@ -1,0 +1,42 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="header">
+  <h1>Pools</h1>
+  <button
+    mat-icon-button
+    color="primary"
+    (click)="createPool()"
+    matTooltip="Create a Pool"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+  </button>
+  <button
+    mat-icon-button
+    color="primary"
+    (click)="toggleDocumentation()"
+    matTooltip="View Documentation"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+  </button>
+</div>
+<div *ngIf="showDocumentation">
+  <p>
+    Pools are groups of 4096 VLANs, each representing a standard switching
+    infrastructure. Each Pool can be sub-divided into Partitions of various
+    sizes. Partitions can be assigned to Projects and when a VLAN is requested
+    in a Workspace, it will be pulled from the available VLANs in it's Project's
+    assigned Partition. A system-wide Default Partition can be selected, which
+    will cause VLANs to be allocated from that Partition if no Project or
+    Partition are specified in a request.
+  </p>
+</div>
+<div class="container">
+  <cas-pool-list-item
+    *ngFor="let pool of pools"
+    [pool]="pool"
+    (poolSelected)="selectPool(pool)"
+  ></cas-pool-list-item>
+</div>

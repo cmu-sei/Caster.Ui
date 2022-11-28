@@ -1,0 +1,57 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<p class="center">
+  Assign a Partition to each Project. Requested VLANs for that Project will be
+  taken from the assigned Partition, or the system-wide Default Partition.
+</p>
+<div class="center">
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    class="mat-elevation-z8 full-width"
+    matSort
+  >
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="partition">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Partition</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-form-field appearance="fill">
+          <mat-label>Partition</mat-label>
+          <mat-select
+            [value]="element.partitionId"
+            (selectionChange)="updatePartition(element.id, $event.value)"
+          >
+            <mat-option>-- None --</mat-option>
+            <mat-optgroup
+              *ngFor="let option of partitionOptions$ | async | keyvalue"
+              [label]="option.key.name"
+            >
+              <mat-option
+                *ngFor="let partition of option.value"
+                [value]="partition.id"
+              >
+                {{ partition.name }}
+              </mat-option>
+            </mat-optgroup>
+          </mat-select>
+          <ng-container *ngIf="loading$ | async as loading">
+            <mat-progress-bar
+              mode="indeterminate"
+              *ngIf="loading.get(element.id)"
+            ></mat-progress-bar>
+          </ng-container>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>

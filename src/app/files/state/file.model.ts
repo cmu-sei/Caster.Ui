@@ -6,7 +6,7 @@
 // we will always import from the generated code and extended properties listed here
 // will be added to the type.
 // e.g. import {ModelFile} from 'src/app/generated/caster-api/model/file'
-declare module 'src/app/generated/caster-api/model/file' {
+declare module 'src/app/generated/caster-api/model/modelFile' {
   interface ModelFile {
     editorContent?: string;
   }

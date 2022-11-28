@@ -27,6 +27,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public usersText = 'Users';
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
+  public vlansText = 'VLANs';
   public showStatus = this.usersText;
   public theme$: Observable<Theme>;
   public topbarColor;
@@ -94,6 +95,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoWorkspaces(): void {
     this.navigateToSection(this.workspacesText);
+  }
+
+  /**
+   * Sets the display to Workspaces
+   */
+  adminGotoVlans(): void {
+    this.navigateToSection(this.vlansText);
   }
 
   private navigateToSection(sectionName: string) {
