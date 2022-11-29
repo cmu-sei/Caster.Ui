@@ -11,6 +11,7 @@ import {
   EventEmitter,
   Output,
   ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
@@ -27,7 +28,7 @@ export class PoolListItemComponent implements OnInit {
 
   @Output() poolSelected = new EventEmitter<Pool>();
 
-  @ViewChild('nameInput') nameInput: Input;
+  @ViewChild('nameInput') nameInput: ElementRef<Input>;
 
   editing: boolean;
 
