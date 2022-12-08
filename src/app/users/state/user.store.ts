@@ -41,6 +41,7 @@ export interface CurrentUserState {
   isSuperUser: boolean;
   id: string;
   theme?: Theme;
+  lastRoute: string;
 }
 
 export function createInitialCurrentUserState(): CurrentUserState {
@@ -49,6 +50,7 @@ export function createInitialCurrentUserState(): CurrentUserState {
     isSuperUser: false,
     id: '',
     theme: Theme.LIGHT,
+    lastRoute: '',
   };
 }
 

@@ -5,11 +5,12 @@ import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
 import { ComnSettingsService, Theme } from '@cmusei/crucible-common';
 import { HotkeysHelpComponent, HotkeysService } from '@ngneat/hotkeys';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { CurrentUserQuery } from './users/state';
+import { filter, takeUntil } from 'rxjs/operators';
+import { CurrentUserQuery, CurrentUserStore } from './users/state';
 
 @Component({
   selector: 'app-root',
@@ -28,9 +29,11 @@ export class AppComponent implements OnDestroy {
     public titleService: Title,
     public settingsService: ComnSettingsService,
     private HotkeysService: HotkeysService,
-    private hotkeysDialog: MatDialog
+    private hotkeysDialog: MatDialog,
+    private router: Router,
+    private currentUserStore: CurrentUserStore
   ) {
-    this.currentUserQuery.userTheme$
+    currentUserQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((theme) => {
         this.setTheme(theme);
@@ -38,90 +41,7 @@ export class AppComponent implements OnDestroy {
 
     titleService.setTitle(settingsService.settings.AppTopBarText);
 
-    matIconRegistry.setDefaultFontSetClass('mdi');
-
-    matIconRegistry.addSvgIcon(
-      'ic_apps_white_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_apps_white_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_chevron_left_white_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_left_white_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_chevron_right_black_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_right_black_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_chevron_right_white_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_right_white_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_expand_more_white_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_expand_more_white_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_clear_black_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_clear_black_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_expand_more_black_24px',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_expand_more_black_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_cancel_circle',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_cancel_circle.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_back_arrow',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_back_arrow_24px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_magnify_search',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_magnify_glass_48px.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_clipboard_copy',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_clipboard_copy.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_trash_can',
-      sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_trash_can.svg'
-      )
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_pencil',
-      sanitizer.bypassSecurityTrustResourceUrl('assets/svg-icons/ic_pencil.svg')
-    );
-    matIconRegistry.addSvgIcon(
-      'ic_crucible_caster',
-      this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_crucible_caster.svg'
-      )
-    );
+    this.addIcons();
 
     // Register hotkeys
     const helpFcn: () => void = () => {
@@ -140,6 +60,16 @@ export class AppComponent implements OnDestroy {
         .pipe(takeUntil(this.unsubscribe$))
         .subscribe();
     }
+
+    // store last route to return to from administration
+    router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.updateLastRoute(event.url);
+      });
   }
 
   setTheme(theme: Theme) {
@@ -157,8 +87,103 @@ export class AppComponent implements OnDestroy {
     }
   }
 
+  updateLastRoute(route: string) {
+    if (route !== '/admin') {
+      this.currentUserStore.update({ lastRoute: route });
+    }
+  }
+
   ngOnDestroy(): void {
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
+  }
+
+  addIcons(): void {
+    this.matIconRegistry.setDefaultFontSetClass('mdi');
+
+    this.matIconRegistry.addSvgIcon(
+      'ic_apps_white_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_apps_white_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_chevron_left_white_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_chevron_left_white_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_chevron_right_black_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_chevron_right_black_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_chevron_right_white_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_chevron_right_white_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_expand_more_white_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_expand_more_white_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_clear_black_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_clear_black_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_expand_more_black_24px',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_expand_more_black_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_cancel_circle',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_cancel_circle.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_back_arrow',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_back_arrow_24px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_magnify_search',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_magnify_glass_48px.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_clipboard_copy',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_clipboard_copy.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_trash_can',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_trash_can.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_pencil',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_pencil.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      'ic_crucible_caster',
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'assets/svg-icons/ic_crucible_caster.svg'
+      )
+    );
   }
 }

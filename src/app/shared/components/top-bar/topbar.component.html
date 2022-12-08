@@ -72,7 +72,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             currentUser.isSuperUser &&
             topbarView === 'caster-admin'
           "
-          [routerLink]="['/']"
+          (click)="exitAdmin()"
           mat-menu-item
         >
           Exit Administration
