@@ -14,7 +14,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       color="primary"
       mat-icon-button
       (click)="edit()"
-      [disabled]="!module"
+      [disabled]="!module || isEditing"
       matTooltip="Edit"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
@@ -23,7 +23,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       color="primary"
       mat-icon-button
       (click)="toggleOutputs()"
-      [disabled]="!module"
+      [disabled]="!module || isEditing"
       matTooltip="View Module Outputs"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-export"> </mat-icon>
