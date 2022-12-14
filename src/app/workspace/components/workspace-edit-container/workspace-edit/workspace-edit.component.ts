@@ -14,7 +14,6 @@ import {
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'cas-workspace-edit',
@@ -68,10 +67,5 @@ export class WorkspaceEditComponent implements OnInit {
 
   cancel() {
     this.updateWorkspace.emit(null);
-  }
-
-  toggleTooltip(tooltip: MatTooltip) {
-    tooltip.disabled = !tooltip.disabled;
-    tooltip.toggle();
   }
 }

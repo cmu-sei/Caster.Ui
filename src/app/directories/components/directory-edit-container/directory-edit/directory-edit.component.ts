@@ -14,7 +14,6 @@ import {
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'cas-directory-edit',
@@ -68,10 +67,5 @@ export class DirectoryEditComponent implements OnInit {
 
   cancel() {
     this.updateDirectory.emit(null);
-  }
-
-  toggleTooltip(tooltip: MatTooltip) {
-    tooltip.disabled = !tooltip.disabled;
-    tooltip.toggle();
   }
 }
