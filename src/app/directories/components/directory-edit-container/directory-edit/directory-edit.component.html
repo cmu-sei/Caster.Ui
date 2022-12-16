@@ -27,6 +27,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-select>
   </mat-form-field>
 
+  <mat-form-field>
+    <mat-label
+      >Parallelism
+      <mat-icon
+        class="pointer"
+        fontIcon="mdi-information"
+        matTooltip="Limit the number of concurrent Terraform operations. Value will be set on new Workspaces created in this Directory"
+        matTooltipShowDelay="0"
+        matTooltipHideDelay="0"
+        color="primary"
+      >
+      </mat-icon>
+    </mat-label>
+    <input
+      formControlName="parallelism"
+      type="number"
+      matInput
+      [max]="25"
+      [min]="1"
+      autocomplete="off"
+    />
+    <mat-error
+      *ngIf="parallelism.invalid && (parallelism.dirty || parallelism.touched)"
+    >
+      <ng-container
+        *ngIf="parallelism.hasError('min') || parallelism.hasError('max')"
+      >
+        Must be between 1 and 25
+      </ng-container>
+    </mat-error>
+  </mat-form-field>
+
   <div fxLayout="row" fxLayoutAlign="space-around center">
     <button
       color="primary"
@@ -37,6 +69,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       Save
     </button>
 
-    <button color="primary" mat-raised-button (click)="cancel()">Cancel</button>
+    <button color="primary" type="button" mat-raised-button (click)="cancel()">
+      Cancel
+    </button>
   </div>
 </form>

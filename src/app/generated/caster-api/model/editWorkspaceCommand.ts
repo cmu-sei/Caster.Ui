@@ -34,5 +34,9 @@ export interface EditWorkspaceCommand {
      * The version of Terraform that will be used for Runs in this Workspace.  If null or empty, the default version will be used.
      */
     terraformVersion?: string | null;
+    /**
+     * Limit the number of concurrent operations as Terraform walks the graph.   If null, the Terraform default will be used.
+     */
+    parallelism?: number | null;
 }
 

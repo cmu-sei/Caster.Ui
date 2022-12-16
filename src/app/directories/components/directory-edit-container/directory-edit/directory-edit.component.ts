@@ -13,7 +13,7 @@ import {
   Directory,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { UntypedFormGroup, UntypedFormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'cas-directory-edit',
@@ -27,14 +27,27 @@ export class DirectoryEditComponent implements OnInit {
 
   @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
 
-  form: UntypedFormGroup;
+  form: FormGroup;
 
-  constructor(private formBuilder: UntypedFormBuilder) {}
+  get parallelism() {
+    if (this.form) {
+      return this.form?.get('parallelism');
+    }
+  }
+
+  constructor(private formBuilder: FormBuilder) {
+    this.form = this.formBuilder.group({
+      name: [],
+      terraformVersion: [],
+      parallelism: [Validators.min(1), Validators.max(25)],
+    });
+  }
 
   ngOnInit(): void {
-    this.form = this.formBuilder.group({
-      name: [this.directory.name],
-      terraformVersion: [this.directory.terraformVersion],
+    this.form.patchValue({
+      name: this.directory.name,
+      terraformVersion: this.directory.terraformVersion,
+      parallelism: this.directory.parallelism,
     });
   }
 

@@ -17,7 +17,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 
 export interface PartialEditDirectoryCommand { 
-    id?: string;
     /**
      * Name of the directory.
      */
@@ -30,5 +29,9 @@ export interface PartialEditDirectoryCommand {
      * The version of Terraform that will be set Workspaces created in this Directory.  If not set, will traverse parents until a version is found.  If still not set, the default version will be used.
      */
     terraformVersion?: string | null;
+    /**
+     * Limit the number of concurrent operations as Terraform walks the graph.   If not set, will traverse parents until a value is found.  If still not set, the Terraform default will be used.
+     */
+    parallelism?: number;
 }
 

@@ -17,7 +17,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 
 export interface PartialEditWorkspaceCommand { 
-    id?: string;
     /**
      * The Name of the Workspace
      */
@@ -25,7 +24,7 @@ export interface PartialEditWorkspaceCommand {
     /**
      * The Id of the Directory of the Workspace
      */
-    directoryid?: string | null;
+    directoryId?: string | null;
     /**
      * True if this Workspace will be dynamically assigned a Host on first Run
      */
@@ -34,5 +33,9 @@ export interface PartialEditWorkspaceCommand {
      * The version of Terraform that will be used for Runs in this Workspace.  If null or empty, the default version will be used.
      */
     terraformVersion?: string | null;
+    /**
+     * Limit the number of concurrent operations as Terraform walks the graph.   If null, the Terraform default will be used.
+     */
+    parallelism?: number;
 }
 
