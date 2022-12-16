@@ -7,6 +7,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <form [formGroup]="form" (ngSubmit)="save()">
   <mat-form-field>
     <input formControlName="name" matInput placeholder="Name" />
+    <mat-error *ngIf="name.invalid && (name.dirty || name.touched)">
+      <ng-container *ngIf="name.hasError('maxlength')">
+        Must be 90 characters or fewer <br />
+      </ng-container>
+      <ng-container *ngIf="name.hasError('pattern')">
+        Letters, numbers, -, _, and . only <br />
+      </ng-container>
+    </mat-error>
   </mat-form-field>
 
   <mat-form-field fxLayout="row">

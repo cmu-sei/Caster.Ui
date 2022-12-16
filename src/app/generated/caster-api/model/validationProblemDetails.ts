@@ -11,10 +11,15 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
+export interface ValidationProblemDetails { 
+  [key: string]: any | any;
+
+
+    type?: string | null;
+    title?: string | null;
+    status?: number | null;
+    detail?: string | null;
+    instance?: string | null;
+    errors?: { [key: string]: Array<string>; } | null;
 }
 

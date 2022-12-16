@@ -40,6 +40,8 @@ import { WorkspaceEditContainerComponent } from 'src/app/workspace/components/wo
 import { DirectoryEditContainerComponent } from 'src/app/directories/components/directory-edit-container/directory-edit-container.component';
 import { DesignQuery } from 'src/app/designs/state/design.query';
 import { DesignService } from 'src/app/designs/state/design.service';
+import { Validators } from '@angular/forms';
+import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -244,19 +246,31 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   createWorkspace() {
-    this.nameDialog('Create New Workspace?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (!result[WAS_CANCELLED]) {
-          const newWorkspace = {
-            directoryId: this.parentDirectory.id,
-            name: result[NAME_VALUE],
-            statusFilter: new Array<StatusFilter>(),
-            runs: new Array<Run>(),
-          } as Workspace;
-          this.workspaceService.add(newWorkspace);
-        }
+    this.nameDialog('Create New Workspace?', '', {
+      nameValue: '',
+      validators: [
+        {
+          validator: Validators.maxLength(90),
+          name: 'maxlength',
+          errorMessage: 'Must be 90 characters or fewer',
+        },
+        {
+          validator: Validators.pattern(ValidatorPatterns.WorkspaceName),
+          name: 'pattern',
+          errorMessage: 'Only use letters, numbers, -, _, and .',
+        },
+      ],
+    }).subscribe((result) => {
+      if (!result[WAS_CANCELLED]) {
+        const newWorkspace = {
+          directoryId: this.parentDirectory.id,
+          name: result[NAME_VALUE],
+          statusFilter: new Array<StatusFilter>(),
+          runs: new Array<Run>(),
+        } as Workspace;
+        this.workspaceService.add(newWorkspace);
       }
-    );
+    });
   }
 
   deleteWorkspace(workspace: Workspace) {
