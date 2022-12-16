@@ -9,6 +9,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -41,7 +42,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
     private authService: ComnAuthService,
     private currentUserQuery: CurrentUserQuery,
     private userService: UserService,
-    private authQuery: ComnAuthQuery
+    private authQuery: ComnAuthQuery,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -74,6 +76,10 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  exitAdmin(): void {
+    this.router.navigate([this.currentUserQuery.getLastRoute()]);
   }
 
   ngOnDestroy(): void {

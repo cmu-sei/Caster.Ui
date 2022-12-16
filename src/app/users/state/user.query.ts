@@ -50,4 +50,14 @@ export class CurrentUserQuery extends Query<CurrentUserState> {
   constructor(protected store: CurrentUserStore) {
     super(store);
   }
+
+  getLastRoute(): string {
+    let route = this.store.getValue().lastRoute;
+
+    if (!route) {
+      route = '/';
+    }
+
+    return route;
+  }
 }
