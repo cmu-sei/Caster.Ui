@@ -105,6 +105,7 @@ model/terraformVersionsResult.ts
 model/unassignPartitionCommand.ts
 model/user.ts
 model/userPermission.ts
+model/validationProblemDetails.ts
 model/variable.ts
 model/variableType.ts
 model/variableValue.ts

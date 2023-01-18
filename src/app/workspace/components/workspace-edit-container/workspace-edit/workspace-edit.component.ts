@@ -14,6 +14,7 @@ import {
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 
 @Component({
   selector: 'cas-workspace-edit',
@@ -35,9 +36,22 @@ export class WorkspaceEditComponent implements OnInit {
     }
   }
 
+  get name() {
+    if (this.form) {
+      return this.form?.get('name');
+    }
+  }
+
   constructor(private formBuilder: FormBuilder) {
     this.form = this.formBuilder.group({
-      name: [],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(90),
+          Validators.pattern(ValidatorPatterns.WorkspaceName),
+        ],
+      ],
       terraformVersion: [],
       parallelism: [Validators.min(1), Validators.max(25)],
     });

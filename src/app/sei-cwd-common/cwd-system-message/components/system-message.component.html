@@ -17,6 +17,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <mat-expansion-panel-header>
       <mat-panel-title> Error Details </mat-panel-title>
     </mat-expansion-panel-header>
-    <p class="pre-wrap">{{ displayMessage }}</p>
+    <p class="pre-wrap" [innerHtml]="displayMessage"></p>
   </mat-expansion-panel>
 </div>
