@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2>Edit Directory</h2>
+<h2 class="center">Edit Directory</h2>
 <form [formGroup]="form" (ngSubmit)="save()">
   <mat-form-field>
     <input
@@ -14,7 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     />
   </mat-form-field>
 
-  <mat-form-field fxLayout="row">
+  <mat-form-field class="flex">
     <mat-label>Terraform Version</mat-label>
     <mat-select formControlName="terraformVersion">
       <mat-option
@@ -58,6 +58,53 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </ng-container>
     </mat-error>
   </mat-form-field>
+
+  <div class="flex">
+    <mat-form-field>
+      <mat-label
+        >Azure Threshold
+        <mat-icon
+          class="pointer"
+          fontIcon="mdi-information"
+          matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
+          matTooltipShowDelay="0"
+          matTooltipHideDelay="0"
+          color="primary"
+        >
+        </mat-icon>
+      </mat-label>
+      <input
+        formControlName="azureDestroyFailureThreshold"
+        type="number"
+        matInput
+        [max]="10"
+        [min]="1"
+        autocomplete="off"
+      />
+      <mat-error
+        *ngIf="
+          azureDestroyFailureThreshold.invalid &&
+          (azureDestroyFailureThreshold.dirty ||
+            azureDestroyFailureThreshold.touched)
+        "
+      >
+        <ng-container
+          *ngIf="
+            azureDestroyFailureThreshold.hasError('min') ||
+            azureDestroyFailureThreshold.hasError('max')
+          "
+        >
+          Must be between 1 and 10
+        </ng-container>
+      </mat-error>
+    </mat-form-field>
+    <mat-checkbox
+      formControlName="azureDestroyFailureThresholdEnabled"
+      (change)="toggleAzureThresholdEnabled($event)"
+      matTooltip="Ignore Azure Threshold if disabled"
+      >Enabled</mat-checkbox
+    >
+  </div>
 
   <div fxLayout="row" fxLayoutAlign="space-around center">
     <button

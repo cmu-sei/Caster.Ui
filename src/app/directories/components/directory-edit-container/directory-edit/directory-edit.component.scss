@@ -5,3 +5,13 @@
   pointer-events: auto;
   cursor: help;
 }
+
+.flex {
+  display: flex;
+  align-items: center;
+  column-gap: 5%;
+}
+
+.center {
+  text-align: center;
+}

@@ -18,6 +18,7 @@ import { DirectoryEditContainerComponent } from './components/directory-edit-con
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [DirectoryEditComponent, DirectoryEditContainerComponent],
@@ -37,6 +38,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatSelectModule,
     MatOptionModule,
     BrowserAnimationsModule,
+    MatCheckboxModule,
   ],
   exports: [DirectoryEditContainerComponent],
 })

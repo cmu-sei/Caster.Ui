@@ -42,6 +42,12 @@ export class WorkspaceEditComponent implements OnInit {
     }
   }
 
+  get azureDestroyFailureThreshold() {
+    if (this.form) {
+      return this.form?.get('azureDestroyFailureThreshold');
+    }
+  }
+
   constructor(private formBuilder: FormBuilder) {
     this.form = this.formBuilder.group({
       name: [
@@ -54,6 +60,7 @@ export class WorkspaceEditComponent implements OnInit {
       ],
       terraformVersion: [],
       parallelism: [Validators.min(1), Validators.max(25)],
+      azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
     });
   }
 
@@ -62,6 +69,7 @@ export class WorkspaceEditComponent implements OnInit {
       name: this.workspace.name,
       terraformVersion: this.workspace.terraformVersion,
       parallelism: this.workspace.parallelism,
+      azureDestroyFailureThreshold: this.workspace.azureDestroyFailureThreshold,
     });
   }
 

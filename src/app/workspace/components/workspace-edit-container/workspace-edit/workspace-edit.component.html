@@ -62,6 +62,45 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-error>
   </mat-form-field>
 
+  <mat-form-field class="flex">
+    <mat-label
+      >Azure Threshold
+      <mat-icon
+        class="pointer"
+        fontIcon="mdi-information"
+        matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
+        matTooltipShowDelay="0"
+        matTooltipHideDelay="0"
+        color="primary"
+      >
+      </mat-icon>
+    </mat-label>
+    <input
+      formControlName="azureDestroyFailureThreshold"
+      type="number"
+      matInput
+      [max]="10"
+      [min]="1"
+      autocomplete="off"
+    />
+    <mat-error
+      *ngIf="
+        azureDestroyFailureThreshold.invalid &&
+        (azureDestroyFailureThreshold.dirty ||
+          azureDestroyFailureThreshold.touched)
+      "
+    >
+      <ng-container
+        *ngIf="
+          azureDestroyFailureThreshold.hasError('min') ||
+          azureDestroyFailureThreshold.hasError('max')
+        "
+      >
+        Must be between 1 and 10
+      </ng-container>
+    </mat-error>
+  </mat-form-field>
+
   <div fxLayout="row" fxLayoutAlign="space-around center">
     <button
       color="primary"
