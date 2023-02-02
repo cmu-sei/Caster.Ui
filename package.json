@@ -42,7 +42,7 @@
     "@angular/platform-browser-dynamic": "^14.2.9",
     "@angular/router": "^14.2.9",
     "@cmusei/crucible-common": "0.2.1",
-    "@datorama/akita": "^7.1.1",
+    "@datorama/akita": "^8.0.0",
     "@datorama/akita-ng-router-store": "^7.0.0",
     "@datorama/akita-ngdevtools": "^7.0.0",
     "@materia-ui/ngx-monaco-editor": "^6.0.0",
