@@ -14,6 +14,7 @@ import {
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'cas-directory-edit',
@@ -35,11 +36,19 @@ export class DirectoryEditComponent implements OnInit {
     }
   }
 
+  get azureDestroyFailureThreshold() {
+    if (this.form) {
+      return this.form?.get('azureDestroyFailureThreshold');
+    }
+  }
+
   constructor(private formBuilder: FormBuilder) {
     this.form = this.formBuilder.group({
       name: [],
       terraformVersion: [],
       parallelism: [Validators.min(1), Validators.max(25)],
+      azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
+      azureDestroyFailureThresholdEnabled: [],
     });
   }
 
@@ -48,7 +57,14 @@ export class DirectoryEditComponent implements OnInit {
       name: this.directory.name,
       terraformVersion: this.directory.terraformVersion,
       parallelism: this.directory.parallelism,
+      azureDestroyFailureThreshold: this.directory.azureDestroyFailureThreshold,
+      azureDestroyFailureThresholdEnabled:
+        this.directory.azureDestroyFailureThresholdEnabled,
     });
+
+    if (!this.directory.azureDestroyFailureThresholdEnabled) {
+      this.azureDestroyFailureThreshold.disable();
+    }
   }
 
   save() {
@@ -67,5 +83,13 @@ export class DirectoryEditComponent implements OnInit {
 
   cancel() {
     this.updateDirectory.emit(null);
+  }
+
+  toggleAzureThresholdEnabled($event: MatCheckboxChange) {
+    if ($event.checked) {
+      this.azureDestroyFailureThreshold.enable();
+    } else {
+      this.azureDestroyFailureThreshold.disable();
+    }
   }
 }

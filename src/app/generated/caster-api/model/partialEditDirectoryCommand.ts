@@ -33,5 +33,13 @@ export interface PartialEditDirectoryCommand {
      * Limit the number of concurrent operations as Terraform walks the graph.   If not set, will traverse parents until a value is found.  If still not set, the Terraform default will be used.
      */
     parallelism?: number;
+    /**
+     * If set, the number of consecutive failed destroys in an Azure Workspace before   Caster will attempt to mitigate by removing azurerm_resource_group children from the state.  If not set, will traverse parents until a value is found.
+     */
+    azureDestroyFailureThreshold?: number;
+    /**
+     * If false, ignore AzureDestroyFailureThreshold and set value to null for all new Workspaces in this Directory
+     */
+    azureDestroyFailureThresholdEnabled?: boolean | null;
 }
 
