@@ -72,7 +72,7 @@
     "@angular-devkit/schematics": "^14.2.9",
     "@angular/cli": "^14.2.9",
     "@angular/compiler-cli": "^14.2.9",
-    "@angular/language-service": "^14.2.9",
+    "@angular/language-service": "^15.2.1",
     "@fortawesome/fontawesome-free": "^5.15.3",
     "@openapitools/openapi-generator-cli": "^2.4.26",
     "@types/jasmine": "^3.8.2",
