@@ -13,6 +13,7 @@ api/modules.service.ts
 api/permissions.service.ts
 api/plans.service.ts
 api/projects.service.ts
+api/proxmox.service.ts
 api/resources.service.ts
 api/runs.service.ts
 api/terraform.service.ts
@@ -91,6 +92,7 @@ model/planStatus.ts
 model/pool.ts
 model/problemDetails.ts
 model/project.ts
+model/proxmoxSaveVmCommand.ts
 model/reassignVlansCommand.ts
 model/removeResourcesCommand.ts
 model/removeVlansFromPartitionCommand.ts

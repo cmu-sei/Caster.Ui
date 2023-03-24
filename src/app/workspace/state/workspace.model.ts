@@ -43,6 +43,7 @@ export enum ResourceActions {
   Taint,
   Remove,
   Refresh,
+  Save,
 }
 
 export interface WorkspaceEntityUi {

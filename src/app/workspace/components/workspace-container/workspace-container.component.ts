@@ -289,6 +289,26 @@ export class WorkspaceContainerComponent
       });
   }
 
+  proxmoxSave(event: Event, item: Resource) {
+    event.stopPropagation();
+    this.confirmService
+      .confirmDialog(
+        'Confirm Save',
+        `Are you sure you want to save ${item.name}? This will convert it into a reusable template and remove it from this workspace.`
+      )
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (!result[this.confirmService.WAS_CANCELLED]) {
+          this.workspaceService
+            .proxmoxSave(this.workspaceId, item)
+            .pipe(take(1))
+            .subscribe((result) => {
+              this.showResult(result);
+            });
+        }
+      });
+  }
+
   refreshResources() {
     this.workspaceService
       .refreshResources(this.workspaceId)

@@ -1,8 +1,3 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core';
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
@@ -18,6 +13,7 @@ import { ModulesService } from './api/modules.service';
 import { PermissionsService } from './api/permissions.service';
 import { PlansService } from './api/plans.service';
 import { ProjectsService } from './api/projects.service';
+import { ProxmoxService } from './api/proxmox.service';
 import { ResourcesService } from './api/resources.service';
 import { RunsService } from './api/runs.service';
 import { TerraformService } from './api/terraform.service';

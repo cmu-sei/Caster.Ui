@@ -264,6 +264,25 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </mat-progress-spinner>
               <span *ngSwitchDefault>Remove</span>
             </button>
+            <button
+              *ngIf="item.type == 'proxmox_virtual_environment_vm'"
+              mat-flat-button
+              color="primary"
+              [ngSwitch]="
+                loading.value && loading.action == resourceActions.Save
+              "
+              [disabled]="loading.action != resourceActions.None"
+              (click)="proxmoxSave($event, item)"
+            >
+              <mat-progress-spinner
+                *ngSwitchCase="true"
+                color="accent"
+                diameter="35"
+                mode="indeterminate"
+              >
+              </mat-progress-spinner>
+              <span *ngSwitchDefault>Save</span>
+            </button>
           </ng-container>
         </div>
         <div *cwdTableItemContent="let item">

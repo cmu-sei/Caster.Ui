@@ -11,6 +11,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { concatMap, take, tap } from 'rxjs/operators';
 import { FileService } from 'src/app/files/state';
+import { ProxmoxService } from 'src/app/generated/caster-api';
 import {
   AppliesService,
   ImportResourceCommand,
@@ -44,7 +45,8 @@ export class WorkspaceService {
     private runsService: RunsService,
     private appliesService: AppliesService,
     private plansService: PlansService,
-    private resourceService: ResourcesService
+    private resourceService: ResourcesService,
+    private proxmoxService: ProxmoxService
   ) {}
 
   getWorkspace(workspaceId: string) {
@@ -176,6 +178,22 @@ export class WorkspaceService {
 
     return this.resourceService
       .removeResources(workspaceId, { resourceAddresses })
+      .pipe(
+        tap((result: ResourceCommandResult) => {
+          this.finishResourceAction(workspaceId, result);
+        })
+      );
+  }
+
+  proxmoxSave(workspaceId: string, item: Resource) {
+    const resourceAddresses = this.startResourceAction(
+      workspaceId,
+      item,
+      ResourceActions.Save
+    );
+
+    return this.proxmoxService
+      .proxmoxSaveVm(workspaceId, { resourceAddress: item.address })
       .pipe(
         tap((result: ResourceCommandResult) => {
           this.finishResourceAction(workspaceId, result);

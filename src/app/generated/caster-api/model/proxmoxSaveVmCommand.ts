@@ -11,10 +11,10 @@
  */
 
 
-export interface RemoveResourcesCommand { 
+export interface ProxmoxSaveVmCommand { 
     /**
-     * List of Resource addresses to remove
+     * Address of the Resource
      */
-    resourceAddresses?: Array<string> | null;
+    resourceAddress?: string | null;
 }
 
