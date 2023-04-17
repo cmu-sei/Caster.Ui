@@ -104,7 +104,7 @@ export class ProjectTabComponent
    * ngOninit handles initialization required for all open tabs
    */
   ngOnInit() {
-    this.moduleService.load(false).pipe(take(1)).subscribe();
+    this.moduleService.load(false, false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
     this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
     this.sidebarView$ = this.projectQuery.getRightSidebarView$(this.project.id);

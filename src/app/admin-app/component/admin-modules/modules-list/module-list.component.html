@@ -88,6 +88,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <section matSort class="mat-elevation-z2 mat-header-row">
     <span class="mat-header-cell" mat-sort-header="name">Name</span>
     <span class="mat-header-cell" mat-sort-header="path">Path</span>
+    <span class="mat-header-cell" mat-sort-header="versionsCount"
+      >Versions</span
+    >
     <span class="mat-header-cell" mat-sort-header="description"
       >Date Loaded</span
     >
@@ -112,6 +115,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </span>
       <span class="mat-cell">
         {{ item.path }}
+      </span>
+      <span class="mat-cell">
+        <span
+          [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
+          [matTooltip]="
+            item.versionsCount == 0
+              ? 'This Module will not be able to be added to a Design until at least 1 Version is created in the git repository.'
+              : null
+          "
+          matTooltipShowDelay="0"
+          >{{ item.versionsCount }}</span
+        >
       </span>
       <span class="mat-cell">
         {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
