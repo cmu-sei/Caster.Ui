@@ -26,7 +26,9 @@ import { ModuleVariablesComponent } from '../module-variables/module-variables.c
 })
 export class ModuleListComponent implements OnInit {
   @Input() set modules(val: Module[]) {
-    this._modules = val;
+    this._modules = val.filter((x) =>
+      x.versionsCount != null ? x.versionsCount > 0 : true
+    );
     this.updateDataSource();
   }
 

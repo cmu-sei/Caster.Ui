@@ -400,20 +400,25 @@ export class ModulesService {
     /**
      * Get all available Modules
      * @param includeVersions Whether or not to retrieve the module versions.
+     * @param includeVersionCount Whether or not to retrieve the number of versions.
      * @param forceUpdate force module update by ignoring DateModified.
      * @param designId only return Modules in use by the specified Design
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAllModules(includeVersions?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<Module>>;
-    public getAllModules(includeVersions?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<Module>>>;
-    public getAllModules(includeVersions?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<Module>>>;
-    public getAllModules(includeVersions?: boolean, forceUpdate?: boolean, designId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public getAllModules(includeVersions?: boolean, includeVersionCount?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<Module>>;
+    public getAllModules(includeVersions?: boolean, includeVersionCount?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<Module>>>;
+    public getAllModules(includeVersions?: boolean, includeVersionCount?: boolean, forceUpdate?: boolean, designId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<Module>>>;
+    public getAllModules(includeVersions?: boolean, includeVersionCount?: boolean, forceUpdate?: boolean, designId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (includeVersions !== undefined && includeVersions !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>includeVersions, 'IncludeVersions');
+        }
+        if (includeVersionCount !== undefined && includeVersionCount !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>includeVersionCount, 'IncludeVersionCount');
         }
         if (forceUpdate !== undefined && forceUpdate !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,

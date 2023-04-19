@@ -111,7 +111,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
   createModuleFields() {
     this.moduleFields.length = 0;
-    this.selectedVersion.variables.forEach((variable) => {
+    this.selectedVersion?.variables.forEach((variable) => {
       const moduleField = new ModuleField();
       moduleField.name = variable.name;
       moduleField.description = variable.description;
@@ -279,7 +279,8 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   private getChangedVariables(): Array<string> {
-    const valueControls = (this.form.get('values') as UntypedFormGroup).controls;
+    const valueControls = (this.form.get('values') as UntypedFormGroup)
+      .controls;
     const changedVariables = Object.entries(valueControls)
       .filter((x) => x[1].dirty)
       .map((x) => x[0]);

@@ -32,7 +32,7 @@ export class AdminModulesComponent implements OnInit {
   ngOnInit() {
     this.modules$ = this.moduleQuery.selectAll();
     this.moduleService
-      .load(false)
+      .load(false, true)
       .pipe(
         take(1)
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -43,7 +43,7 @@ export class AdminModulesComponent implements OnInit {
 
   load() {
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.load(false).pipe(take(1)).subscribe();
+    this.moduleService.load(false, true).pipe(take(1)).subscribe();
   }
 
   loadById(id: string) {

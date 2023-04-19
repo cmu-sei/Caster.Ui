@@ -24,5 +24,6 @@ export interface Module {
     description?: string | null;
     versions?: Array<ModuleVersion> | null;
     dateModified?: string | null;
+    versionsCount?: number | null;
 }
 

@@ -23,25 +23,31 @@ export class ModuleService {
     private modulesService: ModulesService
   ) {}
 
-  load(includeVersions: boolean): Observable<Module[]> {
+  load(
+    includeVersions: boolean,
+    includeVerionsCount: boolean
+  ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
-    return this.modulesService.getAllModules(includeVersions).pipe(
-      tap((modules: Module[]) => {
-        this.upsertMany(modules, includeVersions);
-      }),
-      tap(() => {
-        this.moduleStore.setLoading(false);
-      })
-    );
+    return this.modulesService
+      .getAllModules(includeVersions, includeVerionsCount)
+      .pipe(
+        tap((modules: Module[]) => {
+          this.upsertMany(modules, includeVersions);
+        }),
+        tap(() => {
+          this.moduleStore.setLoading(false);
+        })
+      );
   }
 
   loadByDesignId(
     designId: string,
-    includeVersions: boolean
+    includeVersions: boolean,
+    includeVersionsCount: boolean
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     return this.modulesService
-      .getAllModules(includeVersions, false, designId)
+      .getAllModules(includeVersions, includeVersionsCount, false, designId)
       .pipe(
         tap((modules: Module[]) => {
           this.upsertMany(modules, includeVersions);

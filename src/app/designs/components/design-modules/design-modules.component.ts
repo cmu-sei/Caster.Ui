@@ -49,8 +49,8 @@ export class DesignModulesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.moduleService.load(false).subscribe();
-    this.moduleService.loadByDesignId(this.designId, true).subscribe();
+    this.moduleService.load(false, true).subscribe();
+    this.moduleService.loadByDesignId(this.designId, true, true).subscribe();
 
     this.designModules$ = this.designModuleQuery.getByDesignId(this.designId);
     this.designModulesService.loadByDesignId(this.designId).subscribe();
