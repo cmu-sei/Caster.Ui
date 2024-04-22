@@ -7,5 +7,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   *ngIf="versionResult$ | async as versionResult"
   [workspace]="workspace$ | async"
   [terraformVersions]="versionResult"
+  [maxParallelism]="maxParallelism$ | async"
   (updateWorkspace)="onUpdateWorkspace($event)"
 ></cas-workspace-edit>

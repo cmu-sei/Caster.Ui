@@ -29,6 +29,7 @@ export class DirectoryEditContainerComponent implements OnInit {
 
   public directory$: Observable<Directory>;
   public versionResult$: Observable<TerraformVersionsResult>;
+  public maxParallelism$: Observable<number>;
 
   constructor(
     private directoryService: DirectoryService,
@@ -39,6 +40,7 @@ export class DirectoryEditContainerComponent implements OnInit {
   ngOnInit(): void {
     this.directory$ = this.directoryQuery.selectEntity(this.id);
     this.versionResult$ = this.terraformService.getTerraformVersions();
+    this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
   }
 
   onUpdateDirectory(directory: Partial<Directory>) {

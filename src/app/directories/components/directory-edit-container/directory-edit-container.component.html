@@ -7,5 +7,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   *ngIf="versionResult$ | async as versionResult"
   [directory]="directory$ | async"
   [terraformVersions]="versionResult"
+  [maxParallelism]="maxParallelism$ | async"
   (updateDirectory)="onUpdateDirectory($event)"
 ></cas-directory-edit>
