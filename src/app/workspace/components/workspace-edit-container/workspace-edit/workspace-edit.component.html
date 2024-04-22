@@ -47,7 +47,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       formControlName="parallelism"
       type="number"
       matInput
-      [max]="25"
+      [max]="maxParallelism"
       [min]="1"
       autocomplete="off"
     />
@@ -57,7 +57,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <ng-container
         *ngIf="parallelism.hasError('min') || parallelism.hasError('max')"
       >
-        Must be between 1 and 25
+        Must be between 1 and {{ maxParallelism }}
       </ng-container>
     </mat-error>
   </mat-form-field>

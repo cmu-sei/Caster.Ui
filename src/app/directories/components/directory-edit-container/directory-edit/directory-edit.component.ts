@@ -25,6 +25,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 export class DirectoryEditComponent implements OnInit {
   @Input() directory: Directory;
   @Input() terraformVersions: TerraformVersionsResult;
+  @Input() maxParallelism: number;
 
   @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
 
@@ -46,7 +47,7 @@ export class DirectoryEditComponent implements OnInit {
     this.form = this.formBuilder.group({
       name: [],
       terraformVersion: [],
-      parallelism: [Validators.min(1), Validators.max(25)],
+      parallelism: [Validators.min(1), Validators.max(this.maxParallelism)],
       azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
       azureDestroyFailureThresholdEnabled: [],
     });

@@ -29,6 +29,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
 
   public workspace$: Observable<Workspace>;
   public versionResult$: Observable<TerraformVersionsResult>;
+  public maxParallelism$: Observable<number>;
 
   constructor(
     private workspaceService: WorkspaceService,
@@ -39,6 +40,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
   ngOnInit(): void {
     this.workspace$ = this.workspaceQuery.selectEntity(this.id);
     this.versionResult$ = this.terraformService.getTerraformVersions();
+    this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
   }
 
   onUpdateWorkspace(workspace: Partial<Workspace>) {

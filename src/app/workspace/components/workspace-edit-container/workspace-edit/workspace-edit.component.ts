@@ -25,6 +25,7 @@ import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 export class WorkspaceEditComponent implements OnInit {
   @Input() workspace: Workspace;
   @Input() terraformVersions: TerraformVersionsResult;
+  @Input() maxParallelism: number;
 
   @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
 
@@ -59,7 +60,7 @@ export class WorkspaceEditComponent implements OnInit {
         ],
       ],
       terraformVersion: [],
-      parallelism: [Validators.min(1), Validators.max(25)],
+      parallelism: [Validators.min(1), Validators.max(this.maxParallelism)],
       azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
     });
   }
