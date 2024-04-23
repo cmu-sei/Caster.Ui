@@ -319,7 +319,7 @@ export class WorkspaceContainerComponent
 
   expandResource(event) {
     const { expand, item } = event;
-    this.workspaceService.updateResource(this.workspaceId, item);
+    this.workspaceService.loadResource(this.workspaceId, item);
     this.workspaceService.expandResource(expand, this.workspaceId, item);
   }
 
