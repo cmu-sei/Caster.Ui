@@ -164,6 +164,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [excludedAttributes]="['attributes']"
         [expandedItems]="expandedResourceIds$ | async"
         [getRowStyle]="setRowStyle"
+        idPropertyName="address"
         (expand)="expandResource($event)"
       >
         <div
@@ -200,7 +201,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           <ng-container
             *ngIf="{
-              value: (resourceActionIds$ | async).includes(item.id),
+              value: (resourceActionIds$ | async).includes(item.address),
               action: (resourceAction$ | async)
             } as loading"
           >
@@ -268,7 +269,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
         <div *cwdTableItemContent="let item">
           <ng-container
-            *ngIf="(expandedResourceIds$ | async).includes(item.id)"
+            *ngIf="(expandedResourceIds$ | async).includes(item.address)"
           >
             <pre>{{ item | json }}</pre>
           </ng-container>

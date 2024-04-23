@@ -56,6 +56,7 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
   @Input() getRowStyle: (item: T) => {};
   @Input() excludedAttributes: string[] = [];
   @Input() trackByPropertyName: string;
+  @Input() idPropertyName = 'id';
   @Output() expand: EventEmitter<{
     expand: boolean;
     item: T;
@@ -163,7 +164,9 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
   }
 
   isExpanded(item) {
-    return this.expandedItems ? this.expandedItems.includes(item.id) : false;
+    return this.expandedItems
+      ? this.expandedItems.includes(item[this.idPropertyName])
+      : false;
   }
   /**
    * function to emit the item when expanded or callapsed

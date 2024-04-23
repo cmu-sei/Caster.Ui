@@ -135,6 +135,17 @@ export class WorkspaceService {
     }));
   }
 
+  private processResourceCommand(workspaceId: string) {
+    return tap(
+      (result: ResourceCommandResult) => {
+        this.finishResourceAction(workspaceId, result);
+      },
+      () => {
+        this.finishResourceAction(workspaceId, null);
+      }
+    );
+  }
+
   taint(workspaceId: string, items: Resource | Resource[]) {
     const resourceAddresses = this.startResourceAction(
       workspaceId,
@@ -144,11 +155,7 @@ export class WorkspaceService {
 
     return this.resourceService
       .taintResources(workspaceId, { resourceAddresses })
-      .pipe(
-        tap((result: ResourceCommandResult) => {
-          this.finishResourceAction(workspaceId, result);
-        })
-      );
+      .pipe(this.processResourceCommand(workspaceId));
   }
 
   untaint(workspaceId: string, items: Resource | Resource[]) {
@@ -160,11 +167,7 @@ export class WorkspaceService {
 
     return this.resourceService
       .untaintResources(workspaceId, { resourceAddresses })
-      .pipe(
-        tap((result: ResourceCommandResult) => {
-          this.finishResourceAction(workspaceId, result);
-        })
-      );
+      .pipe(this.processResourceCommand(workspaceId));
   }
 
   remove(workspaceId: string, items: Resource | Resource[]) {
@@ -176,11 +179,7 @@ export class WorkspaceService {
 
     return this.resourceService
       .removeResources(workspaceId, { resourceAddresses })
-      .pipe(
-        tap((result: ResourceCommandResult) => {
-          this.finishResourceAction(workspaceId, result);
-        })
-      );
+      .pipe(this.processResourceCommand(workspaceId));
   }
 
   import(workspaceId: string, command: ImportResourceCommand) {
@@ -333,13 +332,18 @@ export class WorkspaceService {
     );
   }
 
-  updateResource(workspaceId: string, item: Resource): void {
+  loadResource(workspaceId: string, item: Resource): void {
     this.resourceService
-      .getResource(workspaceId, item.id, item.type)
+      .getResource(workspaceId, item.address)
       .pipe(
         tap((resource) =>
           this.workspaceStore.update(workspaceId, (entity) => ({
-            resources: arrayUpsert(entity.resources, item.id, resource),
+            resources: arrayUpsert(
+              entity.resources,
+              item.address,
+              resource,
+              'address'
+            ),
           }))
         ),
         take(1)
@@ -385,7 +389,7 @@ export class WorkspaceService {
     const itemsArray = coerceArray(items);
 
     this.workspaceStore.ui.upsert(workspaceId, () => ({
-      resourceActions: itemsArray.map((i) => i.id),
+      resourceActions: itemsArray.map((i) => i.address),
       resourceAction: action,
     }));
 
@@ -393,9 +397,11 @@ export class WorkspaceService {
   }
 
   finishResourceAction(workspaceId: string, result: ResourceCommandResult) {
-    this.workspaceStore.upsert(workspaceId, () => ({
-      resources: result.resources,
-    }));
+    if (result) {
+      this.workspaceStore.upsert(workspaceId, () => ({
+        resources: result.resources,
+      }));
+    }
 
     this.workspaceStore.ui.upsert(workspaceId, () => ({
       resourceActions: [],
@@ -406,7 +412,7 @@ export class WorkspaceService {
   expandResource(expand, workspaceId, resource) {
     this.workspaceStore.ui.upsert(workspaceId, (w) => ({
       expandedResources: isUpdate<WorkspaceEntityUi>(w)
-        ? arrayToggle(w.expandedResources, resource.id)
+        ? arrayToggle(w.expandedResources, resource.address)
         : undefined,
     }));
   }
