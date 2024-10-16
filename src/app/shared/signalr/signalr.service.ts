@@ -188,8 +188,17 @@ export class SignalRService {
   }
 
   private addFileHandlers() {
-    this.hubConnection.on('FileUpdated', (file: ModelFile) => {
+    this.hubConnection.on('FileCreated', (file: ModelFile) => {
       this.fileService.fileUpdated(file);
+    });
+
+    this.hubConnection.on('FileUpdated', (file: ModelFile) => {
+      if (file.isDeleted) {
+        this.projectService.closeTab(file.id);
+        this.fileService.fileDeleted(file.id);
+      } else {
+        this.fileService.fileUpdated(file);
+      }
     });
 
     this.hubConnection.on('FileDeleted', (fileId: string) => {
@@ -199,6 +208,10 @@ export class SignalRService {
   }
 
   private addDirectoryHandlers() {
+    this.hubConnection.on('DirectoryCreated', (directory: Directory) => {
+      this.directoryService.updated(directory);
+    });
+
     this.hubConnection.on('DirectoryUpdated', (directory: Directory) => {
       this.directoryService.updated(directory);
     });
@@ -209,6 +222,10 @@ export class SignalRService {
   }
 
   private addWorkspaceHandlers() {
+    this.hubConnection.on('WorkspaceCreated', (workspace: Workspace) => {
+      this.workspaceService.updated(workspace);
+    });
+
     this.hubConnection.on('WorkspaceUpdated', (workspace: Workspace) => {
       this.workspaceService.updated(workspace);
     });
@@ -361,8 +378,19 @@ export class SignalRService {
 
     const retVal = {};
     modifiedProperties.forEach((x) => {
-      retVal[x] = entity[x];
+      const prop = this.titleToCamelCase(x);
+      retVal[prop] = entity[prop];
     });
+
+    return retVal;
+  }
+
+  private titleToCamelCase(str: string) {
+    let retVal = str;
+
+    if (str && str.length > 1) {
+      retVal = str[0].toLocaleLowerCase() + str.substring(1);
+    }
 
     return retVal;
   }
