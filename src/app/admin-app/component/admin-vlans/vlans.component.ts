@@ -9,6 +9,8 @@ import {
   ChangeDetectionStrategy,
   OnDestroy,
 } from '@angular/core';
+import { SystemPermission } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectQuery } from 'src/app/project';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
@@ -20,10 +22,14 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 })
 export class VlansComponent implements OnInit, OnDestroy {
   public projects$ = this.projectQuery.selectAll();
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageVlans
+  );
 
   constructor(
     private projectQuery: ProjectQuery,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {

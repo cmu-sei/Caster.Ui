@@ -1,0 +1,19 @@
+<cas-project-list
+  *ngIf="!selectedProjectId"
+  class="background"
+  fxFill
+  fxLayout="row"
+  fxLayoutAlign="center start"
+  [projects]="projects$ | async"
+  [isLoading]="loading$ | async"
+  [manageMode]="true"
+  (selectedProjectId)="selectedProjectId = $event"
+>
+</cas-project-list>
+
+<cas-project-memberships
+  *ngIf="selectedProjectId"
+  [projectId]="selectedProjectId"
+  [embedded]="true"
+  (goBack)="selectedProjectId = null"
+></cas-project-memberships>

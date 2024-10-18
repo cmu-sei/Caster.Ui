@@ -8,7 +8,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     *ngIf="readOnly"
     class="mdi-24px"
     fontIcon="mdi-alert-octagon"
-    matTooltip="Read-only because the current file is not in edit mode"
+    matTooltip="Read-only because the current file is not in edit mode or you do not have edit permissions"
     matTooltipShowDelay="0"
   ></mat-icon>
   <button
@@ -99,7 +99,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             ></textarea>
           </ng-template>
           <button
-            *ngIf="variables.length > 0 || outputs.length > 0"
+            *ngIf="variables?.length > 0 || outputs?.length > 0"
             type="button"
             color="primary"
             mat-icon-button
@@ -120,7 +120,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             #autoGroup
             (optionSelected)="autocompleteSelected(moduleField.name, $event)"
           >
-            <mat-optgroup label="Variables" *ngIf="variables.length > 0">
+            <mat-optgroup label="Variables" *ngIf="variables?.length > 0">
               <mat-option
                 *ngFor="let variable of variables"
                 [value]="variable.terraform"
@@ -128,7 +128,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 {{ variable.name }}
               </mat-option>
             </mat-optgroup>
-            <mat-optgroup label="Outputs" *ngIf="outputs.length > 0">
+            <mat-optgroup label="Outputs" *ngIf="outputs?.length > 0">
               <mat-option
                 *ngFor="let output of outputs"
                 [value]="output.terraform"

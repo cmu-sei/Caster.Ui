@@ -5,9 +5,10 @@ import { Component, OnInit, NgZone } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ModuleService, ModuleQuery } from '../../../modules/state';
-import { Module } from '../../../generated/caster-api';
+import { Module, SystemPermission } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-admin-modules',
@@ -20,10 +21,15 @@ export class AdminModulesComponent implements OnInit {
   public matcher = new ModuleErrorStateMatcher();
   public isLinear = false;
 
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageWorkspaces
+  );
+
   constructor(
     public zone: NgZone,
     private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery
+    private moduleQuery: ModuleQuery,
+    private permissionService: PermissionService
   ) {}
 
   /**

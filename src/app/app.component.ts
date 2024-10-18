@@ -73,17 +73,15 @@ export class AppComponent implements OnDestroy {
   }
 
   setTheme(theme: Theme) {
-    const classList = this.overlayContainer.getContainerElement().classList;
+    const body = document.getElementsByTagName('body')[0];
     switch (theme) {
       case Theme.LIGHT:
-        this.componentCssClass = theme;
-        classList.add(theme);
-        classList.remove(Theme.DARK);
+        body.classList.remove(Theme.DARK);
+        body.classList.add(Theme.LIGHT);
         break;
       case Theme.DARK:
-        this.componentCssClass = theme;
-        classList.add(theme);
-        classList.remove(Theme.LIGHT);
+        body.classList.remove(Theme.LIGHT);
+        body.classList.add(Theme.DARK);
     }
   }
 

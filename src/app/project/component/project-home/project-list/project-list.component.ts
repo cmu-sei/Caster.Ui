@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
@@ -12,9 +13,22 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Project } from '../../../../generated/caster-api';
+import {
+  Project,
+  ProjectPermission,
+  SystemPermission,
+} from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { ProjectService } from 'src/app/project/state';
+import { filter, map, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
+import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
+
+const NAME_VALUE = 'nameValue';
 
 @Component({
   selector: 'cas-project-list',
@@ -22,41 +36,73 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./project-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectListComponent implements OnInit, OnChanges {
+export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
+  @Input() manageMode = false;
 
-  @Output() create: EventEmitter<string> = new EventEmitter<string>();
-  @Output() update: EventEmitter<Project> = new EventEmitter<Project>();
-  @Output() delete: EventEmitter<Project> = new EventEmitter<Project>();
+  @Output() selectedProjectId = new EventEmitter<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild(MatSort) sort: MatSort;
 
   filterString = '';
-  displayedColumns: string[] = ['name'];
+  displayedColumns: string[] = ['name', 'actions'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
-  constructor() {}
+  canManageAll$: Observable<boolean>;
+  canManageProjects$: Observable<string[]>;
+  canCreate$: Observable<boolean>;
+
+  constructor(
+    private projectService: ProjectService,
+    private dialogService: ConfirmDialogService,
+    private dialog: MatDialog,
+    private permissionService: PermissionService
+  ) {
+    this.canManageAll$ = this.permissionService.permissions$.pipe(
+      map((x) => x.includes(SystemPermission.ManageProjects))
+    );
+    this.canManageProjects$ = this.permissionService.projectPermissions$.pipe(
+      map((x) =>
+        x.map((y) =>
+          y.permissions.includes(ProjectPermission.ManageProject)
+            ? y.projectId
+            : null
+        )
+      ),
+      filter((x) => x != null)
+    );
+
+    this.canCreate$ = this.permissionService.hasPermission(
+      SystemPermission.CreateProjects
+    );
+  }
 
   ngOnInit() {
-    if (this.projects) {
-      this.dataSource = new MatTableDataSource(this.projects);
-      if (this.sort) {
-        this.sort.disableClear = true;
-        this.sort.sort({ id: 'name', start: 'asc' } as MatSortable);
-        this.dataSource.sort = this.sort;
-      }
-    }
+    this.loadProjects();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.projects) {
+      this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
     }
     if (changes.isLoading) {
       this.isLoading = changes.isLoading.currentValue;
     }
+  }
+
+  private loadProjects() {
+    this.permissionService.loadProjectPermissions().subscribe();
+  }
+
+  selectProject(projectId: string) {
+    this.selectedProjectId.emit(projectId);
   }
 
   applyFilter(filterValue: string) {
@@ -70,15 +116,65 @@ export class ProjectListComponent implements OnInit, OnChanges {
     this.applyFilter('');
   }
 
-  deleteRequest(project: Project) {
-    this.delete.emit(project);
+  create() {
+    this.nameDialog('Create New Project?', '', { nameValue: '' }).subscribe(
+      (result) => {
+        if (!result[this.dialogService.WAS_CANCELLED]) {
+          const newProject = {
+            name: result[NAME_VALUE],
+          } as Project;
+          this.projectService
+            .createProject(newProject)
+            .pipe(take(1))
+            .subscribe();
+        }
+      }
+    );
   }
 
-  updateRequest(project: Project) {
-    this.update.emit(project);
+  update(project: Project) {
+    this.nameDialog('Rename ' + project.name, '', {
+      nameValue: project.name,
+    }).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        const updatedProject = {
+          ...project,
+          name: result[NAME_VALUE],
+        } as Project;
+        this.projectService
+          .updateProject(updatedProject)
+          .pipe(take(1))
+          .subscribe();
+      }
+    });
   }
 
-  createRequest() {
-    this.create.emit();
+  delete(project: Project) {
+    this.confirmDialog(
+      'Delete Project?',
+      'Delete Project ' + project.name + '?',
+      { buttonTrueText: 'Delete' }
+    ).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        this.projectService.deleteProject(project.id).pipe(take(1)).subscribe();
+      }
+    });
+  }
+
+  confirmDialog(
+    title: string,
+    message: string,
+    data?: any
+  ): Observable<boolean> {
+    return this.dialogService.confirmDialog(title, message, data);
+  }
+
+  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+    let dialogRef: MatDialogRef<NameDialogComponent>;
+    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {} });
+    dialogRef.componentInstance.title = title;
+    dialogRef.componentInstance.message = message;
+
+    return dialogRef.afterClosed();
   }
 }

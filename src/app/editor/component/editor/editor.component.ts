@@ -46,6 +46,8 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() sidebarView: string;
   @Input() breadcrumb: Breadcrumb[];
   @Input() sidenavWidth: number;
+  @Input() canEdit: boolean;
+  @Input() canAdminLock: boolean;
   @Output() sidebarChanged = new EventEmitter<boolean>();
   @Output() sidebarViewChanged = new EventEmitter<string>();
   @Output() codeChanged = new EventEmitter<string>();
@@ -66,7 +68,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public selectedModule$: Observable<Module>;
   public filename = '';
   public currentUserId: string;
-  public isSuperUser: boolean;
   public isEditing$: Observable<boolean>;
   public isEditing = false;
   public isSaved$: Observable<boolean>;
@@ -95,7 +96,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((user) => {
         this.currentUserId = user.id;
-        this.isSuperUser = user.isSuperUser;
         this.updateEditorOptions(this.file);
       });
 

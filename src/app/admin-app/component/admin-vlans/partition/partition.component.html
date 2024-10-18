@@ -40,6 +40,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
         <ng-container *ngIf="!editing">
           <h4>{{ partition?.name }}</h4>
           <button
+            *ngIf="canEdit"
             mat-icon-button
             color="primary"
             matTooltip="Edit Name"
@@ -84,7 +85,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     <mat-panel-description class="header-description">
       <div *ngIf="vlans$ | async as vlans">{{ vlans.length }} VLANs</div>
     </mat-panel-description>
-    <div *ngIf="partition">
+    <div *ngIf="partition && canEdit">
       <mat-form-field
         class="vlan-amount"
         matTooltip="Number of VLANs to add or remove"
@@ -129,6 +130,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       [showUnassigned]="this.partition ? true : false"
       [vlans]="vlans$ | async"
       [partitions]="otherPartitions$ | async"
+      [canEdit]="canEdit"
     ></cas-vlan-list>
   </ng-template>
 </mat-expansion-panel>

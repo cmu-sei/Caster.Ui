@@ -19,6 +19,9 @@ export class DesignComponent implements OnInit, OnDestroy {
   @Input()
   designId: string;
 
+  @Input()
+  canEdit: boolean;
+
   design$: Observable<Design>;
 
   constructor(

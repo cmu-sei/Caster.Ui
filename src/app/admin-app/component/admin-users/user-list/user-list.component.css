@@ -39,6 +39,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   flex: 1;
   overflow: hidden;
   word-wrap: break-word;
+  align-items: center;
+  display:flex;
 }
 
 .button-end {

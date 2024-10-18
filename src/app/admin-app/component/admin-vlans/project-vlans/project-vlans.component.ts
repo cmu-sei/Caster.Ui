@@ -38,6 +38,9 @@ export class ProjectVlansComponent implements OnInit {
     this.dataSource.data = projects;
   }
 
+  @Input()
+  canEdit: boolean;
+
   dataSource = new MatTableDataSource<Project>();
   partitionOptions$: Observable<Map<Pool, Partition[]>>;
 
@@ -66,7 +69,7 @@ export class ProjectVlansComponent implements OnInit {
 
   ngOnInit(): void {
     forkJoin([
-      this.projectService.loadProjects(),
+      this.projectService.loadProjects(false),
       this.poolService.load(),
       this.partitionService.load(),
     ]).subscribe();

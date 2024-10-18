@@ -50,6 +50,17 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { PoolListItemComponent } from './component/admin-vlans/pool-list-item/pool-list-item.component';
 import { AdminAppRoutingModule } from './admin-app-routing.module';
 import { SharedModule } from '../shared/shared.module';
+import { AdminRolesComponent } from './component/admin-roles/admin-roles.component';
+import { AdminGroupsComponent } from './component/admin-groups/admin-groups.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { AdminGroupsDetailComponent } from './component/admin-groups/admin-groups-detail/admin-groups-detail.component';
+import { AdminGroupsMembershipListComponent } from './component/admin-groups/admin-groups-membership-list/admin-groups-membership-list.component';
+import { AdminGroupsMemberListComponent } from './component/admin-groups/admin-groups-member-list/admin-groups-member-list.component';
+import { AdminProjectsComponent } from './component/admin-projects/admin-projects.component';
+import { ProjectModule } from '../project';
+import { SystemRolesComponent } from './component/admin-roles/system-roles/system-roles.component';
+import { ProjectRolesComponent } from './component/admin-roles/project-roles/project-roles/project-roles.component';
 
 @NgModule({
   declarations: [
@@ -69,6 +80,14 @@ import { SharedModule } from '../shared/shared.module';
     PoolsComponent,
     ProjectVlansComponent,
     PoolListItemComponent,
+    AdminRolesComponent,
+    AdminGroupsComponent,
+    AdminGroupsDetailComponent,
+    AdminGroupsMembershipListComponent,
+    AdminGroupsMemberListComponent,
+    AdminProjectsComponent,
+    SystemRolesComponent,
+    ProjectRolesComponent,
   ],
   imports: [
     ClipboardModule,
@@ -103,6 +122,9 @@ import { SharedModule } from '../shared/shared.module';
     MatTabsModule,
     MatSliderModule,
     MatTableModule,
+    MatToolbarModule,
+    MatDialogModule,
+    ProjectModule,
   ],
   exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })

@@ -26,7 +26,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           fxFlex="8"
           fxFill
           fxLayout="row"
-          fxLayoutAlign="space-between center"
+          fxLayoutAlign="start center"
+          fxLayoutGap="20px"
         >
           <a [routerLink]="['/']">
             <div fxLayout="row" fxLayoutAlign="start center">
@@ -73,7 +74,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [topbarTextColor]="topbarTextColor"
       [topbarView]="TopbarView.CASTER_PROJECT"
       [sidenav]="sidenav"
+      [projectId]="project.id"
       (sidenavToggle)="sidenav.toggle()"
+      (editMemberships)="openEditMemberships()"
     ></cas-topbar>
     <div fxLayout="row" fxLayoutAlign="center stretch" fxFlex="0 1 auto">
       <div fxFill>
