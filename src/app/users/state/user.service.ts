@@ -86,6 +86,18 @@ export class UserService {
       });
   }
 
+  editUser(user: User) {
+    this.usersService
+      .editUser(user.id, user)
+      .pipe(
+        tap((u) => {
+          this.userStore.add(u);
+          this.userStore.ui.upsert(u.id, this.userQuery.ui.getEntity(u.id));
+        })
+      )
+      .subscribe();
+  }
+
   setCurrentUser() {
     const currentUser = {
       name: '',

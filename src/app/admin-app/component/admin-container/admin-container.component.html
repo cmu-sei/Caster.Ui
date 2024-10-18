@@ -86,6 +86,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
+      <mat-list-item>
+        <div class="showhand" id="wrapper" (click)="adminGotoRoles()">
+          <div id="lefticon">
+            <mat-icon class="mdi-24px" fontIcon="mdi-lock"></mat-icon>
+          </div>
+
+          <div id="content">{{ rolesText }}</div>
+
+          <div class="pull-right" id="rightcontext">
+            <button mat-icon-button style="outline: none">
+              <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-list-item>
     </mat-list>
     <img
       class="crucible-logo"
@@ -112,6 +127,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         *ngIf="showStatus === workspacesText"
       ></cas-admin-workspaces>
       <cas-vlans *ngIf="showStatus === vlansText"></cas-vlans>
+      <cas-admin-roles *ngIf="showStatus === rolesText"></cas-admin-roles>
     </span>
   </mat-sidenav-content>
 </mat-sidenav-container>

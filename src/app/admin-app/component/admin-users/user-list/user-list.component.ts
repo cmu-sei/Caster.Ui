@@ -29,6 +29,9 @@ import {
   fromMatPaginator,
   paginateRows,
 } from 'src/app/datasource-utils';
+import { RolesService } from 'src/app/roles/roles.service.service';
+import { MatSelectChange } from '@angular/material/select';
+import { UserService } from 'src/app/users/state';
 
 const WAS_CANCELLED = 'wasCancelled';
 
@@ -57,6 +60,7 @@ export class UserListComponent implements OnInit, OnChanges {
   totalRows$: Observable<number>;
   sortEvents$: Observable<Sort>;
   pageEvents$: Observable<PageEvent>;
+  roles$ = this.roleService.roles$;
 
   @Input() users: User[];
   @Input() isLoading: boolean;
@@ -71,8 +75,9 @@ export class UserListComponent implements OnInit, OnChanges {
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
-    // public dialogService: DialogService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private roleService: RolesService,
+    private userService: UserService
   ) {}
 
   /**
@@ -81,6 +86,8 @@ export class UserListComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.sortEvents$ = fromMatSort(this.sort);
     this.pageEvents$ = fromMatPaginator(this.paginator);
+
+    this.roleService.getRoles().subscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -179,5 +186,16 @@ export class UserListComponent implements OnInit, OnChanges {
     dialogRef.componentInstance.message = message;
 
     return dialogRef.afterClosed();
+  }
+
+  trackById(item) {
+    return item.id;
+  }
+
+  updateRole(user: User, event: MatSelectChange) {
+    this.userService.editUser({
+      ...user,
+      roleId: event.value == '' ? null : event.value,
+    });
   }
 }

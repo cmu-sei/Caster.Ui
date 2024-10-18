@@ -1,0 +1,42 @@
+<div>
+  <button mat-flat-button color="primary" (click)="addRole()">Add Role</button>
+</div>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-100">
+  <ng-container matColumnDef="permissions" sticky="true">
+    <th mat-header-cell *matHeaderCellDef>Permissions</th>
+    <td mat-cell *matCellDef="let permission">{{ permission }}</td>
+  </ng-container>
+
+  <ng-container
+    *ngFor="let role of roles$ | async; trackBy: trackById"
+    [matColumnDef]="role.name"
+  >
+    <th mat-header-cell *matHeaderCellDef>
+      <div class="d-flex">
+        <p>{{ role.name }}</p>
+        <button
+          mat-icon-button
+          color="primary"
+          (click)="deleteRole(role); $event.stopPropagation()"
+          title="Delete Role"
+        >
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-delete-forever-outline"
+          ></mat-icon>
+        </button>
+      </div>
+    </th>
+    <td mat-cell *matCellDef="let permission">
+      <mat-checkbox
+        color="primary"
+        [checked]="hasPermission(permission, role)"
+        (change)="setPermission(permission, role, $event)"
+      ></mat-checkbox>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns$ | async"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns$ | async"></tr>
+</table>
