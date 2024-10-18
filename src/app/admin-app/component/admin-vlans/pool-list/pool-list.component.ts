@@ -22,6 +22,7 @@ import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 })
 export class PoolListComponent implements OnInit {
   @Input() pools: Pool[];
+  @Input() canEdit: boolean;
 
   @Output() poolSelected = new EventEmitter<Pool>();
 

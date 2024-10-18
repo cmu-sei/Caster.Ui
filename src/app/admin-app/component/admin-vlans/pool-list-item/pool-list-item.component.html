@@ -26,32 +26,34 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     </mat-icon>
   </mat-card-title>
   <mat-card-actions class="flex">
-    <button
-      *ngIf="!editing"
-      mat-icon-button
-      color="primary"
-      matTooltip="Edit Name"
-      (click)="editing = !editing"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
-    </button>
-    <ng-container *ngIf="editing">
+    <ng-container *ngIf="canEdit">
       <button
+        *ngIf="!editing"
         mat-icon-button
         color="primary"
-        matTooltip="Rename"
-        (click)="rename(nameInput.nativeElement)"
+        matTooltip="Edit Name"
+        (click)="editing = !editing"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
       </button>
-      <button
-        mat-icon-button
-        color="primary"
-        matTooltip="Cancel"
-        (click)="editing = false"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
-      </button>
+      <ng-container *ngIf="editing">
+        <button
+          mat-icon-button
+          color="primary"
+          matTooltip="Rename"
+          (click)="rename(nameInput.nativeElement)"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          color="primary"
+          matTooltip="Cancel"
+          (click)="editing = false"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+        </button>
+      </ng-container>
     </ng-container>
     <button
       mat-icon-button
@@ -61,7 +63,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-launch"> </mat-icon>
     </button>
-    <div class="align-right">
+    <div *ngIf="canEdit" class="align-right">
       <button
         mat-icon-button
         color="primary"

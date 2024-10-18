@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
-import { shareReplay, take, tap } from 'rxjs/operators';
+import { filter, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -24,6 +24,7 @@ import {
   ResourceCommandResult,
   Run,
   RunStatus,
+  SystemPermission,
   Workspace,
 } from '../../../generated/caster-api';
 import {
@@ -34,6 +35,7 @@ import {
 } from '../../state';
 import { ImportResourceComponent } from '../import-resource/import-resource.component';
 import { OutputComponent } from '../output/output.component';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-workspace-container',
@@ -46,6 +48,7 @@ export class WorkspaceContainerComponent
 {
   @Input() workspaceId: string;
   @Input() breadcrumb: Breadcrumb[];
+  @Input() canEdit: boolean;
   workspaceRuns: Run[];
   workspaceResources: Resource[];
   output: string[];
@@ -66,6 +69,7 @@ export class WorkspaceContainerComponent
   forceCancel = false;
   resourcesToReplace: string[] = [];
   resourcesToTarget: string[] = [];
+  canImport$: Observable<boolean>;
 
   @ViewChild('importResourceDialog')
   importResourceDialog: TemplateRef<ImportResourceComponent>;
@@ -82,7 +86,8 @@ export class WorkspaceContainerComponent
     private signalrService: SignalRService,
     private confirmService: ConfirmDialogService,
     public currentUserQuery: CurrentUserQuery,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit() {
@@ -170,6 +175,10 @@ export class WorkspaceContainerComponent
       );
 
     this.signalrService.joinWorkspace(this.workspaceId);
+
+    this.canImport$ = this.permissionService.hasPermission(
+      SystemPermission.ImportResources
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {

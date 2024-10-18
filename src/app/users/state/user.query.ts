@@ -45,7 +45,6 @@ export class UserQuery extends QueryEntity<UsersState> {
 })
 export class CurrentUserQuery extends Query<CurrentUserState> {
   userTheme$ = this.select((state) => state.theme);
-  isSuperUser$ = this.select((state) => state.isSuperUser);
 
   constructor(protected store: CurrentUserStore) {
     super(store);

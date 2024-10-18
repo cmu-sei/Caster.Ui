@@ -38,7 +38,6 @@ export class UserStore extends EntityStore<UsersState> {
 
 export interface CurrentUserState {
   name: string;
-  isSuperUser: boolean;
   id: string;
   theme?: Theme;
   lastRoute: string;
@@ -47,7 +46,6 @@ export interface CurrentUserState {
 export function createInitialCurrentUserState(): CurrentUserState {
   return {
     name: '',
-    isSuperUser: false,
     id: '',
     theme: Theme.LIGHT,
     lastRoute: '',

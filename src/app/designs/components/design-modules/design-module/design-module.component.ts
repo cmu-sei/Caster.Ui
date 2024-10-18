@@ -39,6 +39,9 @@ export class DesignModuleComponent implements OnInit, OnChanges {
   @Input()
   public module: Module;
 
+  @Input()
+  canEdit: boolean;
+
   public isEditing = false;
   public showOutputs = false;
 

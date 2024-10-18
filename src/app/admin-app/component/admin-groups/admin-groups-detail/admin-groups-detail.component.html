@@ -1,0 +1,13 @@
+<div class="d-flex gap-5 justify-content-center">
+  <cas-admin-groups-membership-list
+    [users]="nonMembers$ | async"
+    [canEdit]="canEdit"
+    (createMembership)="createMembership($event)"
+  ></cas-admin-groups-membership-list>
+  <cas-admin-groups-member-list
+    [memberships]="memberships$ | async"
+    [users]="members$ | async"
+    [canEdit]="canEdit"
+    (deleteMembership)="deleteMembership($event)"
+  ></cas-admin-groups-member-list>
+</div>

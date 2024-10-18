@@ -7,6 +7,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   <div class="header">
     <h1>Partitions</h1>
     <button
+      *ngIf="canEdit"
       mat-icon-button
       color="primary"
       matTooltip="Create a Partition"
@@ -17,10 +18,13 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   </div>
   <div class="content">
     <mat-accordion class="accordion" multi>
-      <cas-partition [poolId]="poolId"></cas-partition>
+      <cas-partition [poolId]="poolId" [canEdit]="canEdit"></cas-partition>
 
       <div *ngFor="let partition of partitions$ | async; trackById">
-        <cas-partition [partition]="partition"></cas-partition>
+        <cas-partition
+          [partition]="partition"
+          [canEdit]="canEdit"
+        ></cas-partition>
       </div>
     </mat-accordion>
   </div>

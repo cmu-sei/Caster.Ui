@@ -6,7 +6,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 <mat-tab-group>
   <mat-tab label="Pools">
     <ng-template matTabContent>
-      <cas-pools class="tab-content"></cas-pools>
+      <cas-pools [canEdit]="canEdit$ | async" class="tab-content"></cas-pools>
     </ng-template>
   </mat-tab>
   <mat-tab label="Projects"
@@ -14,6 +14,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       <cas-project-vlans
         class="tab-content"
         [projects]="projects$ | async"
+        [canEdit]="canEdit$ | async"
       ></cas-project-vlans></ng-template
   ></mat-tab>
 </mat-tab-group>

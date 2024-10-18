@@ -1,0 +1,29 @@
+<div *ngIf="project$ | async as project" class="d-flex justify-content-center">
+  <button
+    *ngIf="embedded"
+    mat-icon-button
+    (click)="goBack.emit()"
+    matTooltip="Return"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"></mat-icon>
+  </button>
+  <h1>{{ project.name }}</h1>
+</div>
+<div class="d-flex gap-5 justify-content-center">
+  <cas-project-membership-list
+    [users]="nonMembers$ | async"
+    [groups]="groupNonMembers$ | async"
+    [canEdit]="canEdit$ | async"
+    (createMembership)="createMembership($event)"
+  ></cas-project-membership-list>
+
+  <cas-project-member-list
+    [memberships]="memberships$ | async"
+    [users]="members$ | async"
+    [groups]="groupMembers$ | async"
+    [roles]="roles$ | async"
+    [canEdit]="canEdit$ | async"
+    (deleteMembership)="deleteMembership($event)"
+    (editMembership)="editMembership($event)"
+  ></cas-project-member-list>
+</div>

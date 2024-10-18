@@ -63,7 +63,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-flat-button
             color="primary"
-            [disabled]="!enablePlanApply()"
+            [disabled]="!canEdit || !enablePlanApply()"
             (click)="plan($event)"
           >
             Plan
@@ -71,7 +71,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-flat-button
             color="primary"
-            [disabled]="!enablePlanApply()"
+            [disabled]="!canEdit || !enablePlanApply()"
             (click)="destroy($event)"
           >
             Destroy
@@ -92,6 +92,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasPlan(item)"
+            [disabled]="!canEdit"
             (click)="apply($event, item)"
           >
             Apply
@@ -100,6 +101,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasPlan(item)"
+            [disabled]="!canEdit"
             (click)="reject($event, item)"
           >
             Reject
@@ -114,6 +116,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               mat-flat-button
               color="primary"
               matTooltip="Attempt to cancel the Run. Data loss may occur"
+              [disabled]="!canEdit"
               (click)="cancel($event, item)"
             >
               Cancel
@@ -121,6 +124,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-checkbox
               matTooltip="When cancelling, forcefully terminate the Run immediately"
               (click)="$event.stopPropagation()"
+              [disabled]="!canEdit"
               [(ngModel)]="forceCancel"
             >
               force
@@ -130,6 +134,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasStateError(item)"
+            [disabled]="!canEdit"
             (click)="saveState($event, item)"
           >
             <span>
@@ -160,7 +165,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <cwd-table
         [items]="workspaceResources$ | async"
         [loading]="loading$ | async"
-        [displayedColumns]="['name', 'type', 'address', 'replace &nbsp; target']"
+        [displayedColumns]="[
+          'name',
+          'type',
+          'address',
+          'replace &nbsp; target'
+        ]"
         [excludedAttributes]="['attributes']"
         [expandedItems]="expandedResourceIds$ | async"
         [getRowStyle]="setRowStyle"
@@ -174,57 +184,125 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           fxLayoutAlign="center center"
         >
           <div class="split-buttons">
-            <button mat-flat-button color="primary"
-              [disabled]="(loading$ | async) || (resourcesToReplace.length === 0 && resourcesToTarget.length === 0)"
-              (click)="replaceResources()" matTooltip="Starts a plan process that will replace all of the selected resources">
-              Plan
-            </button>&nbsp;
-            <button mat-flat-button color="primary" [disabled]="loading$ | async" (click)="refreshResources()"
-              matTooltip="Refreshes deployed resources and their properties">
-              Refresh
-            </button>&nbsp;
-            <button *ngIf="this.currentUserQuery.isSuperUser$ | async" mat-flat-button color="primary" [disabled]="loading$ | async"
-              (click)="openImportResourceDialog()" matTooltip="Import an existing resource into this workspace">
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="
+                !canEdit ||
+                (loading$ | async) ||
+                (resourcesToReplace.length === 0 &&
+                  resourcesToTarget.length === 0)
+              "
+              (click)="replaceResources()"
+              matTooltip="Starts a plan process that will replace all of the selected resources"
+            >
+              Plan</button
+            >&nbsp;
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="!canEdit || (loading$ | async)"
+              (click)="refreshResources()"
+              matTooltip="Refreshes deployed resources and their properties"
+            >
+              Refresh</button
+            >&nbsp;
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="!(canImport$ | async) || (loading$ | async)"
+              (click)="openImportResourceDialog()"
+              matTooltip="Import an existing resource into this workspace"
+            >
               Import
             </button>
           </div>
         </div>
-        <div
-          *cwdTableItemAction="let item"
-          class="action-cell"
-        >
+        <div *cwdTableItemAction="let item" class="action-cell">
           <ng-container
-            *ngIf="{ value: (resourceActionIds$ | async).includes(item.address), action: (resourceAction$ | async) } as loading">
+            *ngIf="{
+              value: (resourceActionIds$ | async).includes(item.address),
+              action: (resourceAction$ | async)
+            } as loading"
+          >
             <div class="action-checkboxes">
-              <mat-checkbox matTooltip="Replace"
-                (click)="$event.stopPropagation()" (change)="markResourceForReplace($event, item.address)"
-                [checked]="resourceToReplace(item.id)" style="align-self: center;">
+              <mat-checkbox
+                matTooltip="Replace"
+                (click)="$event.stopPropagation()"
+                (change)="markResourceForReplace($event, item.address)"
+                [checked]="resourceToReplace(item.id)"
+                [disabled]="!canEdit"
+                style="align-self: center"
+              >
               </mat-checkbox>
-              <mat-checkbox matTooltip="Target" (click)="$event.stopPropagation()"
+              <mat-checkbox
+                matTooltip="Target"
+                (click)="$event.stopPropagation()"
                 (change)="markResourceForTarget($event, item.address)"
-                [checked]="resourceToTarget(item.id)" style="align-self: center;">
+                [checked]="resourceToTarget(item.id)"
+                [disabled]="!canEdit"
+                style="align-self: center"
+              >
               </mat-checkbox>
-              </div>
-              <div class="action-buttons">
-                <button mat-flat-button color="primary"
-                  [ngSwitch]="loading.value && loading.action == resourceActions.Taint && !item.tainted" [fxShow]="!item.tainted"
-                  [disabled]="loading.action != resourceActions.None"
-                (click)="taint($event, item)">
-                <mat-progress-spinner *ngSwitchCase="true" color="accent" diameter="35" mode="indeterminate">
+            </div>
+            <div class="action-buttons">
+              <button
+                mat-flat-button
+                color="primary"
+                [ngSwitch]="
+                  loading.value &&
+                  loading.action == resourceActions.Taint &&
+                  !item.tainted
+                "
+                [fxShow]="!item.tainted"
+                [disabled]="!canEdit || loading.action != resourceActions.None"
+                (click)="taint($event, item)"
+              >
+                <mat-progress-spinner
+                  *ngSwitchCase="true"
+                  color="accent"
+                  diameter="35"
+                  mode="indeterminate"
+                >
                 </mat-progress-spinner>
                 <span *ngSwitchDefault>Taint</span>
               </button>
-              <button mat-flat-button color="primary"
-                [ngSwitch]="loading.value && loading.action == resourceActions.Taint && item.tainted" [fxShow]="item.tainted"
-                [disabled]="loading.action != resourceActions.None" (click)="untaint($event, item)">
-                <mat-progress-spinner *ngSwitchCase="true" color="accent" diameter="35" mode="indeterminate">
+              <button
+                mat-flat-button
+                color="primary"
+                [ngSwitch]="
+                  loading.value &&
+                  loading.action == resourceActions.Taint &&
+                  item.tainted
+                "
+                [fxShow]="item.tainted"
+                [disabled]="!canEdit || loading.action != resourceActions.None"
+                (click)="untaint($event, item)"
+              >
+                <mat-progress-spinner
+                  *ngSwitchCase="true"
+                  color="accent"
+                  diameter="35"
+                  mode="indeterminate"
+                >
                 </mat-progress-spinner>
                 <span *ngSwitchDefault>Untaint</span>
               </button>
-              <button mat-flat-button color="primary" [ngSwitch]="loading.value && loading.action == resourceActions.Remove"
-                [disabled]="loading.action != resourceActions.None"
-                (click)="remove($event, item)">
-                <mat-progress-spinner *ngSwitchCase="true" color="accent" diameter="35" mode="indeterminate">
+              <button
+                mat-flat-button
+                color="primary"
+                [ngSwitch]="
+                  loading.value && loading.action == resourceActions.Remove
+                "
+                [disabled]="!canEdit || loading.action != resourceActions.None"
+                (click)="remove($event, item)"
+              >
+                <mat-progress-spinner
+                  *ngSwitchCase="true"
+                  color="accent"
+                  diameter="35"
+                  mode="indeterminate"
+                >
                 </mat-progress-spinner>
                 <span *ngSwitchDefault>Remove</span>
               </button>

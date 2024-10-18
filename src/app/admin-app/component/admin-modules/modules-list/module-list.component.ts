@@ -56,6 +56,7 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
 
   @Input() modules: Module[];
   @Input() isLoading: boolean;
+  @Input() canEdit: boolean;
   @Output() load: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() loadModuleById: EventEmitter<string> = new EventEmitter<string>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();

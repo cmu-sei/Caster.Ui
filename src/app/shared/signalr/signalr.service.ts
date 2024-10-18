@@ -13,10 +13,13 @@ import {
   Design,
   DesignModule,
   Directory,
+  GroupMembership,
   ModelFile,
   Partition,
   Pool,
+  ProjectMembership,
   Run,
+  SystemRole,
   Variable,
   Vlan,
   Workspace,
@@ -26,6 +29,9 @@ import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { WorkspaceService } from 'src/app/workspace/state';
 import { ProjectService } from '../../project/state';
+import { RoleService } from 'src/app/roles/roles.service.service';
+import { GroupMembershipService } from 'src/app/groups/group-membership.service';
+import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 
 @Injectable({
   providedIn: 'root',
@@ -33,10 +39,13 @@ import { ProjectService } from '../../project/state';
 export class SignalRService {
   private hubConnection: signalR.HubConnection;
   private projectId: string;
+  private projectAdminId: string;
+  private groupId: string;
   private workspaceIds: string[] = [];
   private designIds: string[] = [];
   private joinedWorkspacesAdmin = false;
   private joinedVlansAdmin = false;
+  private joinedRolesAdmin = false;
   private connectionPromise: Promise<void>;
 
   constructor(
@@ -51,7 +60,10 @@ export class SignalRService {
     private designModuleService: DesignModuleService,
     private poolService: PoolService,
     private partitionService: PartitionService,
-    private vlanService: VlanService
+    private vlanService: VlanService,
+    private roleService: RoleService,
+    private groupMembershipService: GroupMembershipService,
+    private projectMembershipService: ProjectMembershipService
   ) {}
 
   public startConnection(): Promise<void> {
@@ -84,6 +96,10 @@ export class SignalRService {
       this.joinProject(this.projectId);
     }
 
+    if (this.groupId) {
+      this.joinGroup(this.groupId);
+    }
+
     if (this.workspaceIds) {
       this.workspaceIds.forEach((x) => this.joinWorkspace(x));
     }
@@ -99,6 +115,14 @@ export class SignalRService {
     if (this.joinedVlansAdmin) {
       this.joinVlansAdmin();
     }
+
+    if (this.joinedRolesAdmin) {
+      this.joinRolesAdmin();
+    }
+
+    if (this.projectAdminId) {
+      this.joinProjectAdmin(this.projectAdminId);
+    }
   }
 
   public joinProject(projectId: string) {
@@ -112,6 +136,32 @@ export class SignalRService {
   public leaveProject(projectId: string) {
     this.projectId = null;
     this.hubConnection.invoke('LeaveProject', projectId);
+  }
+
+  public joinProjectAdmin(projectId: string) {
+    this.projectAdminId = projectId;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinProjectAdmin', projectId);
+    }
+  }
+
+  public leaveProjectAdmin(projectId: string) {
+    this.projectAdminId = null;
+    this.hubConnection.invoke('LeaveProjectAdmin', projectId);
+  }
+
+  public joinGroup(groupId: string) {
+    this.groupId = groupId;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinGroup', groupId);
+    }
+  }
+
+  public leaveGroup(groupId: string) {
+    this.groupId = null;
+    this.hubConnection.invoke('LeaveGroup', groupId);
   }
 
   public joinWorkspace(workspaceId: string) {
@@ -166,6 +216,19 @@ export class SignalRService {
     this.hubConnection.invoke('LeaveVlansAdmin');
   }
 
+  public joinRolesAdmin() {
+    this.joinedRolesAdmin = true;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinRolesAdmin');
+    }
+  }
+
+  public leaveRolesAdmin() {
+    this.joinedRolesAdmin = false;
+    this.hubConnection.invoke('LeaveRolesAdmin');
+  }
+
   public streamPlanOutput(planId: string) {
     return this.hubConnection.stream('GetPlanOutput', planId);
   }
@@ -185,6 +248,9 @@ export class SignalRService {
     this.addPoolHandlers();
     this.addPartitionHandlers();
     this.addVlanHandlers();
+    this.addRoleHandlers();
+    this.addGroupMembershipHandlers();
+    this.addProjectMembershipHandlers();
   }
 
   private addFileHandlers() {
@@ -368,6 +434,72 @@ export class SignalRService {
 
     this.hubConnection.on('VlanDeleted', (id: string) => {
       this.vlanService.remove(id);
+    });
+  }
+
+  private addRoleHandlers() {
+    this.hubConnection.on('RoleCreated', (role: SystemRole) => {
+      this.roleService.upsert(role.id, role);
+    });
+
+    this.hubConnection.on(
+      'RoleUpdated',
+      (role: SystemRole, modifiedProperties: string[]) => {
+        this.roleService.upsert(
+          role.id,
+          this.getModified(role, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('RoleDeleted', (id: string) => {
+      this.roleService.remove(id);
+    });
+  }
+
+  private addGroupMembershipHandlers() {
+    this.hubConnection.on(
+      'GroupMembershipCreated',
+      (membership: GroupMembership) => {
+        this.groupMembershipService.upsert(membership.id, membership);
+      }
+    );
+
+    this.hubConnection.on(
+      'GroupMembershipUpdated',
+      (membership: GroupMembership, modifiedProperties: string[]) => {
+        this.groupMembershipService.upsert(
+          membership.id,
+          this.getModified(membership, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('GroupMembershipDeleted', (id: string) => {
+      this.groupMembershipService.remove(id);
+    });
+  }
+
+  private addProjectMembershipHandlers() {
+    this.hubConnection.on(
+      'ProjectMembershipCreated',
+      (membership: ProjectMembership) => {
+        this.projectMembershipService.upsert(membership.id, membership);
+      }
+    );
+
+    this.hubConnection.on(
+      'ProjectMembershipUpdated',
+      (membership: ProjectMembership, modifiedProperties: string[]) => {
+        this.projectMembershipService.upsert(
+          membership.id,
+          this.getModified(membership, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('ProjectMembershipDeleted', (id: string) => {
+      this.projectMembershipService.remove(id);
     });
   }
 

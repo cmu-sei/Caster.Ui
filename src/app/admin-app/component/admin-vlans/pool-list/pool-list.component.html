@@ -6,6 +6,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 <div class="header">
   <h1>Pools</h1>
   <button
+    *ngIf="canEdit"
     mat-icon-button
     color="primary"
     (click)="createPool()"
@@ -37,6 +38,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   <cas-pool-list-item
     *ngFor="let pool of pools"
     [pool]="pool"
+    [canEdit]="canEdit"
     (poolSelected)="selectPool(pool)"
   ></cas-pool-list-item>
 </div>

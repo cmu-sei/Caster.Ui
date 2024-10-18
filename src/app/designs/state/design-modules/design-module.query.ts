@@ -45,10 +45,10 @@ export class DesignModuleQuery extends QueryEntity<DesignModuleState> {
         designModules
           .filter((designModule) => designModule.id != excludedDesignModuleId)
           .forEach((designModule) => {
-            const module = modules.find((x) => x.id == designModule.moduleId);
+            const module = modules?.find((x) => x.id == designModule.moduleId);
 
             if (module) {
-              const version = module.versions.find(
+              const version = module.versions?.find(
                 (x) => x.name == designModule.moduleVersion
               );
 

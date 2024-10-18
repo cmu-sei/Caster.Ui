@@ -11,6 +11,7 @@ import {
   Input,
   ViewChild,
   ChangeDetectorRef,
+  OnChanges,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -27,9 +28,10 @@ import { Partition, Vlan } from 'src/app/generated/caster-api';
   styleUrls: ['./vlan-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VlanListComponent implements OnInit {
+export class VlanListComponent implements OnInit, OnChanges {
   @Input() showUnassigned = true;
   @Input() partitions: Partition[];
+  @Input() canEdit: boolean;
 
   @Input() set vlans(vlans: Vlan[]) {
     this._vlans = vlans;
@@ -51,14 +53,11 @@ export class VlanListComponent implements OnInit {
   _vlans: Vlan[];
   dataSource = new TableVirtualScrollDataSource<Vlan>();
   selection = new SelectionModel<Vlan>(true, []);
-  displayedColumns: string[] = [
-    'select',
-    'vlanId',
-    'inUse',
-    'reserved',
-    'tag',
-    'actions',
-  ];
+
+  viewColumns = ['vlanId', 'inUse', 'reserved', 'tag'];
+  preEditColumns = ['select'];
+  postEditColumns = ['actions'];
+  displayedColumns = this.viewColumns;
   loading = new Map<string, boolean>();
   editingId: string;
 
@@ -88,6 +87,18 @@ export class VlanListComponent implements OnInit {
         data.tag?.toLowerCase().includes(filter)
       );
     };
+  }
+
+  ngOnChanges() {
+    this.recalculateDisplayedColumns();
+  }
+
+  recalculateDisplayedColumns() {
+    this.displayedColumns = [].concat(
+      this.canEdit ? this.preEditColumns : [],
+      this.viewColumns,
+      this.canEdit ? this.postEditColumns : []
+    );
   }
 
   applyFilter(event: Event) {
