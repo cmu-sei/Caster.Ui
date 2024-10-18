@@ -50,6 +50,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { PoolListItemComponent } from './component/admin-vlans/pool-list-item/pool-list-item.component';
 import { AdminAppRoutingModule } from './admin-app-routing.module';
 import { SharedModule } from '../shared/shared.module';
+import { AdminRolesComponent } from './component/admin-roles/admin-roles.component';
 
 @NgModule({
   declarations: [
@@ -69,6 +70,7 @@ import { SharedModule } from '../shared/shared.module';
     PoolsComponent,
     ProjectVlansComponent,
     PoolListItemComponent,
+    AdminRolesComponent,
   ],
   imports: [
     ClipboardModule,

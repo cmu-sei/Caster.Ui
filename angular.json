@@ -34,9 +34,12 @@
                 "output": "./assets/monaco-editor/"
               }
             ],
-            "styles": ["src/styles/styles.scss"],
+            "styles": [
+              "src/styles/styles.scss",
+              "./node_modules/bootstrap/scss/bootstrap-utilities.scss"
+            ],
             "stylePreprocessorOptions": {
-              "includePaths": ["src/styles"]
+              "includePaths": ["src/styles", "./node_modules/bootstrap/scss"]
             },
             "scripts": [],
             "vendorChunk": true,

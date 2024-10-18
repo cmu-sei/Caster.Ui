@@ -1,8 +1,3 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 export * from './acquireVlanCommand';
 export * from './addOrUpdateValuesDesignModuleCommand';
 export * from './addVlansToPartitionCommand';
@@ -23,6 +18,7 @@ export * from './createPoolCommand';
 export * from './createProjectCommand';
 export * from './createRunCommand';
 export * from './createSnippetCommand';
+export * from './createSystemRoleCommand';
 export * from './createUserCommand';
 export * from './createUserPermissionCommand';
 export * from './createVariableCommand';
@@ -39,6 +35,7 @@ export * from './editHostCommand';
 export * from './editPartitionCommand';
 export * from './editPoolCommand';
 export * from './editProjectCommand';
+export * from './editSystemRoleCommand';
 export * from './editUserCommand';
 export * from './editUserPermissionCommand';
 export * from './editVariableCommand';
@@ -76,6 +73,8 @@ export * from './resource';
 export * from './resourceCommandResult';
 export * from './run';
 export * from './runStatus';
+export * from './systemPermissions';
+export * from './systemRole';
 export * from './tagFileCommand';
 export * from './taintResourcesCommand';
 export * from './terraformVersionsResult';

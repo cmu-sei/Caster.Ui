@@ -15,6 +15,7 @@ api/plans.service.ts
 api/projects.service.ts
 api/resources.service.ts
 api/runs.service.ts
+api/systemRoles.service.ts
 api/terraform.service.ts
 api/userPermissions.service.ts
 api/users.service.ts
@@ -45,6 +46,7 @@ model/createPoolCommand.ts
 model/createProjectCommand.ts
 model/createRunCommand.ts
 model/createSnippetCommand.ts
+model/createSystemRoleCommand.ts
 model/createUserCommand.ts
 model/createUserPermissionCommand.ts
 model/createVariableCommand.ts
@@ -61,6 +63,7 @@ model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
 model/editProjectCommand.ts
+model/editSystemRoleCommand.ts
 model/editUserCommand.ts
 model/editUserPermissionCommand.ts
 model/editVariableCommand.ts
@@ -99,6 +102,8 @@ model/resource.ts
 model/resourceCommandResult.ts
 model/run.ts
 model/runStatus.ts
+model/systemPermissions.ts
+model/systemRole.ts
 model/tagFileCommand.ts
 model/taintResourcesCommand.ts
 model/terraformVersionsResult.ts
