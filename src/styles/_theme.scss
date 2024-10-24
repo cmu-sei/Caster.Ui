@@ -39,7 +39,7 @@ $mat-cmu-tartan: (
 // Background palette for light themes.
 $cmu-light-theme-background: (
   status-bar: map_get(mat.$grey-palette, 300),
-  app-bar: white,
+  app-bar: #f1f1f2,
   background: #f1f1f2,
   hover: map-get(mat.$grey-palette, 300),
   card: #f1f1f2,

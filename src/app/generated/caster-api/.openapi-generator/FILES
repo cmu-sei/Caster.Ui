@@ -12,6 +12,7 @@ api/hosts.service.ts
 api/modules.service.ts
 api/permissions.service.ts
 api/plans.service.ts
+api/projectRoles.service.ts
 api/projects.service.ts
 api/resources.service.ts
 api/runs.service.ts
@@ -44,6 +45,8 @@ model/createModuleRepositoryCommand.ts
 model/createPartitionCommand.ts
 model/createPoolCommand.ts
 model/createProjectCommand.ts
+model/createProjectMembershipCommand.ts
+model/createProjectRoleCommand.ts
 model/createRunCommand.ts
 model/createSnippetCommand.ts
 model/createSystemRoleCommand.ts
@@ -52,6 +55,7 @@ model/createUserPermissionCommand.ts
 model/createVariableCommand.ts
 model/createWorkspaceCommand.ts
 model/deletePoolCommand.ts
+model/deleteProjectMembershipCommand.ts
 model/design.ts
 model/designModule.ts
 model/directory.ts
@@ -63,6 +67,8 @@ model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
 model/editProjectCommand.ts
+model/editProjectMembershipCommand.ts
+model/editProjectRoleCommand.ts
 model/editSystemRoleCommand.ts
 model/editUserCommand.ts
 model/editUserPermissionCommand.ts
@@ -94,6 +100,9 @@ model/planStatus.ts
 model/pool.ts
 model/problemDetails.ts
 model/project.ts
+model/projectMembership.ts
+model/projectPermissions.ts
+model/projectRole.ts
 model/reassignVlansCommand.ts
 model/removeResourcesCommand.ts
 model/removeVlansFromPartitionCommand.ts

@@ -1,0 +1,46 @@
+<div class="mat-elevation-z8">
+  <mat-toolbar>Project Members</mat-toolbar>
+  <table mat-table [dataSource]="dataSource" class="w-100">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let model" class="d-flex">
+        <p>{{ model.user.name }}</p>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="role">
+      <th mat-header-cell *matHeaderCellDef>Role</th>
+      <td mat-cell *matCellDef="let model">
+        <mat-select
+          [value]="
+            model.membership.roleId == null ? '' : model.membership.roleId
+          "
+          (selectionChange)="updateRole(model.membership.userId, $event)"
+        >
+          <mat-option value="">None</mat-option>
+          <mat-option
+            *ngFor="let role of roles; trackBy: trackById"
+            [value]="role.id"
+            >{{ role.name }}</mat-option
+          >
+        </mat-select>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let model">
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="deleteUser(model.user.id)"
+        >
+          Remove User
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>

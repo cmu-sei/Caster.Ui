@@ -157,6 +157,8 @@ export class ProjectCollapseContainerComponent
     return file && file.editorContent !== file.content;
   }
 
+  openEditMemberships() {}
+
   // @HostListener handles browser refresh, close, etc.
   @HostListener('window:beforeunload')
   canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {

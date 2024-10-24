@@ -12,6 +12,7 @@ import { HostsService } from './api/hosts.service';
 import { ModulesService } from './api/modules.service';
 import { PermissionsService } from './api/permissions.service';
 import { PlansService } from './api/plans.service';
+import { ProjectRolesService } from './api/projectRoles.service';
 import { ProjectsService } from './api/projects.service';
 import { ResourcesService } from './api/resources.service';
 import { RunsService } from './api/runs.service';
