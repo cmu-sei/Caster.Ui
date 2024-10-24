@@ -29,24 +29,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </button>
     </span>
     <span class="view-text">{{ title }}</span>
-    <ng-container *ngIf="teams && team && teams.length > 0">
-      <div class="team-text">Team:</div>
-      <b class="team-text">{{ team.name }}</b>
-      <div *ngIf="teams.length > 1" fxLayout="row" fxLayoutAlign="start center">
-        <button mat-button [matMenuTriggerFor]="teamMenu" style="outline: none">
-          <mat-icon svgIcon="ic_expand_more_white_24px"></mat-icon>
-        </button>
-        <mat-menu #teamMenu="matMenu" [overlapTrigger]="false">
-          <button
-            *ngFor="let val of teams"
-            mat-menu-item
-            (click)="setTeamFn(val.id)"
-          >
-            {{ val.name }}
-          </button>
-        </mat-menu>
-      </div>
-    </ng-container>
     <span class="spacer"></span>
     <div
       fxFlex
@@ -59,13 +41,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-icon svgIcon="ic_expand_more_white_24px"></mat-icon>
       </button>
       <mat-menu #menu="matMenu" [overlapTrigger]="false">
-        <button
-          *ngIf="team && team.canManage"
-          (click)="editFn($event)"
+        <a
+          *ngIf="
+            currentUser.isSuperUser && topbarView !== TopbarView.CASTER_ADMIN
+          "
+          (click)="editMembershipsFn($event)"
+          [href]="getEditMembershipsUrl()"
           mat-menu-item
         >
-          Edit View
-        </button>
+          Edit Memberships
+        </a>
         <button
           *ngIf="
             currentUser.isSuperUser !== null &&
@@ -77,7 +62,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           Exit Administration
         </button>
-        <button
+        <a
           *ngIf="
             currentUser.isSuperUser && topbarView !== TopbarView.CASTER_ADMIN
           "
@@ -85,7 +70,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-menu-item
         >
           Administration
-        </button>
+        </a>
         <button mat-menu-item (click)="logout()">Logout</button>
         <mat-slide-toggle
           class="mat-menu-item"

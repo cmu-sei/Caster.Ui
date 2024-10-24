@@ -51,6 +51,7 @@ export class ProjectService {
   }
 
   loadProject(projectId: string): Observable<Project> {
+    console.log(projectId);
     return this.projectsService.getProject(projectId).pipe(
       tap((project) => {
         this.projectStore.upsert(project.id, project);

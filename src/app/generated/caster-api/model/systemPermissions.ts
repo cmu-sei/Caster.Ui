@@ -11,13 +11,15 @@
  */
 
 
-export type SystemPermissions = 'ViewAllProjects' | 'CreateProjects' | 'ManageProjects' | 'ViewVLANs' | 'EditVLANs';
+export type SystemPermissions = 'All' | 'ReadOnly' | 'ManageSystem' | 'CreateProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles';
 
 export const SystemPermissions = {
-    ViewAllProjects: 'ViewAllProjects' as SystemPermissions,
+    All: 'All' as SystemPermissions,
+    ReadOnly: 'ReadOnly' as SystemPermissions,
+    ManageSystem: 'ManageSystem' as SystemPermissions,
     CreateProjects: 'CreateProjects' as SystemPermissions,
     ManageProjects: 'ManageProjects' as SystemPermissions,
-    ViewVlans: 'ViewVLANs' as SystemPermissions,
-    EditVlans: 'EditVLANs' as SystemPermissions
+    ImportProjects: 'ImportProjects' as SystemPermissions,
+    LockFiles: 'LockFiles' as SystemPermissions
 };
 

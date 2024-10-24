@@ -45,6 +45,12 @@ import { ProjectComponent } from './component/project-details/project/project.co
 import { ProjectListContainerComponent } from './component/project-home/project-list-container/project-list-container.component';
 import { ProjectListComponent } from './component/project-home/project-list/project-list.component';
 import { FilesFilterPipe } from './pipes/files-filter-pipe';
+import { ProjectMembershipsComponent } from './component/project-memberships/project-memberships/project-memberships.component';
+import { ProjectMembershipsPageComponent } from './component/project-memberships/project-memberships-page/project-memberships-page.component';
+import { ProjectMembershipUserListComponent } from './component/project-memberships/project-membership-user-list/project-membership-user-list.component';
+import { ProjectMemberListComponent } from './component/project-memberships/project-member-list/project-member-list.component';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 const projectRoutes: Routes = [
   {
@@ -72,6 +78,10 @@ const projectRoutes: Routes = [
     ProjectTabComponent,
     FilesFilterPipe,
     ProjectExportComponent,
+    ProjectMembershipsComponent,
+    ProjectMembershipsPageComponent,
+    ProjectMembershipUserListComponent,
+    ProjectMemberListComponent,
   ],
   imports: [
     CommonModule,
@@ -108,6 +118,8 @@ const projectRoutes: Routes = [
     SharedModule,
     SeiCwdCommonModule,
     DesignModule,
+    ClipboardModule,
+    MatSnackBarModule,
   ],
   exports: [
     ProjectComponent,

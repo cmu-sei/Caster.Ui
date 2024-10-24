@@ -1,0 +1,16 @@
+<div class="d-flex gap-5 justify-content-center">
+  <cas-project-membership-user-list
+    class="w-25"
+    [users]="nonMembers$ | async"
+    (createMembership)="createMembership($event)"
+  ></cas-project-membership-user-list>
+
+  <cas-project-member-list
+    class="w-25"
+    [memberships]="memberships$ | async"
+    [users]="members$ | async"
+    [roles]="roles$ | async"
+    (deleteMembership)="deleteMembership($event)"
+    (editMembership)="editMembership($event)"
+  ></cas-project-member-list>
+</div>
