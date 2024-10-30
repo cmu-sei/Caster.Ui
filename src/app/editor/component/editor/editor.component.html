@@ -32,7 +32,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             fontIcon="mdi-chevron-double-right"
           ></mat-icon>
         </button>
-        <ng-container [ngSwitch]="sidebar?.value">
+        <ng-container [ngSwitch]="sidebarView">
           <div *ngSwitchCase="'modules'">
             <cas-module-list
               *ngIf="filename.endsWith('.tf')"
@@ -119,6 +119,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <button
             mat-icon-button
+            hotkeyAction="DISCARD_CHANGES"
             color="primary"
             fxFlexAlign="center"
             [disabled]="file && file.editorContent === file.content"
@@ -169,40 +170,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <mat-divider vertical style="height: 100%"></mat-divider>
           <div *ngIf="filename.endsWith('.tf')">
-            <mat-button-toggle-group
-              #sidebar="matButtonToggleGroup"
-              [value]="sidebarView"
-              hotkeyAction="FILE_VERSIONS"
-              (hotkeyFn)="sidebarChangedFn($event, sidebarOpen)"
-              (valueChange)="sidebarChangedFn($event, sidebarOpen)"
-            >
-              <mat-button-toggle
-                value="modules"
-                aria-label="modules"
-                hotkeyAction="FILE_MODULES"
-                (change)="toggleSidebar($event, true)"
-              >
-                <mat-icon
-                  color="primary"
-                  fontSet="fas"
-                  fontIcon="fa-code"
-                  matTooltip="Open Modules"
-                ></mat-icon>
-              </mat-button-toggle>
-              <mat-button-toggle
-                value="versions"
-                aria-label="versions"
-                hotkeyAction="FILE_VERSIONS"
-                (change)="toggleSidebar($event, true)"
-              >
-                <mat-icon
-                  color="primary"
-                  fontSet="fas"
-                  fontIcon="fa-history"
-                  matTooltip="Open File Versions"
-                ></mat-icon>
-              </mat-button-toggle>
-            </mat-button-toggle-group>
+            <button mat-icon-button hotkeyAction="FILE_MODULES" fxFlexAlign="center" color="primary"
+              (click)="sidebarView = 'modules'; sidebarChangedFn('modules', true)" [disabled]="sidebarView === 'modules'"
+              matTooltip="Show the module list">
+              <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-code"></mat-icon>
+            </button>
+            <button mat-icon-button hotkeyAction="FILE_VERSIONS" fxFlexAlign="center" color="primary"
+              (click)="sidebarView = 'versions'; sidebarChangedFn('versions', true)" [disabled]="sidebarView === 'versions'"
+              matTooltip="Show the file versions">
+              <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-history"></mat-icon>
+            </button>
           </div>
         </mat-toolbar-row>
       </mat-toolbar>
@@ -213,6 +190,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         id="editor"
         class="code-editor"
         [options]="editorOptions"
+        (init)="editorInit($event)"
         [(ngModel)]="code"
         (ngModelChange)="codeChangedEventHandler($event)"
       >

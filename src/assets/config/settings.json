@@ -16,7 +16,7 @@
   "AppTopBarText": "Caster",
   "Hotkeys": {
     "PROJECT_NEW": {
-      "keys": "meta.p",
+      "keys": "control.p",
       "group": "",
       "description": "New Project"
     },
@@ -43,6 +43,33 @@
       "group": "Editor",
       "description": "Save a file",
       "allowIn": ["INPUT", "TEXTAREA"]
+    },
+    "DISCARD_CHANGES": {
+      "keys": "control.q",
+      "group": "Editor",
+      "description": "Discard changes",
+      "allowIn": [
+        "INPUT",
+        "TEXTAREA"
+      ]
+    },
+    "FILE_MODULES": {
+      "keys": "alt.m",
+      "group": "Editor",
+      "description": "Show file modules",
+      "allowIn": [
+        "INPUT",
+        "TEXTAREA"
+      ]
+    },
+    "FILE_VERSIONS": {
+      "keys": "alt.v",
+      "group": "Editor",
+      "description": "Show file versions",
+      "allowIn": [
+        "INPUT",
+        "TEXTAREA"
+      ]
     }
   }
 }
