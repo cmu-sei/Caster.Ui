@@ -29,6 +29,7 @@ import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/serv
 import { CurrentUserQuery } from 'src/app/users/state';
 import { FileQuery, FileService } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
+import { ComnSettingsService } from '@cmusei/crucible-common';
 
 const SIDEBAR_MIN_WIDTH = 300;
 
@@ -82,7 +83,8 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     private fileVersionQuery: FileVersionQuery,
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
-    private confirmDialog: ConfirmDialogService
+    private confirmDialog: ConfirmDialogService,
+    private settingsService: ComnSettingsService
   ) {}
 
   ngOnInit(): void {
@@ -150,6 +152,35 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       });
 
     this.isSaved$ = this.fileQuery.selectIsSaved(this.fileId);
+  }
+
+  editorInit(editor: any) {
+    // get the defined hot keys
+    const hotKeys = this.settingsService.settings.Hotkeys;
+    const bubbleKeys = [];
+    // create search strings for the defined hot keys that need to bubble out of the editor
+    // transforms control.x, alt.x, etc. to ctrl+X, alt+X, etc.
+    for (const [key, hk] of Object.entries(hotKeys)) {
+      const parts = (hk as any).keys.split('.');
+      if (parts.length === 2) {
+        if (parts[0] === 'control') parts[0] = 'ctrl';
+        bubbleKeys.push(parts[0] + '+' + parts[1].toUpperCase());
+      }
+    }
+    // get the editor default key bindings
+    const bindings =
+      editor._standaloneKeybindingService._getResolver()._defaultKeybindings;
+    // set the editor key bindings to bubble the defined hot keys that would be intercepted
+    // by clearing the command and setting bubble to true
+    bindings.forEach((binding) => {
+      if (
+        binding.keypressParts.length === 1 &&
+        bubbleKeys.some((bk) => bk === binding.keypressParts[0])
+      ) {
+        binding.command = '';
+        binding.bubble = true;
+      }
+    });
   }
 
   updateEditorOptions(file: ModelFile): void {
