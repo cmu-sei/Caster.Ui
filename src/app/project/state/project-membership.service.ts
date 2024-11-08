@@ -5,6 +5,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
+  CreateProjectMembershipCommand,
   EditProjectMembershipCommand,
   ProjectMembership,
   ProjectsService,
@@ -27,22 +28,18 @@ export class ProjectMembershipService {
       .pipe(tap((x) => this.projectMembershipsSubject.next(x)));
   }
 
-  createMembership(projectId: string, userId: string) {
-    return this.projectService
-      .createProjectMembership(projectId, {
-        userId: userId,
+  createMembership(projectId: string, command: CreateProjectMembershipCommand) {
+    return this.projectService.createProjectMembership(projectId, command).pipe(
+      tap((x) => {
+        const memberships = this.projectMembershipsSubject.getValue();
+        memberships.push(x);
+        this.projectMembershipsSubject.next(memberships);
       })
-      .pipe(
-        tap((x) => {
-          const memberships = this.projectMembershipsSubject.getValue();
-          memberships.push(x);
-          this.projectMembershipsSubject.next(memberships);
-        })
-      );
+    );
   }
 
-  editMembership(projectId: string, command: EditProjectMembershipCommand) {
-    return this.projectService.editProjectMembership(projectId, command).pipe(
+  editMembership(command: EditProjectMembershipCommand) {
+    return this.projectService.editProjectMembership(command).pipe(
       tap((x) => {
         const memberships = this.projectMembershipsSubject.getValue();
         const index = memberships.findIndex((m) => m.id === x.id);
@@ -55,19 +52,13 @@ export class ProjectMembershipService {
     );
   }
 
-  deleteMembership(projectId: string, userId: string) {
-    return this.projectService
-      .deleteProjectMembership(projectId, {
-        userId: userId,
+  deleteMembership(id: string) {
+    return this.projectService.deleteProjectMembership(id).pipe(
+      tap(() => {
+        let memberships = this.projectMembershipsSubject.getValue();
+        memberships = memberships.filter((x) => !(x.id == id));
+        this.projectMembershipsSubject.next(memberships);
       })
-      .pipe(
-        tap(() => {
-          let memberships = this.projectMembershipsSubject.getValue();
-          memberships = memberships.filter(
-            (x) => !(x.projectId == projectId && x.userId == userId)
-          );
-          this.projectMembershipsSubject.next(memberships);
-        })
-      );
+    );
   }
 }

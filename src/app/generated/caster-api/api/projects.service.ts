@@ -25,8 +25,6 @@ import { CreateProjectCommand } from '../model/createProjectCommand';
 // @ts-ignore
 import { CreateProjectMembershipCommand } from '../model/createProjectMembershipCommand';
 // @ts-ignore
-import { DeleteProjectMembershipCommand } from '../model/deleteProjectMembershipCommand';
-// @ts-ignore
 import { EditProjectCommand } from '../model/editProjectCommand';
 // @ts-ignore
 import { EditProjectMembershipCommand } from '../model/editProjectMembershipCommand';
@@ -345,17 +343,16 @@ export class ProjectsService {
 
     /**
      * Delete a Project Membership.
-     * @param projectId ID of Project.
-     * @param deleteProjectMembershipCommand 
+     * @param id 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteProjectMembership(projectId: string, deleteProjectMembershipCommand?: DeleteProjectMembershipCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
-    public deleteProjectMembership(projectId: string, deleteProjectMembershipCommand?: DeleteProjectMembershipCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
-    public deleteProjectMembership(projectId: string, deleteProjectMembershipCommand?: DeleteProjectMembershipCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
-    public deleteProjectMembership(projectId: string, deleteProjectMembershipCommand?: DeleteProjectMembershipCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
-        if (projectId === null || projectId === undefined) {
-            throw new Error('Required parameter projectId was null or undefined when calling deleteProjectMembership.');
+    public deleteProjectMembership(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
+    public deleteProjectMembership(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
+    public deleteProjectMembership(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
+    public deleteProjectMembership(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling deleteProjectMembership.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -385,17 +382,6 @@ export class ProjectsService {
         }
 
 
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json',
-            'text/json',
-            'application/*+json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
             if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -407,11 +393,10 @@ export class ProjectsService {
             }
         }
 
-        let localVarPath = `/api/projects/${this.configuration.encodeParam({name: "projectId", value: projectId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/memberships`;
+        let localVarPath = `/api/projects/memberships/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
         return this.httpClient.request<any>('delete', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: deleteProjectMembershipCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
@@ -503,18 +488,14 @@ export class ProjectsService {
 
     /**
      * Edit a Project Membership.
-     * @param projectId 
      * @param editProjectMembershipCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public editProjectMembership(projectId: string, editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<ProjectMembership>;
-    public editProjectMembership(projectId: string, editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<ProjectMembership>>;
-    public editProjectMembership(projectId: string, editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<ProjectMembership>>;
-    public editProjectMembership(projectId: string, editProjectMembershipCommand?: EditProjectMembershipCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (projectId === null || projectId === undefined) {
-            throw new Error('Required parameter projectId was null or undefined when calling editProjectMembership.');
-        }
+    public editProjectMembership(editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<ProjectMembership>;
+    public editProjectMembership(editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<ProjectMembership>>;
+    public editProjectMembership(editProjectMembershipCommand?: EditProjectMembershipCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<ProjectMembership>>;
+    public editProjectMembership(editProjectMembershipCommand?: EditProjectMembershipCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -567,7 +548,7 @@ export class ProjectsService {
             }
         }
 
-        let localVarPath = `/api/projects/${this.configuration.encodeParam({name: "projectId", value: projectId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/memberships`;
+        let localVarPath = `/api/projects/memberships`;
         return this.httpClient.request<ProjectMembership>('put', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -782,20 +763,16 @@ export class ProjectsService {
 
     /**
      * Get a single Project Membership.
-     * @param projectId Id of the Project
-     * @param userId Id of the User
+     * @param id 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getProjectMembership(projectId: string, userId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<ProjectMembership>;
-    public getProjectMembership(projectId: string, userId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<ProjectMembership>>;
-    public getProjectMembership(projectId: string, userId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<ProjectMembership>>;
-    public getProjectMembership(projectId: string, userId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (projectId === null || projectId === undefined) {
-            throw new Error('Required parameter projectId was null or undefined when calling getProjectMembership.');
-        }
-        if (userId === null || userId === undefined) {
-            throw new Error('Required parameter userId was null or undefined when calling getProjectMembership.');
+    public getProjectMembership(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<ProjectMembership>;
+    public getProjectMembership(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<ProjectMembership>>;
+    public getProjectMembership(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<ProjectMembership>>;
+    public getProjectMembership(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling getProjectMembership.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -838,7 +815,7 @@ export class ProjectsService {
             }
         }
 
-        let localVarPath = `/api/projects/${this.configuration.encodeParam({name: "projectId", value: projectId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/memberships/${this.configuration.encodeParam({name: "userId", value: userId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        let localVarPath = `/api/projects/memberships/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
         return this.httpClient.request<ProjectMembership>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,

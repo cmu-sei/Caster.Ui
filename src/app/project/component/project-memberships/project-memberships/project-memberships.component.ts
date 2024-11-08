@@ -5,7 +5,11 @@ import { ProjectService } from 'src/app/project/state';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
 import { UserQuery, UserService } from 'src/app/users/state';
-import { EditProjectMembershipCommand } from 'src/app/generated/caster-api';
+import {
+  CreateProjectMembershipCommand,
+  EditProjectMembershipCommand,
+} from 'src/app/generated/caster-api';
+import { GroupService } from 'src/app/groups/group.service';
 
 @Component({
   selector: 'cas-project-memberships',
@@ -23,12 +27,16 @@ export class ProjectMembershipsComponent implements OnInit {
   nonMembers$ = this.selectUsers(false);
   members$ = this.selectUsers(true);
 
+  groupNonMembers$ = this.selectGroups(false);
+  groupMembers$ = this.selectGroups(true);
+
   constructor(
     private projectService: ProjectService,
     private projectMembershipService: ProjectMembershipService,
     private projectRolesService: ProjectRoleService,
     private userService: UserService,
-    private userQuery: UserQuery
+    private userQuery: UserQuery,
+    private groupService: GroupService
   ) {}
 
   ngOnInit(): void {
@@ -37,6 +45,7 @@ export class ProjectMembershipsComponent implements OnInit {
       this.projectMembershipService.loadMemberships(this.projectId),
       this.userService.load(),
       this.projectRolesService.loadRoles(),
+      this.groupService.load(),
     ]).subscribe();
   }
 
@@ -60,21 +69,37 @@ export class ProjectMembershipsComponent implements OnInit {
     );
   }
 
-  createMembership(userId: string) {
+  selectGroups(members: boolean) {
+    return combineLatest([this.groupService.groups$, this.memberships$]).pipe(
+      map(([groups, memberships]) => {
+        return groups.filter((group) => {
+          if (members) {
+            return (
+              memberships.length > 0 &&
+              memberships.some((y) => y.groupId == group.id)
+            );
+          } else {
+            return (
+              memberships.length === 0 ||
+              !memberships.some((y) => y.groupId == group.id)
+            );
+          }
+        });
+      })
+    );
+  }
+
+  createMembership(command: CreateProjectMembershipCommand) {
     this.projectMembershipService
-      .createMembership(this.projectId, userId)
+      .createMembership(this.projectId, command)
       .subscribe();
   }
 
-  deleteMembership(userId: string) {
-    this.projectMembershipService
-      .deleteMembership(this.projectId, userId)
-      .subscribe();
+  deleteMembership(id: string) {
+    this.projectMembershipService.deleteMembership(id).subscribe();
   }
 
   editMembership(command: EditProjectMembershipCommand) {
-    this.projectMembershipService
-      .editMembership(this.projectId, command)
-      .subscribe();
+    this.projectMembershipService.editMembership(command).subscribe();
   }
 }

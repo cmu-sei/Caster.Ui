@@ -51,6 +51,10 @@ import { PoolListItemComponent } from './component/admin-vlans/pool-list-item/po
 import { AdminAppRoutingModule } from './admin-app-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { AdminRolesComponent } from './component/admin-roles/admin-roles.component';
+import { AdminGroupsComponent } from './component/admin-groups/admin-groups.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { DialogModule } from '@angular/cdk/dialog';
 
 @NgModule({
   declarations: [
@@ -71,6 +75,7 @@ import { AdminRolesComponent } from './component/admin-roles/admin-roles.compone
     ProjectVlansComponent,
     PoolListItemComponent,
     AdminRolesComponent,
+    AdminGroupsComponent,
   ],
   imports: [
     ClipboardModule,
@@ -105,6 +110,8 @@ import { AdminRolesComponent } from './component/admin-roles/admin-roles.compone
     MatTabsModule,
     MatSliderModule,
     MatTableModule,
+    MatToolbarModule,
+    MatDialogModule,
   ],
   exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })

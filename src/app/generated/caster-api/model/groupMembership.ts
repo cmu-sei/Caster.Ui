@@ -11,23 +11,15 @@
  */
 
 
-export interface ProjectMembership { 
+export interface GroupMembership { 
     id?: string;
     /**
-     * ID of the project.
+     * ID of the group.
      */
-    projectId?: string;
+    groupId?: string;
     /**
      * Id of the User.
      */
-    userId?: string | null;
-    /**
-     * Id of the Group.
-     */
-    groupId?: string | null;
-    /**
-     * Id of the Role this User has for this Project
-     */
-    roleId?: string | null;
+    userId?: string;
 }
 

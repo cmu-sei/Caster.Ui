@@ -1,0 +1,91 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="mat-elevation-z8">
+  <div>
+    <mat-toolbar class="toolbar">
+      <mat-toolbar-row>
+        <mat-icon
+          fontSet="fas"
+          fontIcon="fa-search"
+          class="fa-search"
+        ></mat-icon>
+        <mat-form-field>
+          <input
+            matInput
+            [(ngModel)]="filterString"
+            (keyup)="applyFilter($event.target.value)"
+            placeholder="Search Groups"
+          />
+        </mat-form-field>
+        <button
+          *ngIf="filterString != ''"
+          matTooltip="Clear Search"
+          mat-icon-button
+          (click)="clearFilter()"
+          style="outline: none"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
+        </button>
+        <div class="spacer"></div>
+        <button
+          mat-icon-button
+          matTooltip="Add New Group"
+          (click)="createGroup()"
+        >
+          <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
+  </div>
+
+  <mat-table [dataSource]="dataSource$ | async" matSort>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        Project Name
+      </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <button
+          mat-icon-button
+          matTooltip="Delete {{ element.name }}"
+          (click)="deleteGroup(element)"
+        >
+          <mat-icon
+            color="primary"
+            fontSet="fas"
+            fontIcon="fa-trash"
+          ></mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Rename">
+          <mat-icon
+            color="primary"
+            fontSet="fas"
+            fontIcon="fa-pencil-alt"
+            (click)="updateGroup(element)"
+          ></mat-icon>
+        </button>
+        <a
+          class="project-text"
+          matTooltip="Open {{ element.name }}"
+          [routerLink]="['/projects', element.id]"
+          >{{ element.name }}</a
+        >
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+  </mat-table>
+
+  <!-- Loading Spinner -->
+  <!-- <mat-card
+    *ngIf="!projects || isLoading"
+    style="display: flex; justify-content: center; align-items: center"
+  >
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card> -->
+</div>

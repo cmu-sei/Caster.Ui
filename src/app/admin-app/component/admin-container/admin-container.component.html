@@ -101,6 +101,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
+      <mat-list-item>
+        <div class="showhand" id="wrapper" (click)="adminGotoGroups()">
+          <div id="lefticon">
+            <mat-icon class="mdi-24px" fontIcon="mdi-account-group"></mat-icon>
+          </div>
+
+          <div id="content">{{ groupsText }}</div>
+
+          <div class="pull-right" id="rightcontext">
+            <button mat-icon-button style="outline: none">
+              <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-list-item>
     </mat-list>
     <img
       class="crucible-logo"
@@ -128,6 +143,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       ></cas-admin-workspaces>
       <cas-vlans *ngIf="showStatus === vlansText"></cas-vlans>
       <cas-admin-roles *ngIf="showStatus === rolesText"></cas-admin-roles>
+      <cas-admin-groups *ngIf="showStatus === groupsText"></cas-admin-groups>
     </span>
   </mat-sidenav-content>
 </mat-sidenav-container>

@@ -11,23 +11,10 @@
  */
 
 
-export interface ProjectMembership { 
-    id?: string;
+export interface DeleteGroupMembershipCommand { 
     /**
-     * ID of the project.
+     * The Id of the User to remove.
      */
-    projectId?: string;
-    /**
-     * Id of the User.
-     */
-    userId?: string | null;
-    /**
-     * Id of the Group.
-     */
-    groupId?: string | null;
-    /**
-     * Id of the Role this User has for this Project
-     */
-    roleId?: string | null;
+    userId?: string;
 }
 

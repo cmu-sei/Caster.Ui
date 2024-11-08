@@ -15,6 +15,10 @@ export interface CreateProjectMembershipCommand {
     /**
      * The Id of the User to add.
      */
-    userId?: string;
+    userId?: string | null;
+    /**
+     * The Id of the Group to add.
+     */
+    groupId?: string | null;
 }
 

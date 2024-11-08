@@ -13,9 +13,9 @@
 
 export interface EditProjectMembershipCommand { 
     /**
-     * The User Id of the Membership
+     * The Project Id of the Membership
      */
-    userId?: string;
+    id?: string;
     roleId?: string | null;
 }
 

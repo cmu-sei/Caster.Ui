@@ -47,7 +47,7 @@ import { ProjectListComponent } from './component/project-home/project-list/proj
 import { FilesFilterPipe } from './pipes/files-filter-pipe';
 import { ProjectMembershipsComponent } from './component/project-memberships/project-memberships/project-memberships.component';
 import { ProjectMembershipsPageComponent } from './component/project-memberships/project-memberships-page/project-memberships-page.component';
-import { ProjectMembershipUserListComponent } from './component/project-memberships/project-membership-user-list/project-membership-user-list.component';
+import { ProjectMembershipListComponent } from './component/project-memberships/project-membership-list/project-membership-list.component';
 import { ProjectMemberListComponent } from './component/project-memberships/project-member-list/project-member-list.component';
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -80,7 +80,7 @@ const projectRoutes: Routes = [
     ProjectExportComponent,
     ProjectMembershipsComponent,
     ProjectMembershipsPageComponent,
-    ProjectMembershipUserListComponent,
+    ProjectMembershipListComponent,
     ProjectMemberListComponent,
   ],
   imports: [

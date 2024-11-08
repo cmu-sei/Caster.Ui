@@ -3,6 +3,7 @@ import { MatSelectChange } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   EditProjectMembershipCommand,
+  Group,
   ProjectMembership,
   ProjectRole,
   User,
@@ -21,6 +22,9 @@ export class ProjectMemberListComponent implements OnInit {
   users: User[];
 
   @Input()
+  groups: Group[];
+
+  @Input()
   roles: ProjectRole[];
 
   @Output()
@@ -29,7 +33,7 @@ export class ProjectMemberListComponent implements OnInit {
   @Output()
   editMembership = new EventEmitter<EditProjectMembershipCommand>();
 
-  displayedColumns: string[] = ['name', 'role', 'actions'];
+  displayedColumns: string[] = ['name', 'type', 'role', 'actions'];
   dataSource = new MatTableDataSource<ProjectMembershipModel>();
 
   constructor() {}
@@ -46,26 +50,36 @@ export class ProjectMemberListComponent implements OnInit {
     this.dataSource.data = this.memberships
       .map((x) => {
         const user = this.users.find((u) => u.id == x.userId);
+        const group = this.groups.find((g) => g.id == x.groupId);
         const role = this.roles.find((r) => r.id == x.roleId);
 
+        let membership = {
+          membership: x,
+          role: role,
+        } as ProjectMembershipModel;
+
         if (user != null) {
-          return {
-            membership: x,
-            user: user,
-            role: role,
-          } as ProjectMembershipModel;
+          membership.user = user;
+          membership.name = user.name;
+          membership.type = 'User';
+        } else if (group != null) {
+          membership.group = group;
+          membership.name = group.name;
+          membership.type = 'Group';
         }
+
+        return membership;
       })
       .filter((x) => x);
   }
 
-  deleteUser(userId: string) {
-    this.deleteMembership.emit(userId);
+  delete(id: string) {
+    this.deleteMembership.emit(id);
   }
 
-  updateRole(userId: string, event: MatSelectChange) {
+  updateRole(id: string, event: MatSelectChange) {
     this.editMembership.emit({
-      userId: userId,
+      id: id,
       roleId: event.value == '' ? null : event.value,
     });
   }
@@ -78,5 +92,8 @@ export class ProjectMemberListComponent implements OnInit {
 export interface ProjectMembershipModel {
   membership: ProjectMembership;
   user: User;
+  group: Group;
   role: ProjectRole;
+  name: string;
+  type: string;
 }

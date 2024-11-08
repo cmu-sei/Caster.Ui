@@ -7,6 +7,7 @@ import { DesignsService } from './api/designs.service';
 import { DesignsModulesService } from './api/designsModules.service';
 import { DirectoriesService } from './api/directories.service';
 import { FilesService } from './api/files.service';
+import { GroupsService } from './api/groups.service';
 import { HealthService } from './api/health.service';
 import { HostsService } from './api/hosts.service';
 import { ModulesService } from './api/modules.service';

@@ -1,28 +1,39 @@
 <div class="mat-elevation-z8">
-  <mat-toolbar>All Users</mat-toolbar>
+  <mat-toolbar>Users/Groups</mat-toolbar>
   <table mat-table [dataSource]="dataSource" class="w-100">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let user" class="d-flex">
+      <td mat-cell *matCellDef="let model" class="d-flex">
         <button
           mat-icon-button
           ngxClipboard
-          [cbContent]="user.id"
+          [cbContent]="model.id"
           (cbOnSuccess)="snackBar.open('Copied to clipboard', 'Dismiss')"
           (click)="$event.stopPropagation()"
-          title="Copy:  {{ user.id }}"
+          title="Copy:  {{ model.id }}"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
         </button>
-        <p>{{ user.name }}</p>
+        <p>{{ model.name }}</p>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="type">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let model">
+        <p>{{ model.type }}</p>
       </td>
     </ng-container>
 
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let user">
-        <button mat-flat-button color="primary" (click)="addUser(user.id)">
-          Add User
+      <td mat-cell *matCellDef="let model">
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="add(model.id, model.type)"
+        >
+          Add
         </button>
       </td>
     </ng-container>

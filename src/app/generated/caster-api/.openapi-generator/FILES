@@ -7,6 +7,7 @@ api/designs.service.ts
 api/designsModules.service.ts
 api/directories.service.ts
 api/files.service.ts
+api/groups.service.ts
 api/health.service.ts
 api/hosts.service.ts
 api/modules.service.ts
@@ -39,6 +40,8 @@ model/createDesignCommand.ts
 model/createDesignModuleCommand.ts
 model/createDirectoryCommand.ts
 model/createFileCommand.ts
+model/createGroupCommand.ts
+model/createGroupMembershipCommand.ts
 model/createHostCommand.ts
 model/createModuleCommand.ts
 model/createModuleRepositoryCommand.ts
@@ -54,8 +57,8 @@ model/createUserCommand.ts
 model/createUserPermissionCommand.ts
 model/createVariableCommand.ts
 model/createWorkspaceCommand.ts
+model/deleteGroupMembershipCommand.ts
 model/deletePoolCommand.ts
-model/deleteProjectMembershipCommand.ts
 model/design.ts
 model/designModule.ts
 model/directory.ts
@@ -63,6 +66,7 @@ model/editDesignCommand.ts
 model/editDesignModuleCommand.ts
 model/editDirectoryCommand.ts
 model/editFileCommand.ts
+model/editGroupCommand.ts
 model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
@@ -75,6 +79,8 @@ model/editUserPermissionCommand.ts
 model/editVariableCommand.ts
 model/editWorkspaceCommand.ts
 model/fileVersion.ts
+model/group.ts
+model/groupMembership.ts
 model/healthStatus.ts
 model/host.ts
 model/importDirectoryResult.ts

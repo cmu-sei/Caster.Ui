@@ -11,10 +11,11 @@
  */
 
 
-export interface DeleteProjectMembershipCommand { 
+export interface EditGroupCommand { 
+    id?: string;
     /**
-     * The Id of the User to remove.
+     * Name of the group.
      */
-    userId?: string;
+    name?: string | null;
 }
 
