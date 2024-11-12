@@ -55,6 +55,9 @@ import { AdminGroupsComponent } from './component/admin-groups/admin-groups.comp
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { DialogModule } from '@angular/cdk/dialog';
+import { AdminGroupsDetailComponent } from './component/admin-groups/admin-groups-detail/admin-groups-detail.component';
+import { AdminGroupsMembershipListComponent } from './component/admin-groups/admin-groups-membership-list/admin-groups-membership-list.component';
+import { AdminGroupsMemberListComponent } from './component/admin-groups/admin-groups-member-list/admin-groups-member-list.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +79,9 @@ import { DialogModule } from '@angular/cdk/dialog';
     PoolListItemComponent,
     AdminRolesComponent,
     AdminGroupsComponent,
+    AdminGroupsDetailComponent,
+    AdminGroupsMembershipListComponent,
+    AdminGroupsMemberListComponent,
   ],
   imports: [
     ClipboardModule,

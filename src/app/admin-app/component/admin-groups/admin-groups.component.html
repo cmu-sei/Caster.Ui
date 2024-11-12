@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="mat-elevation-z8">
+<div class="mat-elevation-z8 w-75 mx-auto mt-5">
   <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
@@ -48,31 +48,37 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         Project Name
       </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <button
-          mat-icon-button
-          matTooltip="Delete {{ element.name }}"
-          (click)="deleteGroup(element)"
-        >
-          <mat-icon
-            color="primary"
-            fontSet="fas"
-            fontIcon="fa-trash"
-          ></mat-icon>
-        </button>
-        <button mat-icon-button matTooltip="Rename">
-          <mat-icon
-            color="primary"
-            fontSet="fas"
-            fontIcon="fa-pencil-alt"
-            (click)="updateGroup(element)"
-          ></mat-icon>
-        </button>
-        <a
-          class="project-text"
-          matTooltip="Open {{ element.name }}"
-          [routerLink]="['/projects', element.id]"
-          >{{ element.name }}</a
-        >
+        <mat-expansion-panel class="w-100">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <button
+                mat-icon-button
+                matTooltip="Delete {{ element.name }}"
+                (click)="$event.stopPropagation(); deleteGroup(element)"
+              >
+                <mat-icon
+                  color="primary"
+                  fontSet="fas"
+                  fontIcon="fa-trash"
+                ></mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Rename">
+                <mat-icon
+                  color="primary"
+                  fontSet="fas"
+                  fontIcon="fa-pencil-alt"
+                  (click)="$event.stopPropagation(); updateGroup(element)"
+                ></mat-icon>
+              </button>
+              <p>{{ element.name }}</p>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <ng-template matExpansionPanelContent>
+            <cas-admin-groups-detail
+              [groupId]="element.id"
+            ></cas-admin-groups-detail>
+          </ng-template>
+        </mat-expansion-panel>
       </mat-cell>
     </ng-container>
 

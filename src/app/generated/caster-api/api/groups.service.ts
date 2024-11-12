@@ -23,8 +23,6 @@ import { CreateGroupCommand } from '../model/createGroupCommand';
 // @ts-ignore
 import { CreateGroupMembershipCommand } from '../model/createGroupMembershipCommand';
 // @ts-ignore
-import { DeleteGroupMembershipCommand } from '../model/deleteGroupMembershipCommand';
-// @ts-ignore
 import { EditGroupCommand } from '../model/editGroupCommand';
 // @ts-ignore
 import { Group } from '../model/group';
@@ -326,17 +324,16 @@ export class GroupsService {
 
     /**
      * Delete a Group Membership.
-     * @param groupId ID of Group.
-     * @param deleteGroupMembershipCommand 
+     * @param id 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteGroupMembership(groupId: string, deleteGroupMembershipCommand?: DeleteGroupMembershipCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
-    public deleteGroupMembership(groupId: string, deleteGroupMembershipCommand?: DeleteGroupMembershipCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
-    public deleteGroupMembership(groupId: string, deleteGroupMembershipCommand?: DeleteGroupMembershipCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
-    public deleteGroupMembership(groupId: string, deleteGroupMembershipCommand?: DeleteGroupMembershipCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
-        if (groupId === null || groupId === undefined) {
-            throw new Error('Required parameter groupId was null or undefined when calling deleteGroupMembership.');
+    public deleteGroupMembership(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
+    public deleteGroupMembership(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
+    public deleteGroupMembership(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
+    public deleteGroupMembership(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling deleteGroupMembership.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -366,17 +363,6 @@ export class GroupsService {
         }
 
 
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json',
-            'text/json',
-            'application/*+json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
             if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -388,11 +374,10 @@ export class GroupsService {
             }
         }
 
-        let localVarPath = `/api/groups/${this.configuration.encodeParam({name: "groupId", value: groupId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/memberships`;
+        let localVarPath = `/api/groups/memberships/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
         return this.httpClient.request<any>('delete', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: deleteGroupMembershipCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

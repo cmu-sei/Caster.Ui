@@ -57,7 +57,6 @@ model/createUserCommand.ts
 model/createUserPermissionCommand.ts
 model/createVariableCommand.ts
 model/createWorkspaceCommand.ts
-model/deleteGroupMembershipCommand.ts
 model/deletePoolCommand.ts
 model/design.ts
 model/designModule.ts

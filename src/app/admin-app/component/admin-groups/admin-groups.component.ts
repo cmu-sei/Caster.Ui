@@ -10,12 +10,13 @@ import {
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Group } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
+import { UserService } from 'src/app/users/state';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -34,7 +35,11 @@ export class AdminGroupsComponent implements OnInit {
   displayedColumns: string[] = ['name'];
   dataSource: MatTableDataSource<Group> = new MatTableDataSource();
 
-  constructor(private groupsService: GroupService, private dialog: MatDialog) {}
+  constructor(
+    private groupsService: GroupService,
+    private usersService: UserService,
+    private dialog: MatDialog
+  ) {}
 
   dataSource$ = this.groupsService.groups$.pipe(
     map((x) => {
@@ -44,15 +49,7 @@ export class AdminGroupsComponent implements OnInit {
   );
 
   ngOnInit() {
-    this.groupsService.load().subscribe();
-    // if (this.projects) {
-    //   this.dataSource = new MatTableDataSource(this.projects);
-    //   if (this.sort) {
-    //     this.sort.disableClear = true;
-    //     this.sort.sort({ id: 'name', start: 'asc' } as MatSortable);
-    //     this.dataSource.sort = this.sort;
-    //   }
-    // }
+    forkJoin([this.groupsService.load(), this.usersService.load()]).subscribe();
   }
 
   applyFilter(filterValue: string) {

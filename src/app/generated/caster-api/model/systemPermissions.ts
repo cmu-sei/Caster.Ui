@@ -11,11 +11,10 @@
  */
 
 
-export type SystemPermissions = 'All' | 'ReadOnly' | 'ManageSystem' | 'CreateProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'CreateGroups';
+export type SystemPermissions = 'All' | 'ManageSystem' | 'CreateProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'CreateGroups';
 
 export const SystemPermissions = {
     All: 'All' as SystemPermissions,
-    ReadOnly: 'ReadOnly' as SystemPermissions,
     ManageSystem: 'ManageSystem' as SystemPermissions,
     CreateProjects: 'CreateProjects' as SystemPermissions,
     ManageProjects: 'ManageProjects' as SystemPermissions,

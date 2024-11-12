@@ -27,7 +27,6 @@ export * from './createUserCommand';
 export * from './createUserPermissionCommand';
 export * from './createVariableCommand';
 export * from './createWorkspaceCommand';
-export * from './deleteGroupMembershipCommand';
 export * from './deletePoolCommand';
 export * from './design';
 export * from './designModule';
