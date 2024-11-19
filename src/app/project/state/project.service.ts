@@ -35,8 +35,8 @@ export class ProjectService {
     private vlanService: VlansService
   ) {}
 
-  loadProjects(): Observable<Project[]> {
-    return this.projectsService.getAllProjects().pipe(
+  loadProjects(onlyMine: boolean): Observable<Project[]> {
+    return this.projectsService.getAllProjects(onlyMine).pipe(
       tap((projects) => {
         const projectUIs = this.projectQuery.ui.getAll();
         this.projectStore.set(projects);

@@ -39,7 +39,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-icon-button
           matTooltip="Add New Project"
           hotkeyAction="PROJECT_NEW"
-          (click)="createRequest()"
+          (click)="create()"
         >
           <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
         </button>
@@ -58,7 +58,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             matTooltip="Delete {{ element.name }}"
-            (click)="deleteRequest(element)"
+            (click)="delete(element)"
           >
             <mat-icon
               color="primary"
@@ -66,11 +66,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               fontIcon="fa-trash"
             ></mat-icon>
           </button>
-          <button
-            mat-icon-button
-            matTooltip="Rename"
-            (click)="updateRequest(element)"
-          >
+          <button mat-icon-button matTooltip="Rename" (click)="update(element)">
             <mat-icon
               color="primary"
               fontSet="fas"
@@ -90,7 +86,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
     </mat-table>
     <!-- This non-displayed button is required, because hotKeys do not work with the button inside the mat-table -->
-    <button style="display: none;" hotkeyAction="PROJECT_NEW" (click)="createRequest()"></button>
+    <button
+      style="display: none"
+      hotkeyAction="PROJECT_NEW"
+      (click)="createRequest()"
+    ></button>
   </div>
 
   <!-- Loading Spinner -->

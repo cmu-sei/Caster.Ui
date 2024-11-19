@@ -29,11 +29,11 @@ export interface CreateDirectoryCommand {
      */
     terraformVersion?: string | null;
     /**
-     * Limit the number of concurrent operations as Terraform walks the graph.   If not set, will traverse parents until a value is found.  If still not set, the Terraform default will be used.
+     * Limit the number of concurrent operations as Terraform walks the graph.  If not set, will traverse parents until a value is found.  If still not set, the Terraform default will be used.
      */
     parallelism?: number | null;
     /**
-     * If set, the number of consecutive failed destroys in an Azure Workspace before   Caster will attempt to mitigate by removing azurerm_resource_group children from the state.  If not set, will traverse parents until a value is found.
+     * If set, the number of consecutive failed destroys in an Azure Workspace before  Caster will attempt to mitigate by removing azurerm_resource_group children from the state.  If not set, will traverse parents until a value is found.
      */
     azureDestroyFailureThreshold?: number | null;
     /**

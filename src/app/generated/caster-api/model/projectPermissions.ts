@@ -11,10 +11,13 @@
  */
 
 
-export type ProjectPermissions = 'All' | 'ReadOnly';
+export type ProjectPermissions = 'ViewProject' | 'EditProject' | 'ManageProject' | 'ImportProject' | 'LockFiles';
 
 export const ProjectPermissions = {
-    All: 'All' as ProjectPermissions,
-    ReadOnly: 'ReadOnly' as ProjectPermissions
+    ViewProject: 'ViewProject' as ProjectPermissions,
+    EditProject: 'EditProject' as ProjectPermissions,
+    ManageProject: 'ManageProject' as ProjectPermissions,
+    ImportProject: 'ImportProject' as ProjectPermissions,
+    LockFiles: 'LockFiles' as ProjectPermissions
 };
 

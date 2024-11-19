@@ -116,26 +116,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <span class="mat-cell">
         {{ item.name }}
       </span>
-      <!-- <span class="mat-cell">
-        <div fxLayout="row">
-          <div *ngFor="let permission of permissions">
-            <mat-checkbox
-              [checked]="hasPermission(permission.id, item)"
-              (change)="toggleUserPermission(item, permission.id)"
-              style="margin-right: 20px"
-              >{{ permission.key }}</mat-checkbox
-            >
-          </div>
-          <button
-            mat-icon-button
-            (click)="applyFilter(savedFilterString)"
-            *ngIf="filterString === item.id"
-            title="Done"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-exit-to-app"></mat-icon>
-          </button>
-        </div>
-      </span> -->
       <span class="mat-cell">
         <mat-form-field>
           <!-- <mat-label>Role</mat-label> -->

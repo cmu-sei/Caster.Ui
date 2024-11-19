@@ -66,7 +66,7 @@ export class ProjectVlansComponent implements OnInit {
 
   ngOnInit(): void {
     forkJoin([
-      this.projectService.loadProjects(),
+      this.projectService.loadProjects(false),
       this.poolService.load(),
       this.partitionService.load(),
     ]).subscribe();

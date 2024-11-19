@@ -9,13 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Permission } from './permission';
 
 
 export interface User { 
     id?: string;
     name?: string | null;
     roleId?: string | null;
-    permissions?: Array<Permission> | null;
 }
 

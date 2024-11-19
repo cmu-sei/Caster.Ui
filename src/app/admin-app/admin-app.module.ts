@@ -58,6 +58,8 @@ import { DialogModule } from '@angular/cdk/dialog';
 import { AdminGroupsDetailComponent } from './component/admin-groups/admin-groups-detail/admin-groups-detail.component';
 import { AdminGroupsMembershipListComponent } from './component/admin-groups/admin-groups-membership-list/admin-groups-membership-list.component';
 import { AdminGroupsMemberListComponent } from './component/admin-groups/admin-groups-member-list/admin-groups-member-list.component';
+import { AdminProjectsComponent } from './component/admin-projects/admin-projects.component';
+import { ProjectModule } from '../project';
 
 @NgModule({
   declarations: [
@@ -82,6 +84,7 @@ import { AdminGroupsMemberListComponent } from './component/admin-groups/admin-g
     AdminGroupsDetailComponent,
     AdminGroupsMembershipListComponent,
     AdminGroupsMemberListComponent,
+    AdminProjectsComponent,
   ],
   imports: [
     ClipboardModule,
@@ -118,6 +121,7 @@ import { AdminGroupsMemberListComponent } from './component/admin-groups/admin-g
     MatTableModule,
     MatToolbarModule,
     MatDialogModule,
+    ProjectModule,
   ],
   exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })

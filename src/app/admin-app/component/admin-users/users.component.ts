@@ -4,13 +4,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
-import { PermissionService, PermissionQuery } from '../../../permissions/state';
 import { UserService, UserQuery } from '../../../users/state';
-import {
-  User,
-  Permission,
-  UserPermission,
-} from '../../../generated/caster-api';
+import { User } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -24,14 +19,8 @@ export class UsersComponent implements OnInit {
   public isLinear = false;
   public users$: Observable<User[]>;
   public isLoading$: Observable<boolean>;
-  public permissions$: Observable<Permission[]>;
 
-  constructor(
-    private userService: UserService,
-    private userQuery: UserQuery,
-    private permissionQuery: PermissionQuery,
-    private permissionService: PermissionService
-  ) {}
+  constructor(private userService: UserService, private userQuery: UserQuery) {}
 
   /**
    * Initialize component
@@ -39,10 +28,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
     this.users$ = this.userQuery.selectAll();
     this.userService.load().pipe(take(1)).subscribe();
-    this.permissions$ = this.permissionQuery.selectAll();
-    this.permissionService.load().pipe(take(1)).subscribe();
-    this.isLoading$ =
-      this.userQuery.selectLoading() || this.permissionQuery.selectLoading();
+    this.isLoading$ = this.userQuery.selectLoading();
   }
 
   create(newUser: User) {
@@ -51,20 +37,6 @@ export class UsersComponent implements OnInit {
 
   deleteUser(userId: string) {
     this.userService.delete(userId).pipe(take(1)).subscribe();
-  }
-
-  addUserPermission(userPermission: UserPermission) {
-    this.userService.addUserPermission(
-      userPermission.userId,
-      userPermission.permissionId
-    );
-  }
-
-  removeUserPermission(userPermission: UserPermission) {
-    this.userService.removeUserPermission(
-      userPermission.userId,
-      userPermission.permissionId
-    );
   }
 } // End Class
 

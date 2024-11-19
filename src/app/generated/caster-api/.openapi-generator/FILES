@@ -11,7 +11,6 @@ api/groups.service.ts
 api/health.service.ts
 api/hosts.service.ts
 api/modules.service.ts
-api/permissions.service.ts
 api/plans.service.ts
 api/projectRoles.service.ts
 api/projects.service.ts
@@ -19,7 +18,6 @@ api/resources.service.ts
 api/runs.service.ts
 api/systemRoles.service.ts
 api/terraform.service.ts
-api/userPermissions.service.ts
 api/users.service.ts
 api/variables.service.ts
 api/vlans.service.ts
@@ -49,12 +47,10 @@ model/createPartitionCommand.ts
 model/createPoolCommand.ts
 model/createProjectCommand.ts
 model/createProjectMembershipCommand.ts
-model/createProjectRoleCommand.ts
 model/createRunCommand.ts
 model/createSnippetCommand.ts
 model/createSystemRoleCommand.ts
 model/createUserCommand.ts
-model/createUserPermissionCommand.ts
 model/createVariableCommand.ts
 model/createWorkspaceCommand.ts
 model/deletePoolCommand.ts
@@ -71,10 +67,8 @@ model/editPartitionCommand.ts
 model/editPoolCommand.ts
 model/editProjectCommand.ts
 model/editProjectMembershipCommand.ts
-model/editProjectRoleCommand.ts
 model/editSystemRoleCommand.ts
 model/editUserCommand.ts
-model/editUserPermissionCommand.ts
 model/editVariableCommand.ts
 model/editWorkspaceCommand.ts
 model/fileVersion.ts
@@ -99,7 +93,6 @@ model/partialEditPoolCommand.ts
 model/partialEditVlanCommand.ts
 model/partialEditWorkspaceCommand.ts
 model/partition.ts
-model/permission.ts
 model/plan.ts
 model/planStatus.ts
 model/pool.ts
@@ -123,7 +116,6 @@ model/taintResourcesCommand.ts
 model/terraformVersionsResult.ts
 model/unassignPartitionCommand.ts
 model/user.ts
-model/userPermission.ts
 model/validationProblemDetails.ts
 model/variable.ts
 model/variableType.ts

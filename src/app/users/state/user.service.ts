@@ -5,12 +5,7 @@ import { Injectable } from '@angular/core';
 import { ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import {
-  PermissionsService,
-  User,
-  UserPermissionsService,
-  UsersService,
-} from '../../generated/caster-api';
+import { User, UsersService } from '../../generated/caster-api';
 import { UserQuery } from './user.query';
 import { CurrentUserStore, UserStore } from './user.store';
 
@@ -23,8 +18,6 @@ export class UserService {
     private currentUserStore: CurrentUserStore,
     private userQuery: UserQuery,
     private usersService: UsersService,
-    private userPermissionService: UserPermissionsService,
-    private permissionService: PermissionsService,
     private authService: ComnAuthService
   ) {}
 
@@ -70,22 +63,6 @@ export class UserService {
     );
   }
 
-  addUserPermission(userId: string, permissionId: string) {
-    this.userPermissionService
-      .createUserPermission({ userId, permissionId })
-      .subscribe((up) => {
-        this.loadById(userId).subscribe();
-      });
-  }
-
-  removeUserPermission(userId: string, permissionId: string) {
-    this.userPermissionService
-      .deleteUserPermissionByIds(userId, permissionId)
-      .subscribe((up) => {
-        this.loadById(userId).subscribe();
-      });
-  }
-
   editUser(user: User) {
     this.usersService
       .editUser(user.id, user)
@@ -110,12 +87,12 @@ export class UserService {
         currentUser.name = user.profile.name;
         currentUser.id = user.profile.sub;
         this.currentUserStore.update(currentUser);
-        this.permissionService.getMyPermissions().subscribe((permissions) => {
-          currentUser.isSuperUser = permissions.some((permission) => {
-            return permission.key === 'SystemAdmin';
-          });
-          this.currentUserStore.update(currentUser);
-        });
+        // this.permissionService.getMyPermissions().subscribe((permissions) => {
+        //   currentUser.isSuperUser = permissions.some((permission) => {
+        //     return permission.key === 'SystemAdmin';
+        //   });
+        //   this.currentUserStore.update(currentUser);
+        // });
       }
     });
   }

@@ -37,7 +37,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     FilesModule,
     MatSelectModule,
     MatOptionModule,
-    BrowserAnimationsModule,
     MatCheckboxModule,
   ],
   exports: [DirectoryEditContainerComponent],

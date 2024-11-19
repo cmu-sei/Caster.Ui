@@ -16,11 +16,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
-import {
-  User,
-  Permission,
-  UserPermission,
-} from '../../../../generated/caster-api';
+import { User } from '../../../../generated/caster-api';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
@@ -46,11 +42,11 @@ export interface Action {
   styleUrls: ['./user-list.component.css'],
 })
 export class UserListComponent implements OnInit, OnChanges {
-  public displayedColumns: string[] = ['id', 'name', 'permissions'];
+  public displayedColumns: string[] = ['id', 'name'];
   public filterString = '';
   public savedFilterString = '';
   public userDataSource = new MatTableDataSource<User>(new Array<User>());
-  public newUser: User = { permissions: [] };
+  public newUser: User = {};
 
   // MatPaginator Output
   public defaultPageSize = 10;
@@ -64,13 +60,8 @@ export class UserListComponent implements OnInit, OnChanges {
 
   @Input() users: User[];
   @Input() isLoading: boolean;
-  @Input() permissions: Permission[] = [];
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @Output() addUserPermission: EventEmitter<UserPermission> =
-    new EventEmitter<UserPermission>();
-  @Output() removeUserPermission: EventEmitter<UserPermission> =
-    new EventEmitter<UserPermission>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
@@ -136,12 +127,11 @@ export class UserListComponent implements OnInit, OnChanges {
       const user = {
         id: this.newUser.id,
         name: this.newUser.name,
-        permissions: [],
       };
       this.savedFilterString = this.filterString;
       this.create.emit(user);
     } else {
-      this.newUser = { permissions: [] };
+      this.newUser = {};
     }
   }
 
@@ -153,26 +143,6 @@ export class UserListComponent implements OnInit, OnChanges {
         this.delete.emit(user.id);
       }
     });
-  }
-
-  toggleUserPermission(user: User, permissionId: string) {
-    const userPermission: UserPermission = {
-      userId: user.id,
-      permissionId: permissionId,
-    };
-    if (this.hasPermission(permissionId, user)) {
-      this.removeUserPermission.emit(userPermission);
-    } else {
-      this.addUserPermission.emit(userPermission);
-    }
-  }
-  hasPermission(permissionId: string, user: User) {
-    return (
-      !!user.permissions &&
-      user.permissions.some((p) => {
-        return p.id === permissionId;
-      })
-    );
   }
 
   confirmDialog(

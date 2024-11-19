@@ -4,17 +4,23 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { Project } from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { ProjectService } from 'src/app/project/state';
+import { take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
+import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+
+const NAME_VALUE = 'nameValue';
 
 @Component({
   selector: 'cas-project-list',
@@ -26,10 +32,6 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
 
-  @Output() create: EventEmitter<string> = new EventEmitter<string>();
-  @Output() update: EventEmitter<Project> = new EventEmitter<Project>();
-  @Output() delete: EventEmitter<Project> = new EventEmitter<Project>();
-
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
@@ -37,7 +39,11 @@ export class ProjectListComponent implements OnInit, OnChanges {
   displayedColumns: string[] = ['name'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
-  constructor() {}
+  constructor(
+    private projectService: ProjectService,
+    private dialogService: ConfirmDialogService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
     if (this.projects) {
@@ -70,15 +76,65 @@ export class ProjectListComponent implements OnInit, OnChanges {
     this.applyFilter('');
   }
 
-  deleteRequest(project: Project) {
-    this.delete.emit(project);
+  create() {
+    this.nameDialog('Create New Project?', '', { nameValue: '' }).subscribe(
+      (result) => {
+        if (!result[this.dialogService.WAS_CANCELLED]) {
+          const newProject = {
+            name: result[NAME_VALUE],
+          } as Project;
+          this.projectService
+            .createProject(newProject)
+            .pipe(take(1))
+            .subscribe();
+        }
+      }
+    );
   }
 
-  updateRequest(project: Project) {
-    this.update.emit(project);
+  update(project: Project) {
+    this.nameDialog('Rename ' + project.name, '', {
+      nameValue: project.name,
+    }).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        const updatedProject = {
+          ...project,
+          name: result[NAME_VALUE],
+        } as Project;
+        this.projectService
+          .updateProject(updatedProject)
+          .pipe(take(1))
+          .subscribe();
+      }
+    });
   }
 
-  createRequest() {
-    this.create.emit();
+  delete(project: Project) {
+    this.confirmDialog(
+      'Delete Project?',
+      'Delete Project ' + project.name + '?',
+      { buttonTrueText: 'Delete' }
+    ).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        this.projectService.deleteProject(project.id).pipe(take(1)).subscribe();
+      }
+    });
+  }
+
+  confirmDialog(
+    title: string,
+    message: string,
+    data?: any
+  ): Observable<boolean> {
+    return this.dialogService.confirmDialog(title, message, data);
+  }
+
+  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+    let dialogRef: MatDialogRef<NameDialogComponent>;
+    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {} });
+    dialogRef.componentInstance.title = title;
+    dialogRef.componentInstance.message = message;
+
+    return dialogRef.afterClosed();
   }
 }

@@ -11,15 +11,28 @@
  */
 
 
-export type SystemPermissions = 'All' | 'ManageSystem' | 'CreateProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'CreateGroups';
+export type SystemPermissions = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ViewUsers' | 'EditUsers' | 'ViewWorkspaces' | 'EditWorkspaces' | 'ViewVLANs' | 'EditVLANs' | 'ViewRoles' | 'EditRoles' | 'ViewGroups' | 'EditGroups' | 'ViewHosts' | 'EditHosts' | 'ViewModules' | 'EditModules';
 
 export const SystemPermissions = {
-    All: 'All' as SystemPermissions,
-    ManageSystem: 'ManageSystem' as SystemPermissions,
     CreateProjects: 'CreateProjects' as SystemPermissions,
+    ViewProjects: 'ViewProjects' as SystemPermissions,
+    EditProjects: 'EditProjects' as SystemPermissions,
     ManageProjects: 'ManageProjects' as SystemPermissions,
     ImportProjects: 'ImportProjects' as SystemPermissions,
     LockFiles: 'LockFiles' as SystemPermissions,
-    CreateGroups: 'CreateGroups' as SystemPermissions
+    ViewUsers: 'ViewUsers' as SystemPermissions,
+    EditUsers: 'EditUsers' as SystemPermissions,
+    ViewWorkspaces: 'ViewWorkspaces' as SystemPermissions,
+    EditWorkspaces: 'EditWorkspaces' as SystemPermissions,
+    ViewVlans: 'ViewVLANs' as SystemPermissions,
+    EditVlans: 'EditVLANs' as SystemPermissions,
+    ViewRoles: 'ViewRoles' as SystemPermissions,
+    EditRoles: 'EditRoles' as SystemPermissions,
+    ViewGroups: 'ViewGroups' as SystemPermissions,
+    EditGroups: 'EditGroups' as SystemPermissions,
+    ViewHosts: 'ViewHosts' as SystemPermissions,
+    EditHosts: 'EditHosts' as SystemPermissions,
+    ViewModules: 'ViewModules' as SystemPermissions,
+    EditModules: 'EditModules' as SystemPermissions
 };
 

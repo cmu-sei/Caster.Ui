@@ -11,8 +11,7 @@ import { Project } from '../../../../generated/caster-api';
 import { CurrentUserQuery, UserService } from '../../../../users/state';
 import { ProjectQuery, ProjectService } from '../../../state';
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
-const WAS_CANCELLED = 'wasCancelled';
-const NAME_VALUE = 'nameValue';
+
 @Component({
   selector: 'cas-project-container',
   templateUrl: './project-list-container.component.html',
@@ -41,7 +40,7 @@ export class ProjectListContainerComponent implements OnInit {
   ngOnInit() {
     this.projects = this.projectQuery.selectAll();
 
-    this.projectService.loadProjects().pipe(take(1)).subscribe();
+    this.projectService.loadProjects(true).pipe(take(1)).subscribe();
 
     this.isLoading$ = this.projectQuery.selectLoading();
 
@@ -61,72 +60,5 @@ export class ProjectListContainerComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
-  }
-
-  create() {
-    this.nameDialog('Create New Project?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (!result[WAS_CANCELLED]) {
-          const newProject = {
-            name: result[NAME_VALUE],
-          } as Project;
-          this.projectService
-            .createProject(newProject)
-            .pipe(take(1))
-            .subscribe();
-        }
-      }
-    );
-  }
-
-  update(project: Project) {
-    this.nameDialog('Rename ' + project.name, '', {
-      nameValue: project.name,
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        const updatedProject = {
-          ...project,
-          name: result[NAME_VALUE],
-        } as Project;
-        this.projectService
-          .updateProject(updatedProject)
-          .pipe(take(1))
-          .subscribe();
-      }
-    });
-  }
-
-  delete(project: Project) {
-    this.confirmDialog(
-      'Delete Project?',
-      'Delete Project ' + project.name + '?',
-      { buttonTrueText: 'Delete' }
-    ).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.projectService.deleteProject(project.id).pipe(take(1)).subscribe();
-      }
-    });
-  }
-
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed();
-  }
-
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
-    let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed();
   }
 }

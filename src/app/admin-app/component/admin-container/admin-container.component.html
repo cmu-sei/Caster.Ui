@@ -24,6 +24,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-divider></mat-divider>
       </mat-list-item>
       <mat-list-item>
+        <div class="showhand" id="wrapper" (click)="adminGotoProjects()">
+          <div id="lefticon">
+            <mat-icon class="mdi-24px" fontIcon="mdi-notebook"></mat-icon>
+          </div>
+
+          <div id="content">{{ projectsText }}</div>
+
+          <div class="pull-right" id="rightcontext">
+            <button mat-icon-button style="outline: none">
+              <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-list-item>
+      <mat-list-item>
         <div class="showhand" id="wrapper" (click)="adminGotoUsers()">
           <div id="lefticon">
             <mat-icon
@@ -135,7 +150,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [sidenav]="sidenav"
       (sidenavToggle)="sidenav.toggle()"
     ></cas-topbar>
-    <span *ngIf="isSuperUser">
+    <span>
       <cas-users *ngIf="showStatus === usersText"></cas-users>
       <cas-admin-modules *ngIf="showStatus === modulesText"></cas-admin-modules>
       <cas-admin-workspaces
@@ -144,6 +159,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <cas-vlans *ngIf="showStatus === vlansText"></cas-vlans>
       <cas-admin-roles *ngIf="showStatus === rolesText"></cas-admin-roles>
       <cas-admin-groups *ngIf="showStatus === groupsText"></cas-admin-groups>
+      <cas-admin-projects
+        *ngIf="showStatus === projectsText"
+      ></cas-admin-projects>
     </span>
   </mat-sidenav-content>
 </mat-sidenav-container>
