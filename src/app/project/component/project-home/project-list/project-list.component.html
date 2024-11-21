@@ -74,10 +74,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             ></mat-icon>
           </button>
           <a
+            *ngIf="!manageMode"
             class="project-text"
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
             >{{ element.name }}</a
+          >
+          <a
+            *ngIf="manageMode"
+            class="project-text"
+            matTooltip="Edit {{ element.name }}"
+            [routerLink]="['/projects', element.id, 'memberships']"
+            ><p
+              (click)="
+                $event.preventDefault();
+                $event.stopPropagation();
+                selectProject(element.id)
+              "
+            >
+              {{ element.name }}
+            </p></a
           >
         </mat-cell>
       </ng-container>

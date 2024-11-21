@@ -128,6 +128,7 @@ const projectRoutes: Routes = [
     ProjectBreadcrumbComponent,
     ProjectTabComponent,
     ProjectListComponent,
+    ProjectMembershipsComponent,
   ],
 })
 export class ProjectModule {}

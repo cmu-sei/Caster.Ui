@@ -1,13 +1,21 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { combineLatest, forkJoin } from 'rxjs';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ProjectService } from 'src/app/project/state';
+import { ProjectQuery, ProjectService } from 'src/app/project/state';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
 import { UserQuery, UserService } from 'src/app/users/state';
 import {
   CreateProjectMembershipCommand,
   EditProjectMembershipCommand,
+  Project,
 } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
 
@@ -16,9 +24,17 @@ import { GroupService } from 'src/app/groups/group.service';
   templateUrl: './project-memberships.component.html',
   styleUrls: ['./project-memberships.component.scss'],
 })
-export class ProjectMembershipsComponent implements OnInit {
+export class ProjectMembershipsComponent implements OnInit, OnChanges {
   @Input()
   projectId: string;
+
+  @Input()
+  embedded = false;
+
+  @Output()
+  goBack = new EventEmitter();
+
+  project$: Observable<Project>;
 
   memberships$ = this.projectMembershipService.projectMemberships$;
   roles$ = this.projectRolesService.projectRoles$;
@@ -32,6 +48,7 @@ export class ProjectMembershipsComponent implements OnInit {
 
   constructor(
     private projectService: ProjectService,
+    private projectQuery: ProjectQuery,
     private projectMembershipService: ProjectMembershipService,
     private projectRolesService: ProjectRoleService,
     private userService: UserService,
@@ -47,6 +64,10 @@ export class ProjectMembershipsComponent implements OnInit {
       this.projectRolesService.loadRoles(),
       this.groupService.load(),
     ]).subscribe();
+  }
+
+  ngOnChanges() {
+    this.project$ = this.projectQuery.selectEntity(this.projectId);
   }
 
   selectUsers(members: boolean) {

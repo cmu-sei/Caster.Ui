@@ -4,9 +4,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   Input,
   OnChanges,
   OnInit,
+  Output,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
@@ -31,6 +33,9 @@ const NAME_VALUE = 'nameValue';
 export class ProjectListComponent implements OnInit, OnChanges {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
+  @Input() manageMode = false;
+
+  @Output() selectedProjectId = new EventEmitter<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -63,6 +68,10 @@ export class ProjectListComponent implements OnInit, OnChanges {
     if (changes.isLoading) {
       this.isLoading = changes.isLoading.currentValue;
     }
+  }
+
+  selectProject(projectId: string) {
+    this.selectedProjectId.emit(projectId);
   }
 
   applyFilter(filterValue: string) {

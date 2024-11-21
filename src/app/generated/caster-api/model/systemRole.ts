@@ -16,6 +16,7 @@ export interface SystemRole {
     id?: string;
     name?: string | null;
     allPermissions?: boolean;
+    immutable?: boolean;
     permissions?: Array<SystemPermissions> | null;
 }
 

@@ -14,6 +14,7 @@ export class AdminProjectsComponent implements OnInit {
 
   public projects$ = this.projectQuery.selectAll();
   public loading$ = this.projectQuery.selectLoading();
+  public selectedProjectId: string;
 
   ngOnInit(): void {
     this.projectService.loadProjects(false).subscribe();

@@ -11,7 +11,7 @@
  */
 
 
-export type SystemPermissions = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ViewUsers' | 'EditUsers' | 'ViewWorkspaces' | 'EditWorkspaces' | 'ViewVLANs' | 'EditVLANs' | 'ViewRoles' | 'EditRoles' | 'ViewGroups' | 'EditGroups' | 'ViewHosts' | 'EditHosts' | 'ViewModules' | 'EditModules';
+export type SystemPermissions = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules';
 
 export const SystemPermissions = {
     CreateProjects: 'CreateProjects' as SystemPermissions,
@@ -21,18 +21,18 @@ export const SystemPermissions = {
     ImportProjects: 'ImportProjects' as SystemPermissions,
     LockFiles: 'LockFiles' as SystemPermissions,
     ViewUsers: 'ViewUsers' as SystemPermissions,
-    EditUsers: 'EditUsers' as SystemPermissions,
+    ManageUsers: 'ManageUsers' as SystemPermissions,
     ViewWorkspaces: 'ViewWorkspaces' as SystemPermissions,
-    EditWorkspaces: 'EditWorkspaces' as SystemPermissions,
+    ManageWorkspaces: 'ManageWorkspaces' as SystemPermissions,
     ViewVlans: 'ViewVLANs' as SystemPermissions,
-    EditVlans: 'EditVLANs' as SystemPermissions,
+    ManageVlans: 'ManageVLANs' as SystemPermissions,
     ViewRoles: 'ViewRoles' as SystemPermissions,
-    EditRoles: 'EditRoles' as SystemPermissions,
+    ManageRoles: 'ManageRoles' as SystemPermissions,
     ViewGroups: 'ViewGroups' as SystemPermissions,
-    EditGroups: 'EditGroups' as SystemPermissions,
+    ManageGroups: 'ManageGroups' as SystemPermissions,
     ViewHosts: 'ViewHosts' as SystemPermissions,
-    EditHosts: 'EditHosts' as SystemPermissions,
+    ManageHosts: 'ManageHosts' as SystemPermissions,
     ViewModules: 'ViewModules' as SystemPermissions,
-    EditModules: 'EditModules' as SystemPermissions
+    ManageModules: 'ManageModules' as SystemPermissions
 };
 

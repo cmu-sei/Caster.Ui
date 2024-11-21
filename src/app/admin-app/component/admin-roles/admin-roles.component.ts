@@ -28,11 +28,25 @@ export class AdminRolesComponent implements OnInit {
   private dialog = inject(MatDialog);
   private confirmService = inject(ConfirmDialogService);
 
-  public dataSource = new MatTableDataSource<string>(
-    Object.values(SystemPermissions)
-  );
+  public allPermission = 'All';
 
-  public roles$ = this.roleService.roles$;
+  public dataSource = new MatTableDataSource<string>([
+    ...[this.allPermission],
+    ...Object.values(SystemPermissions),
+  ]);
+
+  public roles$ = this.roleService.roles$.pipe(
+    map((roles) =>
+      roles.sort((a, b) => {
+        // Sort by 'immutable' property first (false comes after true)
+        if (a.immutable !== b.immutable) {
+          return a.immutable ? -1 : 1; // Put `true` before `false`
+        }
+        // If 'immutable' values are the same, sort by 'name' (case-insensitive)
+        return a.name.localeCompare(b.name);
+      })
+    )
+  );
 
   public displayedColumns$ = this.roles$.pipe(
     map((x) => {
@@ -50,6 +64,10 @@ export class AdminRolesComponent implements OnInit {
   }
 
   hasPermission(permission: string, role: SystemRole) {
+    if (permission == this.allPermission) {
+      return role.allPermissions;
+    }
+
     return role.permissions.some((x) => x == permission);
   }
 
@@ -58,12 +76,16 @@ export class AdminRolesComponent implements OnInit {
     role: SystemRole,
     event: MatCheckboxChange
   ) {
-    if (event.checked && !this.hasPermission(permission, role)) {
-      role.permissions.push(permission as SystemPermissions);
-    } else if (!event.checked) {
-      role.permissions = role.permissions.filter(
-        (x) => x != (permission as SystemPermissions)
-      );
+    if (permission == this.allPermission) {
+      role.allPermissions = event.checked;
+    } else {
+      if (event.checked && !this.hasPermission(permission, role)) {
+        role.permissions.push(permission as SystemPermissions);
+      } else if (!event.checked) {
+        role.permissions = role.permissions.filter(
+          (x) => x != (permission as SystemPermissions)
+        );
+      }
     }
 
     this.roleService.editRole(role).subscribe();
@@ -75,6 +97,17 @@ export class AdminRolesComponent implements OnInit {
       .subscribe((result) => {
         if (!result[WAS_CANCELLED]) {
           this.roleService.createRole({ name: result[NAME_VALUE] }).subscribe();
+        }
+      });
+  }
+
+  renameRole(role: SystemRole) {
+    this.nameDialog('Rename Role?', '', { nameValue: role.name })
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (!result[WAS_CANCELLED]) {
+          role.name = result[NAME_VALUE];
+          this.roleService.editRole(role).subscribe();
         }
       });
   }
