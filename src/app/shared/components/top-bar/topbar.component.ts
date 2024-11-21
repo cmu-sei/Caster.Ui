@@ -22,6 +22,7 @@ import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
+import { PermissionService } from 'src/app/permissions/permission.service';
 @Component({
   selector: 'cas-topbar',
   templateUrl: './topbar.component.html',
@@ -42,16 +43,22 @@ export class TopbarComponent implements OnInit, OnDestroy {
   theme$: Observable<Theme>;
   unsubscribe$: Subject<null> = new Subject<null>();
   TopbarView = TopbarView;
+
   constructor(
     private authService: ComnAuthService,
     private currentUserQuery: CurrentUserQuery,
     private userService: UserService,
     private authQuery: ComnAuthQuery,
     private router: Router,
-    private settingsService: ComnSettingsService
+    private settingsService: ComnSettingsService,
+    private permissionService: PermissionService
   ) {}
 
+  canViewAdmin$ = this.permissionService.canViewAdiminstration();
+
   ngOnInit() {
+    this.permissionService.load().subscribe();
+
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),
       takeUntil(this.unsubscribe$)

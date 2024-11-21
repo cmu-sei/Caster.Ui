@@ -9,7 +9,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
-import { SystemPermissions, SystemRole } from 'src/app/generated/caster-api';
+import { SystemPermission, SystemRole } from 'src/app/generated/caster-api';
 import { RolesService } from 'src/app/roles/roles.service.service';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
@@ -32,7 +32,7 @@ export class AdminRolesComponent implements OnInit {
 
   public dataSource = new MatTableDataSource<string>([
     ...[this.allPermission],
-    ...Object.values(SystemPermissions),
+    ...Object.values(SystemPermission),
   ]);
 
   public roles$ = this.roleService.roles$.pipe(
@@ -80,10 +80,10 @@ export class AdminRolesComponent implements OnInit {
       role.allPermissions = event.checked;
     } else {
       if (event.checked && !this.hasPermission(permission, role)) {
-        role.permissions.push(permission as SystemPermissions);
+        role.permissions.push(permission as SystemPermission);
       } else if (!event.checked) {
         role.permissions = role.permissions.filter(
-          (x) => x != (permission as SystemPermissions)
+          (x) => x != (permission as SystemPermission)
         );
       }
     }

@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { SystemPermissions } from './systemPermissions';
+import { SystemPermission } from './systemPermission';
 
 
 export interface SystemRole { 
@@ -17,6 +17,6 @@ export interface SystemRole {
     name?: string | null;
     allPermissions?: boolean;
     immutable?: boolean;
-    permissions?: Array<SystemPermissions> | null;
+    permissions?: Array<SystemPermission> | null;
 }
 

@@ -9,13 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { SystemPermissions } from './systemPermissions';
+import { SystemPermission } from './systemPermission';
 
 
 export interface CreateSystemRoleCommand { 
     id?: string;
     name?: string | null;
     allPermissions?: boolean;
-    permissions?: Array<SystemPermissions> | null;
+    permissions?: Array<SystemPermission> | null;
 }
 

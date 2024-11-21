@@ -16,6 +16,6 @@ export interface EditProjectMembershipCommand {
      * The Project Id of the Membership
      */
     id?: string;
-    roleId?: string | null;
+    roleId?: string;
 }
 

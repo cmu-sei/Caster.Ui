@@ -55,24 +55,35 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           Project Name
         </mat-header-cell>
         <mat-cell *matCellDef="let element">
-          <button
-            mat-icon-button
-            matTooltip="Delete {{ element.name }}"
-            (click)="delete(element)"
+          <ng-container
+            *ngIf="
+              (canManageAll$ | async) ||
+              (canManageProjects$ | async).includes(element.id)
+            "
           >
-            <mat-icon
-              color="primary"
-              fontSet="fas"
-              fontIcon="fa-trash"
-            ></mat-icon>
-          </button>
-          <button mat-icon-button matTooltip="Rename" (click)="update(element)">
-            <mat-icon
-              color="primary"
-              fontSet="fas"
-              fontIcon="fa-pencil-alt"
-            ></mat-icon>
-          </button>
+            <button
+              mat-icon-button
+              matTooltip="Delete {{ element.name }}"
+              (click)="delete(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-trash"
+              ></mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Rename"
+              (click)="update(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-pencil-alt"
+              ></mat-icon>
+            </button>
+          </ng-container>
           <a
             *ngIf="!manageMode"
             class="project-text"

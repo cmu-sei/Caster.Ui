@@ -52,11 +52,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           Edit Memberships
         </a>
         <button
-          *ngIf="
-            currentUser.isSuperUser !== null &&
-            currentUser.isSuperUser &&
-            topbarView === 'caster-admin'
-          "
+          *ngIf="(canViewAdmin$ | async) && topbarView === 'caster-admin'"
           (click)="exitAdmin()"
           mat-menu-item
         >
@@ -64,7 +60,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
         <a
           *ngIf="
-            currentUser.isSuperUser && topbarView !== TopbarView.CASTER_ADMIN
+            (canViewAdmin$ | async) && topbarView !== TopbarView.CASTER_ADMIN
           "
           [routerLink]="['/admin']"
           mat-menu-item

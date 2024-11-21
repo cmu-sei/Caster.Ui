@@ -9,13 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { SystemPermission } from './systemPermission';
+import { ProjectPermission } from './projectPermission';
 
 
-export interface EditSystemRoleCommand { 
-    id?: string;
-    name?: string | null;
-    allPermissions?: boolean;
-    permissions?: Array<SystemPermission> | null;
+export interface ProjectPermissionsClaim { 
+    projectId?: string;
+    permissions?: Array<ProjectPermission> | null;
 }
 

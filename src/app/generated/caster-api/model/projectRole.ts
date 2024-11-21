@@ -9,12 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { ProjectPermissions } from './projectPermissions';
+import { ProjectPermission } from './projectPermission';
 
 
 export interface ProjectRole { 
     id?: string;
     name?: string | null;
-    permissions?: Array<ProjectPermissions> | null;
+    permissions?: Array<ProjectPermission> | null;
 }
 

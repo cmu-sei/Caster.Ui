@@ -12,10 +12,12 @@ api/health.service.ts
 api/hosts.service.ts
 api/modules.service.ts
 api/plans.service.ts
+api/projectPermissions.service.ts
 api/projectRoles.service.ts
 api/projects.service.ts
 api/resources.service.ts
 api/runs.service.ts
+api/systemPermissions.service.ts
 api/systemRoles.service.ts
 api/terraform.service.ts
 api/users.service.ts
@@ -99,7 +101,8 @@ model/pool.ts
 model/problemDetails.ts
 model/project.ts
 model/projectMembership.ts
-model/projectPermissions.ts
+model/projectPermission.ts
+model/projectPermissionsClaim.ts
 model/projectRole.ts
 model/reassignVlansCommand.ts
 model/removeResourcesCommand.ts
@@ -109,7 +112,7 @@ model/resource.ts
 model/resourceCommandResult.ts
 model/run.ts
 model/runStatus.ts
-model/systemPermissions.ts
+model/systemPermission.ts
 model/systemRole.ts
 model/tagFileCommand.ts
 model/taintResourcesCommand.ts

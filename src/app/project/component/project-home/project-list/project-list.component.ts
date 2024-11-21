@@ -12,15 +12,20 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Project } from '../../../../generated/caster-api';
+import {
+  Project,
+  ProjectPermission,
+  SystemPermission,
+} from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ProjectService } from 'src/app/project/state';
-import { take } from 'rxjs/operators';
+import { filter, map, take } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 const NAME_VALUE = 'nameValue';
 
@@ -44,13 +49,33 @@ export class ProjectListComponent implements OnInit, OnChanges {
   displayedColumns: string[] = ['name'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
+  canManageAll$: Observable<boolean>;
+  canManageProjects$: Observable<string[]>;
+
   constructor(
     private projectService: ProjectService,
     private dialogService: ConfirmDialogService,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private permissionService: PermissionService
+  ) {
+    this.canManageAll$ = this.permissionService.permissions$.pipe(
+      map((x) => x.includes(SystemPermission.ManageProjects))
+    );
+    this.canManageProjects$ = this.permissionService.projectPermissions$.pipe(
+      map((x) =>
+        x.map((y) =>
+          y.permissions.includes(ProjectPermission.ManageProject)
+            ? y.projectId
+            : null
+        )
+      ),
+      filter((x) => x != null)
+    );
+  }
 
   ngOnInit() {
+    this.permissionService.loadProjectPermissions().subscribe();
+
     if (this.projects) {
       this.dataSource = new MatTableDataSource(this.projects);
       if (this.sort) {
