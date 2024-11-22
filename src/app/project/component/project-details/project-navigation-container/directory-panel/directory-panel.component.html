@@ -102,7 +102,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </div>
             </mat-list-item>
 
-            <mat-list-item>
+            <mat-list-item *ngIf="canEdit$ | async">
               <div fxLayout="row" fxLayoutAlign="start center" fxFlexOffset="2">
                 <mat-icon
                   (click)="createFile(parentDirectory.id)"
@@ -231,7 +231,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     >
                   </div>
                 </mat-list-item>
-                <mat-list-item>
+                <mat-list-item *ngIf="canEdit$ | async">
                   <div
                     fxLayout="row"
                     fxLayoutAlign="start center"
@@ -256,7 +256,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </mat-expansion-panel>
           </mat-accordion>
 
-          <div class="add-new-text" fxLayout="row" fxLayoutAlign="start center">
+          <div
+            *ngIf="canEdit$ | async"
+            class="add-new-text"
+            fxLayout="row"
+            fxLayoutAlign="start center"
+          >
             <mat-icon
               (click)="createWorkspace()"
               title="Add New Workspace to {{ parentDirectory.name }}"
@@ -299,7 +304,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [parentDirectory]="obj"
           >
           </cas-directory-panel>
-          <div class="add-new-text" fxLayout="row" fxLayoutAlign="start center">
+          <div
+            *ngIf="canEdit$ | async"
+            class="add-new-text"
+            fxLayout="row"
+            fxLayoutAlign="start center"
+          >
             <mat-icon
               (click)="createNewDirectory(parentDirectory.id)"
               title="Add New Directory to {{ parentDirectory.name }}"
@@ -364,7 +374,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </div>
             </mat-list-item>
 
-            <mat-list-item>
+            <mat-list-item *ngIf="canEdit$ | async">
               <div fxLayout="row" fxLayoutAlign="start center" fxFlexOffset="2">
                 <mat-icon
                   (click)="createDesign(parentDirectory.id)"
@@ -398,7 +408,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent let-item="item">
     <button
-      *ngIf="canEnable(item)"
+      *ngIf="canEnable(item) && (canEdit$ | async)"
       mat-menu-item
       (click)="onContextEnable(item)"
       fxLayout="row"
@@ -406,7 +416,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       {{ item.object.enabled ? 'Disable' : 'Enable' }}
     </button>
     <button
-      *ngIf="canRename(item)"
+      *ngIf="canRename(item) && (canEdit$ | async)"
       mat-menu-item
       (click)="onContextRename(item)"
       fxLayout="row"
@@ -414,14 +424,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       Rename
     </button>
     <button
-      *ngIf="canEdit(item)"
+      *ngIf="canEdit(item) && (canEdit$ | async)"
       mat-menu-item
       (click)="onContextEdit(item)"
       fxLayout="row"
     >
       Edit
     </button>
-    <button mat-menu-item (click)="onContextDelete(item)" fxLayout="row">
+    <button
+      *ngIf="canEdit$ | async"
+      mat-menu-item
+      (click)="onContextDelete(item)"
+      fxLayout="row"
+    >
       Delete
     </button>
     <button

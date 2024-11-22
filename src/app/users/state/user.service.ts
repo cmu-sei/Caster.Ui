@@ -78,7 +78,6 @@ export class UserService {
   setCurrentUser() {
     const currentUser = {
       name: '',
-      isSuperUser: false,
       id: '',
     };
     this.currentUserStore.update(currentUser);
@@ -87,12 +86,6 @@ export class UserService {
         currentUser.name = user.profile.name;
         currentUser.id = user.profile.sub;
         this.currentUserStore.update(currentUser);
-        // this.permissionService.getMyPermissions().subscribe((permissions) => {
-        //   currentUser.isSuperUser = permissions.some((permission) => {
-        //     return permission.key === 'SystemAdmin';
-        //   });
-        //   this.currentUserStore.update(currentUser);
-        // });
       }
     });
   }

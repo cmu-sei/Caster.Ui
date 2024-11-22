@@ -25,9 +25,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [sidebarOpen]="sidebarOpen$ | async"
             [sidebarView]="sidebarView$ | async"
             [sidenavWidth]="sidebarWidth$ | async"
+            [breadcrumb]="breadcrumb$ | async"
+            [canEdit]="canEdit$ | async"
+            [canAdminLock]="canAdminLock$ | async"
             (sidebarChanged)="sidebarChangedFn($event)"
             (sidebarViewChanged)="sidebarViewChangedFn($event)"
-            [breadcrumb]="breadcrumb$ | async"
             (sidenavWidthChanged)="sidebarWidthChangedFn($event)"
           >
           </cas-editor>

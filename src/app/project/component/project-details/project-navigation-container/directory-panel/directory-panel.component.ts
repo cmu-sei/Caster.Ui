@@ -42,6 +42,7 @@ import { DesignQuery } from 'src/app/designs/state/design.query';
 import { DesignService } from 'src/app/designs/state/design.service';
 import { Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -68,6 +69,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   public editingWorkspaceId: string;
   public editingDirectoryId: string;
+
+  public canEdit$: Observable<boolean>;
 
   private _destroyed$ = new Subject();
 
@@ -96,10 +99,15 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private dialog: MatDialog,
     private designQuery: DesignQuery,
-    private designService: DesignService
+    private designService: DesignService,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit() {
+    this.canEdit$ = this.permissionService.canEditProject(
+      this.parentDirectory.projectId
+    );
+
     if (this.parentDirectory) {
       this.parentDirectoryUI$ = this.directoryQuery.ui.selectEntity(
         this.parentDirectory.id

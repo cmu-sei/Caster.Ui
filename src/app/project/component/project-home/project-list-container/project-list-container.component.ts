@@ -22,7 +22,6 @@ export class ProjectListContainerComponent implements OnInit {
   public titleText: string;
   public topbarColor = '#0FABEA';
   public topbarTextColor;
-  public isSuperUser = false;
   public projects: Observable<Project[]>;
   public isLoading$: Observable<boolean>;
   TopbarView = TopbarView;
@@ -52,7 +51,6 @@ export class ProjectListContainerComponent implements OnInit {
     this.titleText = this.settingsService.settings.AppTopBarText;
 
     this.currentUserQuery.select().subscribe((cu) => {
-      this.isSuperUser = cu.isSuperUser;
       this.username = cu.name;
     });
     this.userService.setCurrentUser();

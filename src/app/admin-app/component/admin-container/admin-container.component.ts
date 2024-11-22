@@ -21,7 +21,6 @@ import { TopbarView } from './../../../shared/components/top-bar/topbar.models';
 export class AdminContainerComponent implements OnInit, OnDestroy {
   public username: string;
   public titleText: string;
-  public isSuperUser = false;
   public definitionId = '';
   public isSidebarOpen = true;
   public usersText = 'Users';
@@ -59,7 +58,6 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
       .select()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((cu) => {
-        this.isSuperUser = cu.isSuperUser;
         this.username = cu.name;
       });
     this.userService.setCurrentUser();
@@ -76,7 +74,6 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
-    this.isSuperUser = false;
   }
 
   /**

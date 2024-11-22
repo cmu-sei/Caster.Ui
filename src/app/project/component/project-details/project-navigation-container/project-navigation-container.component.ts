@@ -25,6 +25,7 @@ import { RouterQuery } from '@datorama/akita-ng-router-store';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ProjectExportComponent } from '../project-export/project-export.component';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -40,6 +41,8 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   public projectId: string;
   public objType = ProjectObjectType.PROJECT;
 
+  public canEdit$: Observable<boolean>;
+
   private unsubscribe$ = new Subject<void>();
 
   @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
@@ -52,7 +55,8 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     private projectStore: ProjectStore,
     private directoryQuery: DirectoryQuery,
     private directoryService: DirectoryService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit() {
@@ -87,6 +91,8 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
           this.projectStore.setActive(this.projectId);
           this.projectStore.ui.setActive(this.projectId);
+
+          this.canEdit$ = this.permissionService.canEditProject(this.projectId);
         }
       });
   }

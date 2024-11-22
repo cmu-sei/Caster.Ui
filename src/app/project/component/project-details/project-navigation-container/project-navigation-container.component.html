@@ -7,7 +7,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div *ngFor="let obj of projectDirectories$ | async">
     <cas-directory-panel [parentDirectory]="obj"> </cas-directory-panel>
   </div>
-  <div fxLayout="row" fxLayoutAlign="start center" class="nav-background">
+  <div
+    *ngIf="canEdit$ | async"
+    fxLayout="row"
+    fxLayoutAlign="start center"
+    class="nav-background"
+  >
     <mat-icon
       (click)="createNewDirectory()"
       title="Add New Directory"

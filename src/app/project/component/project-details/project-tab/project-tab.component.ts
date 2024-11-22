@@ -51,6 +51,7 @@ import {
   Project,
   Workspace,
 } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 const WAS_CANCELLED = 'wasCancelled';
 type TabSubscription = { id: string; subscription: Subscription };
@@ -84,6 +85,8 @@ export class ProjectTabComponent
   public sidebarView$: Observable<string>;
   public sidebarWidth$: Observable<number>;
   public breadcrumb$: Observable<Breadcrumb[]>;
+  public canEdit$: Observable<boolean>;
+  public canAdminLock$: Observable<boolean>;
 
   constructor(
     private projectService: ProjectService,
@@ -97,13 +100,18 @@ export class ProjectTabComponent
     private dialog: MatDialog,
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
-    private designQuery: DesignQuery
+    private designQuery: DesignQuery,
+    private permissionService: PermissionService
   ) {}
 
   /**
    * ngOninit handles initialization required for all open tabs
    */
   ngOnInit() {
+    this.canEdit$ = this.permissionService.canEditProject(this.project.id);
+    this.canAdminLock$ = this.permissionService.canAdminLockProject(
+      this.project.id
+    );
     this.moduleService.load(false, false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
     this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);

@@ -2,9 +2,10 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import {
+  ProjectPermission,
   ProjectPermissionsClaim,
   ProjectPermissionsService,
   SystemPermission,
@@ -45,5 +46,48 @@ export class PermissionService {
     return this.projectPermissionsService
       .getMyProjectPermissions(projectId)
       .pipe(tap((x) => this.projectPermissionsSubject.next(x)));
+  }
+
+  canEditProject(projectId: string): Observable<boolean> {
+    return this.can(
+      SystemPermission.EditProjects,
+      projectId,
+      ProjectPermission.EditProject
+    );
+  }
+
+  canAdminLockProject(projectId: string): Observable<boolean> {
+    return this.can(
+      SystemPermission.LockFiles,
+      projectId,
+      ProjectPermission.LockFiles
+    );
+  }
+
+  private can(
+    permission: SystemPermission,
+    projectId?: string,
+    projectPermission?: ProjectPermission
+  ) {
+    return combineLatest([this.permissions$, this.projectPermissions$]).pipe(
+      map(([permissions, projectPermissionClaims]) => {
+        if (permissions.includes(permission)) {
+          return true;
+        } else if (projectId != null && projectPermission != null) {
+          const projectPermissionClaim = projectPermissionClaims.find(
+            (x) => x.projectId == projectId
+          );
+
+          if (
+            projectPermissionClaim != null &&
+            projectPermissionClaim.permissions.includes(projectPermission)
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      })
+    );
   }
 }
