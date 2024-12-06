@@ -14,10 +14,15 @@ export class AdminGroupsMemberListComponent implements OnInit {
   @Input()
   users: User[];
 
+  @Input()
+  canEdit: boolean;
+
   @Output()
   deleteMembership = new EventEmitter<string>();
 
-  displayedColumns: string[] = ['name', 'actions'];
+  viewColumns = ['name'];
+  editColumns = ['actions'];
+  displayedColumns = this.viewColumns;
   dataSource = new MatTableDataSource<GroupMembershipModel>();
 
   constructor() {}
@@ -25,8 +30,10 @@ export class AdminGroupsMemberListComponent implements OnInit {
   ngOnInit(): void {}
 
   ngOnChanges() {
-    console.log(this.users);
     this.buildModel();
+    this.displayedColumns = this.viewColumns.concat(
+      this.canEdit ? this.editColumns : []
+    );
   }
 
   buildModel() {

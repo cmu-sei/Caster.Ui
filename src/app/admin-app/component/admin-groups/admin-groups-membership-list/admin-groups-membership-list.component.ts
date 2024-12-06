@@ -16,10 +16,15 @@ export class AdminGroupsMembershipListComponent implements OnInit {
   @Input()
   users: User[];
 
+  @Input()
+  canEdit: boolean;
+
   @Output()
   createMembership = new EventEmitter<CreateGroupMembershipCommand>();
 
-  displayedColumns: string[] = ['name', 'actions'];
+  viewColumns = ['name'];
+  editColumns = ['actions'];
+  displayedColumns = this.viewColumns;
   dataSource = new MatTableDataSource<User>();
 
   constructor(public snackBar: MatSnackBar) {}
@@ -28,6 +33,10 @@ export class AdminGroupsMembershipListComponent implements OnInit {
 
   ngOnChanges() {
     this.dataSource.data = this.users;
+
+    this.displayedColumns = this.viewColumns.concat(
+      this.canEdit ? this.editColumns : []
+    );
   }
 
   add(id: string) {

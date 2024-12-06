@@ -34,6 +34,8 @@ export class PartitionListComponent implements OnInit {
 
   _poolId: string;
 
+  @Input() canEdit: boolean;
+
   partitions$: Observable<Partition[]>;
 
   constructor(

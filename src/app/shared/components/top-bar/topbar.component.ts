@@ -17,12 +17,13 @@ import {
   Theme,
 } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { ProjectPermission } from 'src/app/generated/caster-api';
 @Component({
   selector: 'cas-topbar',
   templateUrl: './topbar.component.html',
@@ -55,6 +56,16 @@ export class TopbarComponent implements OnInit, OnDestroy {
   ) {}
 
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
+
+  // canManageProject$ = this.permissionService.projectPermissions$.pipe(
+  //   map((projects) =>
+  //     projects.some(
+  //       (project) =>
+  //         project.permissions.includes(ProjectPermission.ManageProject) &&
+  //         project.projectId === this.projectId
+  //     )
+  //   )
+  // );
 
   ngOnInit() {
     this.permissionService.load().subscribe();

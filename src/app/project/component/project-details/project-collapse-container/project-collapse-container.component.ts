@@ -13,9 +13,9 @@ import {
   Theme,
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FileQuery } from 'src/app/files/state';
-import { Project } from 'src/app/generated/caster-api';
+import { Project, ProjectPermission } from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import {
@@ -30,6 +30,7 @@ import {
   ProjectUI,
 } from '../../../state';
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 300;
 
@@ -54,6 +55,8 @@ export class ProjectCollapseContainerComponent
   public topbarColor;
   public topbarTextColor;
   public theme$: Observable<Theme>;
+  public canManageProject$: Observable<boolean>;
+
   TopbarView = TopbarView;
 
   private unsubscribe$ = new Subject();
@@ -66,7 +69,8 @@ export class ProjectCollapseContainerComponent
     private currentUserQuery: CurrentUserQuery,
     private settingsService: ComnSettingsService,
     private fileQuery: FileQuery,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
+    private permissionService: PermissionService
   ) {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
@@ -112,6 +116,7 @@ export class ProjectCollapseContainerComponent
       .subscribe(({ p, open, width }) => {
         if (p) {
           this.project = p;
+          this.permissionService.loadProjectPermissions(p.id).subscribe();
           this.signalRService
             .startConnection()
             .then(() => {
@@ -122,6 +127,21 @@ export class ProjectCollapseContainerComponent
             });
         }
       });
+
+    this.canManageProject$ = combineLatest([
+      this.permissionService.projectPermissions$,
+      this.project$,
+    ]).pipe(
+      tap((x) => console.log(x)),
+      map(([projectPermissions, project]) =>
+        projectPermissions.some(
+          (projectPermission) =>
+            projectPermission.permissions.includes(
+              ProjectPermission.ManageProject
+            ) && projectPermission.projectId === project.id
+        )
+      )
+    );
   }
 
   closeTab(id: string) {

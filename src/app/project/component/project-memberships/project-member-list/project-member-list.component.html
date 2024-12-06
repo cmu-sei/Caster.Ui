@@ -19,6 +19,7 @@
       <th mat-header-cell *matHeaderCellDef>Role</th>
       <td mat-cell *matCellDef="let model">
         <mat-select
+          [disabled]="!canEdit"
           [value]="model.membership.roleId"
           (selectionChange)="updateRole(model.membership.id, $event)"
         >

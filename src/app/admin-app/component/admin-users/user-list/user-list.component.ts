@@ -60,6 +60,7 @@ export class UserListComponent implements OnInit, OnChanges {
 
   @Input() users: User[];
   @Input() isLoading: boolean;
+  @Input() canEdit: boolean;
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;

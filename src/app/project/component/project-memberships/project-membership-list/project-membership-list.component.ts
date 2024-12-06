@@ -28,10 +28,16 @@ export class ProjectMembershipListComponent implements OnInit, OnChanges {
   @Input()
   groups: Group[];
 
+  @Input()
+  canEdit: boolean;
+
   @Output()
   createMembership = new EventEmitter<CreateProjectMembershipCommand>();
 
-  displayedColumns: string[] = ['name', 'type', 'actions'];
+  viewColumns = ['name', 'type'];
+  editColumns = ['actions'];
+  displayedColumns = this.viewColumns;
+
   dataSource = new MatTableDataSource<ProjectMemberModel>();
 
   constructor(public snackBar: MatSnackBar) {}
@@ -40,6 +46,10 @@ export class ProjectMembershipListComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.dataSource.data = this.buildModel();
+
+    this.displayedColumns = this.viewColumns.concat(
+      this.canEdit ? this.editColumns : []
+    );
   }
 
   add(id: string, type: string) {

@@ -38,6 +38,9 @@ export class ProjectVlansComponent implements OnInit {
     this.dataSource.data = projects;
   }
 
+  @Input()
+  canEdit: boolean;
+
   dataSource = new MatTableDataSource<Project>();
   partitionOptions$: Observable<Map<Pool, Partition[]>>;
 

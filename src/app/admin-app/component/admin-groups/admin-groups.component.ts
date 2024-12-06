@@ -12,8 +12,9 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Group } from 'src/app/generated/caster-api';
+import { Group, SystemPermission } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { UserService } from 'src/app/users/state';
@@ -38,7 +39,8 @@ export class AdminGroupsComponent implements OnInit {
   constructor(
     private groupsService: GroupService,
     private usersService: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private permissionService: PermissionService
   ) {}
 
   dataSource$ = this.groupsService.groups$.pipe(
@@ -46,6 +48,10 @@ export class AdminGroupsComponent implements OnInit {
       this.dataSource.data = x;
       return this.dataSource;
     })
+  );
+
+  canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageGroups
   );
 
   ngOnInit() {

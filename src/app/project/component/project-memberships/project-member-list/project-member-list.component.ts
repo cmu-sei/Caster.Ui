@@ -27,13 +27,18 @@ export class ProjectMemberListComponent implements OnInit {
   @Input()
   roles: ProjectRole[];
 
+  @Input()
+  canEdit: boolean;
+
   @Output()
   deleteMembership = new EventEmitter<string>();
 
   @Output()
   editMembership = new EventEmitter<EditProjectMembershipCommand>();
 
-  displayedColumns: string[] = ['name', 'type', 'role', 'actions'];
+  viewColumns = ['name', 'type', 'role'];
+  editColumns = ['actions'];
+  displayedColumns = this.viewColumns;
   dataSource = new MatTableDataSource<ProjectMembershipModel>();
 
   constructor() {}
@@ -42,6 +47,10 @@ export class ProjectMemberListComponent implements OnInit {
 
   ngOnChanges() {
     this.buildModel();
+
+    this.displayedColumns = this.viewColumns.concat(
+      this.canEdit ? this.editColumns : []
+    );
   }
 
   buildModel() {

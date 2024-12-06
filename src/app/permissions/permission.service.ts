@@ -42,6 +42,10 @@ export class PermissionService {
     );
   }
 
+  hasPermission(permission: SystemPermission) {
+    return this.permissions$.pipe(map((x) => x.includes(permission)));
+  }
+
   loadProjectPermissions(projectId?: string) {
     return this.projectPermissionsService
       .getMyProjectPermissions(projectId)

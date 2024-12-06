@@ -2,12 +2,14 @@
   <cas-admin-groups-membership-list
     class="w-25"
     [users]="nonMembers$ | async"
+    [canEdit]="canEdit"
     (createMembership)="createMembership($event)"
   ></cas-admin-groups-membership-list>
   <cas-admin-groups-member-list
     class="w-25"
     [memberships]="memberships$ | async"
     [users]="members$ | async"
+    [canEdit]="canEdit"
     (deleteMembership)="deleteMembership($event)"
   ></cas-admin-groups-member-list>
 </div>

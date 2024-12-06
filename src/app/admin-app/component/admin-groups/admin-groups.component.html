@@ -31,6 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
         <div class="spacer"></div>
         <button
+          *ngIf="canEdit$ | async"
           mat-icon-button
           matTooltip="Add New Group"
           (click)="createGroup()"
@@ -51,31 +52,34 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-expansion-panel class="w-100">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <button
-                mat-icon-button
-                matTooltip="Delete {{ element.name }}"
-                (click)="$event.stopPropagation(); deleteGroup(element)"
-              >
-                <mat-icon
-                  color="primary"
-                  fontSet="fas"
-                  fontIcon="fa-trash"
-                ></mat-icon>
-              </button>
-              <button mat-icon-button matTooltip="Rename">
-                <mat-icon
-                  color="primary"
-                  fontSet="fas"
-                  fontIcon="fa-pencil-alt"
-                  (click)="$event.stopPropagation(); updateGroup(element)"
-                ></mat-icon>
-              </button>
+              <ng-container *ngIf="canEdit$ | async">
+                <button
+                  mat-icon-button
+                  matTooltip="Delete {{ element.name }}"
+                  (click)="$event.stopPropagation(); deleteGroup(element)"
+                >
+                  <mat-icon
+                    color="primary"
+                    fontSet="fas"
+                    fontIcon="fa-trash"
+                  ></mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Rename">
+                  <mat-icon
+                    color="primary"
+                    fontSet="fas"
+                    fontIcon="fa-pencil-alt"
+                    (click)="$event.stopPropagation(); updateGroup(element)"
+                  ></mat-icon>
+                </button>
+              </ng-container>
               <p>{{ element.name }}</p>
             </mat-panel-title>
           </mat-expansion-panel-header>
           <ng-template matExpansionPanelContent>
             <cas-admin-groups-detail
               [groupId]="element.id"
+              [canEdit]="canEdit$ | async"
             ></cas-admin-groups-detail>
           </ng-template>
         </mat-expansion-panel>

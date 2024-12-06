@@ -31,7 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
     </button>
   </div>
-  <div style="width: 100px">
+  <div *ngIf="canEdit" style="width: 100px">
     <button mat-stroked-button (click)="addingNewUser = true">Add User</button>
   </div>
   <div class="button-end">
@@ -120,6 +120,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-form-field>
           <!-- <mat-label>Role</mat-label> -->
           <mat-select
+            [disabled]="!canEdit"
             [value]="item.roleId == null ? '' : item.roleId"
             (selectionChange)="updateRole(item, $event)"
           >
@@ -132,6 +133,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </mat-select>
         </mat-form-field>
         <button
+          *ngIf="canEdit"
           mat-icon-button
           (click)="deleteUser(item); $event.stopPropagation()"
           title="Delete User"

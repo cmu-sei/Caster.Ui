@@ -7,7 +7,7 @@ import {
   Output,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { ProjectQuery, ProjectService } from 'src/app/project/state';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
@@ -18,6 +18,7 @@ import {
   Project,
 } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-project-memberships',
@@ -46,6 +47,8 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   groupNonMembers$ = this.selectGroups(false);
   groupMembers$ = this.selectGroups(true);
 
+  canEdit$: Observable<boolean>;
+
   constructor(
     private projectService: ProjectService,
     private projectQuery: ProjectQuery,
@@ -53,7 +56,8 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
     private projectRolesService: ProjectRoleService,
     private userService: UserService,
     private userQuery: UserQuery,
-    private groupService: GroupService
+    private groupService: GroupService,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -67,7 +71,13 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    this.project$ = this.projectQuery.selectEntity(this.projectId);
+    this.project$ = this.projectQuery
+      .selectEntity(this.projectId)
+      .pipe(
+        tap(
+          (x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))
+        )
+      );
   }
 
   selectUsers(members: boolean) {

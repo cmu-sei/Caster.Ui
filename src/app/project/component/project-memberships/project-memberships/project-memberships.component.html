@@ -14,6 +14,7 @@
     class="w-25"
     [users]="nonMembers$ | async"
     [groups]="groupNonMembers$ | async"
+    [canEdit]="canEdit$ | async"
     (createMembership)="createMembership($event)"
   ></cas-project-membership-list>
 
@@ -23,6 +24,7 @@
     [users]="members$ | async"
     [groups]="groupMembers$ | async"
     [roles]="roles$ | async"
+    [canEdit]="canEdit$ | async"
     (deleteMembership)="deleteMembership($event)"
     (editMembership)="editMembership($event)"
   ></cas-project-member-list>

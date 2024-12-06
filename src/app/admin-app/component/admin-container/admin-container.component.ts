@@ -12,6 +12,8 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery, UserService } from '../../../users/state';
 import { TopbarView } from './../../../shared/components/top-bar/topbar.models';
+import { PermissionService } from 'src/app/permissions/permission.service';
+import { SystemPermission } from 'src/app/generated/caster-api';
 
 @Component({
   selector: 'cas-admin-container',
@@ -36,6 +38,9 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public topbarTextColor;
   TopbarView = TopbarView;
 
+  public permissions$ = this.permissionService.permissions$;
+  readonly SystemPermission = SystemPermission;
+
   private unsubscribe$ = new Subject();
 
   constructor(
@@ -44,7 +49,8 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private currentUserQuery: CurrentUserQuery,
     private routerQuery: RouterQuery,
-    private router: Router
+    private router: Router,
+    private permissionService: PermissionService
   ) {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
@@ -70,6 +76,8 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
           this.showStatus = section;
         }
       });
+
+    this.permissionService.load().subscribe();
   }
 
   logout(): void {

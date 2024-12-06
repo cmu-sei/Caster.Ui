@@ -26,7 +26,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           fxFlex="8"
           fxFill
           fxLayout="row"
-          fxLayoutAlign="space-between center"
+          fxLayoutAlign="start center"
+          fxLayoutGap="20px"
         >
           <a [routerLink]="['/']">
             <div fxLayout="row" fxLayoutAlign="start center">
@@ -38,6 +39,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 {{ titleText }}
               </h2>
             </div>
+          </a>
+          <a *ngIf="canManageProject$ | async" [routerLink]="['memberships']">
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-account-multiple"
+              title="Manage Project Users"
+            ></mat-icon>
           </a>
         </div>
 

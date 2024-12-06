@@ -1,5 +1,5 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
@@ -25,6 +25,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
         <mat-form-field appearance="fill">
           <mat-label>Partition</mat-label>
           <mat-select
+            [disabled]="!canEdit"
             [value]="element.partitionId"
             (selectionChange)="updatePartition(element.id, $event.value)"
           >

@@ -41,14 +41,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-icon svgIcon="ic_expand_more_white_24px"></mat-icon>
       </button>
       <mat-menu #menu="matMenu" [overlapTrigger]="false">
-        <a
+        <!-- <a
           *ngIf="topbarView !== TopbarView.CASTER_ADMIN"
           (click)="editMembershipsFn($event)"
           [href]="getEditMembershipsUrl()"
           mat-menu-item
         >
           Manage Project
-        </a>
+        </a> -->
         <button
           *ngIf="(canViewAdmin$ | async) && topbarView === 'caster-admin'"
           (click)="exitAdmin()"

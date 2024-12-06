@@ -10,7 +10,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     mode="side"
     [(opened)]="isSidebarOpen"
   >
-    <mat-list class="appitems-container">
+    <mat-list
+      *ngIf="permissions$ | async as permissions"
+      class="appitems-container"
+    >
       <mat-list-item class="appslist">
         <a class="nolink" [routerLink]="['/']">
           <div fxLayout="row" fxLayoutAlign="start center">
@@ -23,7 +26,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </a>
         <mat-divider></mat-divider>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item
+        *ngIf="permissions.includes(SystemPermission.ViewProjects)"
+      >
         <div class="showhand" id="wrapper" (click)="adminGotoProjects()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-notebook"></mat-icon>
@@ -38,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="permissions.includes(SystemPermission.ViewUsers)">
         <div class="showhand" id="wrapper" (click)="adminGotoUsers()">
           <div id="lefticon">
             <mat-icon
@@ -56,7 +61,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="permissions.includes(SystemPermission.ViewModules)">
         <div class="showhand" id="wrapper" (click)="adminGotoModules()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-view-module"></mat-icon>
@@ -71,7 +76,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item
+        *ngIf="permissions.includes(SystemPermission.ViewWorkspaces)"
+      >
         <div class="showhand" id="wrapper" (click)="adminGotoWorkspaces()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-briefcase"></mat-icon>
@@ -86,7 +93,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="permissions.includes(SystemPermission.ViewVlans)">
         <div class="showhand" id="wrapper" (click)="adminGotoVlans()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-lan"></mat-icon>
@@ -101,7 +108,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="permissions.includes(SystemPermission.ViewRoles)">
         <div class="showhand" id="wrapper" (click)="adminGotoRoles()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-lock"></mat-icon>
@@ -116,7 +123,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </div>
         </div>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="permissions.includes(SystemPermission.ViewGroups)">
         <div class="showhand" id="wrapper" (click)="adminGotoGroups()">
           <div id="lefticon">
             <mat-icon class="mdi-24px" fontIcon="mdi-account-group"></mat-icon>
@@ -150,18 +157,49 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [sidenav]="sidenav"
       (sidenavToggle)="sidenav.toggle()"
     ></cas-topbar>
-    <span>
-      <cas-users *ngIf="showStatus === usersText"></cas-users>
-      <cas-admin-modules *ngIf="showStatus === modulesText"></cas-admin-modules>
-      <cas-admin-workspaces
-        *ngIf="showStatus === workspacesText"
-      ></cas-admin-workspaces>
-      <cas-vlans *ngIf="showStatus === vlansText"></cas-vlans>
-      <cas-admin-roles *ngIf="showStatus === rolesText"></cas-admin-roles>
-      <cas-admin-groups *ngIf="showStatus === groupsText"></cas-admin-groups>
+    <span *ngIf="permissions$ | async as permissions">
       <cas-admin-projects
-        *ngIf="showStatus === projectsText"
+        *ngIf="
+          showStatus === projectsText &&
+          permissions.includes(SystemPermission.ViewProjects)
+        "
       ></cas-admin-projects>
+      <cas-users
+        *ngIf="
+          showStatus === usersText &&
+          permissions.includes(SystemPermission.ViewUsers)
+        "
+      ></cas-users>
+      <cas-admin-modules
+        *ngIf="
+          showStatus === modulesText &&
+          permissions.includes(SystemPermission.ViewModules)
+        "
+      ></cas-admin-modules>
+      <cas-admin-workspaces
+        *ngIf="
+          showStatus === workspacesText &&
+          permissions.includes(SystemPermission.ViewWorkspaces)
+        "
+      ></cas-admin-workspaces>
+      <cas-vlans
+        *ngIf="
+          showStatus === vlansText &&
+          permissions.includes(SystemPermission.ViewVlans)
+        "
+      ></cas-vlans>
+      <cas-admin-roles
+        *ngIf="
+          showStatus === rolesText &&
+          permissions.includes(SystemPermission.ViewRoles)
+        "
+      ></cas-admin-roles>
+      <cas-admin-groups
+        *ngIf="
+          showStatus === groupsText &&
+          permissions.includes(SystemPermission.ViewGroups)
+        "
+      ></cas-admin-groups>
     </span>
   </mat-sidenav-content>
 </mat-sidenav-container>

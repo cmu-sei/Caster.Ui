@@ -43,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 </div>
 
 <mat-accordion displayMode="flat" class="mat-table">
-  <mat-expansion-panel [disabled]="true">
+  <mat-expansion-panel *ngIf="canEdit" [disabled]="true">
     <mat-expansion-panel-header class="mat-row">
       <span class="mat-cell">
         <h6 style="float: right; margin-right: 50px">Add/Update Modules >></h6>
@@ -131,6 +131,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <span class="mat-cell">
         {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
         <button
+          *ngIf="canEdit"
           mat-icon-button
           (click)="deleteModule(item); $event.stopPropagation()"
           title="Delete Module"

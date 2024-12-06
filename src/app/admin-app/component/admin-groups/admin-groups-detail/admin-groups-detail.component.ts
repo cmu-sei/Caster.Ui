@@ -17,6 +17,9 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
   groupId: string;
 
+  @Input()
+  canEdit: boolean;
+
   memberships$ = of([]);
 
   // All users that are not already members of the project

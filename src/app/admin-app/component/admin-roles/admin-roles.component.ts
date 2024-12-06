@@ -10,6 +10,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { SystemPermission, SystemRole } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { RolesService } from 'src/app/roles/roles.service.service';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
@@ -27,6 +28,11 @@ export class AdminRolesComponent implements OnInit {
   private roleService = inject(RolesService);
   private dialog = inject(MatDialog);
   private confirmService = inject(ConfirmDialogService);
+  private permissionService = inject(PermissionService);
+
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageRoles
+  );
 
   public allPermission = 'All';
 

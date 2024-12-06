@@ -42,6 +42,8 @@ export class PartitionComponent implements OnInit {
     );
   }
 
+  @Input() canEdit: boolean;
+
   get partition() {
     return this._partition;
   }
@@ -99,12 +101,16 @@ export class PartitionComponent implements OnInit {
 
   unsetDefault($event, id: string) {
     $event.stopPropagation();
-    this.partitionService.unsetDefault(id).subscribe();
+    if (this.canEdit) {
+      this.partitionService.unsetDefault(id).subscribe();
+    }
   }
 
   setDefault($event, id: string) {
     $event.stopPropagation();
-    this.partitionService.setDefault(id).subscribe();
+    if (this.canEdit) {
+      this.partitionService.setDefault(id).subscribe();
+    }
   }
 
   onClipboardSuccess() {

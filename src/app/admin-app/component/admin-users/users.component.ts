@@ -5,9 +5,10 @@ import { Component, OnInit } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { UserService, UserQuery } from '../../../users/state';
-import { User } from '../../../generated/caster-api';
+import { SystemPermission, User } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-users',
@@ -19,8 +20,15 @@ export class UsersComponent implements OnInit {
   public isLinear = false;
   public users$: Observable<User[]>;
   public isLoading$: Observable<boolean>;
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageUsers
+  );
 
-  constructor(private userService: UserService, private userQuery: UserQuery) {}
+  constructor(
+    private userService: UserService,
+    private userQuery: UserQuery,
+    private permissionService: PermissionService
+  ) {}
 
   /**
    * Initialize component
