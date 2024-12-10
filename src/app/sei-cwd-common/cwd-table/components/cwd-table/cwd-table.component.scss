@@ -14,7 +14,7 @@
 
 //copied from https://github.com/angular/material2/blob/master/src/lib/table/table.scss
 $mat-header-row-height: 56px;
-$mat-row-height: 48px;
+$mat-row-height: 56px;
 $mat-row-horizontal-padding: 24px;
 
 .mat-table {
@@ -53,6 +53,7 @@ $mat-row-horizontal-padding: 24px;
   flex: 1;
   overflow: hidden;
   word-wrap: break-word;
+  align-self: center;
 }
 
 .spacer {

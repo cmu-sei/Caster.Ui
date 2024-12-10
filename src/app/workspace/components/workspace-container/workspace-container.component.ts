@@ -64,6 +64,7 @@ export class WorkspaceContainerComponent
   breadcrumbString = '';
   resourceActions = ResourceActions;
   forceCancel = false;
+  resourcesToReplace: string[] = [];
 
   @ViewChild('importResourceDialog')
   importResourceDialog: TemplateRef<ImportResourceComponent>;
@@ -180,9 +181,9 @@ export class WorkspaceContainerComponent
   }
 
   plan(event: Event) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     this.workspaceService
-      .createPlanRun(this.workspaceId, false)
+      .createPlanRun(this.workspaceId, false, this.resourcesToReplace)
       .pipe(
         take(1)
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -235,7 +236,9 @@ export class WorkspaceContainerComponent
   destroy(event: Event) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
-    this.workspaceService.createPlanRun(this.workspaceId, true).subscribe();
+    this.workspaceService
+      .createPlanRun(this.workspaceId, true, null)
+      .subscribe();
   }
 
   saveState(event: Event, run: Run) {
@@ -249,7 +252,7 @@ export class WorkspaceContainerComponent
       .subscribe();
   }
 
-  taint(event: Event, item: Resource) {
+  taint(event: Event, item: Resource | Resource[]) {
     event.stopPropagation();
     this.workspaceService
       .taint(this.workspaceId, item)
@@ -296,6 +299,26 @@ export class WorkspaceContainerComponent
       .subscribe((result) => {
         this.showResult(result);
       });
+  }
+
+  replaceResources() {
+    this.viewChangedFn('runs');
+    this.plan(null);
+  }
+
+  markResourceForReplace(event: any, id: string) {
+    if (event.checked) {
+      this.resourcesToReplace.push(id);
+    } else {
+      const index = this.resourcesToReplace.findIndex((m) => m === id);
+      if (index >= 0) {
+        this.resourcesToReplace.splice(index, 1);
+      }
+    }
+  }
+
+  resourceChecked(id: string): boolean {
+    return this.resourcesToReplace.includes(id);
   }
 
   private showResult(result: ResourceCommandResult) {

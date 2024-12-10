@@ -230,12 +230,20 @@ export class WorkspaceService {
     }
   }
 
-  createPlanRun(workspaceId: string, isDestroy: boolean) {
+  createPlanRun(
+    workspaceId: string,
+    isDestroy: boolean,
+    replaceAddresses: string[]
+  ) {
     return this.workspaceQuery
       .selectEntity(workspaceId, (entity) => entity.id)
       .pipe(
         concatMap((_id: string) =>
-          this.runsService.createRun({ workspaceId: _id, isDestroy })
+          this.runsService.createRun({
+            workspaceId: _id,
+            isDestroy,
+            replaceAddresses,
+          })
         ),
         tap((run) => this.expandRun(true, run))
       );

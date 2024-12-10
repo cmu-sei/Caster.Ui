@@ -47,7 +47,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           'modifiedBy',
           'isDestroy',
           'status',
-          'actions'
+          'Actions'
         ]"
         [expandedItems]="expandedRunIds$ | async"
         [getRowStyle]="setRowStyle"
@@ -160,7 +160,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <cwd-table
         [items]="workspaceResources$ | async"
         [loading]="loading$ | async"
-        [displayedColumns]="['name', 'type', 'address', 'actions']"
+        [displayedColumns]="['name', 'type', 'address', 'Replace / Taint / Remove']"
         [excludedAttributes]="['attributes']"
         [expandedItems]="expandedResourceIds$ | async"
         [getRowStyle]="setRowStyle"
@@ -169,29 +169,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >
         <div
           *cwdTableAction
-          fxLayout="row"
+          fxLayout="column"
           fxLayoutGap="10px"
           fxLayoutAlign="center center"
         >
-          <button
-            mat-flat-button
-            color="primary"
-            [disabled]="loading$ | async"
-            (click)="refreshResources()"
-            matTooltip="Refreshes deployed resources and their properties"
-          >
-            Refresh
-          </button>
-          <button
-            *ngIf="this.currentUserQuery.isSuperUser$ | async"
-            mat-flat-button
-            color="primary"
-            [disabled]="loading$ | async"
-            (click)="openImportResourceDialog()"
-            matTooltip="Import an existing resource into this workspace"
-          >
-            Import
-          </button>
+          <div class="split-buttons">
+            <button mat-flat-button color="primary" [disabled]="(loading$ | async) || resourcesToReplace.length === 0"
+              (click)="replaceResources()" matTooltip="Starts a plan process that will replace all of the selected resources">
+              Replace
+            </button>&nbsp;
+            <button mat-flat-button color="primary" [disabled]="loading$ | async" (click)="refreshResources()"
+              matTooltip="Refreshes deployed resources and their properties">
+              Refresh
+            </button>&nbsp;
+            <button *ngIf="this.currentUserQuery.isSuperUser$ | async" mat-flat-button color="primary" [disabled]="loading$ | async"
+              (click)="openImportResourceDialog()" matTooltip="Import an existing resource into this workspace">
+              Import
+            </button>
+          </div>
         </div>
         <div
           *cwdTableItemAction="let item"
@@ -205,7 +200,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               action: (resourceAction$ | async)
             } as loading"
           >
-            <button
+            <mat-checkbox matTooltip="Add/Remove this resource from list of resources to be replaced"
+              (click)="$event.stopPropagation()" (change)="markResourceForReplace($event, item.address)"
+              [checked]="resourceChecked(item.id)">
+            </mat-checkbox>
+        <button
               mat-flat-button
               color="primary"
               [ngSwitch]="

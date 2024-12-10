@@ -14,6 +14,17 @@ mat-button-toggle {
   height: 30px;
 }
 
+.small-button {
+  flex: 1 1 100%;
+  box-sizing: border-box;
+  align-items: center;
+  flex-direction: row;
+  display: flex;
+  font-size: 12px !important;
+  width: 40px !important;
+  height: 18px !important;
+}
+
 .editor-toolbar {
   max-height: 35px;
   min-height: 35px;
@@ -35,4 +46,11 @@ mat-toolbar-row {
 
 .icon {
   height: auto;
+}
+
+.split-buttons {
+  align-items: center;
+  flex-direction: row;
+  display: flex;
+  flex: 5;
 }
