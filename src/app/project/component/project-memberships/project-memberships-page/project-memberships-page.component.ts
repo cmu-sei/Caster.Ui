@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-project-memberships-page',
@@ -9,9 +10,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class ProjectMembershipsPageComponent implements OnInit {
   projectId: string;
 
-  constructor(private activatedRoute: ActivatedRoute) {}
+  activatedRoute = inject(ActivatedRoute);
+  permissionService = inject(PermissionService);
 
   ngOnInit(): void {
     this.projectId = this.activatedRoute.snapshot.paramMap.get('id');
+    this.permissionService.loadProjectPermissions(this.projectId).subscribe();
   }
 }

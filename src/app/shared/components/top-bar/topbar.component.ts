@@ -5,6 +5,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
@@ -24,18 +25,20 @@ import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectPermission } from 'src/app/generated/caster-api';
+import { ProjectQuery } from 'src/app/project';
 @Component({
   selector: 'cas-topbar',
   templateUrl: './topbar.component.html',
   styleUrls: ['./topbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopbarComponent implements OnInit, OnDestroy {
+export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() title?: string = 'Caster';
   @Input() sidenav?;
   @Input() topbarColor?;
   @Input() topbarTextColor?;
   @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
+  @Input() projectId?: string;
 
   @Output() sidenavToggle?: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() editMemberships?: EventEmitter<any> = new EventEmitter<any>();
@@ -57,15 +60,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
 
-  // canManageProject$ = this.permissionService.projectPermissions$.pipe(
-  //   map((projects) =>
-  //     projects.some(
-  //       (project) =>
-  //         project.permissions.includes(ProjectPermission.ManageProject) &&
-  //         project.projectId === this.projectId
-  //     )
-  //   )
-  // );
+  canManageProject$: Observable<boolean>;
 
   ngOnInit() {
     this.permissionService.load().subscribe();
@@ -85,6 +80,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
       this.topbarTextColor =
         this.settingsService.settings.AppTopBarHexTextColor;
     }
+  }
+
+  ngOnChanges() {
+    this.canManageProject$ = this.permissionService.canManageProject(
+      this.projectId
+    );
   }
 
   themeFn(event) {

@@ -7,7 +7,7 @@ import {
   Output,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { ProjectQuery, ProjectService } from 'src/app/project/state';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
@@ -71,13 +71,10 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    this.project$ = this.projectQuery
-      .selectEntity(this.projectId)
-      .pipe(
-        tap(
-          (x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))
-        )
-      );
+    this.project$ = this.projectQuery.selectEntity(this.projectId).pipe(
+      filter((x) => x != null),
+      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id)))
+    );
   }
 
   selectUsers(members: boolean) {

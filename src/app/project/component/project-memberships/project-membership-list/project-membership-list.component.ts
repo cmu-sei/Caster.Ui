@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
@@ -6,8 +7,11 @@ import {
   OnChanges,
   OnInit,
   Output,
+  ViewChild,
 } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   CreateProjectMembershipCommand,
@@ -21,7 +25,9 @@ import {
   styleUrls: ['./project-membership-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectMembershipListComponent implements OnInit, OnChanges {
+export class ProjectMembershipListComponent
+  implements OnInit, OnChanges, AfterViewInit
+{
   @Input()
   users: User[];
 
@@ -40,9 +46,19 @@ export class ProjectMembershipListComponent implements OnInit, OnChanges {
 
   dataSource = new MatTableDataSource<ProjectMemberModel>();
 
+  filterString = '';
+
   constructor(public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {}
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
 
   ngOnChanges() {
     this.dataSource.data = this.buildModel();
@@ -88,6 +104,16 @@ export class ProjectMembershipListComponent implements OnInit, OnChanges {
     });
 
     return projectMemberModels;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  clearFilter() {
+    this.filterString = '';
+    this.dataSource.filter = this.filterString;
   }
 }
 

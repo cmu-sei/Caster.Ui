@@ -1,5 +1,15 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSelectChange } from '@angular/material/select';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   EditProjectMembershipCommand,
@@ -14,7 +24,7 @@ import {
   templateUrl: './project-member-list.component.html',
   styleUrls: ['./project-member-list.component.scss'],
 })
-export class ProjectMemberListComponent implements OnInit {
+export class ProjectMemberListComponent implements OnInit, AfterViewInit {
   @Input()
   memberships: ProjectMembership[];
 
@@ -41,7 +51,34 @@ export class ProjectMemberListComponent implements OnInit {
   displayedColumns = this.viewColumns;
   dataSource = new MatTableDataSource<ProjectMembershipModel>();
 
+  filterString = '';
+
   constructor() {}
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+    this.dataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'role':
+          return item.role.name;
+        default:
+          return item[property];
+      }
+    };
+
+    const defaultPredicate = this.dataSource.filterPredicate;
+    this.dataSource.filterPredicate = (data, filter) => {
+      const defaultMatch = defaultPredicate(data, filter);
+      console.log(data.role.name);
+      return (
+        data.role.name.toLocaleLowerCase().includes(filter) || defaultMatch
+      );
+    };
+  }
 
   ngOnInit(): void {}
 
@@ -54,8 +91,6 @@ export class ProjectMemberListComponent implements OnInit {
   }
 
   buildModel() {
-    console.log(this.memberships);
-    console.log(this.roles);
     this.dataSource.data = this.memberships
       .map((x) => {
         const user = this.users.find((u) => u.id == x.userId);
@@ -95,6 +130,16 @@ export class ProjectMemberListComponent implements OnInit {
 
   trackById(item) {
     return item.id;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  clearFilter() {
+    this.filterString = '';
+    this.dataSource.filter = this.filterString;
   }
 }
 

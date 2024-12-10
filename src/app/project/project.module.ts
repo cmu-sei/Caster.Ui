@@ -51,6 +51,7 @@ import { ProjectMembershipListComponent } from './component/project-memberships/
 import { ProjectMemberListComponent } from './component/project-memberships/project-member-list/project-member-list.component';
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 const projectRoutes: Routes = [
   {
@@ -120,6 +121,7 @@ const projectRoutes: Routes = [
     DesignModule,
     ClipboardModule,
     MatSnackBarModule,
+    MatPaginatorModule,
   ],
   exports: [
     ProjectComponent,

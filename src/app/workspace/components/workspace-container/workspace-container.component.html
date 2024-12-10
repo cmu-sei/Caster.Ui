@@ -63,7 +63,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-flat-button
             color="primary"
-            [disabled]="!enablePlanApply()"
+            [disabled]="!canEdit || !enablePlanApply()"
             (click)="plan($event)"
           >
             Plan
@@ -71,7 +71,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-flat-button
             color="primary"
-            [disabled]="!enablePlanApply()"
+            [disabled]="!canEdit || !enablePlanApply()"
             (click)="destroy($event)"
           >
             Destroy
@@ -92,6 +92,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasPlan(item)"
+            [disabled]="!canEdit"
             (click)="apply($event, item)"
           >
             Apply
@@ -100,6 +101,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasPlan(item)"
+            [disabled]="!canEdit"
             (click)="reject($event, item)"
           >
             Reject
@@ -114,6 +116,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               mat-flat-button
               color="primary"
               matTooltip="Attempt to cancel the Run. Data loss may occur"
+              [disabled]="!canEdit"
               (click)="cancel($event, item)"
             >
               Cancel
@@ -121,6 +124,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-checkbox
               matTooltip="When cancelling, forcefully terminate the Run immediately"
               (click)="$event.stopPropagation()"
+              [disabled]="!canEdit"
               [(ngModel)]="forceCancel"
             >
               force
@@ -130,6 +134,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-flat-button
             color="primary"
             *ngIf="hasStateError(item)"
+            [disabled]="!canEdit"
             (click)="saveState($event, item)"
           >
             <span>
@@ -176,7 +181,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-flat-button
             color="primary"
-            [disabled]="loading$ | async"
+            [disabled]="!canEdit || (loading$ | async)"
             (click)="refreshResources()"
             matTooltip="Refreshes deployed resources and their properties"
           >
@@ -186,7 +191,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             *ngIf="false"
             mat-flat-button
             color="primary"
-            [disabled]="loading$ | async"
+            [disabled]="!canEdit || (loading$ | async)"
             (click)="openImportResourceDialog()"
             matTooltip="Import an existing resource into this workspace"
           >
@@ -214,7 +219,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 !item.tainted
               "
               [fxShow]="!item.tainted"
-              [disabled]="loading.action != resourceActions.None"
+              [disabled]="!canEdit || loading.action != resourceActions.None"
               (click)="taint($event, item)"
             >
               <mat-progress-spinner
@@ -235,7 +240,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 item.tainted
               "
               [fxShow]="item.tainted"
-              [disabled]="loading.action != resourceActions.None"
+              [disabled]="!canEdit || loading.action != resourceActions.None"
               (click)="untaint($event, item)"
             >
               <mat-progress-spinner
@@ -253,7 +258,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [ngSwitch]="
                 loading.value && loading.action == resourceActions.Remove
               "
-              [disabled]="loading.action != resourceActions.None"
+              [disabled]="!canEdit || loading.action != resourceActions.None"
               (click)="remove($event, item)"
             >
               <mat-progress-spinner

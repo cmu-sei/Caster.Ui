@@ -46,7 +46,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   filterString = '';
-  displayedColumns: string[] = ['name'];
+  displayedColumns: string[] = ['name', 'actions'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
   canManageAll$: Observable<boolean>;

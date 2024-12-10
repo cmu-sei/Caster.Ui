@@ -38,6 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           *ngIf="tab.type === tabType.WORKSPACE"
           [workspaceId]="tab.id"
           [breadcrumb]="breadcrumb$ | async"
+          [canEdit]="canEdit$ | async"
         >
         </cas-workspace-container>
         <cas-design

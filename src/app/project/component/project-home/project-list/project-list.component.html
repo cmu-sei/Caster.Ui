@@ -3,12 +3,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div
-  class="project-list-container mat-elevation-z8"
-  fxFlex="nogrow"
-  fxFlexAlign="center start"
->
-  <div fxLayout="row" fxLayoutAlign="space-between center">
+<div class="project-list-container mat-elevation-z8">
+  <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
         <mat-icon
@@ -49,41 +45,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
   <div *ngIf="projects">
     <mat-table [dataSource]="dataSource" matSort>
-      <!-- Name Column -->
       <ng-container matColumnDef="name">
         <mat-header-cell *matHeaderCellDef mat-sort-header>
           Project Name
         </mat-header-cell>
         <mat-cell *matCellDef="let element">
-          <ng-container
-            *ngIf="
-              (canManageAll$ | async) ||
-              (canManageProjects$ | async).includes(element.id)
-            "
-          >
-            <button
-              mat-icon-button
-              matTooltip="Delete {{ element.name }}"
-              (click)="delete(element)"
-            >
-              <mat-icon
-                color="primary"
-                fontSet="fas"
-                fontIcon="fa-trash"
-              ></mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              matTooltip="Rename"
-              (click)="update(element)"
-            >
-              <mat-icon
-                color="primary"
-                fontSet="fas"
-                fontIcon="fa-pencil-alt"
-              ></mat-icon>
-            </button>
-          </ng-container>
           <a
             *ngIf="!manageMode"
             class="project-text"
@@ -106,6 +72,43 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               {{ element.name }}
             </p></a
           >
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>
+          Actions
+        </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <ng-container
+            *ngIf="
+              (canManageAll$ | async) ||
+              (canManageProjects$ | async).includes(element.id)
+            "
+          >
+            <button
+              mat-icon-button
+              matTooltip="Rename"
+              (click)="update(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-pencil-alt"
+              ></mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Delete {{ element.name }}"
+              (click)="delete(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-trash"
+              ></mat-icon>
+            </button>
+          </ng-container>
         </mat-cell>
       </ng-container>
 

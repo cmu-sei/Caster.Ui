@@ -40,13 +40,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </h2>
             </div>
           </a>
-          <a *ngIf="canManageProject$ | async" [routerLink]="['memberships']">
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-account-multiple"
-              title="Manage Project Users"
-            ></mat-icon>
-          </a>
         </div>
 
         <mat-divider></mat-divider>
@@ -81,6 +74,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [topbarTextColor]="topbarTextColor"
       [topbarView]="TopbarView.CASTER_PROJECT"
       [sidenav]="sidenav"
+      [projectId]="project.id"
       (sidenavToggle)="sidenav.toggle()"
       (editMemberships)="openEditMemberships()"
     ></cas-topbar>

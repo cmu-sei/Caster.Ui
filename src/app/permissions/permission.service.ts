@@ -60,6 +60,14 @@ export class PermissionService {
     );
   }
 
+  canManageProject(projectId: string): Observable<boolean> {
+    return this.can(
+      SystemPermission.ManageProjects,
+      projectId,
+      ProjectPermission.ManageProject
+    );
+  }
+
   canAdminLockProject(projectId: string): Observable<boolean> {
     return this.can(
       SystemPermission.LockFiles,

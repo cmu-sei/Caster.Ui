@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
-import { shareReplay, take, tap } from 'rxjs/operators';
+import { filter, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -46,6 +46,7 @@ export class WorkspaceContainerComponent
 {
   @Input() workspaceId: string;
   @Input() breadcrumb: Breadcrumb[];
+  @Input() canEdit: boolean;
   workspaceRuns: Run[];
   workspaceResources: Resource[];
   output: string[];

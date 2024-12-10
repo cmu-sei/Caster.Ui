@@ -55,7 +55,6 @@ export class ProjectCollapseContainerComponent
   public topbarColor;
   public topbarTextColor;
   public theme$: Observable<Theme>;
-  public canManageProject$: Observable<boolean>;
 
   TopbarView = TopbarView;
 
@@ -127,21 +126,6 @@ export class ProjectCollapseContainerComponent
             });
         }
       });
-
-    this.canManageProject$ = combineLatest([
-      this.permissionService.projectPermissions$,
-      this.project$,
-    ]).pipe(
-      tap((x) => console.log(x)),
-      map(([projectPermissions, project]) =>
-        projectPermissions.some(
-          (projectPermission) =>
-            projectPermission.permissions.includes(
-              ProjectPermission.ManageProject
-            ) && projectPermission.projectId === project.id
-        )
-      )
-    );
   }
 
   closeTab(id: string) {
