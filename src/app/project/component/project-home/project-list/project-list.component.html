@@ -17,6 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matInput
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
+            #input
             placeholder="Search Projects"
           />
         </mat-form-field>
@@ -32,6 +33,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
         <div class="spacer"></div>
         <button
+          *ngIf="canCreate$ | async"
           mat-icon-button
           matTooltip="Add New Project"
           hotkeyAction="PROJECT_NEW"
@@ -44,7 +46,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 
   <div *ngIf="projects">
-    <mat-table [dataSource]="dataSource" matSort>
+    <mat-table
+      matSort
+      matSortActive="name"
+      matSortDirection="asc"
+      [dataSource]="dataSource"
+      matSort
+    >
       <ng-container matColumnDef="name">
         <mat-header-cell *matHeaderCellDef mat-sort-header>
           Project Name
@@ -76,9 +84,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </ng-container>
 
       <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>
-          Actions
-        </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
         <mat-cell *matCellDef="let element">
           <ng-container
             *ngIf="
@@ -114,6 +120,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">
+          <ng-container *ngIf="input.value; else noProjects">
+            No data matching the filter "{{ input.value }}"
+          </ng-container>
+          <ng-template #noProjects>
+            You are not a member of any Projects
+          </ng-template>
+        </td>
+      </tr>
     </mat-table>
     <!-- This non-displayed button is required, because hotKeys do not work with the button inside the mat-table -->
     <button

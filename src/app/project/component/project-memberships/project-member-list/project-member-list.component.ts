@@ -3,6 +3,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnInit,
   Output,
   ViewChild,
@@ -24,7 +25,9 @@ import {
   templateUrl: './project-member-list.component.html',
   styleUrls: ['./project-member-list.component.scss'],
 })
-export class ProjectMemberListComponent implements OnInit, AfterViewInit {
+export class ProjectMemberListComponent
+  implements OnInit, OnChanges, AfterViewInit
+{
   @Input()
   memberships: ProjectMembership[];
 

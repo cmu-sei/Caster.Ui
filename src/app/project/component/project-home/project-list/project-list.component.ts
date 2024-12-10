@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
@@ -35,7 +36,7 @@ const NAME_VALUE = 'nameValue';
   styleUrls: ['./project-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectListComponent implements OnInit, OnChanges {
+export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
   @Input() manageMode = false;
@@ -43,7 +44,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @Output() selectedProjectId = new EventEmitter<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild(MatSort) sort: MatSort;
 
   filterString = '';
   displayedColumns: string[] = ['name', 'actions'];
@@ -51,6 +52,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
   canManageAll$: Observable<boolean>;
   canManageProjects$: Observable<string[]>;
+  canCreate$: Observable<boolean>;
 
   constructor(
     private projectService: ProjectService,
@@ -71,19 +73,18 @@ export class ProjectListComponent implements OnInit, OnChanges {
       ),
       filter((x) => x != null)
     );
+
+    this.canCreate$ = this.permissionService.hasPermission(
+      SystemPermission.CreateProjects
+    );
   }
 
   ngOnInit() {
     this.permissionService.loadProjectPermissions().subscribe();
+  }
 
-    if (this.projects) {
-      this.dataSource = new MatTableDataSource(this.projects);
-      if (this.sort) {
-        this.sort.disableClear = true;
-        this.sort.sort({ id: 'name', start: 'asc' } as MatSortable);
-        this.dataSource.sort = this.sort;
-      }
-    }
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
