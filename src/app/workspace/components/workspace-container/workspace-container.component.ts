@@ -181,7 +181,10 @@ export class WorkspaceContainerComponent
   }
 
   plan(event: Event) {
-    if (event) event.stopPropagation();
+    if (event) {
+      this.resourcesToReplace = [];    // clear the list when NOT clicking Replace
+      event.stopPropagation();
+    }
     this.workspaceService
       .createPlanRun(this.workspaceId, false, this.resourcesToReplace)
       .pipe(
@@ -304,6 +307,7 @@ export class WorkspaceContainerComponent
   replaceResources() {
     this.viewChangedFn('runs');
     this.plan(null);
+    this.resourcesToReplace = [];  // clear the list after the plan
   }
 
   markResourceForReplace(event: any, id: string) {
@@ -432,6 +436,7 @@ export class WorkspaceContainerComponent
             .loadResourcesByWorkspaceId(this.workspaceId)
             .pipe(take(1))
             .subscribe();
+          this.resourcesToReplace = [];  // reset the list when returning to the state view
           break;
       }
       this.workspaceService.setWorkspaceView(this.workspaceId, event);
