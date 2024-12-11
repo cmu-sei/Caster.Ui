@@ -233,7 +233,8 @@ export class WorkspaceService {
   createPlanRun(
     workspaceId: string,
     isDestroy: boolean,
-    replaceAddresses: string[]
+    replaceAddresses: string[],
+    targets: string[]
   ) {
     return this.workspaceQuery
       .selectEntity(workspaceId, (entity) => entity.id)
@@ -243,6 +244,7 @@ export class WorkspaceService {
             workspaceId: _id,
             isDestroy,
             replaceAddresses,
+            targets,
           })
         ),
         tap((run) => this.expandRun(true, run))
