@@ -160,7 +160,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <cwd-table
         [items]="workspaceResources$ | async"
         [loading]="loading$ | async"
-        [displayedColumns]="['name', 'type', 'address', 'replace / target']"
+        [displayedColumns]="['name', 'type', 'address', 'replace &nbsp; target']"
         [excludedAttributes]="['attributes']"
         [expandedItems]="expandedResourceIds$ | async"
         [getRowStyle]="setRowStyle"
