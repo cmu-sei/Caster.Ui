@@ -262,7 +262,7 @@ export class WorkspaceContainerComponent
       .subscribe();
   }
 
-  taint(event: Event, item: Resource | Resource[]) {
+  taint(event: Event, item: Resource) {
     event.stopPropagation();
     this.workspaceService
       .taint(this.workspaceId, item)
