@@ -47,7 +47,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           'modifiedBy',
           'isDestroy',
           'status',
-          'Actions'
+          'actions'
         ]"
         [expandedItems]="expandedRunIds$ | async"
         [getRowStyle]="setRowStyle"
@@ -198,10 +198,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <div class="action-checkboxes">
               <mat-checkbox matTooltip="Replace"
                 (click)="$event.stopPropagation()" (change)="markResourceForReplace($event, item.address)"
-                [checked]="resourceToReplace(item.id)">
+                [checked]="resourceToReplace(item.id)" style="align-self: center;">
               </mat-checkbox>
               <mat-checkbox matTooltip="Target" (click)="$event.stopPropagation()"
-                (change)="markResourceForTarget($event, item.address)" [checked]="resourceToTarget(item.id)">
+                (change)="markResourceForTarget($event, item.address)"
+                [checked]="resourceToTarget(item.id)" style="align-self: center;">
               </mat-checkbox>
               </div>
               <div class="action-buttons">
