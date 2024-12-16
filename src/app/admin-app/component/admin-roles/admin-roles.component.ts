@@ -14,6 +14,7 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { RolesService } from 'src/app/roles/roles.service.service';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
+import { AdminRolesModels } from './admin-roles.models';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -35,6 +36,8 @@ export class AdminRolesComponent implements OnInit {
   );
 
   public allPermission = 'All';
+
+  public permissionMap = AdminRolesModels.SystemPermissions;
 
   public dataSource = new MatTableDataSource<string>([
     ...[this.allPermission],

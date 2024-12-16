@@ -408,7 +408,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent let-item="item">
     <button
-      *ngIf="canEnable(item) && (canEdit$ | async)"
+      *ngIf="canEnable(item)"
+      [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextEnable(item)"
       fxLayout="row"
@@ -416,7 +417,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       {{ item.object.enabled ? 'Disable' : 'Enable' }}
     </button>
     <button
-      *ngIf="canRename(item) && (canEdit$ | async)"
+      *ngIf="canRename(item)"
+      [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextRename(item)"
       fxLayout="row"
@@ -424,7 +426,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       Rename
     </button>
     <button
-      *ngIf="canEdit(item) && (canEdit$ | async)"
+      *ngIf="canEdit(item)"
+      [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextEdit(item)"
       fxLayout="row"
@@ -432,7 +435,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       Edit
     </button>
     <button
-      *ngIf="canEdit$ | async"
+      [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextDelete(item)"
       fxLayout="row"

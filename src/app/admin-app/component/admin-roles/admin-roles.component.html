@@ -6,7 +6,17 @@
   <ng-container matColumnDef="permissions" sticky="true">
     <th mat-header-cell *matHeaderCellDef>Permissions</th>
     <th mat-header-cell *matHeaderCellDef>All</th>
-    <td mat-cell *matCellDef="let permission">{{ permission }}</td>
+    <td mat-cell *matCellDef="let permission">
+      <button
+        mat-icon-button
+        color="primary"
+        [matTooltip]="permissionMap.get(permission)"
+        [matTooltipShowDelay]="0"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+      </button>
+      {{ permission }}
+    </td>
   </ng-container>
 
   <ng-container
