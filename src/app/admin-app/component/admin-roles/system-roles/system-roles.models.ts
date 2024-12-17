@@ -1,6 +1,6 @@
 import { SystemPermission } from 'src/app/generated/caster-api';
 
-export class AdminRolesModels {
+export class SystemRolesModel {
   public static SystemPermissions = new Map<string, string>([
     ['All', 'Gives permission to perform any action'],
     [

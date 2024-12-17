@@ -15,6 +15,7 @@ import { ProjectPermission } from './projectPermission';
 export interface ProjectRole { 
     id?: string;
     name?: string | null;
+    allPermissions?: boolean;
     permissions?: Array<ProjectPermission> | null;
 }
 

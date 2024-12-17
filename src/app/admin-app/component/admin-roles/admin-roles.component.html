@@ -1,67 +1,12 @@
-<div *ngIf="canEdit$ | async">
-  <button mat-flat-button color="primary" (click)="addRole()">Add Role</button>
-</div>
-
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-100">
-  <ng-container matColumnDef="permissions" sticky="true">
-    <th mat-header-cell *matHeaderCellDef>Permissions</th>
-    <th mat-header-cell *matHeaderCellDef>All</th>
-    <td mat-cell *matCellDef="let permission">
-      <button
-        mat-icon-button
-        color="primary"
-        [matTooltip]="permissionMap.get(permission)"
-        [matTooltipShowDelay]="0"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
-      </button>
-      {{ permission }}
-    </td>
-  </ng-container>
-
-  <ng-container
-    *ngFor="let role of roles$ | async; trackBy: trackById"
-    [matColumnDef]="role.name"
-  >
-    <th mat-header-cell *matHeaderCellDef>
-      <div class="d-flex">
-        <p>{{ role.name }}</p>
-        <ng-container *ngIf="canEdit$ | async">
-          <button
-            *ngIf="!role.immutable"
-            mat-icon-button
-            color="primary"
-            (click)="renameRole(role)"
-            title="Rename Role"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"></mat-icon>
-          </button>
-          <button
-            *ngIf="!role.immutable"
-            mat-icon-button
-            color="primary"
-            (click)="deleteRole(role)"
-            title="Delete Role"
-          >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-delete-forever-outline"
-            ></mat-icon>
-          </button>
-        </ng-container>
-      </div>
-    </th>
-    <td mat-cell *matCellDef="let permission">
-      <mat-checkbox
-        *ngIf="permission == allPermission || !role.allPermissions"
-        color="primary"
-        [checked]="hasPermission(permission, role)"
-        (change)="setPermission(permission, role, $event)"
-        [disabled]="role.immutable || !(canEdit$ | async)"
-      ></mat-checkbox>
-    </td>
-  </ng-container>
-
-  <tr mat-header-row *matHeaderRowDef="displayedColumns$ | async"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns$ | async"></tr>
-</table>
+<mat-tab-group>
+  <mat-tab label="Roles">
+    <ng-template matTabContent>
+      <cas-system-roles></cas-system-roles>
+    </ng-template>
+  </mat-tab>
+  <mat-tab label="Project Roles">
+    <ng-template matTabContent>
+      <cas-project-roles></cas-project-roles>
+    </ng-template>
+  </mat-tab>
+</mat-tab-group>
