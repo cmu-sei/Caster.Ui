@@ -44,6 +44,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <cas-design
           *ngIf="tab.type === tabType.DESIGN"
           [designId]="tab.id"
+          [canEdit]="canEdit$ | async"
         ></cas-design>
       </ng-template>
     </mat-tab>

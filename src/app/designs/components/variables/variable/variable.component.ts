@@ -10,8 +10,13 @@ import {
   Input,
   OnChanges,
   SimpleChanges,
+  Renderer2,
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+} from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -28,6 +33,9 @@ import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/serv
 export class VariableComponent implements OnInit, OnChanges {
   @Input()
   public variable: Variable;
+
+  @Input()
+  canEdit: boolean;
 
   private isSaving = new BehaviorSubject(false);
   public isSaving$ = this.isSaving.asObservable();
@@ -54,9 +62,17 @@ export class VariableComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: [this.variable.name, Validators.required],
-      type: [this.variable.type, Validators.required],
-      defaultValue: [this.variable.defaultValue],
+      name: [
+        { value: this.variable.name, disabled: !this.canEdit },
+        Validators.required,
+      ],
+      type: [
+        { value: this.variable.type, disabled: !this.canEdit },
+        Validators.required,
+      ],
+      defaultValue: [
+        { value: this.variable.defaultValue, disabled: !this.canEdit },
+      ],
     });
   }
 
@@ -70,6 +86,9 @@ export class VariableComponent implements OnInit, OnChanges {
 
   updateFormValue(propertyName: string) {
     const formControl = this.form?.get(propertyName);
+
+    this.canEdit ? formControl.enable() : formControl.disable();
+
     const val = this.variable[propertyName];
 
     if (formControl?.pristine) {

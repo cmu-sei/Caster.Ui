@@ -25,7 +25,7 @@ export class RolesService {
         let roleToUpdate = roles.find((x) => x.id == role.id);
 
         if (roleToUpdate != null) {
-          roleToUpdate = x;
+          Object.assign(roleToUpdate, role);
         }
 
         this.rolesSubject.next(roles);

@@ -4,7 +4,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 -->
 
 <div class="button-row">
-  <button mat-raised-button color="primary" (click)="addVariable()">Add</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="addVariable()"
+    [disabled]="!canEdit"
+  >
+    Add
+  </button>
 </div>
 
 <div *ngIf="variables$ | async as variables">
@@ -13,6 +20,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       <cas-variable
         *ngFor="let item of variables; trackBy: trackByFn"
         [variable]="item"
+        [canEdit]="canEdit"
       ></cas-variable>
     </div>
   </ng-container>

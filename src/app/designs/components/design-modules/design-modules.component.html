@@ -10,6 +10,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     mat-raised-button
     color="primary"
     (click)="showModuleList = !showModuleList"
+    [disabled]="!canEdit"
   >
     <ng-container *ngIf="!(showModuleList$ | async); else close"
       >Add Module</ng-container
@@ -33,6 +34,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     <cas-design-module
       [designModule]="designModule"
       [module]="moduleQuery.selectByModuleId(designModule.moduleId) | async"
+      [canEdit]="canEdit"
     ></cas-design-module>
   </div>
 </div>

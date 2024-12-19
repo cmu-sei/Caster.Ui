@@ -33,10 +33,16 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       mat-icon-button
       (click)="delete()"
       matTooltip="Delete"
+      [disabled]="!canEdit"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
     </button>
-    <button color="primary" mat-icon-button (click)="toggleEnabled()">
+    <button
+      color="primary"
+      mat-icon-button
+      (click)="toggleEnabled()"
+      [disabled]="!canEdit"
+    >
       <mat-icon
         *ngIf="designModule.enabled"
         class="mdi-24px"
@@ -58,7 +64,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       <cas-module-variables
         *ngIf="!(loading$ | async); else loading"
         [selectedModule]="module"
-        [readOnly]="false"
+        [readOnly]="!canEdit"
         [values]="designModule.values"
         [name]="designModule.name"
         [selectedVersionName]="designModule.moduleVersion"
