@@ -41,7 +41,7 @@ export class ProjectRolesComponent implements OnInit {
     this.projectRoleService.loadRoles().subscribe();
   }
 
-  trackById(item) {
+  trackById(index: number, item: any) {
     return item.id;
   }
 

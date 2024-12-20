@@ -61,7 +61,7 @@ export class SystemRolesComponent implements OnInit {
     this.roleService.getRoles().subscribe();
   }
 
-  trackById(item) {
+  trackById(index: number, item: any) {
     return item.id;
   }
 

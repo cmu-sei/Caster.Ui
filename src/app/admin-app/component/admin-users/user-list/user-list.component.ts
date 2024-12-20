@@ -159,7 +159,7 @@ export class UserListComponent implements OnInit, OnChanges {
     return dialogRef.afterClosed();
   }
 
-  trackById(item) {
+  trackById(index: number, item: any) {
     return item.id;
   }
 

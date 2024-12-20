@@ -131,7 +131,7 @@ export class ProjectMemberListComponent
     });
   }
 
-  trackById(item) {
+  trackById(index: number, item: any) {
     return item.id;
   }
 

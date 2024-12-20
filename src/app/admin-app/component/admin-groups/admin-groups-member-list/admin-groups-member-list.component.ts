@@ -77,7 +77,7 @@ export class AdminGroupsMemberListComponent
     this.deleteMembership.emit(id);
   }
 
-  trackById(item) {
+  trackById(index: number, item: any) {
     return item.id;
   }
 
