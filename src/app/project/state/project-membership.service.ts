@@ -31,9 +31,7 @@ export class ProjectMembershipService {
   createMembership(projectId: string, command: CreateProjectMembershipCommand) {
     return this.projectService.createProjectMembership(projectId, command).pipe(
       tap((x) => {
-        const memberships = this.projectMembershipsSubject.getValue();
-        memberships.push(x);
-        this.projectMembershipsSubject.next(memberships);
+        this.upsert(x.id, x);
       })
     );
   }
@@ -41,13 +39,7 @@ export class ProjectMembershipService {
   editMembership(command: EditProjectMembershipCommand) {
     return this.projectService.editProjectMembership(command).pipe(
       tap((x) => {
-        const memberships = this.projectMembershipsSubject.getValue();
-        const index = memberships.findIndex((m) => m.id === x.id);
-
-        if (index !== -1) {
-          memberships[index] = x;
-          this.projectMembershipsSubject.next(memberships);
-        }
+        this.upsert(command.id, x);
       })
     );
   }
@@ -55,10 +47,27 @@ export class ProjectMembershipService {
   deleteMembership(id: string) {
     return this.projectService.deleteProjectMembership(id).pipe(
       tap(() => {
-        let memberships = this.projectMembershipsSubject.getValue();
-        memberships = memberships.filter((x) => !(x.id == id));
-        this.projectMembershipsSubject.next(memberships);
+        this.remove(id);
       })
     );
+  }
+
+  upsert(id: string, projectMembership: Partial<ProjectMembership>) {
+    const memberships = this.projectMembershipsSubject.getValue();
+    let membershipToUpdate = memberships.find((x) => x.id === id);
+
+    if (membershipToUpdate != null) {
+      Object.assign(membershipToUpdate, projectMembership);
+    } else {
+      memberships.push({ ...projectMembership, id } as ProjectMembership);
+    }
+
+    this.projectMembershipsSubject.next(memberships);
+  }
+
+  remove(id: string) {
+    let memberships = this.projectMembershipsSubject.getValue();
+    memberships = memberships.filter((x) => x.id != id);
+    this.projectMembershipsSubject.next(memberships);
   }
 }

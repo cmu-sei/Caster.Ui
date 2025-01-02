@@ -19,6 +19,7 @@ import {
 } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 @Component({
   selector: 'cas-project-memberships',
@@ -57,7 +58,8 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
     private userService: UserService,
     private userQuery: UserQuery,
     private groupService: GroupService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private signalRService: SignalRService
   ) {}
 
   ngOnInit(): void {
@@ -68,6 +70,19 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
       this.projectRolesService.loadRoles(),
       this.groupService.load(),
     ]).subscribe();
+
+    this.signalRService
+      .startConnection()
+      .then(() => {
+        this.signalRService.joinProjectAdmin(this.projectId);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  ngOnDestroy() {
+    this.signalRService.leaveProjectAdmin(this.projectId);
   }
 
   ngOnChanges() {

@@ -48,9 +48,7 @@ export class GroupMembershipService {
   createMembership(groupId: string, command: CreateGroupMembershipCommand) {
     return this.groupService.createGroupMembership(groupId, command).pipe(
       tap((x) => {
-        const groups = this.groupMembershipSubject.getValue();
-        groups.push(x);
-        this.groupMembershipSubject.next(groups);
+        this.upsert(x.id, x);
       })
     );
   }
@@ -58,10 +56,27 @@ export class GroupMembershipService {
   deleteMembership(id: string) {
     return this.groupService.deleteGroupMembership(id).pipe(
       tap(() => {
-        let groups = this.groupMembershipSubject.getValue();
-        groups = groups.filter((x) => !(x.id == id));
-        this.groupMembershipSubject.next(groups);
+        this.remove(id);
       })
     );
+  }
+
+  upsert(id: string, groupMembership: Partial<GroupMembership>) {
+    const memberships = this.groupMembershipSubject.getValue();
+    let membershipToUpdate = memberships.find((x) => x.id === id);
+
+    if (membershipToUpdate != null) {
+      Object.assign(membershipToUpdate, groupMembership);
+    } else {
+      memberships.push({ ...groupMembership, id } as GroupMembership);
+    }
+
+    this.groupMembershipSubject.next(memberships);
+  }
+
+  remove(id: string) {
+    let memberships = this.groupMembershipSubject.getValue();
+    memberships = memberships.filter((x) => x.id != id);
+    this.groupMembershipSubject.next(memberships);
   }
 }

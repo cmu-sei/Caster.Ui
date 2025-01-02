@@ -1,11 +1,9 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { combineLatest, Observable, of } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import {
-  CreateGroupMembershipCommand,
-  GroupMembership,
-} from 'src/app/generated/caster-api';
+import { CreateGroupMembershipCommand } from 'src/app/generated/caster-api';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
+import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
 
 @Component({
@@ -28,12 +26,24 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
 
   constructor(
     private userQuery: UserQuery,
-    private groupMembershipService: GroupMembershipService
+    private groupMembershipService: GroupMembershipService,
+    private signalRService: SignalRService
   ) {}
 
   ngOnInit(): void {
     this.groupMembershipService.loadMemberships(this.groupId).subscribe();
-    //this.memberships$ = this.groupMembershipService.groupMemberships$;
+    this.signalRService
+      .startConnection()
+      .then(() => {
+        this.signalRService.joinGroup(this.groupId);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  ngOnDestroy() {
+    this.signalRService.leaveGroup(this.groupId);
   }
 
   ngOnChanges() {
