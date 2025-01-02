@@ -17,6 +17,7 @@ import {
   Partition,
   Pool,
   Run,
+  SystemRole,
   Variable,
   Vlan,
   Workspace,
@@ -26,6 +27,7 @@ import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { WorkspaceService } from 'src/app/workspace/state';
 import { ProjectService } from '../../project/state';
+import { RoleService } from 'src/app/roles/roles.service.service';
 
 @Injectable({
   providedIn: 'root',
@@ -37,6 +39,7 @@ export class SignalRService {
   private designIds: string[] = [];
   private joinedWorkspacesAdmin = false;
   private joinedVlansAdmin = false;
+  private joinedRolesAdmin = false;
   private connectionPromise: Promise<void>;
 
   constructor(
@@ -51,7 +54,8 @@ export class SignalRService {
     private designModuleService: DesignModuleService,
     private poolService: PoolService,
     private partitionService: PartitionService,
-    private vlanService: VlanService
+    private vlanService: VlanService,
+    private roleService: RoleService
   ) {}
 
   public startConnection(): Promise<void> {
@@ -98,6 +102,10 @@ export class SignalRService {
 
     if (this.joinedVlansAdmin) {
       this.joinVlansAdmin();
+    }
+
+    if (this.joinedRolesAdmin) {
+      this.joinRolesAdmin();
     }
   }
 
@@ -166,6 +174,19 @@ export class SignalRService {
     this.hubConnection.invoke('LeaveVlansAdmin');
   }
 
+  public joinRolesAdmin() {
+    this.joinedRolesAdmin = true;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinRolesAdmin');
+    }
+  }
+
+  public leaveRolesAdmin() {
+    this.joinedRolesAdmin = false;
+    this.hubConnection.invoke('LeaveRolesAdmin');
+  }
+
   public streamPlanOutput(planId: string) {
     return this.hubConnection.stream('GetPlanOutput', planId);
   }
@@ -185,6 +206,7 @@ export class SignalRService {
     this.addPoolHandlers();
     this.addPartitionHandlers();
     this.addVlanHandlers();
+    this.addRoleHandlers();
   }
 
   private addFileHandlers() {
@@ -368,6 +390,26 @@ export class SignalRService {
 
     this.hubConnection.on('VlanDeleted', (id: string) => {
       this.vlanService.remove(id);
+    });
+  }
+
+  private addRoleHandlers() {
+    this.hubConnection.on('RoleCreated', (role: SystemRole) => {
+      this.roleService.upsert(role.id, role);
+    });
+
+    this.hubConnection.on(
+      'RoleUpdated',
+      (role: SystemRole, modifiedProperties: string[]) => {
+        this.roleService.upsert(
+          role.id,
+          this.getModified(role, modifiedProperties)
+        );
+      }
+    );
+
+    this.hubConnection.on('RoleDeleted', (id: string) => {
+      this.roleService.remove(id);
     });
   }
 

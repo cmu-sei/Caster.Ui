@@ -6,7 +6,7 @@ import { tap } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root',
 })
-export class RolesService {
+export class RoleService {
   private roleService = inject(SystemRolesService);
 
   rolesSubject = new BehaviorSubject<SystemRole[]>([]);
@@ -21,14 +21,7 @@ export class RolesService {
   editRole(role: SystemRole) {
     return this.roleService.editSystemRole(role.id, role).pipe(
       tap((x) => {
-        const roles = this.rolesSubject.getValue();
-        let roleToUpdate = roles.find((x) => x.id == role.id);
-
-        if (roleToUpdate != null) {
-          Object.assign(roleToUpdate, role);
-        }
-
-        this.rolesSubject.next(roles);
+        this.upsert(role.id, x);
       })
     );
   }
@@ -36,20 +29,35 @@ export class RolesService {
   createRole(role: SystemRole) {
     return this.roleService.createSystemRole(role).pipe(
       tap((x) => {
-        const roles = this.rolesSubject.getValue();
-        roles.push(x);
-        this.rolesSubject.next(roles);
+        this.upsert(x.id, x);
       })
     );
   }
 
   deleteRole(id: string) {
     return this.roleService.deleteSystemRole(id).pipe(
-      tap((x) => {
-        let roles = this.rolesSubject.getValue();
-        roles = roles.filter((x) => x.id != id);
-        this.rolesSubject.next(roles);
+      tap(() => {
+        this.remove(id);
       })
     );
+  }
+
+  upsert(id: string, role: Partial<SystemRole>) {
+    const roles = this.rolesSubject.getValue();
+    let roleToUpdate = roles.find((x) => x.id === id);
+
+    if (roleToUpdate != null) {
+      Object.assign(roleToUpdate, role);
+    } else {
+      roles.push({ ...role, id } as SystemRole);
+    }
+
+    this.rolesSubject.next(roles);
+  }
+
+  remove(id: string) {
+    let roles = this.rolesSubject.getValue();
+    roles = roles.filter((x) => x.id != id);
+    this.rolesSubject.next(roles);
   }
 }

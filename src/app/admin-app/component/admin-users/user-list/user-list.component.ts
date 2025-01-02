@@ -25,7 +25,7 @@ import {
   fromMatPaginator,
   paginateRows,
 } from 'src/app/datasource-utils';
-import { RolesService } from 'src/app/roles/roles.service.service';
+import { RoleService } from 'src/app/roles/roles.service.service';
 import { MatSelectChange } from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
 
@@ -68,7 +68,7 @@ export class UserListComponent implements OnInit, OnChanges {
 
   constructor(
     private dialog: MatDialog,
-    private roleService: RolesService,
+    private roleService: RoleService,
     private userService: UserService
   ) {}
 

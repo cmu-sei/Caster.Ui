@@ -1,15 +1,16 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { SystemPermission, SystemRole } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
-import { RolesService } from 'src/app/roles/roles.service.service';
+import { RoleService } from 'src/app/roles/roles.service.service';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { SystemRolesModel } from './system-roles.models';
 import { map, take } from 'rxjs/operators';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { Observable } from 'rxjs';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
+import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 const NAME_VALUE = 'nameValue';
 
@@ -18,11 +19,12 @@ const NAME_VALUE = 'nameValue';
   templateUrl: './system-roles.component.html',
   styleUrls: ['./system-roles.component.scss'],
 })
-export class SystemRolesComponent implements OnInit {
-  private roleService = inject(RolesService);
+export class SystemRolesComponent implements OnInit, OnDestroy {
+  private roleService = inject(RoleService);
   private dialog = inject(MatDialog);
   private confirmService = inject(ConfirmDialogService);
   private permissionService = inject(PermissionService);
+  private signalRService = inject(SignalRService);
 
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageRoles
@@ -59,6 +61,19 @@ export class SystemRolesComponent implements OnInit {
 
   ngOnInit(): void {
     this.roleService.getRoles().subscribe();
+
+    this.signalRService
+      .startConnection()
+      .then(() => {
+        this.signalRService.joinRolesAdmin();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  ngOnDestroy() {
+    this.signalRService.leaveRolesAdmin();
   }
 
   trackById(index: number, item: any) {
