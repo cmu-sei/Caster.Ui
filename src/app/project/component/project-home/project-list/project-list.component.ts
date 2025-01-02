@@ -80,7 +80,7 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
-    this.permissionService.loadProjectPermissions().subscribe();
+    this.loadProjects();
   }
 
   ngAfterViewInit(): void {
@@ -89,11 +89,16 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.projects) {
+      this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
     }
     if (changes.isLoading) {
       this.isLoading = changes.isLoading.currentValue;
     }
+  }
+
+  private loadProjects() {
+    this.permissionService.loadProjectPermissions().subscribe();
   }
 
   selectProject(projectId: string) {
