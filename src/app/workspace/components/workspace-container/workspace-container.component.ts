@@ -24,6 +24,7 @@ import {
   ResourceCommandResult,
   Run,
   RunStatus,
+  SystemPermission,
   Workspace,
 } from '../../../generated/caster-api';
 import {
@@ -34,6 +35,7 @@ import {
 } from '../../state';
 import { ImportResourceComponent } from '../import-resource/import-resource.component';
 import { OutputComponent } from '../output/output.component';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-workspace-container',
@@ -65,6 +67,7 @@ export class WorkspaceContainerComponent
   breadcrumbString = '';
   resourceActions = ResourceActions;
   forceCancel = false;
+  canImport$: Observable<boolean>;
 
   @ViewChild('importResourceDialog')
   importResourceDialog: TemplateRef<ImportResourceComponent>;
@@ -81,7 +84,8 @@ export class WorkspaceContainerComponent
     private signalrService: SignalRService,
     private confirmService: ConfirmDialogService,
     public currentUserQuery: CurrentUserQuery,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit() {
@@ -169,6 +173,10 @@ export class WorkspaceContainerComponent
       );
 
     this.signalrService.joinWorkspace(this.workspaceId);
+
+    this.canImport$ = this.permissionService.hasPermission(
+      SystemPermission.ImportResources
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {

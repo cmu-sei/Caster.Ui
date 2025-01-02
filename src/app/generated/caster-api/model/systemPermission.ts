@@ -11,7 +11,7 @@
  */
 
 
-export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules';
+export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ImportResources' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules';
 
 export const SystemPermission = {
     CreateProjects: 'CreateProjects' as SystemPermission,
@@ -20,6 +20,7 @@ export const SystemPermission = {
     ManageProjects: 'ManageProjects' as SystemPermission,
     ImportProjects: 'ImportProjects' as SystemPermission,
     LockFiles: 'LockFiles' as SystemPermission,
+    ImportResources: 'ImportResources' as SystemPermission,
     ViewUsers: 'ViewUsers' as SystemPermission,
     ManageUsers: 'ManageUsers' as SystemPermission,
     ViewWorkspaces: 'ViewWorkspaces' as SystemPermission,

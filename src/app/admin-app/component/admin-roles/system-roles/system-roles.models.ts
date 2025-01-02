@@ -24,6 +24,10 @@ export class SystemRolesModel {
       'Allows for administratively locking files in a Project so that only other users with this Permission can unlock them.',
     ],
     [
+      SystemPermission.ImportResources,
+      "Allows for importing arbitrary resources into a Workspace's state",
+    ],
+    [
       SystemPermission.ManageProjects,
       'Allows for making changes to Project Memberships.',
     ],

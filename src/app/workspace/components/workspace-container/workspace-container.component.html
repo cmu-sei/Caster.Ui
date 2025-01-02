@@ -188,10 +188,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             Refresh
           </button>
           <button
-            *ngIf="false"
             mat-flat-button
             color="primary"
-            [disabled]="!canEdit || (loading$ | async)"
+            [disabled]="!(canImport$ | async) || (loading$ | async)"
             (click)="openImportResourceDialog()"
             matTooltip="Import an existing resource into this workspace"
           >
