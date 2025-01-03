@@ -36,3 +36,36 @@ mat-toolbar-row {
 .icon {
   height: auto;
 }
+
+.split-buttons {
+  align-items: center;
+  flex-direction: row;
+  display: flex;
+  flex: 5;
+}
+
+.action-cell {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: center;
+  justify-content: space-evenly;
+}
+
+.action-checkboxes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 3;
+  align-content: center;
+  justify-content: space-evenly;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 7;
+  align-content: center;
+  justify-content: space-evenly;
+}

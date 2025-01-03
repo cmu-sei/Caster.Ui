@@ -64,6 +64,8 @@ export class WorkspaceContainerComponent
   breadcrumbString = '';
   resourceActions = ResourceActions;
   forceCancel = false;
+  resourcesToReplace: string[] = [];
+  resourcesToTarget: string[] = [];
 
   @ViewChild('importResourceDialog')
   importResourceDialog: TemplateRef<ImportResourceComponent>;
@@ -180,9 +182,18 @@ export class WorkspaceContainerComponent
   }
 
   plan(event: Event) {
-    event.stopPropagation();
+    if (event) {
+      this.resourcesToReplace = []; // clear the list when NOT in state view
+      this.resourcesToTarget = []; // clear the list when NOT in state view
+      event.stopPropagation();
+    }
     this.workspaceService
-      .createPlanRun(this.workspaceId, false)
+      .createPlanRun(
+        this.workspaceId,
+        false,
+        this.resourcesToReplace,
+        this.resourcesToTarget
+      )
       .pipe(
         take(1)
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -235,7 +246,9 @@ export class WorkspaceContainerComponent
   destroy(event: Event) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
-    this.workspaceService.createPlanRun(this.workspaceId, true).subscribe();
+    this.workspaceService
+      .createPlanRun(this.workspaceId, true, null, null)
+      .subscribe();
   }
 
   saveState(event: Event, run: Run) {
@@ -296,6 +309,43 @@ export class WorkspaceContainerComponent
       .subscribe((result) => {
         this.showResult(result);
       });
+  }
+
+  replaceResources() {
+    this.viewChangedFn('runs');
+    this.plan(null);
+    this.resourcesToReplace = []; // clear the list after the plan
+    this.resourcesToTarget = []; // clear the list after the plan
+  }
+
+  markResourceForReplace(event: any, id: string) {
+    if (event.checked) {
+      this.resourcesToReplace.push(id);
+    } else {
+      const index = this.resourcesToReplace.findIndex((m) => m === id);
+      if (index >= 0) {
+        this.resourcesToReplace.splice(index, 1);
+      }
+    }
+  }
+
+  resourceToReplace(id: string): boolean {
+    return this.resourcesToReplace.includes(id);
+  }
+
+  markResourceForTarget(event: any, id: string) {
+    if (event.checked) {
+      this.resourcesToTarget.push(id);
+    } else {
+      const index = this.resourcesToTarget.findIndex((m) => m === id);
+      if (index >= 0) {
+        this.resourcesToTarget.splice(index, 1);
+      }
+    }
+  }
+
+  resourceToTarget(id: string): boolean {
+    return this.resourcesToTarget.includes(id);
   }
 
   private showResult(result: ResourceCommandResult) {
@@ -409,6 +459,8 @@ export class WorkspaceContainerComponent
             .loadResourcesByWorkspaceId(this.workspaceId)
             .pipe(take(1))
             .subscribe();
+          this.resourcesToReplace = []; // reset the list when returning to the state view
+          this.resourcesToTarget = []; // reset the list when returning to the state view
           break;
       }
       this.workspaceService.setWorkspaceView(this.workspaceId, event);
