@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   OnInit,
@@ -28,9 +29,8 @@ const NAME_VALUE = 'nameValue';
   styleUrls: ['./admin-groups.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminGroupsComponent implements OnInit {
-  //@ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+export class AdminGroupsComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort: MatSort;
 
   filterString = '';
   displayedColumns: string[] = ['name'];
@@ -56,6 +56,10 @@ export class AdminGroupsComponent implements OnInit {
 
   ngOnInit() {
     forkJoin([this.groupsService.load(), this.usersService.load()]).subscribe();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
   }
 
   applyFilter(filterValue: string) {

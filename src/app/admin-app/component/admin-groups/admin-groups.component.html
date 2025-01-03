@@ -46,7 +46,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <!-- Name Column -->
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        Project Name
+        Group Name
+        <button
+          mat-icon-button
+          color="primary"
+          matTooltip="Users can be added to Groups here or, if enabled in your environment, can be matched to Group Names from the token of the Identity Provider in use."
+          matTooltipShowDelay="0"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+        </button>
       </mat-header-cell>
       <mat-cell *matCellDef="let element">
         <mat-expansion-panel class="w-100">
