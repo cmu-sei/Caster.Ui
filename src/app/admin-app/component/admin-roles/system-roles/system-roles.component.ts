@@ -1,3 +1,8 @@
+/*
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
