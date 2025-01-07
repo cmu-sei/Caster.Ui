@@ -34,11 +34,11 @@ export interface CreateWorkspaceCommand {
      */
     terraformVersion?: string | null;
     /**
-     * Limit the number of concurrent operations as Terraform walks the graph.   If null, the Terraform default will be used.
+     * Limit the number of concurrent operations as Terraform walks the graph.  If null, the Terraform default will be used.
      */
     parallelism?: number | null;
     /**
-     * If set, the number of consecutive failed destroys in an Azure Workspace before   Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
+     * If set, the number of consecutive failed destroys in an Azure Workspace before  Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
      */
     azureDestroyFailureThreshold?: number | null;
 }

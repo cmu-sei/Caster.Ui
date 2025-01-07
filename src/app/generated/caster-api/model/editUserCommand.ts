@@ -19,5 +19,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 export interface EditUserCommand { 
     id?: string;
     name?: string | null;
+    roleId?: string | null;
 }
 

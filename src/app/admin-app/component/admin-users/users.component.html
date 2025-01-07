@@ -7,14 +7,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div fxLayout="row" class="add-margin">
     <div fxFlex>
       <cas-user-list
-        *ngIf="!!users$ && !!permissions$ && !!isLoading$"
+        *ngIf="!!users$ && !!isLoading$"
         [users]="users$ | async"
-        [permissions]="permissions$ | async"
         [isLoading]="isLoading$ | async"
+        [canEdit]="canEdit$ | async"
         (create)="create($event)"
         (delete)="deleteUser($event)"
-        (addUserPermission)="addUserPermission($event)"
-        (removeUserPermission)="removeUserPermission($event)"
       >
       </cas-user-list>
     </div>

@@ -19,5 +19,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 export interface CreateUserCommand { 
     id?: string;
     name?: string | null;
+    allPermissions?: boolean;
+    roleId?: string | null;
 }
 

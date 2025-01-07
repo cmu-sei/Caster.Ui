@@ -5,60 +5,87 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
+import {
+  ComnAuthQuery,
+  ComnAuthService,
+  ComnSettingsService,
+  Theme,
+} from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
+import { PermissionService } from 'src/app/permissions/permission.service';
+import { ProjectPermission } from 'src/app/generated/caster-api';
+import { ProjectQuery } from 'src/app/project';
 @Component({
   selector: 'cas-topbar',
   templateUrl: './topbar.component.html',
   styleUrls: ['./topbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopbarComponent implements OnInit, OnDestroy {
-  @Input() title?: string;
+export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() title?: string = 'Caster';
   @Input() sidenav?;
-  @Input() teams?;
-  @Input() team?;
   @Input() topbarColor?;
   @Input() topbarTextColor?;
-  @Input() topbarView?: TopbarView;
+  @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
+  @Input() projectId?: string;
+
   @Output() sidenavToggle?: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() setTeam?: EventEmitter<string> = new EventEmitter<string>();
-  @Output() editView?: EventEmitter<any> = new EventEmitter<any>();
+  @Output() editMemberships?: EventEmitter<any> = new EventEmitter<any>();
+
   currentUser$: Observable<CurrentUserState>;
   theme$: Observable<Theme>;
   unsubscribe$: Subject<null> = new Subject<null>();
   TopbarView = TopbarView;
+
   constructor(
     private authService: ComnAuthService,
     private currentUserQuery: CurrentUserQuery,
     private userService: UserService,
     private authQuery: ComnAuthQuery,
-    private router: Router
+    private router: Router,
+    private settingsService: ComnSettingsService,
+    private permissionService: PermissionService
   ) {}
 
+  canViewAdmin$ = this.permissionService.canViewAdiminstration();
+
+  canManageProject$: Observable<boolean>;
+
   ngOnInit() {
+    this.permissionService.load().subscribe();
+
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),
       takeUntil(this.unsubscribe$)
     );
 
     this.theme$ = this.authQuery.userTheme$;
+
+    if (!this.topbarColor) {
+      this.topbarColor = this.settingsService.settings.AppTopBarHexColor;
+    }
+
+    if (!this.topbarTextColor) {
+      this.topbarTextColor =
+        this.settingsService.settings.AppTopBarHexTextColor;
+    }
   }
 
-  setTeamFn(id: string) {
-    if (this.setTeam && id) {
-      this.setTeam.emit(id);
-    }
+  ngOnChanges() {
+    this.canManageProject$ = this.permissionService.canManageProject(
+      this.projectId
+    );
   }
 
   themeFn(event) {
@@ -66,13 +93,17 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.authService.setUserTheme(theme);
     this.userService.setUserTheme(theme);
   }
-  editFn(event) {
-    this.editView.emit(event);
-  }
 
   sidenavToggleFn() {
     this.sidenavToggle.emit(!this.sidenav.opened);
   }
+
+  editMembershipsFn(event) {
+    event.preventDefault();
+    this.editMemberships.emit();
+  }
+
+  getEditMembershipsUrl() {}
 
   logout(): void {
     this.authService.logout();

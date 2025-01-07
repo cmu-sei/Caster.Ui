@@ -24,6 +24,9 @@ export class VariablesComponent implements OnInit {
   @Input()
   public designId: string;
 
+  @Input()
+  canEdit: boolean;
+
   public variables$: Observable<Variable[]>;
 
   constructor(

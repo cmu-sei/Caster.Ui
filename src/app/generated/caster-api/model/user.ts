@@ -14,12 +14,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Permission } from './permission';
 
 
 export interface User { 
     id?: string;
     name?: string | null;
-    permissions?: Array<Permission> | null;
+    roleId?: string | null;
 }
 

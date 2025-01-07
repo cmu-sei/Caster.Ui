@@ -25,6 +25,9 @@ export class DesignModulesComponent implements OnInit {
   @Input()
   designId: string;
 
+  @Input()
+  canEdit: boolean;
+
   // #region showModuleListSubject
   private showModuleListSubject = new BehaviorSubject(false);
   public showModuleList$ = this.showModuleListSubject.asObservable();

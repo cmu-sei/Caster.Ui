@@ -5,6 +5,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { ComnAuthGuardService } from '@cmusei/crucible-common';
 import { ProjectListContainerComponent } from './project/component/project-home/project-list-container/project-list-container.component';
+import { ProjectMembershipsPageComponent } from './project/component/project-memberships/project-memberships-page/project-memberships-page.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,12 @@ const routes: Routes = [
   {
     path: '',
     component: ProjectListContainerComponent,
+    pathMatch: 'full',
+    canActivate: [ComnAuthGuardService],
+  },
+  {
+    path: 'projects/:id/memberships',
+    component: ProjectMembershipsPageComponent,
     pathMatch: 'full',
     canActivate: [ComnAuthGuardService],
   },

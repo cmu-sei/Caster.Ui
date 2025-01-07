@@ -15,7 +15,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     />
   </mat-form-field>
 
-  <div class="right">
+  <div *ngIf="canEdit" class="right">
     <mat-form-field appearance="fill">
       <mat-label>Partition</mat-label>
       <mat-select #partitionSelect>
@@ -89,7 +89,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           mat-button
           [color]="element.inUse ? 'warn' : 'basic'"
           (click)="toggleInUse(element)"
-          [disabled]="!element.partitionId || loading.get(element.id)"
+          [disabled]="
+            !element.partitionId || loading.get(element.id) || !canEdit
+          "
         >
           {{ element.inUse }}
         </button>
@@ -103,7 +105,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           mat-button
           [color]="element.reserved ? 'warn' : 'basic'"
           (click)="toggleReserved(element)"
-          [disabled]="loading.get(element.id)"
+          [disabled]="loading.get(element.id) || !canEdit"
         >
           {{ element.reserved }}
         </button>
@@ -117,6 +119,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           <ng-container *ngIf="editingId != element.id">
             <p>{{ element.tag }}</p>
             <button
+              *ngIf="canEdit"
               mat-icon-button
               color="primary"
               matTooltip="Edit Tag"

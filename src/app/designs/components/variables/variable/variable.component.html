@@ -30,6 +30,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       color="primary"
       mat-icon-button
       (click)="delete()"
+      [disabled]="!canEdit"
       matTooltip="Delete"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
@@ -125,7 +126,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
             color="primary"
             mat-raised-button
             *ngIf="{ value: isSaving$ | async } as isSaving"
-            [disabled]="!form.valid || !form.dirty || isSaving.value"
+            [disabled]="
+              !canEdit || !form.valid || !form.dirty || isSaving.value
+            "
           >
             <span *ngIf="!isSaving.value; else saving">Save</span>
             <ng-template #saving>

@@ -77,7 +77,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             color="primary"
             fxFlexAlign="center"
             *ngIf="file && !file.administrativelyLocked"
-            [disabled]="!isSuperUser"
+            [disabled]="!canAdminLock"
             (click)="adminLockFile()"
           >
             <mat-icon
@@ -92,7 +92,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             color="primary"
             fxFlexAlign="center"
             *ngIf="file && file.administrativelyLocked"
-            [disabled]="!isSuperUser"
+            [disabled]="!canAdminLock"
             (click)="adminUnlockFile()"
           >
             <mat-icon
@@ -107,7 +107,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             hotkeyAction="FILE_SAVE"
             color="primary"
             fxFlexAlign="center"
-            [disabled]="isSaved$ | async"
+            [disabled]="!canEdit || (isSaved$ | async)"
             (click)="saveFile()"
           >
             <mat-icon
@@ -122,7 +122,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             hotkeyAction="DISCARD_CHANGES"
             color="primary"
             fxFlexAlign="center"
-            [disabled]="file && file.editorContent === file.content"
+            [disabled]="
+              !canEdit || (file && file.editorContent === file.content)
+            "
             (click)="discardFileChanges()"
           >
             <mat-icon
@@ -152,7 +154,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             *ngIf="file && !file.lockedById"
             color="primary"
             (click)="lockFile()"
-            matTooltip="Edit this file. Only one person can edit a file at a time"
+            [disabled]="!canEdit"
+            [matTooltip]="
+              canEdit
+                ? 'Edit this file. Only one person can edit a file at a time'
+                : 'You do not have permissions to edit this file'
+            "
           >
             <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-edit"></mat-icon>
           </button>
@@ -170,15 +177,39 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <mat-divider vertical style="height: 100%"></mat-divider>
           <div *ngIf="filename.endsWith('.tf')">
-            <button mat-icon-button hotkeyAction="FILE_MODULES" fxFlexAlign="center" color="primary"
-              (click)="sidebarView = 'modules'; sidebarChangedFn('modules', true)" [disabled]="sidebarView === 'modules'"
-              matTooltip="Show the module list">
-              <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-code"></mat-icon>
+            <button
+              mat-icon-button
+              hotkeyAction="FILE_MODULES"
+              fxFlexAlign="center"
+              color="primary"
+              (click)="
+                sidebarView = 'modules'; sidebarChangedFn('modules', true)
+              "
+              [disabled]="sidebarView === 'modules'"
+              matTooltip="Show the module list"
+            >
+              <mat-icon
+                fontSet="fas"
+                class="fa-lg"
+                fontIcon="fa-code"
+              ></mat-icon>
             </button>
-            <button mat-icon-button hotkeyAction="FILE_VERSIONS" fxFlexAlign="center" color="primary"
-              (click)="sidebarView = 'versions'; sidebarChangedFn('versions', true)" [disabled]="sidebarView === 'versions'"
-              matTooltip="Show the file versions">
-              <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-history"></mat-icon>
+            <button
+              mat-icon-button
+              hotkeyAction="FILE_VERSIONS"
+              fxFlexAlign="center"
+              color="primary"
+              (click)="
+                sidebarView = 'versions'; sidebarChangedFn('versions', true)
+              "
+              [disabled]="sidebarView === 'versions'"
+              matTooltip="Show the file versions"
+            >
+              <mat-icon
+                fontSet="fas"
+                class="fa-lg"
+                fontIcon="fa-history"
+              ></mat-icon>
             </button>
           </div>
         </mat-toolbar-row>

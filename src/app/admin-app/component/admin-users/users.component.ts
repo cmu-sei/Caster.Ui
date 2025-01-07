@@ -1,18 +1,14 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
-import { PermissionService, PermissionQuery } from '../../../permissions/state';
 import { UserService, UserQuery } from '../../../users/state';
-import {
-  User,
-  Permission,
-  UserPermission,
-} from '../../../generated/caster-api';
+import { SystemPermission, User } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
+import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
   selector: 'cas-users',
@@ -24,13 +20,13 @@ export class UsersComponent implements OnInit {
   public isLinear = false;
   public users$: Observable<User[]>;
   public isLoading$: Observable<boolean>;
-  public permissions$: Observable<Permission[]>;
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageUsers
+  );
 
   constructor(
-    public zone: NgZone,
     private userService: UserService,
     private userQuery: UserQuery,
-    private permissionQuery: PermissionQuery,
     private permissionService: PermissionService
   ) {}
 
@@ -40,10 +36,7 @@ export class UsersComponent implements OnInit {
   ngOnInit() {
     this.users$ = this.userQuery.selectAll();
     this.userService.load().pipe(take(1)).subscribe();
-    this.permissions$ = this.permissionQuery.selectAll();
-    this.permissionService.load().pipe(take(1)).subscribe();
-    this.isLoading$ =
-      this.userQuery.selectLoading() || this.permissionQuery.selectLoading();
+    this.isLoading$ = this.userQuery.selectLoading();
   }
 
   create(newUser: User) {
@@ -52,20 +45,6 @@ export class UsersComponent implements OnInit {
 
   deleteUser(userId: string) {
     this.userService.delete(userId).pipe(take(1)).subscribe();
-  }
-
-  addUserPermission(userPermission: UserPermission) {
-    this.userService.addUserPermission(
-      userPermission.userId,
-      userPermission.permissionId
-    );
-  }
-
-  removeUserPermission(userPermission: UserPermission) {
-    this.userService.removeUserPermission(
-      userPermission.userId,
-      userPermission.permissionId
-    );
   }
 } // End Class
 

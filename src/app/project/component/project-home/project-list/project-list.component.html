@@ -3,12 +3,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div
-  class="project-list-container mat-elevation-z8"
-  fxFlex="nogrow"
-  fxFlexAlign="center start"
->
-  <div fxLayout="row" fxLayoutAlign="space-between center">
+<div class="project-list-container mat-elevation-z8">
+  <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
         <mat-icon
@@ -21,6 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matInput
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
+            #input
             placeholder="Search Projects"
           />
         </mat-form-field>
@@ -36,10 +33,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
         <div class="spacer"></div>
         <button
+          *ngIf="canCreate$ | async"
           mat-icon-button
           matTooltip="Add New Project"
           hotkeyAction="PROJECT_NEW"
-          (click)="createRequest()"
+          (click)="create()"
         >
           <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
         </button>
@@ -48,49 +46,111 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 
   <div *ngIf="projects">
-    <mat-table [dataSource]="dataSource" matSort>
-      <!-- Name Column -->
+    <mat-table
+      matSort
+      matSortActive="name"
+      matSortDirection="asc"
+      [dataSource]="dataSource"
+      matSort
+    >
       <ng-container matColumnDef="name">
         <mat-header-cell *matHeaderCellDef mat-sort-header>
           Project Name
         </mat-header-cell>
         <mat-cell *matCellDef="let element">
-          <button
-            mat-icon-button
-            matTooltip="Delete {{ element.name }}"
-            (click)="deleteRequest(element)"
-          >
-            <mat-icon
-              color="primary"
-              fontSet="fas"
-              fontIcon="fa-trash"
-            ></mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            matTooltip="Rename"
-            (click)="updateRequest(element)"
-          >
-            <mat-icon
-              color="primary"
-              fontSet="fas"
-              fontIcon="fa-pencil-alt"
-            ></mat-icon>
-          </button>
           <a
+            *ngIf="!manageMode"
             class="project-text"
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
             >{{ element.name }}</a
           >
+          <a
+            *ngIf="manageMode"
+            class="project-text"
+            matTooltip="Edit {{ element.name }}"
+            [routerLink]="['/projects', element.id, 'memberships']"
+            ><p
+              (click)="
+                $event.preventDefault();
+                $event.stopPropagation();
+                selectProject(element.id)
+              "
+            >
+              {{ element.name }}
+            </p></a
+          >
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <a
+            *ngIf="manageMode"
+            mat-icon-button
+            matTooltip="Open {{ element.name }}"
+            [routerLink]="['/projects', element.id]"
+            target="_blank"
+          >
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-external-link-alt"
+            ></mat-icon>
+          </a>
+          <ng-container
+            *ngIf="
+              (canManageAll$ | async) ||
+              (canManageProjects$ | async).includes(element.id)
+            "
+          >
+            <button
+              mat-icon-button
+              matTooltip="Rename"
+              (click)="update(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-pencil-alt"
+              ></mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Delete {{ element.name }}"
+              (click)="delete(element)"
+            >
+              <mat-icon
+                color="primary"
+                fontSet="fas"
+                fontIcon="fa-trash"
+              ></mat-icon>
+            </button>
+          </ng-container>
         </mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">
+          <ng-container *ngIf="input.value; else noProjects">
+            No data matching the filter "{{ input.value }}"
+          </ng-container>
+          <ng-template #noProjects>
+            You are not a member of any Projects
+          </ng-template>
+        </td>
+      </tr>
     </mat-table>
     <!-- This non-displayed button is required, because hotKeys do not work with the button inside the mat-table -->
-    <button style="display: none;" hotkeyAction="PROJECT_NEW" (click)="createRequest()"></button>
+    <button
+      style="display: none"
+      hotkeyAction="PROJECT_NEW"
+      (click)="createRequest()"
+    ></button>
   </div>
 
   <!-- Loading Spinner -->
