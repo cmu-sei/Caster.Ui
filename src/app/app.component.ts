@@ -86,7 +86,7 @@ export class AppComponent implements OnDestroy {
   }
 
   updateLastRoute(route: string) {
-    if (route !== '/admin') {
+    if (!route.startsWith('/admin')) {
       this.currentUserStore.update({ lastRoute: route });
     }
   }
