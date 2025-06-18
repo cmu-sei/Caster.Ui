@@ -28,10 +28,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-form-field>
 
   <div fxLayout="row" fxLayoutAlign="space-around center">
-    <button type="submit" mat-raised-button [disabled]="!form.valid">
+    <button
+      type="submit"
+      color="primary"
+      mat-raised-button
+      [disabled]="!form.valid"
+    >
       Export
     </button>
 
-    <button type="reset" mat-raised-button (click)="cancel()">Cancel</button>
+    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
+      Cancel
+    </button>
   </div>
 </form>

@@ -155,4 +155,8 @@ export class DirectoryService {
         })
       );
   }
+
+  import(id: string, preserveIds: boolean, archive: Blob) {
+    return this.directoriesService.importDirectory(id, preserveIds, archive);
+  }
 }

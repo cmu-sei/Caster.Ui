@@ -43,6 +43,7 @@ import { DesignService } from 'src/app/designs/state/design.service';
 import { Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { ProjectImportComponent } from '../../project-import/project-import.component';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -78,6 +79,9 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
+
+  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
   @ViewChild('workspaceEditDialog')
   workspaceEditDialog: TemplateRef<WorkspaceEditContainerComponent>;
@@ -484,8 +488,19 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     }
   }
 
+  onContextImport(obj: any) {
+    this.exportId = obj.object.id;
+    this.exportName = obj.object.name;
+    this.exportObjectType = obj.type as ProjectObjectType;
+    this.importDialogRef = this.dialog.open(this.importDialog);
+  }
+
   onExportComplete() {
     this.exportDialogRef.close();
+  }
+
+  onImportComplete() {
+    this.importDialogRef.close();
   }
 
   isExportable(obj: any) {

@@ -26,6 +26,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ProjectExportComponent } from '../project-export/project-export.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { ProjectImportComponent } from '../project-import/project-import.component';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -47,6 +48,9 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
+
+  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
   constructor(
     private routerQuery: RouterQuery,
@@ -125,8 +129,16 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     this.exportDialogRef = this.dialog.open(this.exportDialog);
   }
 
+  importProject() {
+    this.importDialogRef = this.dialog.open(this.importDialog);
+  }
+
   onExportComplete() {
     this.exportDialogRef.close();
+  }
+
+  onImportComplete() {
+    this.importDialogRef.close();
   }
 
   ngOnDestroy(): void {

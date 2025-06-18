@@ -276,6 +276,10 @@ export class ProjectService {
       );
   }
 
+  import(id: string, preserveIds: boolean, archive: Blob) {
+    return this.projectsService.importProject(id, preserveIds, archive);
+  }
+
   assignPartition(projectId: string, partitionId: string) {
     let obs: Observable<Project>;
 

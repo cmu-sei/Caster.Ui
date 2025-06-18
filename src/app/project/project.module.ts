@@ -52,6 +52,7 @@ import { ProjectMemberListComponent } from './component/project-memberships/proj
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { ProjectImportComponent } from './component/project-details/project-import/project-import.component';
 
 const projectRoutes: Routes = [
   {
@@ -79,6 +80,7 @@ const projectRoutes: Routes = [
     ProjectTabComponent,
     FilesFilterPipe,
     ProjectExportComponent,
+    ProjectImportComponent,
     ProjectMembershipsComponent,
     ProjectMembershipsPageComponent,
     ProjectMembershipListComponent,

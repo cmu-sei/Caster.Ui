@@ -43,6 +43,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >Export Project</a
     >
   </div>
+  <div
+    fxLayout="row"
+    fxLayoutAlign="start center"
+    class="nav-background"
+    (click)="importProject()"
+  >
+    <mat-icon
+      title="Import Project"
+      class="add-icon fa"
+      fontSet="fas"
+      fontIcon="fa-file-import"
+      matTooltip="Import Project {{ project.name }}"
+    ></mat-icon>
+    <a class="add-link" matTooltip="Import Project {{ project.name }}"
+      >Import Project</a
+    >
+  </div>
 </div>
 
 <ng-template #exportDialog>
@@ -54,4 +71,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (exportComplete)="onExportComplete()"
   >
   </cas-project-export>
+</ng-template>
+
+<ng-template #importDialog>
+  <cas-project-import
+    *ngIf="project$ | async as project"
+    [id]="project.id"
+    [type]="objType"
+    [name]="project.name"
+    (importComplete)="onImportComplete()"
+  >
+  </cas-project-import>
 </ng-template>
