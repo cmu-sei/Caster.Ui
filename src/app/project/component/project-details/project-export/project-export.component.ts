@@ -14,7 +14,11 @@ import { DirectoryService } from 'src/app/directories';
 import { FileService } from 'src/app/files/state';
 import { ArchiveType } from 'src/app/generated/caster-api';
 import { take } from 'rxjs/operators';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import {
+  UntypedFormGroup,
+  UntypedFormBuilder,
+  Validators,
+} from '@angular/forms';
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
 
 @Component({
@@ -50,7 +54,7 @@ export class ProjectExportComponent implements OnInit {
   ) {
     this.form = formBuilder.group({
       archiveType: [this.archiveTypes[0]],
-      includeIds: [true, Validators.required],
+      includeIds: [false, Validators.required],
     });
   }
 

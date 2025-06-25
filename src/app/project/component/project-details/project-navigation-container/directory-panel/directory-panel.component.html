@@ -450,6 +450,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
       Export
     </button>
+    <button
+      *ngIf="isExportable(item)"
+      mat-menu-item
+      (click)="onContextImport(item)"
+      fxLayout="row"
+    >
+      Import
+    </button>
   </ng-template>
 </mat-menu>
 
@@ -461,6 +469,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (exportComplete)="onExportComplete()"
   >
   </cas-project-export>
+</ng-template>
+
+<ng-template #importDialog>
+  <cas-project-import
+    [id]="exportId"
+    [type]="exportObjectType"
+    [name]="exportName"
+    (importComplete)="onImportComplete()"
+  >
+  </cas-project-import>
 </ng-template>
 
 <ng-template #workspaceEditDialog>

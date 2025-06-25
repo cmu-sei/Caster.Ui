@@ -1,0 +1,75 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<h2>Import {{ typeString | titlecase }}: {{ name }}</h2>
+
+<form *ngIf="!(complete$ | async)" [formGroup]="form" (ngSubmit)="import()">
+  <div class="d-flex flex-column gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <button
+        type="button"
+        color="primary"
+        mat-raised-button
+        (click)="fileInput.click()"
+      >
+        Choose File
+      </button>
+      <input
+        hidden
+        (change)="onFileSelected($event)"
+        #fileInput
+        type="file"
+        accept=".zip, .tar.gz, .tgz"
+      />
+      <span class="file-name">{{ this.form.value.archive?.name }}</span>
+    </div>
+
+    <mat-form-field floatLabel="always" appearance="none" fxLayout="row">
+      <mat-label>Preserve Ids </mat-label>
+      <mat-slide-toggle
+        formControlName="preserveIds"
+        matTooltip="Optionally use the same Ids on import, if the archive included Ids on export. Otherwise, generate new Ids"
+      ></mat-slide-toggle>
+      <textarea matInput hidden></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="d-flex justify-content-around">
+    <button
+      type="submit"
+      color="primary"
+      mat-raised-button
+      [disabled]="!form.valid"
+    >
+      Import
+    </button>
+
+    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
+      Cancel
+    </button>
+  </div>
+</form>
+
+<div *ngIf="complete$ | async">
+  <ng-container *ngIf="lockedFiles.length > 0">
+    <h3 class="text-danger">
+      Error: The following files are locked and were unable to be updated:
+    </h3>
+
+    <ul>
+      <li *ngFor="let file of lockedFiles">
+        {{ file }}
+      </li>
+    </ul>
+  </ng-container>
+
+  <ng-container *ngIf="lockedFiles.length == 0">
+    <h3 class="text-success">Import Successful</h3>
+  </ng-container>
+
+  <div class="d-flex justify-content-around">
+    <button mat-raised-button color="primary" (click)="cancel()">OK</button>
+  </div>
+</div>
