@@ -92,6 +92,13 @@ export class VlanService {
     );
   }
 
+  bulkReserve(reserved: boolean, vlanIds: string[]) {
+    return this.vlansService.reserveVlans({
+      reserved: reserved,
+      vlanIds: vlanIds,
+    });
+  }
+
   reassign(vlanIds: string[], fromPartitionId: string, toPartitionId: string) {
     let obs: Observable<Vlan[]>;
 

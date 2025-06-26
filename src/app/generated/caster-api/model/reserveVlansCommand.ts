@@ -11,10 +11,14 @@
  */
 
 
-export interface RemoveResourcesCommand { 
+export interface ReserveVlansCommand { 
     /**
-     * List of Resource addresses to remove
+     * If true, this VLAN cannot be used
      */
-    resourceAddresses?: Array<string> | null;
+    reserved?: boolean;
+    /**
+     * The VLANs to reserve
+     */
+    vlanIds?: Array<string> | null;
 }
 

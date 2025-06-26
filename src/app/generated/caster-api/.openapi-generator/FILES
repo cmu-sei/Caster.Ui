@@ -108,6 +108,8 @@ model/reassignVlansCommand.ts
 model/removeResourcesCommand.ts
 model/removeVlansFromPartitionCommand.ts
 model/renameFileCommand.ts
+model/reserveVlansCommand.ts
+model/reserveVlansResult.ts
 model/resource.ts
 model/resourceCommandResult.ts
 model/run.ts

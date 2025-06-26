@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AdminContainerComponent } from './component/admin-container/admin-container.component';
 import { UsersComponent } from './component/admin-users/users.component';
@@ -125,6 +125,7 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     MatToolbarModule,
     MatDialogModule,
     ProjectModule,
+    ReactiveFormsModule,
   ],
   exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })

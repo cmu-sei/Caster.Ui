@@ -1,41 +1,80 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="header-row">
-  <mat-form-field appearance="standard">
+<div>
+  <mat-form-field
+    appearance="standard"
+    matTooltip="Search for vlans by comma-separated list of id, range of ids, and/or tag e.g. 10,11,20-30,mytag"
+  >
     <mat-label>Search</mat-label>
     <input
       matInput
-      (keyup)="applyFilter($event)"
+      [formControl]="filterControl"
       placeholder="Search"
       #input
       autocomplete="off"
     />
-  </mat-form-field>
-
-  <div *ngIf="canEdit" class="right">
-    <mat-form-field appearance="fill">
-      <mat-label>Partition</mat-label>
-      <mat-select #partitionSelect>
-        <mat-option *ngIf="showUnassigned" [value]="unassigned">
-          Unassigned
-        </mat-option>
-        <mat-option *ngFor="let partition of partitions" [value]="partition.id">
-          {{ partition.name }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
     <button
-      mat-raised-button
+      *ngIf="input.value"
       color="primary"
-      (click)="reassignSelected(partitionSelect.value)"
-      [disabled]="selection.isEmpty() || !partitionSelect.value"
+      matSuffix
+      mat-icon-button
+      aria-label="Clear"
+      (click)="clearFilter()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+    </button>
+  </mat-form-field>
+  <button
+    class="mx-2"
+    mat-raised-button
+    color="primary"
+    [matMenuTriggerFor]="selectionMenu"
+    [disabled]="!canEdit"
+  >
+    {{ selection.selected.length }} Selected
+  </button>
+  <mat-menu #selectionMenu="matMenu">
+    <button
+      mat-menu-item
+      (click)="reserveSelected(true)"
+      [disabled]="selection.selected.length == 0"
+    >
+      Reserve
+    </button>
+    <button
+      mat-menu-item
+      (click)="reserveSelected(false)"
+      [disabled]="selection.selected.length == 0"
+    >
+      Unreserve
+    </button>
+    <button
+      mat-menu-item
+      [matMenuTriggerFor]="partitionSelectMenu"
+      [disabled]="selection.selected.length == 0"
     >
       Reassign
     </button>
-  </div>
+  </mat-menu>
+  <mat-menu #partitionSelectMenu="matMenu">
+    <button
+      *ngIf="showUnassigned"
+      (click)="reassignSelected(null)"
+      mat-menu-item
+    >
+      Unassigned
+    </button>
+    <button
+      *ngFor="let partition of partitions"
+      (click)="reassignSelected(partition.id)"
+      mat-menu-item
+    >
+      {{ partition.name }}
+    </button>
+  </mat-menu>
 </div>
 
 <cdk-virtual-scroll-viewport
@@ -62,8 +101,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       <td mat-cell *matCellDef="let row">
         <mat-checkbox
           (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
+          (change)="$event ? selection.toggle(row.id) : null"
+          [checked]="selection.isSelected(row.id)"
         >
         </mat-checkbox>
       </td>

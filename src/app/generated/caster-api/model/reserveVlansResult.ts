@@ -11,10 +11,9 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
+export interface ReserveVlansResult { 
+    readonly success?: boolean;
+    updated?: Array<string> | null;
+    notUpdated?: Array<string> | null;
 }
 
