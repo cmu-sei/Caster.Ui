@@ -82,6 +82,8 @@ export * from './reassignVlansCommand';
 export * from './removeResourcesCommand';
 export * from './removeVlansFromPartitionCommand';
 export * from './renameFileCommand';
+export * from './reserveVlansCommand';
+export * from './reserveVlansResult';
 export * from './resource';
 export * from './resourceCommandResult';
 export * from './run';

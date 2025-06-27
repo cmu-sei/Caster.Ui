@@ -16,22 +16,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface CreateRunCommand { 
-    /**
-     * The Id of the Workspace to create the Run in
-     */
-    workspaceId?: string;
-    /**
-     * If true, will create a Run to destroy all resources in the Workspace
-     */
-    isDestroy?: boolean;
-    /**
-     * Optional list of resources to constrain the affects of this Run to
-     */
-    targets?: Array<string> | null;
-    /**
-     * Optional list of resources to replace on this Run
-     */
-    replaceAddresses?: Array<string> | null;
+export interface ReserveVlansResult { 
+    readonly success?: boolean;
+    updated?: Array<string> | null;
+    notUpdated?: Array<string> | null;
 }
 

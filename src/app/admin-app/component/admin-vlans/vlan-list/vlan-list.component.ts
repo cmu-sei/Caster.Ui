@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -15,12 +15,13 @@ import {
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Observable } from 'rxjs';
-import { finalize, take } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'cas-vlan-list',
@@ -40,7 +41,7 @@ export class VlanListComponent implements OnInit, OnChanges {
 
     // deselect items if they no longer exist in the data
     this.selection.selected.forEach((x) => {
-      if (!vlans.map((y) => y.id).includes(x.id)) {
+      if (!vlans.map((y) => y.id).includes(x)) {
         this.selection.deselect(x);
       }
     });
@@ -52,7 +53,7 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   _vlans: Vlan[];
   dataSource = new TableVirtualScrollDataSource<Vlan>();
-  selection = new SelectionModel<Vlan>(true, []);
+  selection = new SelectionModel<string>(true, []);
 
   viewColumns = ['vlanId', 'inUse', 'reserved', 'tag'];
   preEditColumns = ['select'];
@@ -60,12 +61,13 @@ export class VlanListComponent implements OnInit, OnChanges {
   displayedColumns = this.viewColumns;
   loading = new Map<string, boolean>();
   editingId: string;
+  filterControl = new FormControl('');
 
   public itemSize = 48;
   public headerSize = 56;
   public maxSize = this.itemSize * 7;
   public tableHeight = '0px';
-  public readonly unassigned = 'UNASSIGNED';
+  private unsubscribe$ = new Subject<void>();
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -77,16 +79,59 @@ export class VlanListComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
+    this.filterControl.valueChanges
+      .pipe(debounceTime(500), takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.selection.clear();
+        this.dataSource.filter = value?.trim().toLowerCase();
+      });
+
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    this.dataSource.filterPredicate = function (data, filter: string): boolean {
-      return (
-        data.vlanId.toString().toLowerCase().includes(filter) ||
-        data.inUse.toString().toLowerCase().includes(filter) ||
-        data.reserved.toString().toLowerCase().includes(filter) ||
-        data.tag?.toLowerCase().includes(filter)
-      );
+    this.dataSource.filterPredicate = function (
+      data: Vlan,
+      filter: string
+    ): boolean {
+      if (!filter) {
+        return true;
+      }
+
+      const terms = filter
+        .split(',')
+        .map((s) => s?.trim()?.toLowerCase())
+        .filter((s) => s.length > 0);
+
+      // find vlanId or vlanId range matches e.g. 1, 100-200
+      const idMatches = terms.some((term) => {
+        if (term.includes('-')) {
+          const [start, end] = term.split('-').map(Number);
+          if (!isNaN(start) && !isNaN(end)) {
+            const min = Math.min(start, end);
+            const max = Math.max(start, end);
+            return data.vlanId >= min && data.vlanId <= max;
+          }
+        } else if (!isNaN(Number(term))) {
+          return data.vlanId === Number(term);
+        }
+        return false;
+      });
+
+      // find tag matches
+      const stringMatches = terms.some((term) => {
+        if (!isNaN(Number(term)) || term.includes('-')) {
+          return false;
+        }
+
+        return data.tag?.toLowerCase().includes(term);
+      });
+
+      return idMatches || stringMatches;
     };
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 
   ngOnChanges() {
@@ -101,9 +146,8 @@ export class VlanListComponent implements OnInit, OnChanges {
     );
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  clearFilter() {
+    this.filterControl.setValue('');
   }
 
   toggleInUse(vlan: Vlan) {
@@ -163,9 +207,10 @@ export class VlanListComponent implements OnInit, OnChanges {
         if (!x.wasCancelled) {
           this.vlanService
             .reassign(
-              this.selection.selected.map((x) => x.id),
-              this.selection.selected[0].partitionId,
-              toPartitionId == this.unassigned ? null : toPartitionId
+              this.selection.selected,
+              this.vlans.find((x) => x.id == this.selection.selected[0])
+                .partitionId,
+              toPartitionId
             )
             .subscribe();
         }
@@ -178,10 +223,47 @@ export class VlanListComponent implements OnInit, OnChanges {
       .subscribe(() => (this.editingId = null));
   }
 
+  reserveSelected(reserve: boolean) {
+    this.confirmService
+      .confirmDialog(
+        `Confirm ${reserve ? 'Reserve' : 'Unreserve'}`,
+        `Are you sure you want to ${reserve ? 'reserve' : 'unreserve'} ${
+          this.selection.selected.length
+        } selected VLAN${this.selection.selected.length == 1 ? '' : 's'}?`
+      )
+      .subscribe((x) => {
+        if (!x.wasCancelled) {
+          this.vlanService
+            .bulkReserve(reserve, this.selection.selected)
+            .pipe(
+              tap((x) => {
+                if (!x.success) {
+                  this.confirmService
+                    .confirmDialog(
+                      'Failure',
+                      `The following ${
+                        x.notUpdated.length
+                      } Vlans were not successfully updated: ${this.vlans
+                        .filter((y) => x.notUpdated.includes(y.id))
+                        .map((x) => x.vlanId)}`,
+                      {
+                        buttonTrueText: '',
+                        buttonFalseText: 'OK',
+                      }
+                    )
+                    .subscribe();
+                }
+              })
+            )
+            .subscribe();
+        }
+      });
+  }
+
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
     const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.dataSource.filteredData.length;
     return numSelected === numRows;
   }
 
@@ -192,7 +274,7 @@ export class VlanListComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.selection.select(...this.dataSource.data);
+    this.selection.select(...this.dataSource.filteredData.map((x) => x.id));
   }
 
   calculateTableHeight() {

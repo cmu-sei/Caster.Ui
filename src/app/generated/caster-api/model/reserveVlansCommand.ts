@@ -16,22 +16,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface CreateRunCommand { 
+export interface ReserveVlansCommand { 
     /**
-     * The Id of the Workspace to create the Run in
+     * If true, this VLAN cannot be used
      */
-    workspaceId?: string;
+    reserved?: boolean;
     /**
-     * If true, will create a Run to destroy all resources in the Workspace
+     * The VLANs to reserve
      */
-    isDestroy?: boolean;
-    /**
-     * Optional list of resources to constrain the affects of this Run to
-     */
-    targets?: Array<string> | null;
-    /**
-     * Optional list of resources to replace on this Run
-     */
-    replaceAddresses?: Array<string> | null;
+    vlanIds?: Array<string> | null;
 }
 
