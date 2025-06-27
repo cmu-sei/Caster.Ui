@@ -24,5 +24,6 @@ export interface Vlan {
     inUse?: boolean;
     tag?: string | null;
     reserved?: boolean;
+    reservedEditable?: boolean;
 }
 

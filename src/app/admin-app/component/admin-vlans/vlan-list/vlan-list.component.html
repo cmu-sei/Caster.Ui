@@ -105,7 +105,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           mat-button
           [color]="element.reserved ? 'warn' : 'basic'"
           (click)="toggleReserved(element)"
-          [disabled]="loading.get(element.id) || !canEdit"
+          [disabled]="
+            loading.get(element.id) || !canEdit || !element.reservedEditable
+          "
+          [matTooltip]="
+            !element.reservedEditable
+              ? 'Reservation status not editable. Ask an Administrator to update the application settings if this should be changed'
+              : ''
+          "
         >
           {{ element.reserved }}
         </button>
