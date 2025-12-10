@@ -17,10 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <mat-form-field class="flex">
     <mat-label>Terraform Version</mat-label>
     <mat-select formControlName="terraformVersion">
-      <mat-option
-        *ngFor="let version of terraformVersions.versions"
-        [value]="version"
-      >
+      <mat-option *ngFor="let version of sortedVersions" [value]="version">
         {{ version
         }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
       </mat-option>

@@ -31,6 +31,11 @@ export class DirectoryEditComponent implements OnInit {
 
   form: FormGroup;
 
+  collator = new Intl.Collator('en', {
+    numeric: true,
+  });
+  sortedVersions: string[];
+
   get parallelism() {
     if (this.form) {
       return this.form?.get('parallelism');
@@ -66,6 +71,10 @@ export class DirectoryEditComponent implements OnInit {
     if (!this.directory.azureDestroyFailureThresholdEnabled) {
       this.azureDestroyFailureThreshold.disable();
     }
+
+    this.sortedVersions = this.terraformVersions?.versions
+      ?.sort(this.collator.compare)
+      .reverse();
   }
 
   save() {
