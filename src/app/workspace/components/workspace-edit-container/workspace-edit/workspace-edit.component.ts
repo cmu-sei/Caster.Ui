@@ -31,6 +31,11 @@ export class WorkspaceEditComponent implements OnInit {
 
   form: FormGroup;
 
+  collator = new Intl.Collator('en', {
+    numeric: true,
+  });
+  sortedVersions: string[];
+
   get parallelism() {
     if (this.form) {
       return this.form?.get('parallelism');
@@ -72,6 +77,10 @@ export class WorkspaceEditComponent implements OnInit {
       parallelism: this.workspace.parallelism,
       azureDestroyFailureThreshold: this.workspace.azureDestroyFailureThreshold,
     });
+
+    this.sortedVersions = this.terraformVersions?.versions
+      ?.sort(this.collator.compare)
+      .reverse();
   }
 
   save() {
