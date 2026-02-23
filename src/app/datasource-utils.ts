@@ -3,7 +3,7 @@
 
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Observable, of, combineLatest, concat, defer } from 'rxjs';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatLegacyPaginator as MatPaginator, LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { map } from 'rxjs/operators';
 

@@ -7,7 +7,16 @@
 $mdi-font-path: '~@mdi/font/fonts';
 @import '@mdi/font/scss/materialdesignicons';
 @import '~@fortawesome/fontawesome-free/css/all.css';
-@include mat.core();
+// TODO(v15): As of v15 mat.legacy-core no longer includes default typography styles.
+//  The following line adds:
+//    1. Default typography styles for all components
+//    2. Styles for typography hierarchy classes (e.g. .mat-headline-1)
+//  If you specify typography styles for the components you use elsewhere, you should delete this line.
+//  If you don't need the default component typographies but still want the hierarchy styles,
+//  you can delete this line and instead use:
+//    `@include mat.legacy-typography-hierarchy(mat.define-legacy-typography-config());`
+@include mat.all-legacy-component-typographies();
+@include mat.legacy-core();
 
 /* BOOTSTRAP IMPORTS */
 /* Required */
@@ -29,13 +38,13 @@ $mdi-font-path: '~@mdi/font/fonts';
 /* END LOCAL IMPORTS */
 
 .light-theme {
-  @include mat.all-component-themes($light-theme);
+  @include mat.all-legacy-component-themes($light-theme);
   @include cwd-toolbar-theme($light-theme);
   @include globals($light-theme);
 }
 
 .dark-theme {
-  @include mat.all-component-themes($dark-theme);
+  @include mat.all-legacy-component-themes($dark-theme);
   @include cwd-toolbar-theme($dark-theme);
   @include globals($dark-theme);
 }

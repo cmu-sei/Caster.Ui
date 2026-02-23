@@ -24,8 +24,8 @@ import {
 import { DirectoryQuery } from 'src/app/directories/state';
 import { FileQuery, FileService } from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTab } from '@angular/material/tabs';
+import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatLegacyTab as MatTab } from '@angular/material/legacy-tabs';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
   catchError,

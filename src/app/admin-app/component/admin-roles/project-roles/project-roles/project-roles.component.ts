@@ -4,7 +4,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import { Component, inject, OnInit } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { ProjectPermission, ProjectRole } from 'src/app/generated/caster-api';
 import { ProjectRolesModel } from './project-roles.models';
 import { map } from 'rxjs/operators';
