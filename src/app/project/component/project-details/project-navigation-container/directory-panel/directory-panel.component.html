@@ -16,7 +16,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         "
       >
         <mat-panel-title>
-          <div fxLayout="row" fxLayoutAlign="start center">
+          <div class="d-flex flex-row justify-content-start align-items-center">
             <mat-icon class="mdi-18px" fontIcon="mdi-folder"></mat-icon>
             <strong>{{ parentDirectory.name }}</strong>
           </div>
@@ -47,11 +47,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             >
               <div
                 *ngIf="obj.lockedById === null && !obj.administrativelyLocked"
-                class="highlight"
-                fxLayout="row"
-                fxLayoutAlign="start center"
-                fxFill
-                fxFlexOffset="2"
+                class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                style="margin-left: 2%"
               >
                 <mat-icon
                   class="mdi-18px show-pointer"
@@ -62,11 +59,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </div>
               <div
                 *ngIf="obj.lockedById !== null && !obj.administrativelyLocked"
-                class="highlight"
-                fxLayout="row"
-                fxLayoutAlign="start center"
-                fxFill
-                fxFlexOffset="2"
+                class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                style="margin-left: 2%"
               >
                 <mat-icon
                   class="mdi-18px show-pointer"
@@ -82,11 +76,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </div>
               <div
                 *ngIf="obj.administrativelyLocked"
-                class="highlight"
-                fxLayout="row"
-                fxLayoutAlign="start center"
-                fxFill
-                fxFlexOffset="2"
+                class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                style="margin-left: 2%"
               >
                 <mat-icon
                   class="mdi-18px show-pointer"
@@ -103,7 +94,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </mat-list-item>
 
             <mat-list-item *ngIf="canEdit$ | async">
-              <div fxLayout="row" fxLayoutAlign="start center" fxFlexOffset="2">
+              <div class="d-flex flex-row justify-content-start align-items-center" style="margin-left: 2%">
                 <mat-icon
                   (click)="createFile(parentDirectory.id)"
                   matTooltip="Add New File to {{ parentDirectory.name }}"
@@ -179,11 +170,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     *ngIf="
                       file.lockedById === null && !file.administrativelyLocked
                     "
-                    class="highlight"
-                    fxLayout="row"
-                    fxLayoutAlign="start center"
-                    fxFill
-                    fxFlexOffset="10"
+                    class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                    style="margin-left: 10%"
                   >
                     <mat-icon class="mdi-18px" fontIcon="mdi-file"></mat-icon>
                     <a class="link-text" (click)="openFile(file)">{{
@@ -194,11 +182,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     *ngIf="
                       file.lockedById !== null && !file.administrativelyLocked
                     "
-                    class="highlight"
-                    fxLayout="row"
-                    fxLayoutAlign="start center"
-                    fxFill
-                    fxFlexOffset="10"
+                    class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                    style="margin-left: 10%"
                   >
                     <mat-icon
                       class="mdi-18px"
@@ -213,11 +198,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   </div>
                   <div
                     *ngIf="file.administrativelyLocked"
-                    class="highlight"
-                    fxLayout="row"
-                    fxLayoutAlign="start center"
-                    fxFill
-                    fxFlexOffset="10"
+                    class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                    style="margin-left: 10%"
                   >
                     <mat-icon
                       class="mdi-18px"
@@ -233,9 +215,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 </mat-list-item>
                 <mat-list-item *ngIf="canEdit$ | async">
                   <div
-                    fxLayout="row"
-                    fxLayoutAlign="start center"
-                    fxFlexOffset="10"
+                    class="d-flex flex-row justify-content-start align-items-center"
+                    style="margin-left: 10%"
                   >
                     <mat-icon
                       (click)="createFile(parentDirectory.id, obj.id)"
@@ -258,9 +239,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
           <div
             *ngIf="canEdit$ | async"
-            class="add-new-text"
-            fxLayout="row"
-            fxLayoutAlign="start center"
+            class="add-new-text d-flex flex-row justify-content-start align-items-center"
           >
             <mat-icon
               (click)="createWorkspace()"
@@ -306,9 +285,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </cas-directory-panel>
           <div
             *ngIf="canEdit$ | async"
-            class="add-new-text"
-            fxLayout="row"
-            fxLayoutAlign="start center"
+            class="add-new-text d-flex flex-row justify-content-start align-items-center"
           >
             <mat-icon
               (click)="createNewDirectory(parentDirectory.id)"
@@ -357,11 +334,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <div
                 [ngClass]="obj.enabled ? '' : 'disabled-text'"
                 [matTooltip]="obj.enabled ? '' : 'Disabled'"
-                class="highlight"
-                fxLayout="row"
-                fxLayoutAlign="start center"
-                fxFill
-                fxFlexOffset="2"
+                class="highlight d-flex flex-row justify-content-start align-items-center w-100 h-100"
+                style="margin-left: 2%"
               >
                 <mat-icon
                   class="mdi-18px show-pointer"
@@ -375,7 +349,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </mat-list-item>
 
             <mat-list-item *ngIf="canEdit$ | async">
-              <div fxLayout="row" fxLayoutAlign="start center" fxFlexOffset="2">
+              <div class="d-flex flex-row justify-content-start align-items-center" style="margin-left: 2%">
                 <mat-icon
                   (click)="createDesign(parentDirectory.id)"
                   matTooltip="Add New Design to {{ parentDirectory.name }}"
@@ -412,7 +386,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextEnable(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       {{ item.object.enabled ? 'Disable' : 'Enable' }}
     </button>
@@ -421,7 +395,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextRename(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       Rename
     </button>
@@ -430,7 +404,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextEdit(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       Edit
     </button>
@@ -438,7 +412,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="!(canEdit$ | async)"
       mat-menu-item
       (click)="onContextDelete(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       Delete
     </button>
@@ -446,7 +420,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       *ngIf="isExportable(item)"
       mat-menu-item
       (click)="onContextExport(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       Export
     </button>
@@ -454,7 +428,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       *ngIf="isExportable(item)"
       mat-menu-item
       (click)="onContextImport(item)"
-      fxLayout="row"
+      class="d-flex flex-row"
     >
       Import
     </button>

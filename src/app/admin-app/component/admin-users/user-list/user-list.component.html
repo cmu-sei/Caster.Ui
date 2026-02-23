@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <div class="sp-icon">
     <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
   </div>
@@ -22,7 +22,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div style="width: 30px">
     <button
       *ngIf="!!filterString"
-      fxLayoutAlign="start center"
+      class="d-flex justify-content-start align-items-center"
       mat-icon-button
       (click)="clearFilter()"
       style="outline: none"

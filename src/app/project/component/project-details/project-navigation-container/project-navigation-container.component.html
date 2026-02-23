@@ -9,9 +9,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
   <div
     *ngIf="canEdit$ | async"
-    fxLayout="row"
-    fxLayoutAlign="start center"
-    class="nav-background"
+    class="nav-background d-flex flex-row justify-content-start align-items-center"
   >
     <mat-icon
       (click)="createNewDirectory()"
@@ -27,7 +25,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >Add Directory</a
     >
   </div>
-  <div fxLayout="row" fxLayoutAlign="start center" class="nav-background">
+  <div class="nav-background d-flex flex-row justify-content-start align-items-center">
     <mat-icon
       (click)="exportProject()"
       title="Export Project"
@@ -44,9 +42,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
   </div>
   <div
-    fxLayout="row"
-    fxLayoutAlign="start center"
-    class="nav-background"
+    class="nav-background d-flex flex-row justify-content-start align-items-center"
     (click)="importProject()"
   >
     <mat-icon

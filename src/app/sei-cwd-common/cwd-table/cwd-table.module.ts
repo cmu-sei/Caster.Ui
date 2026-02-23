@@ -12,7 +12,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule } from '@angular/material/sort';
-import { FlexModule, ExtendedModule } from '@angular/flex-layout';
 import { FormsModule } from '@angular/forms';
 import { TableItemContentDirective } from './directives/table-item-content.directive';
 import { TableActionDirective } from './directives/table-action.directive';
@@ -35,8 +34,6 @@ import { TableItemActionDirective } from './directives/table-item-action.directi
     MatExpansionModule,
     MatInputModule,
     MatSortModule,
-    FlexModule,
-    ExtendedModule,
     FormsModule,
   ],
   exports: [

@@ -17,7 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-error>
   </mat-form-field>
 
-  <mat-form-field fxLayout="row">
+  <mat-form-field class="d-flex flex-row">
     <mat-label>Terraform Version</mat-label>
     <mat-select formControlName="terraformVersion">
       <mat-option *ngFor="let version of sortedVersions" [value]="version">
@@ -98,7 +98,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-error>
   </mat-form-field>
 
-  <div fxLayout="row" fxLayoutAlign="space-around center">
+  <div class="d-flex flex-row justify-content-around align-items-center">
     <button
       color="primary"
       type="submit"

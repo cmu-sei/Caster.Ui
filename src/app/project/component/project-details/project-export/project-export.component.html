@@ -6,7 +6,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <h2>Export {{ typeString | titlecase }}: {{ name }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="export()">
-  <mat-form-field *ngIf="isArchiveable" fxLayout="row">
+  <mat-form-field *ngIf="isArchiveable" class="d-flex flex-row">
     <mat-label>Archive Type</mat-label>
     <mat-select formControlName="archiveType">
       <mat-option
@@ -18,7 +18,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field floatLabel="always" appearance="none" fxLayout="row">
+  <mat-form-field floatLabel="always" appearance="none" class="d-flex flex-row">
     <mat-label>Include Ids </mat-label>
     <mat-slide-toggle
       formControlName="includeIds"
@@ -27,7 +27,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <textarea matInput hidden></textarea>
   </mat-form-field>
 
-  <div fxLayout="row" fxLayoutAlign="space-around center">
+  <div class="d-flex flex-row justify-content-around align-items-center">
     <button
       type="submit"
       color="primary"

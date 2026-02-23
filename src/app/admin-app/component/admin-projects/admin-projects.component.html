@@ -5,10 +5,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 <cas-project-list
   *ngIf="!selectedProjectId"
-  class="background"
-  fxFill
-  fxLayout="row"
-  fxLayoutAlign="center start"
+  class="background w-100 h-100 d-flex flex-row justify-content-center align-items-start"
   [projects]="projects$ | async"
   [isLoading]="loading$ | async"
   [manageMode]="true"

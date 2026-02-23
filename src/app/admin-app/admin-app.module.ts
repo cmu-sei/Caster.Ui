@@ -7,7 +7,6 @@ import { CommonModule } from '@angular/common';
 import { AdminContainerComponent } from './component/admin-container/admin-container.component';
 import { UsersComponent } from './component/admin-users/users.component';
 import { UserListComponent } from './component/admin-users/user-list/user-list.component';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { ClipboardModule } from 'ngx-clipboard';
 import { AdminModuleListComponent } from './component/admin-modules/modules-list/module-list.component';
@@ -94,7 +93,6 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     CommonModule,
     SharedModule,
     RouterModule,
-    FlexLayoutModule,
     FormsModule,
     CwdTableModule,
     WorkspaceModule,

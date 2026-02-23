@@ -4,10 +4,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div
-  fxLayout="column"
+  class="d-flex flex-column"
   *ngIf="!!dataSource && !!dataSource.data && dataSource.data.length > 0"
 >
-  <mat-card class="module-heading" fxFlex="1 1 auto" fxFill>
+  <mat-card class="module-heading flex-fill w-100 h-100">
     <span><strong>MODULES</strong></span>
     <div class="module-search">
       <mat-icon
@@ -36,12 +36,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-card>
   <mat-card
     *ngFor="let module of dataSource.filteredData"
-    fxFlex="1 1 auto"
-    fxFill
-    class="clickable highlight module-card"
+    class="clickable highlight module-card flex-fill w-100 h-100"
     (click)="selectModuleFn(module)"
   >
-    <mat-card-title fxLayout="column">
+    <mat-card-title class="d-flex flex-column">
       <div>
         <span class="module-name"
           ><strong>{{ module.name }}</strong></span

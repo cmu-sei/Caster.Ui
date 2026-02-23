@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <mat-icon
     *ngIf="readOnly"
     class="mdi-24px"
@@ -42,7 +42,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-select>
   </mat-form-field>
 
-  <div fxflex fxLayout="column" style="overflow-y: scroll; height: 400px">
+  <div class="flex-grow-1 d-flex flex-column" style="overflow-y: scroll; height: 400px">
     <mat-card>
       <mat-form-field>
         <mat-label [ngClass]="nameChanged ? 'changed-hint' : ''"
@@ -142,7 +142,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
   </div>
 
-  <div fxLayout="row" fxLayoutGap="1em" class="form-actions">
+  <div class="form-actions d-flex flex-row gap-3">
     <button
       mat-raised-button
       color="primary"

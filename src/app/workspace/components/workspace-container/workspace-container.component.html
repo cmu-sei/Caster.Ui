@@ -3,12 +3,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="column" fxLayoutAlign="center space-between">
-  <mat-toolbar class="editor-toolbar" fxFlex="0 1 auto">
+<div class="d-flex flex-column justify-content-center align-content-between">
+  <mat-toolbar class="editor-toolbar">
     <mat-toolbar-row
-      fxLayout="row"
-      fxLayoutAlign="start center"
-      fxLayoutGap="5px"
+      class="d-flex flex-row justify-content-start align-items-center gap-1"
     >
       <div class="breadcrumb-bar">
         {{ breadcrumbString }}
@@ -56,9 +54,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >
         <div
           *cwdTableAction
-          fxLayout="row"
-          fxLayoutGap="10px"
-          fxLayoutAlign="center center"
+          class="d-flex flex-row gap-2 justify-content-center align-items-center"
         >
           <button
             mat-flat-button
@@ -84,9 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
         <div
           *cwdTableItemAction="let item"
-          fxLayout="row no-wrap"
-          fxLayoutAlign="start space-between"
-          fxLayoutGap="10px"
+          class="d-flex flex-row flex-nowrap justify-content-start align-content-between gap-2"
         >
           <button
             mat-flat-button
@@ -108,9 +102,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <div
             *ngIf="isCancelable(item)"
-            fxLayout="row"
-            fxLayoutAlign="start center"
-            fxLayoutGap="1em"
+            class="d-flex flex-row justify-content-start align-items-center gap-3"
           >
             <button
               mat-flat-button
@@ -179,9 +171,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >
         <div
           *cwdTableAction
-          fxLayout="column"
-          fxLayoutGap="10px"
-          fxLayoutAlign="center center"
+          class="d-flex flex-column gap-2 justify-content-center align-items-center"
         >
           <div class="split-buttons">
             <button
@@ -254,7 +244,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   loading.action == resourceActions.Taint &&
                   !item.tainted
                 "
-                [fxShow]="!item.tainted"
+                [class.d-none]="item.tainted"
                 [disabled]="!canEdit || loading.action != resourceActions.None"
                 (click)="taint($event, item)"
               >
@@ -275,7 +265,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   loading.action == resourceActions.Taint &&
                   item.tainted
                 "
-                [fxShow]="item.tainted"
+                [class.d-none]="!item.tainted"
                 [disabled]="!canEdit || loading.action != resourceActions.None"
                 (click)="untaint($event, item)"
               >

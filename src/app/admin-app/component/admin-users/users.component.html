@@ -4,8 +4,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div class="component-container mat-elevation-z8">
-  <div fxLayout="row" class="add-margin">
-    <div fxFlex>
+  <div class="add-margin d-flex flex-row">
+    <div class="flex-grow-1">
       <cas-user-list
         *ngIf="!!users$ && !!isLoading$"
         [users]="users$ | async"

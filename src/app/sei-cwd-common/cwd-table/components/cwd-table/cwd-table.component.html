@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <div class="sp-icon">
     <!--
     <img height="35" src="assets/img/SP_Icon_Cartographer.png" alt="Definitions">
@@ -25,7 +25,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div style="width: 50px">
     <button
       *ngIf="filterString != ''"
-      fxLayoutAlign="start center"
+      class="d-flex justify-content-start align-items-center"
       mat-icon-button
       (click)="clearFilter()"
       style="outline: none"
@@ -59,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-progress-spinner>
 </mat-card>
 
-<mat-accordion [fxShow]="!loading" displayMode="flat" multi class="mat-table">
+<mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-table">
   <section matSort class="mat-elevation-z2 mat-header-row">
     <ng-container *ngFor="let label of displayedColumns; let idx = index">
       <div class="mat-header-cell" [mat-sort-header]="label">{{ label }}</div>

@@ -5,7 +5,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 <h3>Modules</h3>
 
-<div fxLayout="row" fxLayoutGap="1em" class="header">
+<div class="header d-flex flex-row gap-3">
   <button
     mat-raised-button
     color="primary"
@@ -26,7 +26,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   (getModule)="getModuleFn($event.id, $event.name)"
 ></cas-module-list>
 
-<div fxLayout="row wrap" fxLayoutGap="1em grid" *ngIf="!showModuleList">
+<div class="d-flex flex-row flex-wrap gap-3" *ngIf="!showModuleList">
   <div
     class="module"
     *ngFor="let designModule of designModules$ | async; trackBy: trackByFn"

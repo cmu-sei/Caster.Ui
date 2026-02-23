@@ -38,7 +38,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   </mat-card-actions>
   <mat-card-content>
     <form *ngIf="isEditing" [formGroup]="form" (ngSubmit)="save()">
-      <div fxLayout="column">
+      <div class="d-flex flex-column">
         <mat-form-field floatLabel="always">
           <mat-label [ngClass]="pendingChanges['name'] ? 'changed-hint' : ''"
             >Name</mat-label
@@ -120,7 +120,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           </mat-hint>
         </mat-form-field>
 
-        <div fxLayout="row" fxLayoutAlign="space-around center">
+        <div class="d-flex flex-row justify-content-around align-items-center">
           <button
             type="submit"
             color="primary"

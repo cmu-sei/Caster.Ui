@@ -4,7 +4,6 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -86,7 +85,6 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     MatToolbarModule,
     ProjectModule,
     HttpClientModule,
-    FlexLayoutModule,
     OverlayModule,
     HotkeysModule,
     DesignModule,

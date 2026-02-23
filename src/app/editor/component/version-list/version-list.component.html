@@ -3,8 +3,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="column" *ngIf="!!dataSource">
-  <mat-card class="version-heading" fxFlex="1 1 auto" fxFill>
+<div class="d-flex flex-column" *ngIf="!!dataSource">
+  <mat-card class="version-heading flex-fill w-100 h-100">
     <span><strong>FILE VERSIONS</strong></span>
     <div class="version-search">
       <mat-icon
@@ -33,15 +33,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-card>
   <mat-card
     *ngFor="let version of dataSource.filteredData"
-    class="version-card"
-    fxFlex="1 1 auto"
-    fxFill
     [class.selected]="selectedVersionId == version.id"
-    class="clickable highlight version-card"
+    class="clickable highlight version-card flex-fill w-100 h-100"
     (click)="selectVersionFn(version)"
   >
     <mat-card-content>
-      <div fxLayout="column" fxLayoutAlign="space-around start">
+      <div class="d-flex flex-column justify-content-around align-items-start">
         <div>
           <span class="version-name"
             >{{ version.dateSaved | date: 'yyyy-MM-dd HH:mm' }} by
@@ -53,7 +50,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           {{ version.taggedByName }} on
           {{ version.dateTagged | date: 'yyyy-MM-dd HH:mm' }}</span
         >
-        <div fxLayout="row" fxFill fxLayoutAlign="end center">
+        <div class="d-flex flex-row w-100 h-100 justify-content-end align-items-center">
           <button
             mat-stroked-button
             (click)="$event.stopPropagation(); revertFile(version)"

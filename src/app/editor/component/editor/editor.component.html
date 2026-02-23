@@ -21,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         mwlResizeHandle
         [resizeEdges]="{ left: true }"
       ></div>
-      <div fxLayout="column" fxLayoutAlign="start stretch">
+      <div class="d-flex flex-column justify-content-start align-items-stretch">
         <button
           mat-icon-button
           (click)="resetSidebar()"
@@ -60,13 +60,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-sidenav>
 
   <mat-sidenav-content #sidenavContent id="sidenavContent">
-    <div fxLayout="column" fxFlex="1 1 auto">
-      <mat-toolbar class="editor-toolbar" fxFlex="0 1 auto">
+    <div class="d-flex flex-column flex-fill">
+      <mat-toolbar class="editor-toolbar">
         <mat-toolbar-row
-          class="editor-toolbar"
-          fxLayout="row"
-          fxLayoutAlign="end center"
-          fxLayoutGap="5px"
+          class="editor-toolbar d-flex flex-row justify-content-end align-items-center gap-1"
         >
           <div class="breadcrumb-bar">
             {{ breadcrumbString }}
@@ -75,7 +72,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             *ngIf="file && !file.administrativelyLocked"
             [disabled]="!canAdminLock"
             (click)="adminLockFile()"
@@ -90,7 +87,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             *ngIf="file && file.administrativelyLocked"
             [disabled]="!canAdminLock"
             (click)="adminUnlockFile()"
@@ -106,7 +103,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-icon-button
             hotkeyAction="FILE_SAVE"
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             [disabled]="!canEdit || (isSaved$ | async)"
             (click)="saveFile()"
           >
@@ -121,7 +118,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-icon-button
             hotkeyAction="DISCARD_CHANGES"
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             [disabled]="
               !canEdit || (file && file.editorContent === file.content)
             "
@@ -136,7 +133,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <button
             mat-icon-button
-            fxFlexAlign="center"
+            class="align-self-center"
             *ngIf="file && file.lockedById && file.lockedById !== currentUserId"
             color="warn"
             matTooltip="This file is being edited by {{ file.lockedByName }}"
@@ -150,7 +147,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             hotkeyAction="FILE_LOCK_TOGGLE"
-            fxFlexAlign="center"
+            class="align-self-center"
             *ngIf="file && !file.lockedById"
             color="primary"
             (click)="lockFile()"
@@ -166,7 +163,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             hotkeyAction="FILE_LOCK_TOGGLE"
-            fxFlexAlign="center"
+            class="align-self-center"
             *ngIf="file && file.lockedById === currentUserId"
             [disabled]="file.editorContent !== file.content"
             color="warn"
@@ -180,7 +177,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               hotkeyAction="FILE_MODULES"
-              fxFlexAlign="center"
+              class="align-self-center"
               color="primary"
               (click)="
                 sidebarView = 'modules'; sidebarChangedFn('modules', true)
@@ -197,7 +194,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               hotkeyAction="FILE_VERSIONS"
-              fxFlexAlign="center"
+              class="align-self-center"
               color="primary"
               (click)="
                 sidebarView = 'versions'; sidebarChangedFn('versions', true)
@@ -229,13 +226,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
       <mat-toolbar
         class="version-toolbar"
-        fxFlex="0 1 auto"
         *ngIf="selectedVersionForDiff"
       >
         <mat-toolbar-row
-          class="version-toolbar"
-          fxLayout="row"
-          fxLayoutAlign="space-between center"
+          class="version-toolbar d-flex flex-row justify-content-between align-items-center"
         >
           <span class="left-version-text"> CURRENT </span>
           <span class="right-version-text">

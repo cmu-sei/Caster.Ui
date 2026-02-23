@@ -31,9 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <span class="view-text">{{ title }}</span>
     <span class="spacer"></span>
     <div
-      fxFlex
-      class="team-text"
-      fxLayoutAlign="end center"
+      class="team-text flex-grow-1 d-flex justify-content-end align-items-center"
       *ngIf="currentUser$ | async as currentUser"
     >
       <button mat-button [matMenuTriggerFor]="menu" style="outline: none">

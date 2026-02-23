@@ -51,11 +51,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-tab-group>
 </div>
 <div *ngIf="!showTabs">
-  <div fxFill>
+  <div class="w-100 h-100">
     <div
-      class="message-text"
-      fxLayout="column"
-      fxLayoutAlign="space-around center"
+      class="message-text d-flex flex-column justify-content-around align-items-center"
     >
       Please open a file or workspace
     </div>
