@@ -18,10 +18,11 @@ import {
 import { DirectoryService, DirectoryQuery } from '../../state';
 
 @Component({
-  selector: 'cas-directory-edit-container',
-  templateUrl: './directory-edit-container.component.html',
-  styleUrls: ['./directory-edit-container.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-directory-edit-container',
+    templateUrl: './directory-edit-container.component.html',
+    styleUrls: ['./directory-edit-container.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DirectoryEditContainerComponent implements OnInit {
   @Input() id: string;

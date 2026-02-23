@@ -34,10 +34,11 @@ import { ComnSettingsService } from '@cmusei/crucible-common';
 const SIDEBAR_MIN_WIDTH = 300;
 
 @Component({
-  selector: 'cas-editor',
-  templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-editor',
+    templateUrl: './editor.component.html',
+    styleUrls: ['./editor.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() fileId: string;

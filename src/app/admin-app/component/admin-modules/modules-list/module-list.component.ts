@@ -35,9 +35,10 @@ export interface Action {
 }
 
 @Component({
-  selector: 'cas-admin-module-list',
-  templateUrl: './module-list.component.html',
-  styleUrls: ['./module-list.component.css'],
+    selector: 'cas-admin-module-list',
+    templateUrl: './module-list.component.html',
+    styleUrls: ['./module-list.component.css'],
+    standalone: false
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = ['name', 'path', 'dateModified'];

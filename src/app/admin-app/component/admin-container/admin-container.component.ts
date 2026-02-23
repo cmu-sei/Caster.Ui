@@ -16,9 +16,10 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { SystemPermission } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-admin-container',
-  templateUrl: './admin-container.component.html',
-  styleUrls: ['./admin-container.component.scss'],
+    selector: 'cas-admin-container',
+    templateUrl: './admin-container.component.html',
+    styleUrls: ['./admin-container.component.scss'],
+    standalone: false
 })
 export class AdminContainerComponent implements OnInit, OnDestroy {
   public username: string;

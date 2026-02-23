@@ -35,10 +35,11 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 const LEFT_SIDEBAR_MIN_WIDTH = 300;
 
 @Component({
-  selector: 'cas-project-collapse-container',
-  templateUrl: './project-collapse-container.component.html',
-  styleUrls: ['./project-collapse-container.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-collapse-container',
+    templateUrl: './project-collapse-container.component.html',
+    styleUrls: ['./project-collapse-container.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectCollapseContainerComponent
   implements OnInit, OnDestroy, CanComponentDeactivate

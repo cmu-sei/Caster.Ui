@@ -6,9 +6,10 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { NameValidatorModel } from './name-dialog.models';
 
 @Component({
-  selector: 'name-dialog',
-  templateUrl: './name-dialog.component.html',
-  styleUrls: ['./name-dialog.component.css'],
+    selector: 'name-dialog',
+    templateUrl: './name-dialog.component.html',
+    styleUrls: ['./name-dialog.component.css'],
+    standalone: false
 })
 export class NameDialogComponent {
   public title: string;

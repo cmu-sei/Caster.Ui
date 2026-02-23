@@ -24,10 +24,11 @@ const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-  selector: 'cas-admin-groups',
-  templateUrl: './admin-groups.component.html',
-  styleUrls: ['./admin-groups.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-admin-groups',
+    templateUrl: './admin-groups.component.html',
+    styleUrls: ['./admin-groups.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class AdminGroupsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;

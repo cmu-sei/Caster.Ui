@@ -24,10 +24,11 @@ import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { FormControl } from '@angular/forms';
 
 @Component({
-  selector: 'cas-vlan-list',
-  templateUrl: './vlan-list.component.html',
-  styleUrls: ['./vlan-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-vlan-list',
+    templateUrl: './vlan-list.component.html',
+    styleUrls: ['./vlan-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VlanListComponent implements OnInit, OnChanges {
   @Input() showUnassigned = true;

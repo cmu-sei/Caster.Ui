@@ -15,10 +15,11 @@ import { ResourceCommandResult } from 'src/app/generated/caster-api';
 import { WorkspaceService } from '../../state';
 
 @Component({
-  selector: 'cas-import-resource',
-  templateUrl: './import-resource.component.html',
-  styleUrls: ['./import-resource.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-import-resource',
+    templateUrl: './import-resource.component.html',
+    styleUrls: ['./import-resource.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ImportResourceComponent implements OnInit {
   @Input() workspaceId: string;

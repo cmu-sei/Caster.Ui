@@ -11,9 +11,10 @@ import { map, take } from 'rxjs/operators';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
-  selector: 'cas-admin-modules',
-  templateUrl: './modules.component.html',
-  styleUrls: ['./modules.component.css'],
+    selector: 'cas-admin-modules',
+    templateUrl: './modules.component.html',
+    styleUrls: ['./modules.component.css'],
+    standalone: false
 })
 export class AdminModulesComponent implements OnInit {
   public modules$: Observable<Module[]>;

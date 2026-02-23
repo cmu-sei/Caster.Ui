@@ -57,9 +57,10 @@ const WAS_CANCELLED = 'wasCancelled';
 type TabSubscription = { id: string; subscription: Subscription };
 
 @Component({
-  selector: 'cas-project-tab',
-  templateUrl: './project-tab.component.html',
-  styleUrls: ['./project-tab.component.scss'],
+    selector: 'cas-project-tab',
+    templateUrl: './project-tab.component.html',
+    styleUrls: ['./project-tab.component.scss'],
+    standalone: false
 })
 export class ProjectTabComponent
   implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate

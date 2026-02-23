@@ -37,9 +37,10 @@ export interface Action {
 }
 
 @Component({
-  selector: 'cas-user-list',
-  templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.css'],
+    selector: 'cas-user-list',
+    templateUrl: './user-list.component.html',
+    styleUrls: ['./user-list.component.css'],
+    standalone: false
 })
 export class UserListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = ['id', 'name'];

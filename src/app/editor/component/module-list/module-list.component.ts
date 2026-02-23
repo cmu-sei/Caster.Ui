@@ -18,11 +18,12 @@ import { CreateSnippetCommand, Module } from '../../../generated/caster-api';
 import { ModuleVariablesComponent } from '../module-variables/module-variables.component';
 
 @Component({
-  selector: 'cas-module-list',
-  templateUrl: './module-list.component.html',
-  styleUrls: ['./module-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
+    selector: 'cas-module-list',
+    templateUrl: './module-list.component.html',
+    styleUrls: ['./module-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class ModuleListComponent implements OnInit {
   @Input() set modules(val: Module[]) {

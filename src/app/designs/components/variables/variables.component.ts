@@ -15,10 +15,11 @@ import { VariablesQuery } from '../../state/variables/variables.query';
 import { VariableService } from '../../state/variables/variables.service';
 
 @Component({
-  selector: 'cas-variables',
-  templateUrl: './variables.component.html',
-  styleUrls: ['./variables.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-variables',
+    templateUrl: './variables.component.html',
+    styleUrls: ['./variables.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VariablesComponent implements OnInit {
   @Input()

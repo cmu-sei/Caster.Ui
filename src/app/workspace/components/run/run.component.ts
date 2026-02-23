@@ -22,10 +22,11 @@ import { ITerminalOptions, Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
 @Component({
-  selector: 'cas-run',
-  templateUrl: './run.component.html',
-  styleUrls: ['./run.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-run',
+    templateUrl: './run.component.html',
+    styleUrls: ['./run.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() run: Run;

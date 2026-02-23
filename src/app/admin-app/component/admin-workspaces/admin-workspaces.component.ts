@@ -13,10 +13,11 @@ import { Run } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 @Component({
-  selector: 'cas-admin-workspaces',
-  templateUrl: './admin-workspaces.component.html',
-  styleUrls: ['./admin-workspaces.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-admin-workspaces',
+    templateUrl: './admin-workspaces.component.html',
+    styleUrls: ['./admin-workspaces.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   public lockingEnabled$: Observable<boolean>;

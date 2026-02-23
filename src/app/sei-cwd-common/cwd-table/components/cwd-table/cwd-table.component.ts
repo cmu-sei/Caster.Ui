@@ -30,10 +30,11 @@ import { TableItemActionDirective } from '../../directives/table-item-action.dir
 import { TableItemContentDirective } from '../../directives/table-item-content.directive';
 
 @Component({
-  selector: 'cwd-table',
-  templateUrl: './cwd-table.component.html',
-  styleUrls: ['./cwd-table.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cwd-table',
+    templateUrl: './cwd-table.component.html',
+    styleUrls: ['./cwd-table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class CwdTableComponent<T> implements OnInit, OnChanges {
   public filterString: string;

@@ -27,10 +27,11 @@ import { ModuleService } from 'src/app/modules/state';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 
 @Component({
-  selector: 'cas-design-module',
-  templateUrl: './design-module.component.html',
-  styleUrls: ['./design-module.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-design-module',
+    templateUrl: './design-module.component.html',
+    styleUrls: ['./design-module.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DesignModuleComponent implements OnInit, OnChanges {
   @Input()

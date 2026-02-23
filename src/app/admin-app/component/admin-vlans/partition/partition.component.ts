@@ -19,10 +19,11 @@ import { VlanQuery } from 'src/app/vlans/state/vlan/vlan.query';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 
 @Component({
-  selector: 'cas-partition',
-  templateUrl: './partition.component.html',
-  styleUrls: ['./partition.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-partition',
+    templateUrl: './partition.component.html',
+    styleUrls: ['./partition.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PartitionComponent implements OnInit {
   @Input() set poolId(poolId: string) {

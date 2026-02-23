@@ -13,9 +13,10 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery, CurrentUserStore } from './users/state';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: false
 })
 export class AppComponent implements OnDestroy {
   @HostBinding('class') componentCssClass: string;

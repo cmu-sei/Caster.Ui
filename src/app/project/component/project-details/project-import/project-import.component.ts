@@ -25,10 +25,11 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Component({
-  selector: 'cas-project-import',
-  templateUrl: './project-import.component.html',
-  styleUrls: ['./project-import.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-import',
+    templateUrl: './project-import.component.html',
+    styleUrls: ['./project-import.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectImportComponent implements OnInit {
   @Input() id: string;

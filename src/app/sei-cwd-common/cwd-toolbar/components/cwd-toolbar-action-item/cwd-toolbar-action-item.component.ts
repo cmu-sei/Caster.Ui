@@ -20,9 +20,10 @@ import {
 } from '@angular/cdk/portal';
 
 @Component({
-  selector: 'cas-cwd-toolbar-action-item',
-  templateUrl: './cwd-toolbar-action-item.component.html',
-  styleUrls: ['./cwd-toolbar-action-item.component.scss'],
+    selector: 'cas-cwd-toolbar-action-item',
+    templateUrl: './cwd-toolbar-action-item.component.html',
+    styleUrls: ['./cwd-toolbar-action-item.component.scss'],
+    standalone: false
 })
 export class CwdToolbarActionItemComponent
   implements OnInit, AfterViewInit, OnDestroy
