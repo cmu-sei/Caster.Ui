@@ -22,7 +22,6 @@ import { FormsModule } from '@angular/forms';
     MatTooltipModule,
     FormsModule,
   ],
-  entryComponents: [ConfirmDialogComponent],
   providers: [ConfirmDialogService],
 })
 export class CwdDialogsModule {}
