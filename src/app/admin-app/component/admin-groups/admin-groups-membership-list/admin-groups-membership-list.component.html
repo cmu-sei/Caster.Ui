@@ -1,6 +1,6 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
 <div class="mat-elevation-z8">
@@ -17,19 +17,20 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           (keyup)="applyFilter($event)"
           #input
           autocomplete="off"
-        />
-        <button
-          *ngIf="filterString"
-          matSuffix
-          mat-icon-button
-          aria-label="Clear"
-          (click)="clearFilter()"
-        >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-close-circle-outline"
-          ></mat-icon>
-        </button>
+          />
+        @if (filterString) {
+          <button
+            matSuffix
+            mat-icon-button
+            aria-label="Clear"
+            (click)="clearFilter()"
+            >
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-close-circle-outline"
+            ></mat-icon>
+          </button>
+        }
       </mat-form-field>
       <mat-paginator
         [pageSizeOptions]="[10, 25, 50, 100]"
@@ -44,7 +45,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     matSortDirection="asc"
     [dataSource]="dataSource"
     class="w-100"
-  >
+    >
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let user">
@@ -55,7 +56,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           (cbOnSuccess)="snackBar.open('Copied to clipboard', 'Dismiss')"
           (click)="$event.stopPropagation()"
           title="Copy:  {{ user.id }}"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
         </button>
         {{ user.name }}

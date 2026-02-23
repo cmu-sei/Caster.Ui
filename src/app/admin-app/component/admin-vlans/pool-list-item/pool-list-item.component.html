@@ -1,48 +1,54 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
 <mat-card appearance="outlined">
   <mat-card-title class="flex">
-    <h4 *ngIf="!editing" class="header">{{ pool?.name }}</h4>
-    <mat-form-field *ngIf="editing" class="header">
-      <input
-        #nameInput
-        matInput
-        [value]="pool?.name"
-        (keydown.enter)="rename($event.target)"
-        (keydown.esc)="editing = false"
-        autocomplete="off"
-      />
-    </mat-form-field>
-    <mat-icon
-      *ngIf="pool?.isDefault"
-      class="mdi-24px icon"
-      fontIcon="mdi-check-circle"
-      color="primary"
-      matTooltip="Contains The Default Partition"
-    >
-    </mat-icon>
+    @if (!editing) {
+      <h4 class="header">{{ pool?.name }}</h4>
+    }
+    @if (editing) {
+      <mat-form-field class="header">
+        <input
+          #nameInput
+          matInput
+          [value]="pool?.name"
+          (keydown.enter)="rename($event.target)"
+          (keydown.esc)="editing = false"
+          autocomplete="off"
+          />
+      </mat-form-field>
+    }
+    @if (pool?.isDefault) {
+      <mat-icon
+        class="mdi-24px icon"
+        fontIcon="mdi-check-circle"
+        color="primary"
+        matTooltip="Contains The Default Partition"
+        >
+      </mat-icon>
+    }
   </mat-card-title>
   <mat-card-actions class="flex">
-    <ng-container *ngIf="canEdit">
-      <button
-        *ngIf="!editing"
-        mat-icon-button
-        color="primary"
-        matTooltip="Edit Name"
-        (click)="editing = !editing"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
-      </button>
-      <ng-container *ngIf="editing">
+    @if (canEdit) {
+      @if (!editing) {
+        <button
+          mat-icon-button
+          color="primary"
+          matTooltip="Edit Name"
+          (click)="editing = !editing"
+          >
+          <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
+        </button>
+      }
+      @if (editing) {
         <button
           mat-icon-button
           color="primary"
           matTooltip="Rename"
           (click)="rename(nameInput.nativeElement)"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
         </button>
         <button
@@ -50,28 +56,30 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           color="primary"
           matTooltip="Cancel"
           (click)="editing = false"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
         </button>
-      </ng-container>
-    </ng-container>
+      }
+    }
     <button
       mat-icon-button
       color="primary"
       matTooltip="Open"
       (click)="selectPool(pool)"
-    >
+      >
       <mat-icon class="mdi-24px" fontIcon="mdi-launch"> </mat-icon>
     </button>
-    <div *ngIf="canEdit" class="align-right">
-      <button
-        mat-icon-button
-        color="primary"
-        matTooltip="Delete"
-        (click)="deletePool(pool)"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
-      </button>
-    </div>
+    @if (canEdit) {
+      <div class="align-right">
+        <button
+          mat-icon-button
+          color="primary"
+          matTooltip="Delete"
+          (click)="deletePool(pool)"
+          >
+          <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
+        </button>
+      </div>
+    }
   </mat-card-actions>
 </mat-card>

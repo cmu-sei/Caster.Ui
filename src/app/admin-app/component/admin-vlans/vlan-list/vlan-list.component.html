@@ -1,12 +1,12 @@
 <!--
 Copyright 2021 Carnegie Mellon University. All Rights Reserved.
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
 <div>
   <mat-form-field
     matTooltip="Search for vlans by comma-separated list of id, range of ids, and/or tag e.g. 10,11,20-30,mytag"
-  >
+    >
     <mat-label>Search</mat-label>
     <input
       matInput
@@ -14,17 +14,18 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       placeholder="Search"
       #input
       autocomplete="off"
-    />
-    <button
-      *ngIf="input.value"
-      color="primary"
-      matSuffix
-      mat-icon-button
-      aria-label="Clear"
-      (click)="clearFilter()"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
-    </button>
+      />
+    @if (input.value) {
+      <button
+        color="primary"
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearFilter()"
+        >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+    }
   </mat-form-field>
   <button
     class="mx-2"
@@ -32,7 +33,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     color="primary"
     [matMenuTriggerFor]="selectionMenu"
     [disabled]="!canEdit"
-  >
+    >
     {{ selection.selected.length }} Selected
   </button>
   <mat-menu #selectionMenu="matMenu">
@@ -40,39 +41,41 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       mat-menu-item
       (click)="reserveSelected(true)"
       [disabled]="selection.selected.length == 0"
-    >
+      >
       Reserve
     </button>
     <button
       mat-menu-item
       (click)="reserveSelected(false)"
       [disabled]="selection.selected.length == 0"
-    >
+      >
       Unreserve
     </button>
     <button
       mat-menu-item
       [matMenuTriggerFor]="partitionSelectMenu"
       [disabled]="selection.selected.length == 0"
-    >
+      >
       Reassign
     </button>
   </mat-menu>
   <mat-menu #partitionSelectMenu="matMenu">
-    <button
-      *ngIf="showUnassigned"
-      (click)="reassignSelected(null)"
-      mat-menu-item
-    >
-      Unassigned
-    </button>
-    <button
-      *ngFor="let partition of partitions"
-      (click)="reassignSelected(partition.id)"
-      mat-menu-item
-    >
-      {{ partition.name }}
-    </button>
+    @if (showUnassigned) {
+      <button
+        (click)="reassignSelected(null)"
+        mat-menu-item
+        >
+        Unassigned
+      </button>
+    }
+    @for (partition of partitions; track partition) {
+      <button
+        (click)="reassignSelected(partition.id)"
+        mat-menu-item
+        >
+        {{ partition.name }}
+      </button>
+    }
   </mat-menu>
 </div>
 
@@ -80,13 +83,13 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   tvsItemSize="itemSize"
   headerHeight="headerSize"
   [ngStyle]="{ height: tableHeight }"
->
+  >
   <table
     mat-table
     [dataSource]="dataSource"
     class="mat-elevation-z8 full-width"
     matSort
-  >
+    >
     <!-- Checkbox Column -->
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
@@ -94,7 +97,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           (change)="$event ? toggleAllRows() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
-        >
+          >
         </mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
@@ -102,7 +105,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row.id) : null"
           [checked]="selection.isSelected(row.id)"
-        >
+          >
         </mat-checkbox>
       </td>
     </ng-container>
@@ -122,7 +125,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
             ? 'VLAN must be assigned to a partition before use'
             : ''
         "
-      >
+        >
         <button
           mat-button
           [color]="element.inUse ? 'warn' : 'basic'"
@@ -130,7 +133,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
           [disabled]="
             !element.partitionId || loading.get(element.id) || !canEdit
           "
-        >
+          >
           {{ element.inUse }}
         </button>
       </td>
@@ -151,7 +154,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
               ? 'Reservation status not editable. Ask an Administrator to update the application settings if this should be changed'
               : ''
           "
-        >
+          >
           {{ element.reserved }}
         </button>
       </td>
@@ -161,20 +164,21 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Tag</th>
       <td mat-cell *matCellDef="let element">
         <div class="tag">
-          <ng-container *ngIf="editingId != element.id">
+          @if (editingId != element.id) {
             <p>{{ element.tag }}</p>
-            <button
-              *ngIf="canEdit"
-              mat-icon-button
-              color="primary"
-              matTooltip="Edit Tag"
-              (click)="editingId = element.id"
-            >
-              <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline">
-              </mat-icon>
-            </button>
-          </ng-container>
-          <ng-container *ngIf="editingId == element.id">
+            @if (canEdit) {
+              <button
+                mat-icon-button
+                color="primary"
+                matTooltip="Edit Tag"
+                (click)="editingId = element.id"
+                >
+                <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline">
+                </mat-icon>
+              </button>
+            }
+          }
+          @if (editingId == element.id) {
             <mat-form-field>
               <input
                 #tagInput
@@ -182,14 +186,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
                 [value]="element.tag"
                 (keydown.enter)="editTag(element.id, $event.target)"
                 (keydown.esc)="editingId = null"
-              />
+                />
             </mat-form-field>
             <button
               mat-icon-button
               color="primary"
               matTooltip="Confirm Edit"
               (click)="editTag(element.id, tagInput)"
-            >
+              >
               <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
             </button>
             <button
@@ -197,41 +201,42 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
               color="primary"
               matTooltip="Cancel Edit"
               (click)="editingId = null"
-            >
+              >
               <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
             </button>
-          </ng-container>
+          }
         </div></td
-    ></ng-container>
+      ></ng-container>
 
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td
-        mat-cell
-        *matCellDef="let element"
-        [matTooltip]="element.inUse ? 'Cannot remove VLANs in use' : ''"
-      >
-        <button
-          *ngIf="element.partitionId"
-          mat-icon-button
-          color="primary"
-          (click)="removeFromPartition(element)"
-          matTooltip="Remove VLAN from this Partition"
-          [disabled]="element.inUse"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
-        </button>
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td
+          mat-cell
+          *matCellDef="let element"
+          [matTooltip]="element.inUse ? 'Cannot remove VLANs in use' : ''"
+          >
+          @if (element.partitionId) {
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="removeFromPartition(element)"
+              matTooltip="Remove VLAN from this Partition"
+              [disabled]="element.inUse"
+              >
+              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-    <!-- Row shown when there is no matching data. -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">
-        No data matching the filter "{{ input.value }}"
-      </td>
-    </tr>
-  </table>
-</cdk-virtual-scroll-viewport>
+      <!-- Row shown when there is no matching data. -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">
+          No data matching the filter "{{ input.value }}"
+        </td>
+      </tr>
+    </table>
+  </cdk-virtual-scroll-viewport>

@@ -7,7 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="appcontent-container"
   [hasBackdrop]="false"
   autosize
->
+  >
   <mat-sidenav
     class="appbarmenu-container"
     #sidenav
@@ -19,13 +19,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (resizeEnd)="resizeEndFn($event)"
     [opened]="leftSidebarOpen"
     (openedChange)="leftSidebarOpenFn($event)"
-  >
+    >
     <div class="grid">
       <div class="w-100 h-100 d-flex flex-column justify-content-between align-items-center">
         <div
           class="d-flex flex-row justify-content-start align-items-center gap-3 w-100 h-100"
           style="flex: 1 1 8%"
-        >
+          >
           <a [routerLink]="['/']">
             <div class="d-flex flex-row justify-content-start align-items-center">
               <mat-icon
@@ -53,7 +53,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 ? 'assets/img/crucible-logo-light.png'
                 : 'assets/img/crucible-logo-dark.png'
             "
-          />
+            />
         </div>
       </div>
       <div
@@ -64,33 +64,35 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="d-flex flex-column" *ngIf="project">
-    <cas-topbar
-      [title]="project.name"
-      [topbarColor]="topbarColor"
-      [topbarTextColor]="topbarTextColor"
-      [topbarView]="TopbarView.CASTER_PROJECT"
-      [sidenav]="sidenav"
-      [projectId]="project.id"
-      (sidenavToggle)="sidenav.toggle()"
-      (editMemberships)="openEditMemberships()"
-    ></cas-topbar>
-    <div class="d-flex flex-row justify-content-center align-items-stretch">
-      <div class="w-100 h-100">
-        <div
-          class="d-flex flex-row justify-content-between align-items-stretch gap-5"
-        >
-          <cas-project
-            style="flex: 1 2 auto"
-            [loading]="loading$ | async"
-            [project]="project$ | async"
-            [projectUI]="projectUI$ | async"
-            (closeTab)="closeTab($event)"
-            (tabChanged)="tabChangedFn($event)"
-          >
-          </cas-project>
+  @if (project) {
+    <mat-sidenav-content class="d-flex flex-column">
+      <cas-topbar
+        [title]="project.name"
+        [topbarColor]="topbarColor"
+        [topbarTextColor]="topbarTextColor"
+        [topbarView]="TopbarView.CASTER_PROJECT"
+        [sidenav]="sidenav"
+        [projectId]="project.id"
+        (sidenavToggle)="sidenav.toggle()"
+        (editMemberships)="openEditMemberships()"
+      ></cas-topbar>
+      <div class="d-flex flex-row justify-content-center align-items-stretch">
+        <div class="w-100 h-100">
+          <div
+            class="d-flex flex-row justify-content-between align-items-stretch gap-5"
+            >
+            <cas-project
+              style="flex: 1 2 auto"
+              [loading]="loading$ | async"
+              [project]="project$ | async"
+              [projectUI]="projectUI$ | async"
+              (closeTab)="closeTab($event)"
+              (tabChanged)="tabChangedFn($event)"
+              >
+            </cas-project>
+          </div>
         </div>
       </div>
-    </div>
-  </mat-sidenav-content>
+    </mat-sidenav-content>
+  }
 </mat-sidenav-container>

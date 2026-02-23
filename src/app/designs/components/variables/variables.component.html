@@ -1,6 +1,6 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
 <div class="button-row">
@@ -9,20 +9,24 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     color="primary"
     (click)="addVariable()"
     [disabled]="!canEdit"
-  >
+    >
     Add
   </button>
 </div>
 
-<div *ngIf="variables$ | async as variables">
-  <ng-container *ngIf="variables.length; else empty">
-    <div class="d-flex flex-row flex-wrap gap-3">
-      <cas-variable
-        *ngFor="let item of variables; trackBy: trackByFn"
-        [variable]="item"
-        [canEdit]="canEdit"
-      ></cas-variable>
-    </div>
-  </ng-container>
-  <ng-template #empty>This Design doesn't have any Variables yet.</ng-template>
-</div>
+@if (variables$ | async; as variables) {
+  <div>
+    @if (variables.length) {
+      <div class="d-flex flex-row flex-wrap gap-3">
+        @for (item of variables; track trackByFn($index, item)) {
+          <cas-variable
+            [variable]="item"
+            [canEdit]="canEdit"
+          ></cas-variable>
+        }
+      </div>
+    } @else {
+      This Design doesn't have any Variables yet.
+    }
+  </div>
+}

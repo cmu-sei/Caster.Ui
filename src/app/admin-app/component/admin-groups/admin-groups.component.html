@@ -18,26 +18,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             placeholder="Search Groups"
-          />
+            />
         </mat-form-field>
-        <button
-          *ngIf="filterString != ''"
-          matTooltip="Clear Search"
-          mat-icon-button
-          (click)="clearFilter()"
-          style="outline: none"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
-        </button>
+        @if (filterString != '') {
+          <button
+            matTooltip="Clear Search"
+            mat-icon-button
+            (click)="clearFilter()"
+            style="outline: none"
+            >
+            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
+          </button>
+        }
         <div class="spacer"></div>
-        <button
-          *ngIf="canEdit$ | async"
-          mat-icon-button
-          matTooltip="Add New Group"
-          (click)="createGroup()"
-        >
-          <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
-        </button>
+        @if (canEdit$ | async) {
+          <button
+            mat-icon-button
+            matTooltip="Add New Group"
+            (click)="createGroup()"
+            >
+            <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
+          </button>
+        }
       </mat-toolbar-row>
     </mat-toolbar>
   </div>
@@ -52,7 +54,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           color="primary"
           matTooltip="Users can be added to Groups here or, if enabled in your environment, can be matched to Group Names from the token of the Identity Provider in use."
           matTooltipShowDelay="0"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
         </button>
       </mat-header-cell>
@@ -60,12 +62,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-expansion-panel class="w-100">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <ng-container *ngIf="canEdit$ | async">
+              @if (canEdit$ | async) {
                 <button
                   mat-icon-button
                   matTooltip="Delete {{ element.name }}"
                   (click)="$event.stopPropagation(); deleteGroup(element)"
-                >
+                  >
                   <mat-icon
                     color="primary"
                     fontSet="fas"
@@ -80,7 +82,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     (click)="$event.stopPropagation(); updateGroup(element)"
                   ></mat-icon>
                 </button>
-              </ng-container>
+              }
               {{ element.name }}
             </mat-panel-title>
           </mat-expansion-panel-header>

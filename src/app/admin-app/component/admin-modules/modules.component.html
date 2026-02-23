@@ -6,16 +6,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div class="component-container mat-elevation-z8">
   <div class="add-margin d-flex flex-row">
     <div class="flex-grow-1">
-      <cas-admin-module-list
-        *ngIf="!!modules$ && !!isLoading$"
-        [modules]="modules$ | async"
-        [isLoading]="isLoading$ | async"
-        [canEdit]="canEdit$ | async"
-        (load)="load()"
-        (loadModuleById)="createOrUpdateById($event)"
-        (delete)="deleteModule($event)"
-      >
-      </cas-admin-module-list>
+      @if (!!modules$ && !!isLoading$) {
+        <cas-admin-module-list
+          [modules]="modules$ | async"
+          [isLoading]="isLoading$ | async"
+          [canEdit]="canEdit$ | async"
+          (load)="load()"
+          (loadModuleById)="createOrUpdateById($event)"
+          (delete)="deleteModule($event)"
+          >
+        </cas-admin-module-list>
+      }
     </div>
   </div>
 </div>

@@ -8,15 +8,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-dialog-actions class="d-flex flex-row justify-content-around align-items-center">
   <div>
-    <button
-      mat-stroked-button
-      *ngIf="buttonTrueText !== ''"
-      hotkeyAction="ENTER"
-      (click)="onClick(true)"
-      tabindex="3"
-    >
-      {{ buttonTrueText }}
-    </button>
+    @if (buttonTrueText !== '') {
+      <button
+        mat-stroked-button
+        hotkeyAction="ENTER"
+        (click)="onClick(true)"
+        tabindex="3"
+        >
+        {{ buttonTrueText }}
+      </button>
+    }
   </div>
   <button mat-stroked-button (click)="onCancel()" tabindex="3">
     {{ buttonFalseText }}

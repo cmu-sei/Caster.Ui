@@ -1,19 +1,22 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div *ngIf="project$ | async as project" class="d-flex justify-content-center">
-  <button
-    *ngIf="embedded"
-    mat-icon-button
-    (click)="goBack.emit()"
-    matTooltip="Return"
-  >
-    <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"></mat-icon>
-  </button>
-  <h1>{{ project.name }}</h1>
-</div>
+@if (project$ | async; as project) {
+  <div class="d-flex justify-content-center">
+    @if (embedded) {
+      <button
+        mat-icon-button
+        (click)="goBack.emit()"
+        matTooltip="Return"
+        >
+        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"></mat-icon>
+      </button>
+    }
+    <h1>{{ project.name }}</h1>
+  </div>
+}
 <div class="d-flex gap-5 justify-content-center">
   <cas-project-membership-list
     [users]="nonMembers$ | async"

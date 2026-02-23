@@ -17,23 +17,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
-    />
+      />
   </mat-form-field>
   <div style="width: 30px">
-    <button
-      *ngIf="!!filterString"
-      class="d-flex justify-content-start align-items-center"
-      mat-icon-button
-      (click)="clearFilter()"
-      style="outline: none"
-      title="Clear Search"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
-    </button>
+    @if (!!filterString) {
+      <button
+        class="d-flex justify-content-start align-items-center"
+        mat-icon-button
+        (click)="clearFilter()"
+        style="outline: none"
+        title="Clear Search"
+        >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+    }
   </div>
-  <div *ngIf="canEdit" style="width: 100px">
-    <button mat-stroked-button (click)="addingNewUser = true">Add User</button>
-  </div>
+  @if (canEdit) {
+    <div style="width: 100px">
+      <button mat-stroked-button (click)="addingNewUser = true">Add User</button>
+    </div>
+  }
   <div class="button-end">
     <mat-paginator
       #paginator
@@ -52,103 +55,111 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <span class="mat-header-cell" mat-sort-header="role">Role</span>
   </section>
 
-  <mat-expansion-panel *ngIf="addingNewUser" [disabled]="true">
-    <mat-expansion-panel-header class="mat-row">
-      <span class="mat-cell">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="User ID"
-            [(ngModel)]="newUser.id"
-            matTooltip="Must be a valid Guid"
-          />
-        </mat-form-field>
-      </span>
-      <span class="mat-cell">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="User Name"
-            [(ngModel)]="newUser.name"
-            matTooltip="Must have a minimum of 4 characters"
-          />
-        </mat-form-field>
-      </span>
-      <span class="mat-cell">
-        <button
-          mat-icon-button
-          (click)="addNewUser(true)"
-          [disabled]="!newUser.id || !newUser.name || newUser.name.length < 4"
-        >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-account-plus"
-            matTooltip="Add this user"
-          ></mat-icon>
-        </button>
-        <button mat-icon-button (click)="addNewUser(false)" matTooltip="Cancel">
-          <mat-icon class="mdi-24px" fontIcon="mdi-account-remove"></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
-
-  <mat-expansion-panel
-    *ngFor="let item of displayedRows$ | async"
-    [disabled]="true"
-  >
-    <mat-expansion-panel-header class="mat-row" *ngIf="!isLoading">
-      <span class="mat-cell">
-        <button
-          mat-icon-button
-          ngxClipboard
-          [cbContent]="item.id"
-          (click)="$event.stopPropagation()"
-          title="Copy:  {{ item.id }}"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
-        </button>
-        {{ item.id }}
-      </span>
-      <span class="mat-cell">
-        {{ item.name }}
-      </span>
-      <span class="mat-cell">
-        <mat-form-field>
-          <mat-select
-            [disabled]="!canEdit"
-            [value]="item.roleId == null ? '' : item.roleId"
-            (selectionChange)="updateRole(item, $event)"
-          >
-            <mat-option value="">None</mat-option>
-            <mat-option
-              *ngFor="let role of roles$ | async; trackBy: trackById"
-              [value]="role.id"
-              >{{ role.name }}</mat-option
+  @if (addingNewUser) {
+    <mat-expansion-panel [disabled]="true">
+      <mat-expansion-panel-header class="mat-row">
+        <span class="mat-cell">
+          <mat-form-field>
+            <input
+              matInput
+              placeholder="User ID"
+              [(ngModel)]="newUser.id"
+              matTooltip="Must be a valid Guid"
+              />
+          </mat-form-field>
+        </span>
+        <span class="mat-cell">
+          <mat-form-field>
+            <input
+              matInput
+              placeholder="User Name"
+              [(ngModel)]="newUser.name"
+              matTooltip="Must have a minimum of 4 characters"
+              />
+          </mat-form-field>
+        </span>
+        <span class="mat-cell">
+          <button
+            mat-icon-button
+            (click)="addNewUser(true)"
+            [disabled]="!newUser.id || !newUser.name || newUser.name.length < 4"
             >
-          </mat-select>
-        </mat-form-field>
-        <button
-          *ngIf="canEdit"
-          mat-icon-button
-          (click)="deleteUser(item); $event.stopPropagation()"
-          title="Delete User"
-        >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-delete-forever-outline"
-          ></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
-</mat-accordion>
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-account-plus"
+              matTooltip="Add this user"
+            ></mat-icon>
+          </button>
+          <button mat-icon-button (click)="addNewUser(false)" matTooltip="Cancel">
+            <mat-icon class="mdi-24px" fontIcon="mdi-account-remove"></mat-icon>
+          </button>
+        </span>
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
+  }
 
-<mat-card
-  appearance="outlined"
-  *ngIf="isLoading"
-  style="display: flex; justify-content: center; align-items: center"
->
-  <mat-progress-spinner color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-</mat-card>
+  @for (item of displayedRows$ | async; track item) {
+    <mat-expansion-panel
+      [disabled]="true"
+      >
+      @if (!isLoading) {
+        <mat-expansion-panel-header class="mat-row">
+          <span class="mat-cell">
+            <button
+              mat-icon-button
+              ngxClipboard
+              [cbContent]="item.id"
+              (click)="$event.stopPropagation()"
+              title="Copy:  {{ item.id }}"
+              >
+              <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+            </button>
+            {{ item.id }}
+          </span>
+          <span class="mat-cell">
+            {{ item.name }}
+          </span>
+          <span class="mat-cell">
+            <mat-form-field>
+              <mat-select
+                [disabled]="!canEdit"
+                [value]="item.roleId == null ? '' : item.roleId"
+                (selectionChange)="updateRole(item, $event)"
+                >
+                <mat-option value="">None</mat-option>
+                @for (role of roles$ | async; track trackById($index, role)) {
+                  <mat-option
+                    [value]="role.id"
+                    >{{ role.name }}</mat-option
+                    >
+                  }
+                </mat-select>
+              </mat-form-field>
+              @if (canEdit) {
+                <button
+                  mat-icon-button
+                  (click)="deleteUser(item); $event.stopPropagation()"
+                  title="Delete User"
+                  >
+                  <mat-icon
+                    class="mdi-24px"
+                    fontIcon="mdi-delete-forever-outline"
+                  ></mat-icon>
+                </button>
+              }
+            </span>
+          </mat-expansion-panel-header>
+        }
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+
+  @if (isLoading) {
+    <mat-card
+      appearance="outlined"
+      style="display: flex; justify-content: center; align-items: center"
+      >
+      <mat-progress-spinner color="primary" mode="indeterminate">
+      </mat-progress-spinner>
+    </mat-card>
+  }

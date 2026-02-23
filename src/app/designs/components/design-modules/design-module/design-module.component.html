@@ -1,13 +1,13 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
 <mat-card
   appearance="outlined"
   class="mat-elevation-z4"
   [ngClass]="designModule.enabled ? 'enabled' : 'disabled'"
->
+  >
   <mat-card-title>{{ designModule.name }}</mat-card-title>
 
   <mat-card-actions class="d-flex flex-row justify-content-start align-items-center">
@@ -17,7 +17,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       (click)="edit()"
       [disabled]="!module || isEditing"
       matTooltip="Edit"
-    >
+      >
       <mat-icon class="mdi-24px" fontIcon="mdi-pencil-outline"> </mat-icon>
     </button>
     <button
@@ -26,7 +26,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       (click)="toggleOutputs()"
       [disabled]="!module || isEditing"
       matTooltip="View Module Outputs"
-    >
+      >
       <mat-icon class="mdi-24px" fontIcon="mdi-export"> </mat-icon>
     </button>
     <button
@@ -35,7 +35,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       (click)="delete()"
       matTooltip="Delete"
       [disabled]="!canEdit"
-    >
+      >
       <mat-icon class="mdi-24px" fontIcon="mdi-delete-outline"> </mat-icon>
     </button>
     <button
@@ -43,48 +43,53 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
       mat-icon-button
       (click)="toggleEnabled()"
       [disabled]="!canEdit"
-    >
-      <mat-icon
-        *ngIf="designModule.enabled"
-        class="mdi-24px"
-        fontIcon="mdi-circle-off-outline"
-        matTooltip="Disable"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="!designModule.enabled"
-        class="mdi-24px"
-        fontIcon="mdi-circle-outline"
-        matTooltip="Enable"
       >
-      </mat-icon>
+      @if (designModule.enabled) {
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-circle-off-outline"
+          matTooltip="Disable"
+        ></mat-icon>
+      }
+      @if (!designModule.enabled) {
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-circle-outline"
+          matTooltip="Enable"
+          >
+        </mat-icon>
+      }
     </button>
   </mat-card-actions>
 
   <mat-card-content [ngClass]="isEditing ? 'edit-content' : ''">
-    <ng-container *ngIf="isEditing">
-      <cas-module-variables
-        *ngIf="!(loading$ | async); else loading"
-        [selectedModule]="module"
-        [readOnly]="!canEdit"
-        [values]="designModule.values"
-        [name]="designModule.name"
-        [selectedVersionName]="designModule.moduleVersion"
-        [variables]="variables$ | async"
-        [outputs]="designOutputs$ | async"
-        [isSaving]="saving$ | async"
-        (variablesSelected)="onEditComplete($event)"
-      >
-      </cas-module-variables>
-    </ng-container>
-    <ng-container *ngIf="showOutputs">
-      <cas-module-outputs
-        *ngIf="!(loading$ | async); else loading"
-        [moduleName]="designModule.name"
-        [outputs]="outputs$ | async"
-      ></cas-module-outputs>
-    </ng-container>
-    <ng-template #loading>
-      <div>Loading...</div>
-    </ng-template>
+    @if (isEditing) {
+      @if (!(loading$ | async)) {
+        <cas-module-variables
+          [selectedModule]="module"
+          [readOnly]="!canEdit"
+          [values]="designModule.values"
+          [name]="designModule.name"
+          [selectedVersionName]="designModule.moduleVersion"
+          [variables]="variables$ | async"
+          [outputs]="designOutputs$ | async"
+          [isSaving]="saving$ | async"
+          (variablesSelected)="onEditComplete($event)"
+          >
+        </cas-module-variables>
+      } @else {
+        <div>Loading...</div>
+      }
+    }
+    @if (showOutputs) {
+      @if (!(loading$ | async)) {
+        <cas-module-outputs
+          [moduleName]="designModule.name"
+          [outputs]="outputs$ | async"
+        ></cas-module-outputs>
+      } @else {
+        <div>Loading...</div>
+      }
+    }
   </mat-card-content>
 </mat-card>
