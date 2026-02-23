@@ -43,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-form-field>
 
   <div class="flex-grow-1 d-flex flex-column" style="overflow-y: scroll; height: 400px">
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-form-field>
         <mat-label [ngClass]="nameChanged ? 'changed-hint' : ''"
           >Name of this instance</mat-label
@@ -65,7 +65,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-form-field>
     </mat-card>
     <ng-container formGroupName="values">
-      <mat-card *ngFor="let moduleField of moduleFields">
+      <mat-card appearance="outlined" *ngFor="let moduleField of moduleFields">
         <mat-form-field>
           <mat-hint *ngIf="!moduleField.isOptional">Required</mat-hint>
           <mat-hint

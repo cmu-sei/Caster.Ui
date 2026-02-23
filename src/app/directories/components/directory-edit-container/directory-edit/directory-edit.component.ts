@@ -14,7 +14,7 @@ import {
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'cas-directory-edit',

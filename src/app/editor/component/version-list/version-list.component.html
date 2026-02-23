@@ -4,7 +4,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div class="d-flex flex-column" *ngIf="!!dataSource">
-  <mat-card class="version-heading flex-fill w-100 h-100">
+  <mat-card appearance="outlined" class="version-heading flex-fill w-100 h-100">
     <span><strong>FILE VERSIONS</strong></span>
     <div class="version-search">
       <mat-icon
@@ -32,6 +32,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </mat-card>
   <mat-card
+    appearance="outlined"
     *ngFor="let version of dataSource.filteredData"
     [class.selected]="selectedVersionId == version.id"
     class="clickable highlight version-card flex-fill w-100 h-100"
@@ -62,6 +63,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-card-content>
   </mat-card>
   <mat-card
+    appearance="outlined"
     class="version-card"
     *ngIf="!dataSource.data || dataSource.data.length === 0"
   >

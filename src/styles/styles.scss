@@ -14,9 +14,9 @@ $mdi-font-path: '~@mdi/font/fonts';
 //  If you specify typography styles for the components you use elsewhere, you should delete this line.
 //  If you don't need the default component typographies but still want the hierarchy styles,
 //  you can delete this line and instead use:
-//    `@include mat.legacy-typography-hierarchy(mat.define-legacy-typography-config());`
-@include mat.all-legacy-component-typographies();
-@include mat.legacy-core();
+//    `@include mat.legacy-typography-hierarchy(mat.define-typography-config());`
+@include mat.all-component-typographies();
+@include mat.core();
 
 /* BOOTSTRAP IMPORTS */
 /* Required */
@@ -38,13 +38,13 @@ $mdi-font-path: '~@mdi/font/fonts';
 /* END LOCAL IMPORTS */
 
 .light-theme {
-  @include mat.all-legacy-component-themes($light-theme);
+  @include mat.all-component-themes($light-theme);
   @include cwd-toolbar-theme($light-theme);
   @include globals($light-theme);
 }
 
 .dark-theme {
-  @include mat.all-legacy-component-themes($dark-theme);
+  @include mat.all-component-themes($dark-theme);
   @include cwd-toolbar-theme($dark-theme);
   @include globals($dark-theme);
 }
@@ -54,6 +54,6 @@ body {
   margin: 0;
 }
 
-.light-theme .mat-simple-snackbar-action {
+.light-theme .mat-mdc-snack-bar-action {
   color: white;
 }

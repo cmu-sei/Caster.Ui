@@ -22,7 +22,7 @@ import {
 import { Directory, Project } from '../../../../generated/caster-api';
 import { map, take, takeUntil } from 'rxjs/operators';
 import { RouterQuery } from '@datorama/akita-ng-router-store';
-import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ProjectExportComponent } from '../project-export/project-export.component';
 import { PermissionService } from 'src/app/permissions/permission.service';

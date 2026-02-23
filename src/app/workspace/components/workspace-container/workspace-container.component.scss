@@ -1,6 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 mat-button-toggle {
   flex: 1 1 100%;
   box-sizing: border-box;
@@ -9,6 +10,7 @@ mat-button-toggle {
   display: flex;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 .mat-button-toggle {
   line-height: 34px;
   height: 30px;

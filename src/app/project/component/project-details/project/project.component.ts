@@ -9,7 +9,7 @@ import {
   Output,
 } from '@angular/core';
 import { ProjectUI } from '../../../state';
-import { MatLegacyTab as MatTab } from '@angular/material/legacy-tabs';
+import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
 
 @Component({
