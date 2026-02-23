@@ -19,10 +19,10 @@ import {
 } from '@angular/cdk/portal';
 
 @Component({
-    selector: 'cas-cwd-toolbar-navigation-item',
-    templateUrl: './cwd-toolbar-navigation-item.component.html',
-    styleUrls: ['./cwd-toolbar-navigation-item.component.scss'],
-    standalone: false
+  selector: 'cas-cwd-toolbar-navigation-item',
+  templateUrl: './cwd-toolbar-navigation-item.component.html',
+  styleUrls: ['./cwd-toolbar-navigation-item.component.scss'],
+  standalone: false,
 })
 export class CwdToolbarNavigationItemComponent
   implements OnInit, AfterViewInit, OnDestroy
@@ -43,7 +43,6 @@ export class CwdToolbarNavigationItemComponent
   ngAfterViewInit(): void {
     this.portalOutlet = new DomPortalOutlet(
       document.querySelector('#toolbar-navigation'),
-      this.componentFactoryResolver,
       this.appRef,
       this.injector
     );
