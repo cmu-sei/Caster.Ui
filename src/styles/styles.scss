@@ -33,21 +33,20 @@ $mdi-font-path: '~@mdi/font/fonts';
 /* END VENDOR IMPORTS */
 
 /* LOCAL IMPORTS */
-@import 'theme';
 @import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 /* END LOCAL IMPORTS */
 
-.light-theme {
-  @include mat.all-component-themes($light-theme);
-  @include cwd-toolbar-theme($light-theme);
-  @include globals($light-theme);
-}
+// .light-theme {
+//   @include mat.all-component-themes($light-theme);
+//   @include cwd-toolbar-theme($light-theme);
+//   @include globals($light-theme);
+// }
 
-.dark-theme {
-  @include mat.all-component-themes($dark-theme);
-  @include cwd-toolbar-theme($dark-theme);
-  @include globals($dark-theme);
-}
+// .dark-theme {
+//   @include mat.all-component-themes($dark-theme);
+//   @include cwd-toolbar-theme($dark-theme);
+//   @include globals($dark-theme);
+// }
 
 body {
   height: calc(100vh - 40px);
