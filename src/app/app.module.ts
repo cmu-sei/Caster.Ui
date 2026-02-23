@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { OverlayModule } from '@angular/cdk/overlay';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -64,47 +64,41 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
   duration: 2000,
 };
 
-@NgModule({
-  declarations: [AppComponent, SystemMessageComponent],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    environment.production ? [] : AkitaNgDevtools.forRoot(),
-    AkitaNgRouterStoreModule,
-    AppRoutingModule,
-    ComnSettingsModule.forRoot(),
-    ComnAuthModule.forRoot(),
-    ApiModule,
-    CwdToolbarModule,
-    MatMenuModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatBottomSheetModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    ProjectModule,
-    HttpClientModule,
-    OverlayModule,
-    HotkeysModule,
-    DesignModule,
-    MatCheckboxModule,
-    CwdDialogsModule,
-  ],
-  providers: [
-    {
-      provide: BASE_PATH,
-      useFactory: getBasePath,
-      deps: [ComnSettingsService],
-    },
-    { provide: ErrorHandler, useClass: ErrorService },
-    SystemMessageService,
-    { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
-    {
-      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
-      useValue: myCustomSnackBarDefaults,
-    },
-  ],
-  bootstrap: [AppComponent],
-})
+@NgModule({ declarations: [AppComponent, SystemMessageComponent],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        BrowserAnimationsModule,
+        environment.production ? [] : AkitaNgDevtools.forRoot(),
+        AkitaNgRouterStoreModule,
+        AppRoutingModule,
+        ComnSettingsModule.forRoot(),
+        ComnAuthModule.forRoot(),
+        ApiModule,
+        CwdToolbarModule,
+        MatMenuModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTooltipModule,
+        MatBottomSheetModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        ProjectModule,
+        OverlayModule,
+        HotkeysModule,
+        DesignModule,
+        MatCheckboxModule,
+        CwdDialogsModule], providers: [
+        {
+            provide: BASE_PATH,
+            useFactory: getBasePath,
+            deps: [ComnSettingsService],
+        },
+        { provide: ErrorHandler, useClass: ErrorService },
+        SystemMessageService,
+        { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
+        {
+            provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+            useValue: myCustomSnackBarDefaults,
+        },
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule {}
