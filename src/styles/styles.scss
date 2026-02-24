@@ -2,20 +2,13 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 /* VENDOR IMPORTS */
 @use '@angular/material' as mat;
+@use './theme-colors' as theme;
+@use '@mdi/font/scss/materialdesignicons.scss';
+
+@import '@fortawesome/fontawesome-free/css/all.css';
 @import 'xterm/css/xterm.css';
 
-// $mdi-font-path: '~@mdi/font/fonts';
-@import '@mdi/font/scss/materialdesignicons';
-@import '@fortawesome/fontawesome-free/css/all.css';
-// TODO(v15): As of v15 mat.legacy-core no longer includes default typography styles.
-//  The following line adds:
-//    1. Default typography styles for all components
-//    2. Styles for typography hierarchy classes (e.g. .mat-headline-1)
-//  If you specify typography styles for the components you use elsewhere, you should delete this line.
-//  If you don't need the default component typographies but still want the hierarchy styles,
-//  you can delete this line and instead use:
-//    `@include mat.legacy-typography-hierarchy(mat.define-typography-config());`
-@include mat.all-component-typographies();
+// @include mat.all-component-typographies();
 @include mat.elevation-classes();
 @include mat.app-background();
 
@@ -49,11 +42,55 @@
 //   @include globals($dark-theme);
 // }
 
+html {
+  @include mat.theme(
+    (
+      color: theme.$primary-palette,
+      typography: '"Open Sans", sans-serif',
+    )
+  );
+}
+
+.darkMode {
+  @include mat.theme(
+    (
+      color: (
+        primary: theme.$primary-palette,
+        typography: '"Open Sans", sans-serif',
+        theme-type: dark,
+      ),
+    )
+  );
+}
+
 body {
   height: calc(100vh - 40px);
   margin: 0;
+  font-family: 'Open Sans', sans-serif;
 }
 
-.light-theme .mat-mdc-snack-bar-action {
-  color: white;
+// .light-theme .mat-mdc-snack-bar-action {
+//   color: white;
+// }
+
+// prevent table header rows from scrolling
+.mat-mdc-header-row {
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
+  z-index: 9 !important;
+}
+
+// default all icons to the primary theme color
+mat-icon,
+.mat-icon {
+  --mat-icon-color: var(--mat-sys-primary);
+}
+
+// remove the border around paginator items per page selection
+mat-paginator {
+  --mat-form-field-outlined-outline-color: transparent;
+  --mat-form-field-outlined-hover-outline-color: transparent;
+  --mat-form-field-outlined-focus-outline-color: transparent;
+  min-width: 200px !important;
 }
