@@ -40,6 +40,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   overflow: hidden;
   word-wrap: break-word;
   font-size: 0.875rem;
+}
+
+.mat-mdc-cell {
   font-weight: 400;
 }
 

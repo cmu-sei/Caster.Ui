@@ -42,6 +42,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   align-items: center;
   display:flex;
   font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.mat-mdc-cell {
   font-weight: 400;
 }
 
