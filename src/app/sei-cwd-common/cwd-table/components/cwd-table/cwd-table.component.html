@@ -47,10 +47,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-card>
 }
 
-<mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-table">
-  <section matSort class="mat-elevation-z2 mat-header-row">
+<mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-mdc-table">
+  <section matSort class="mat-elevation-z2 mat-mdc-header-row">
     @for (label of displayedColumns; track label; let idx = $index) {
-      <div class="mat-header-cell" [mat-sort-header]="label">{{ label }}</div>
+      <div class="mat-mdc-header-cell" [mat-sort-header]="label">{{ label }}</div>
     }
   </section>
   @for (item of displayedRows$ | async; track trackByFn.bind(this)($index, item)) {
@@ -60,26 +60,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       (afterCollapse)="afterCollapse($event, item)"
       >
       <mat-expansion-panel-header
-        class="mat-row"
+        class="mat-mdc-row"
         [ngClass]="!getRowStyle ? '' : getRowStyle(item)"
         >
         @for (key of displayedColumns; track key; let idx = $index) {
           @switch (idx) {
             <!-- first cell -->
             @case (0) {
-              <span class="mat-cell">
+              <span class="mat-mdc-cell">
                 {{ item[key] }}
               </span>
             }
             <!-- Regular Cell -->
             @default {
-              <span class="mat-cell">
+              <span class="mat-mdc-cell">
                 {{ item[key] }}
               </span>
             }
             <!-- Actions Cell -->
             @case (displayedColumns.length - 1) {
-              <span class="mat-cell">
+              <span class="mat-mdc-cell">
                 <ng-container
               *ngTemplateOutlet="
                 tableActionItemTemplate;

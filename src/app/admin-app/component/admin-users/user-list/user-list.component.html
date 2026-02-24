@@ -37,17 +37,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 </div>
 
-<mat-accordion displayMode="flat" class="mat-table">
-  <section matSort class="mat-elevation-z2 mat-header-row">
-    <span class="mat-header-cell" mat-sort-header="id">ID</span>
-    <span class="mat-header-cell" mat-sort-header="name">Name</span>
-    <span class="mat-header-cell" mat-sort-header="role">Role</span>
+<mat-accordion displayMode="flat" class="mat-mdc-table">
+  <section matSort class="mat-elevation-z2 mat-mdc-header-row">
+    <span class="mat-mdc-header-cell" mat-sort-header="id">ID</span>
+    <span class="mat-mdc-header-cell" mat-sort-header="name">Name</span>
+    <span class="mat-mdc-header-cell" mat-sort-header="role">Role</span>
   </section>
 
   @if (addingNewUser) {
     <mat-expansion-panel [disabled]="true">
-      <mat-expansion-panel-header class="mat-row">
-        <span class="mat-cell">
+      <mat-expansion-panel-header class="mat-mdc-row">
+        <span class="mat-mdc-cell">
           <mat-form-field>
             <input
               matInput
@@ -57,7 +57,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               />
           </mat-form-field>
         </span>
-        <span class="mat-cell">
+        <span class="mat-mdc-cell">
           <mat-form-field>
             <input
               matInput
@@ -67,7 +67,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               />
           </mat-form-field>
         </span>
-        <span class="mat-cell">
+        <span class="mat-mdc-cell">
           <button
             mat-icon-button
             (click)="addNewUser(true)"
@@ -92,8 +92,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="true"
       >
       @if (!isLoading) {
-        <mat-expansion-panel-header class="mat-row">
-          <span class="mat-cell">
+        <mat-expansion-panel-header class="mat-mdc-row">
+          <span class="mat-mdc-cell">
             <button
               mat-icon-button
               ngxClipboard
@@ -105,10 +105,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
             {{ item.id }}
           </span>
-          <span class="mat-cell">
+          <span class="mat-mdc-cell">
             {{ item.name }}
           </span>
-          <span class="mat-cell">
+          <span class="mat-mdc-cell">
             <mat-form-field>
               <mat-select
                 [disabled]="!canEdit"

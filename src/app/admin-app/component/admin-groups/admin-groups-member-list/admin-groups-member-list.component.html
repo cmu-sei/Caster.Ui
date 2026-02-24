@@ -70,8 +70,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">
+    <tr class="mat-mdc-row" *matNoDataRow>
+      <td class="mat-mdc-cell" colspan="4">
         @if (input.value) {
           No data matching the filter "{{ input.value }}"
         } @else {

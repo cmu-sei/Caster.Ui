@@ -32,14 +32,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 </div>
 
-<mat-accordion displayMode="flat" class="mat-table">
+<mat-accordion displayMode="flat" class="mat-mdc-table">
   @if (canEdit) {
     <mat-expansion-panel [disabled]="true">
-      <mat-expansion-panel-header class="mat-row">
-        <span class="mat-cell">
+      <mat-expansion-panel-header class="mat-mdc-row">
+        <span class="mat-mdc-cell">
           <h6 style="float: right; margin-right: 50px">Add/Update Modules >></h6>
         </span>
-        <span class="mat-cell">
+        <span class="mat-mdc-cell">
           <mat-form-field>
             <input
               matInput
@@ -60,7 +60,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             ></mat-icon>
           </button>
         </span>
-        <span class="mat-cell">
+        <span class="mat-mdc-cell">
           <button
             mat-icon-button
             (click)="updateAllModules()"
@@ -77,13 +77,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-expansion-panel>
   }
 
-  <section matSort class="mat-elevation-z2 mat-header-row">
-    <span class="mat-header-cell" mat-sort-header="name">Name</span>
-    <span class="mat-header-cell" mat-sort-header="path">Path</span>
-    <span class="mat-header-cell" mat-sort-header="versionsCount"
+  <section matSort class="mat-elevation-z2 mat-mdc-header-row">
+    <span class="mat-mdc-header-cell" mat-sort-header="name">Name</span>
+    <span class="mat-mdc-header-cell" mat-sort-header="path">Path</span>
+    <span class="mat-mdc-header-cell" mat-sort-header="versionsCount"
       >Versions</span
       >
-      <span class="mat-header-cell" mat-sort-header="description"
+      <span class="mat-mdc-header-cell" mat-sort-header="description"
         >Date Loaded</span
         >
       </section>
@@ -93,8 +93,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [disabled]="true"
           >
           @if (!isLoading) {
-            <mat-expansion-panel-header class="mat-row">
-              <span class="mat-cell">
+            <mat-expansion-panel-header class="mat-mdc-row">
+              <span class="mat-mdc-cell">
                 <button
                   mat-icon-button
                   ngxClipboard
@@ -106,10 +106,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 </button>
                 {{ item.name }}
               </span>
-              <span class="mat-cell">
+              <span class="mat-mdc-cell">
                 {{ item.path }}
               </span>
-              <span class="mat-cell">
+              <span class="mat-mdc-cell">
                 <span
                   [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
           [matTooltip]="
@@ -121,7 +121,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   >{{ item.versionsCount }}</span
                   >
                 </span>
-                <span class="mat-cell">
+                <span class="mat-mdc-cell">
                   {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
                   @if (canEdit) {
                     <button
