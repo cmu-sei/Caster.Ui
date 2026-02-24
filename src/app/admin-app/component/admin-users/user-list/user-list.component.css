@@ -41,6 +41,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   word-wrap: break-word;
   align-items: center;
   display:flex;
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .button-end {
@@ -59,4 +61,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 .mat-expansion-panel-header.mat-mdc-row {
   border-bottom: none;
+  --mat-expansion-header-text-size: 0.875rem;
+  --mat-expansion-header-text-weight: 400;
 }

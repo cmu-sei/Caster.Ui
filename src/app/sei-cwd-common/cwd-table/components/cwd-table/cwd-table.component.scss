@@ -9,6 +9,8 @@
 
 .mat-expansion-panel-header.mat-mdc-row {
   border-bottom: none;
+  --mat-expansion-header-text-size: 0.875rem;
+  --mat-expansion-header-text-weight: 400;
 }
 
 //copied from https://github.com/angular/material2/blob/master/src/lib/table/table.scss
@@ -53,6 +55,8 @@ $mat-row-horizontal-padding: 24px;
   overflow: hidden;
   word-wrap: break-word;
   align-self: center;
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .spacer {
