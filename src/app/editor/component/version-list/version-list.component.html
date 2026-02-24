@@ -8,29 +8,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <mat-card appearance="outlined" class="version-heading flex-fill w-100 h-100">
       <span><strong>FILE VERSIONS</strong></span>
       <div class="version-search">
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-magnify"
-          style="margin-right: 5px"
-        ></mat-icon>
         <mat-form-field class="search-input">
+          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
           <input
             matInput
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             placeholder="Search"
             />
+          @if (filterString != '') {
+            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+            </button>
+          }
         </mat-form-field>
-        @if (filterString != '') {
-          <button
-            matTooltip="Clear Search"
-            mat-icon-button
-            (click)="clearFilter()"
-            style="outline: none"
-            >
-            <mat-icon class="mdi-18px" fontIcon="mdi-close-circle"></mat-icon>
-          </button>
-        }
       </div>
     </mat-card>
     @for (version of dataSource.filteredData; track version) {

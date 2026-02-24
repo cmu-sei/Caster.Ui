@@ -9,35 +9,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <img height="35" src="assets/img/SP_Icon_Cartographer.png" alt="Definitions">
     -->
   </div>
-  <mat-icon
-    style="margin-left: 50px; transform: scale(0.85); margin-right: 5px"
-    class="mdi mdi-18px"
-    fontIcon="mdi-magnify-outline"
-  ></mat-icon>
   <mat-form-field style="width: 320px">
+    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
     <input
       matInput
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
       />
-  </mat-form-field>
-  <div style="width: 50px">
     @if (filterString != '') {
-      <button
-        class="d-flex justify-content-start align-items-center"
-        mat-icon-button
-        (click)="clearFilter()"
-        style="outline: none"
-        title="Clear Search"
-        >
-        <mat-icon
-          style="transform: scale(0.85)"
-          svgIcon="ic_cancel_circle"
-        ></mat-icon>
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
       </button>
     }
-  </div>
+  </mat-form-field>
   <mat-paginator
     #paginator
     [length]="totalRows$ | async"

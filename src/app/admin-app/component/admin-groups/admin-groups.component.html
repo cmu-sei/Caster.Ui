@@ -7,29 +7,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
-        <mat-icon
-          fontSet="fas"
-          fontIcon="fa-search"
-          class="fa-search"
-        ></mat-icon>
         <mat-form-field>
+          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
           <input
             matInput
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             placeholder="Search Groups"
             />
+          @if (filterString != '') {
+            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+            </button>
+          }
         </mat-form-field>
-        @if (filterString != '') {
-          <button
-            matTooltip="Clear Search"
-            mat-icon-button
-            (click)="clearFilter()"
-            style="outline: none"
-            >
-            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
-          </button>
-        }
         <div class="spacer"></div>
         @if (canEdit$ | async) {
           <button

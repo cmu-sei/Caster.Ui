@@ -7,161 +7,148 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
-        <mat-icon
-          fontSet="fas"
-          fontIcon="fa-search"
-          class="fa-search"
-        ></mat-icon>
         <mat-form-field>
+          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
           <input
             matInput
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             #input
             placeholder="Search Projects"
-            />
-        </mat-form-field>
-        @if (filterString != '') {
+          />
+          @if (filterString != '') {
           <button
-            class="d-flex justify-content-start align-items-center"
-            matTooltip="Clear Search"
+            matSuffix
             mat-icon-button
+            aria-label="Clear"
             (click)="clearFilter()"
-            style="outline: none"
-            >
-            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
+          >
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-close-circle-outline"
+            ></mat-icon>
           </button>
-        }
+          }
+        </mat-form-field>
         <div class="spacer"></div>
         @if (canCreate$ | async) {
-          <button
-            mat-icon-button
-            matTooltip="Add New Project"
-            hotkeyAction="PROJECT_NEW"
-            (click)="create()"
-            >
-            <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
-          </button>
+        <button
+          mat-icon-button
+          matTooltip="Add New Project"
+          hotkeyAction="PROJECT_NEW"
+          (click)="create()"
+        >
+          <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
+        </button>
         }
       </mat-toolbar-row>
     </mat-toolbar>
   </div>
 
   @if (projects) {
-    <div>
-      <mat-table
-        matSort
-        matSortActive="name"
-        matSortDirection="asc"
-        [dataSource]="dataSource"
-        matSort
-        >
-        <ng-container matColumnDef="name">
-          <mat-header-cell *matHeaderCellDef mat-sort-header>
-            Project Name
-          </mat-header-cell>
-          <mat-cell *matCellDef="let element">
-            @if (!manageMode) {
-              <a
-                class="project-text"
-                matTooltip="Open {{ element.name }}"
-                [routerLink]="['/projects', element.id]"
-                >{{ element.name }}</a
-                >
-              }
-              @if (manageMode) {
-                <a
-                  class="project-text"
-                  matTooltip="Edit {{ element.name }}"
-                  [routerLink]="['/projects', element.id, 'memberships']"
-                  ><p
+  <div>
+    <mat-table
+      matSort
+      matSortActive="name"
+      matSortDirection="asc"
+      [dataSource]="dataSource"
+      matSort
+    >
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>
+          Project Name
+        </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          @if (!manageMode) {
+          <a
+            class="project-text"
+            matTooltip="Open {{ element.name }}"
+            [routerLink]="['/projects', element.id]"
+            >{{ element.name }}</a
+          >
+          } @if (manageMode) {
+          <a
+            class="project-text"
+            matTooltip="Edit {{ element.name }}"
+            [routerLink]="['/projects', element.id, 'memberships']"
+            ><p
               (click)="
                 $event.preventDefault();
                 $event.stopPropagation();
                 selectProject(element.id)
               "
-                  >
-                  {{ element.name }}
-                </p></a
-                >
-              }
-            </mat-cell>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
-            <mat-cell *matCellDef="let element">
-              @if (manageMode) {
-                <a
-                  mat-icon-button
-                  matTooltip="Open {{ element.name }}"
-                  [routerLink]="['/projects', element.id]"
-                  target="_blank"
-                  >
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-external-link-alt"
-                  ></mat-icon>
-                </a>
-              }
-              @if (
-                (canManageAll$ | async) ||
-                (canManageProjects$ | async).includes(element.id)
-                ) {
-                <button
-                  mat-icon-button
-                  matTooltip="Rename"
-                  (click)="update(element)"
-                  >
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-pencil-alt"
-                  ></mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  matTooltip="Delete {{ element.name }}"
-                  (click)="delete(element)"
-                  >
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-trash"
-                  ></mat-icon>
-                </button>
-              }
-            </mat-cell>
-          </ng-container>
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">
-              @if (input.value) {
-                No data matching the filter "{{ input.value }}"
-              } @else {
-                You are not a member of any Projects
-              }
-            </td>
-          </tr>
-        </mat-table>
-        <!-- This non-displayed button is required, because hotKeys do not work with the button inside the mat-table -->
-        <button
-          style="display: none"
-          hotkeyAction="PROJECT_NEW"
-          (click)="createRequest()"
-        ></button>
-      </div>
-    }
-
-    <!-- Loading Spinner -->
-    @if (!projects || isLoading) {
-      <mat-card
-        appearance="outlined"
-        style="display: flex; justify-content: center; align-items: center"
-        >
-        <mat-progress-spinner color="primary" mode="indeterminate">
-        </mat-progress-spinner>
-      </mat-card>
-    }
+            >
+              {{ element.name }}
+            </p></a
+          >
+          }
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          @if (manageMode) {
+          <a
+            mat-icon-button
+            matTooltip="Open {{ element.name }}"
+            [routerLink]="['/projects', element.id]"
+            target="_blank"
+          >
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-external-link-alt"
+            ></mat-icon>
+          </a>
+          } @if ( (canManageAll$ | async) || (canManageProjects$ |
+          async).includes(element.id) ) {
+          <button mat-icon-button matTooltip="Rename" (click)="update(element)">
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-pencil-alt"
+            ></mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Delete {{ element.name }}"
+            (click)="delete(element)"
+          >
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-trash"
+            ></mat-icon>
+          </button>
+          }
+        </mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">
+          @if (input.value) { No data matching the filter "{{ input.value }}" }
+          @else { You are not a member of any Projects }
+        </td>
+      </tr>
+    </mat-table>
+    <!-- This non-displayed button is required, because hotKeys do not work with the button inside the mat-table -->
+    <button
+      style="display: none"
+      hotkeyAction="PROJECT_NEW"
+      (click)="createRequest()"
+    ></button>
   </div>
+  }
+
+  <!-- Loading Spinner -->
+  @if (!projects || isLoading) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
+  >
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card>
+  }
+</div>
