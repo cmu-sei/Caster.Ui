@@ -37,7 +37,7 @@ import { TableItemContentDirective } from '../../directives/table-item-content.d
     standalone: false
 })
 export class CwdTableComponent<T> implements OnInit, OnChanges {
-  public filterString: string;
+  public filterString = '';
   public datasource = new MatTableDataSource<T>(new Array<T>());
 
   // MatPaginator Output
