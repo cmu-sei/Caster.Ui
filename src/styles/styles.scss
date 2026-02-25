@@ -49,6 +49,11 @@ html {
       typography: '"Open Sans", sans-serif',
     )
   );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-primary),
+    )
+  );
 }
 
 .darkMode {
@@ -81,10 +86,9 @@ body {
   z-index: 9 !important;
 }
 
-// default all icons to the primary theme color
-mat-icon,
-.mat-icon {
-  --mat-icon-color: var(--mat-sys-primary);
+// support color="warn" on icon buttons
+.mat-mdc-icon-button.mat-warn {
+  --mat-icon-button-icon-color: var(--mat-sys-error);
 }
 
 // Highlight rows that represent a destroy operation or tainted resource
