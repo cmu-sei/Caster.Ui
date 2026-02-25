@@ -87,6 +87,17 @@ mat-icon,
   --mat-icon-color: var(--mat-sys-primary);
 }
 
+// Highlight rows that represent a destroy operation or tainted resource
+.isDestroy {
+  background: var(--mat-sys-error-container) !important;
+  color: var(--mat-sys-on-error-container);
+
+  &:hover {
+    background: var(--mat-sys-error-container) !important;
+    opacity: 0.85;
+  }
+}
+
 // remove the border around paginator items per page selection
 mat-paginator {
   --mat-form-field-outlined-outline-color: transparent;
