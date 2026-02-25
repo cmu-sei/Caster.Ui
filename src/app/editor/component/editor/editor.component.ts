@@ -156,37 +156,55 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   editorInit(editor: any) {
-    // get the defined hot keys
     const hotKeys = this.settingsService.settings.Hotkeys;
     const bubbleKeys: string[] = [];
-    // create search strings for the defined hot keys that need to bubble out of the editor
-    // transforms control.x, alt.x, etc. to ctrl+X, alt+X, etc.
+    const stopKeys: string[] = [];
     for (const [, hk] of Object.entries(hotKeys)) {
       const parts = (hk as any).keys.split('.');
       if (parts.length === 2) {
         if (parts[0] === 'control') parts[0] = 'ctrl';
         bubbleKeys.push(parts[0] + '+' + parts[1].toUpperCase());
+      } else if (parts.length === 1) {
+        stopKeys.push(parts[0].toUpperCase());
       }
     }
     try {
-      // get the editor default key bindings
-      const bindings =
-        editor._standaloneKeybindingService._getResolver()._defaultKeybindings;
-      // set the editor key bindings to bubble the defined hot keys that would be intercepted
-      // by clearing the command and setting bubble to true
-      bindings.forEach((binding: any) => {
-        // Monaco v0.55.x renamed keypressParts to chords — support both
-        const parts = binding.keypressParts ?? binding.chords;
-        if (
-          parts?.length === 1 &&
-          bubbleKeys.some((bk) => bk === parts[0])
-        ) {
-          binding.command = '';
-          binding.bubble = true;
-        }
-      });
-    } catch (e) {
-      console.warn('Monaco keybinding configuration failed:', e);
+      const domNode = editor.getDomNode() as HTMLElement;
+      if (domNode) {
+        domNode.addEventListener('keydown', (e: KeyboardEvent) => {
+          const keyParts: string[] = [];
+          if (e.ctrlKey || e.metaKey) keyParts.push('ctrl');
+          if (e.altKey) keyParts.push('alt');
+          keyParts.push(e.key.toUpperCase());
+          const keyStr = keyParts.join('+');
+          if (bubbleKeys.includes(keyStr)) {
+            // Modifier+key hotkeys: bubble to @ngneat/hotkeys (e.g. Ctrl+S → FILE_SAVE)
+            return;
+          }
+          if (stopKeys.includes(e.key.toUpperCase())) {
+            // Single-key hotkeys (ENTER, ESCAPE): stop propagation so @ngneat/hotkeys
+            // cannot call preventDefault(), which would block Monaco's NativeEditContext
+            // beforeinput handler
+            e.stopPropagation();
+          }
+          // All other keys (arrow keys, ctrl+Z, letters, etc.): propagate normally
+          // so Monaco's document-level keybinding dispatcher can handle them
+        });
+
+        // Capture-phase listener: prevent Shift+? from inserting a character into the editor.
+        // @ngneat/hotkeys registers the help shortcut (shift.?) with preventDefault:false, so the
+        // dialog opens but Monaco also sees the keydown and inserts '?'. Using capture phase
+        // ensures this runs before Monaco's inner-element listeners, suppressing character
+        // insertion while still letting the event bubble to @ngneat/hotkeys at document level.
+        domNode.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && e.key === '?') {
+            e.preventDefault(); // Suppress '?' character insertion
+            // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
+          }
+        }, true); // useCapture=true: runs before Monaco's inner-element listeners
+      }
+    } catch (err) {
+      console.warn('Monaco keybinding configuration failed:', err);
     }
   }
 

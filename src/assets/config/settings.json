@@ -33,7 +33,7 @@
       "allowIn": ["INPUT", "TEXTAREA"]
     },
     "FILE_LOCK_TOGGLE": {
-      "keys": "control.l",
+      "keys": "control.e",
       "group": "Editor",
       "description": "Unlock / Lock a file",
       "allowIn": ["INPUT", "TEXTAREA"]

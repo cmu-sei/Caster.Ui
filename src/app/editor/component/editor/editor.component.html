@@ -209,7 +209,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         id="editor"
         class="code-editor"
         [options]="editorOptions"
-        (init)="editorInit($event)"
+        (onInit)="editorInit($event)"
         [(ngModel)]="code"
         (ngModelChange)="codeChangedEventHandler($event)"
       >
