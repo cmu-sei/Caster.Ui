@@ -22,7 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ResizableModule } from 'angular-resizable-element';
 import { DirectoriesModule } from '../directories';
 import { FilesModule } from '../files/files.module';

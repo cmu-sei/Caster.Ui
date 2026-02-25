@@ -2,7 +2,10 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { OverlayModule } from '@angular/cdk/overlay';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +34,7 @@ import {
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { HotkeysModule } from '@ngneat/hotkeys';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { environment } from '../environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -64,41 +68,48 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
   duration: 2000,
 };
 
-@NgModule({ declarations: [AppComponent, SystemMessageComponent],
-    bootstrap: [AppComponent], imports: [BrowserModule,
-        BrowserAnimationsModule,
-        environment.production ? [] : AkitaNgDevtools.forRoot(),
-        AkitaNgRouterStoreModule,
-        AppRoutingModule,
-        ComnSettingsModule.forRoot(),
-        ComnAuthModule.forRoot(),
-        ApiModule,
-        CwdToolbarModule,
-        MatMenuModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatBottomSheetModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        ProjectModule,
-        OverlayModule,
-        HotkeysModule,
-        DesignModule,
-        MatCheckboxModule,
-        CwdDialogsModule], providers: [
-        {
-            provide: BASE_PATH,
-            useFactory: getBasePath,
-            deps: [ComnSettingsService],
-        },
-        { provide: ErrorHandler, useClass: ErrorService },
-        SystemMessageService,
-        { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
-        {
-            provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
-            useValue: myCustomSnackBarDefaults,
-        },
-        provideHttpClient(withInterceptorsFromDi()),
-    ] })
+@NgModule({
+  declarations: [AppComponent, SystemMessageComponent],
+  bootstrap: [AppComponent],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    environment.production ? [] : AkitaNgDevtools.forRoot(),
+    AkitaNgRouterStoreModule,
+    AppRoutingModule,
+    ComnSettingsModule.forRoot(),
+    ComnAuthModule.forRoot(),
+    ApiModule,
+    CwdToolbarModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatBottomSheetModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    ProjectModule,
+    OverlayModule,
+    HotkeysModule,
+    MonacoEditorModule.forRoot(),
+    DesignModule,
+    MatCheckboxModule,
+    CwdDialogsModule,
+  ],
+  providers: [
+    {
+      provide: BASE_PATH,
+      useFactory: getBasePath,
+      deps: [ComnSettingsService],
+    },
+    { provide: ErrorHandler, useClass: ErrorService },
+    SystemMessageService,
+    { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: myCustomSnackBarDefaults,
+    },
+    provideHttpClient(withInterceptorsFromDi()),
+  ],
+})
 export class AppModule {}

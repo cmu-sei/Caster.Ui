@@ -158,30 +158,36 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   editorInit(editor: any) {
     // get the defined hot keys
     const hotKeys = this.settingsService.settings.Hotkeys;
-    const bubbleKeys = [];
+    const bubbleKeys: string[] = [];
     // create search strings for the defined hot keys that need to bubble out of the editor
     // transforms control.x, alt.x, etc. to ctrl+X, alt+X, etc.
-    for (const [key, hk] of Object.entries(hotKeys)) {
+    for (const [, hk] of Object.entries(hotKeys)) {
       const parts = (hk as any).keys.split('.');
       if (parts.length === 2) {
         if (parts[0] === 'control') parts[0] = 'ctrl';
         bubbleKeys.push(parts[0] + '+' + parts[1].toUpperCase());
       }
     }
-    // get the editor default key bindings
-    const bindings =
-      editor._standaloneKeybindingService._getResolver()._defaultKeybindings;
-    // set the editor key bindings to bubble the defined hot keys that would be intercepted
-    // by clearing the command and setting bubble to true
-    bindings.forEach((binding) => {
-      if (
-        binding.keypressParts.length === 1 &&
-        bubbleKeys.some((bk) => bk === binding.keypressParts[0])
-      ) {
-        binding.command = '';
-        binding.bubble = true;
-      }
-    });
+    try {
+      // get the editor default key bindings
+      const bindings =
+        editor._standaloneKeybindingService._getResolver()._defaultKeybindings;
+      // set the editor key bindings to bubble the defined hot keys that would be intercepted
+      // by clearing the command and setting bubble to true
+      bindings.forEach((binding: any) => {
+        // Monaco v0.55.x renamed keypressParts to chords — support both
+        const parts = binding.keypressParts ?? binding.chords;
+        if (
+          parts?.length === 1 &&
+          bubbleKeys.some((bk) => bk === parts[0])
+        ) {
+          binding.command = '';
+          binding.bubble = true;
+        }
+      });
+    } catch (e) {
+      console.warn('Monaco keybinding configuration failed:', e);
+    }
   }
 
   updateEditorOptions(file: ModelFile): void {
