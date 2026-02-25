@@ -7,28 +7,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <form [formGroup]="form" (ngSubmit)="export()">
   @if (isArchiveable) {
-    <mat-form-field class="d-flex flex-row">
-      <mat-label>Archive Type</mat-label>
-      <mat-select formControlName="archiveType">
-        @for (archiveType of archiveTypes; track archiveType) {
-          <mat-option
-            [value]="archiveType"
-            >
-            {{ archiveType }}
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+  <mat-form-field class="d-flex flex-row">
+    <mat-label>Archive Type</mat-label>
+    <mat-select formControlName="archiveType">
+      @for (archiveType of archiveTypes; track archiveType) {
+      <mat-option [value]="archiveType">
+        {{ archiveType }}
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
   }
 
-  <mat-form-field floatLabel="always" appearance="none" class="d-flex flex-row">
-    <mat-label>Include Ids </mat-label>
-    <mat-slide-toggle
-      formControlName="includeIds"
-      matTooltip="Append Ids to Directory names to be optionally preserved on import"
-    ></mat-slide-toggle>
-    <textarea matInput hidden></textarea>
-  </mat-form-field>
+  <mat-label>Include Ids </mat-label>
+  <mat-slide-toggle
+    formControlName="includeIds"
+    matTooltip="Append Ids to Directory names to be optionally preserved on import"
+  ></mat-slide-toggle>
 
   <div class="d-flex flex-row justify-content-around align-items-center">
     <button
@@ -36,7 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       color="primary"
       mat-raised-button
       [disabled]="!form.valid"
-      >
+    >
       Export
     </button>
 

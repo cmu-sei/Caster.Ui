@@ -6,70 +6,65 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <h2>Import {{ typeString | titlecase }}: {{ name }}</h2>
 
 @if (!(complete$ | async)) {
-  <form [formGroup]="form" (ngSubmit)="import()">
-    <div class="d-flex flex-column gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <button
-          type="button"
-          color="primary"
-          mat-raised-button
-          (click)="fileInput.click()"
-          >
-          Choose File
-        </button>
-        <input
-          hidden
-          (change)="onFileSelected($event)"
-          #fileInput
-          type="file"
-          accept=".zip, .tar.gz, .tgz"
-          />
-        <span class="file-name">{{ this.form.value.archive?.name }}</span>
-      </div>
-      <mat-form-field floatLabel="always" appearance="none" class="d-flex flex-row">
-        <mat-label>Preserve Ids </mat-label>
-        <mat-slide-toggle
-          formControlName="preserveIds"
-          matTooltip="Optionally use the same Ids on import, if the archive included Ids on export. Otherwise, generate new Ids"
-        ></mat-slide-toggle>
-        <textarea matInput hidden></textarea>
-      </mat-form-field>
-    </div>
-    <div class="d-flex justify-content-around">
+<form [formGroup]="form" (ngSubmit)="import()">
+  <div class="d-flex flex-column gap-2">
+    <div class="d-flex align-items-center gap-2">
       <button
-        type="submit"
+        type="button"
         color="primary"
         mat-raised-button
-        [disabled]="!form.valid"
-        >
-        Import
+        (click)="fileInput.click()"
+      >
+        Choose File
       </button>
-      <button type="reset" color="primary" mat-raised-button (click)="cancel()">
-        Cancel
-      </button>
+      <input
+        hidden
+        (change)="onFileSelected($event)"
+        #fileInput
+        type="file"
+        accept=".zip, .tar.gz, .tgz"
+      />
+      <span class="file-name">{{ this.form.value.archive?.name }}</span>
     </div>
-  </form>
-}
 
-@if (complete$ | async) {
-  <div>
-    @if (lockedFiles.length > 0) {
-      <h3 class="text-danger">
-        Error: The following files are locked and were unable to be updated:
-      </h3>
-      <ul>
-        @for (file of lockedFiles; track file) {
-          <li>
-            {{ file }}
-          </li>
-        }
-      </ul>
-    }
-    @if (lockedFiles.length == 0) {
-      <h3 class="text-success">Import Successful</h3>
-    }
-    <div class="d-flex justify-content-around">
-      <button mat-raised-button color="primary" (click)="cancel()">OK</button>
-    </div>
+    <mat-label>Preserve Ids </mat-label>
+    <mat-slide-toggle
+      formControlName="preserveIds"
+      matTooltip="Optionally use the same Ids on import, if the archive included Ids on export. Otherwise, generate new Ids"
+    ></mat-slide-toggle>
   </div>
+  <div class="d-flex justify-content-around">
+    <button
+      type="submit"
+      color="primary"
+      mat-raised-button
+      [disabled]="!form.valid"
+    >
+      Import
+    </button>
+    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
+      Cancel
+    </button>
+  </div>
+</form>
+} @if (complete$ | async) {
+<div>
+  @if (lockedFiles.length > 0) {
+  <h3 class="text-danger">
+    Error: The following files are locked and were unable to be updated:
+  </h3>
+  <ul>
+    @for (file of lockedFiles; track file) {
+    <li>
+      {{ file }}
+    </li>
+    }
+  </ul>
+  } @if (lockedFiles.length == 0) {
+  <h3 class="text-success">Import Successful</h3>
+  }
+  <div class="d-flex justify-content-around">
+    <button mat-raised-button color="primary" (click)="cancel()">OK</button>
+  </div>
+</div>
 }
