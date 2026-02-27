@@ -81,8 +81,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="adminLockFile()"
           >
             <mat-icon
-              fontSet="fas"
-              fontIcon="fa-unlock"
+              class="mdi-24px"
+              fontIcon="mdi-lock-open-outline"
               matTooltip="Not administratively locked"
             ></mat-icon>
           </button>
@@ -95,8 +95,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="adminUnlockFile()"
           >
             <mat-icon
-              fontSet="fas"
-              fontIcon="fa-lock"
+              class="mdi-24px"
+              fontIcon="mdi-lock-outline"
               matTooltip="Administratively locked"
             ></mat-icon>
           </button>
@@ -110,8 +110,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="saveFile()"
           >
             <mat-icon
-              fontSet="fas"
-              fontIcon="fa-save"
+              class="mdi-24px"
+              fontIcon="mdi-content-save"
               matTooltip="Save Changes"
             ></mat-icon>
           </button>
@@ -126,8 +126,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="discardFileChanges()"
           >
             <mat-icon
-              fontSet="fas"
-              fontIcon="fa-undo-alt"
+              class="mdi-24px"
+              fontIcon="mdi-undo"
               matTooltip="Discard Changes"
             ></mat-icon>
           </button>
@@ -138,7 +138,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             color="warn"
             matTooltip="This file is being edited by {{ file.lockedByName }}"
           >
-            <mat-icon fontSet="fas" fontIcon="fa-user-edit"></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-account-edit"></mat-icon>
           </button>
           } @if (file && !file.lockedById) {
           <button
@@ -154,7 +154,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 : 'You do not have permissions to edit this file'
             "
           >
-            <mat-icon fontSet="fas" fontIcon="fa-edit"></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"></mat-icon>
           </button>
           } @if (file && file.lockedById === currentUserId) {
           <button
@@ -166,7 +166,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="unlockFile()"
             matTooltip="Finish editing and allow someone else to edit this file"
           >
-            <mat-icon fontSet="fas" fontIcon="fa-edit"></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"></mat-icon>
           </button>
           }
           <mat-divider vertical style="height: 100%"></mat-divider>
@@ -183,7 +183,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [disabled]="sidebarView === 'modules'"
               matTooltip="Show the module list"
             >
-              <mat-icon fontSet="fas" fontIcon="fa-code"></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-code-tags"></mat-icon>
             </button>
             <button
               mat-icon-button
@@ -196,7 +196,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [disabled]="sidebarView === 'versions'"
               matTooltip="Show the file versions"
             >
-              <mat-icon fontSet="fas" fontIcon="fa-history"></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-history"></mat-icon>
             </button>
           </div>
           }
