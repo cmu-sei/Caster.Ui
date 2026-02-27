@@ -34,11 +34,11 @@ import { ComnSettingsService } from '@cmusei/crucible-common';
 const SIDEBAR_MIN_WIDTH = 300;
 
 @Component({
-    selector: 'cas-editor',
-    templateUrl: './editor.component.html',
-    styleUrls: ['./editor.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-editor',
+  templateUrl: './editor.component.html',
+  styleUrls: ['./editor.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() fileId: string;
@@ -62,7 +62,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public codeTheme: Theme;
   public editorOptions = {
     theme: 'vs-light',
-    language: 'ruby',
+    language: 'plaintext',
     automaticLayout: true,
     readOnly: true,
   };
@@ -114,6 +114,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       .subscribe((f) => {
         if (f) {
           this.filename = f.name;
+          this.updateModelLanguage();
           this.code = f.editorContent;
 
           if (!this.file || f.lockedById !== this.file.lockedById) {
@@ -156,6 +157,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   editorInit(editor: any) {
+    this.ngxEditor = editor;
     const hotKeys = this.settingsService.settings.Hotkeys;
     const bubbleKeys: string[] = [];
     const stopKeys: string[] = [];
@@ -196,16 +198,72 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         // dialog opens but Monaco also sees the keydown and inserts '?'. Using capture phase
         // ensures this runs before Monaco's inner-element listeners, suppressing character
         // insertion while still letting the event bubble to @ngneat/hotkeys at document level.
-        domNode.addEventListener('keydown', (e: KeyboardEvent) => {
-          if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && e.key === '?') {
-            e.preventDefault(); // Suppress '?' character insertion
-            // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
-          }
-        }, true); // useCapture=true: runs before Monaco's inner-element listeners
+        domNode.addEventListener(
+          'keydown',
+          (e: KeyboardEvent) => {
+            if (
+              e.shiftKey &&
+              !e.ctrlKey &&
+              !e.altKey &&
+              !e.metaKey &&
+              e.key === '?'
+            ) {
+              e.preventDefault(); // Suppress '?' character insertion
+              // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
+            }
+          },
+          true
+        ); // useCapture=true: runs before Monaco's inner-element listeners
       }
     } catch (err) {
       console.warn('Monaco keybinding configuration failed:', err);
     }
+    this.updateModelLanguage();
+  }
+
+  updateModelLanguage(): void {
+    const model = this.ngxEditor?.getModel();
+    const monaco = (window as any).monaco;
+
+    if (!model || !monaco || !this.filename) return;
+
+    const dotIndex = this.filename.lastIndexOf('.');
+    const ext = dotIndex !== -1 ? this.filename.substring(dotIndex) : '';
+
+    const languageId = ext
+      ? monaco.languages
+          .getLanguages()
+          .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext'
+      : 'plaintext';
+
+    monaco.editor.setModelLanguage(model, languageId);
+  }
+
+  updateModelLanguage2(): void {
+    if (!this.ngxEditor) {
+      return;
+    }
+    const model = this.ngxEditor.getModel();
+    if (!model) {
+      return;
+    }
+    const monaco = (window as any).monaco;
+    if (!monaco) {
+      return;
+    }
+    const dotIndex = this.filename.lastIndexOf('.');
+    const ext = dotIndex >= 0 ? this.filename.substring(dotIndex) : '';
+    let languageId = 'plaintext';
+    if (ext) {
+      const languages = monaco.languages.getLanguages();
+      const match = languages.find(
+        (lang: any) => lang.extensions && lang.extensions.includes(ext)
+      );
+      if (match) {
+        languageId = match.id;
+      }
+    }
+    monaco.editor.setModelLanguage(model, languageId);
   }
 
   updateEditorOptions(file: ModelFile): void {
@@ -217,7 +275,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
     const options = {
       theme: this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light',
-      language: 'ruby',
+      language: 'plaintext',
       automaticLayout: true,
       readOnly: !writable,
     };
