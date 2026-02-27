@@ -85,3 +85,9 @@ a {
   grid-template-columns: 1fr 0px;
   height: 100%;
 }
+
+.project-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}

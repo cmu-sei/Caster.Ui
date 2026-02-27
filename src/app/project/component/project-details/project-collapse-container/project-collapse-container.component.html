@@ -76,23 +76,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         (sidenavToggle)="sidenav.toggle()"
         (editMemberships)="openEditMemberships()"
       ></cas-topbar>
-      <div class="d-flex flex-row justify-content-center align-items-stretch">
-        <div class="w-100 h-100">
-          <div
-            class="d-flex flex-row justify-content-between align-items-stretch gap-5"
-            >
-            <cas-project
-              style="flex: 1 2 0; min-width: 0"
-              [loading]="loading$ | async"
-              [project]="project$ | async"
-              [projectUI]="projectUI$ | async"
-              (closeTab)="closeTab($event)"
-              (tabChanged)="tabChangedFn($event)"
-              >
-            </cas-project>
-          </div>
-        </div>
-      </div>
+      <cas-project
+        class="project-content"
+        [loading]="loading$ | async"
+        [project]="project$ | async"
+        [projectUI]="projectUI$ | async"
+        (closeTab)="closeTab($event)"
+        (tabChanged)="tabChangedFn($event)"
+      >
+      </cas-project>
     </mat-sidenav-content>
   }
 </mat-sidenav-container>
