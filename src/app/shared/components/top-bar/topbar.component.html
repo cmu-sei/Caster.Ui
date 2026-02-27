@@ -12,21 +12,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       @if (sidenav && sidenav?.opened) {
         <button
           (click)="sidenavToggleFn()"
-          [color]="topbarTextColor"
           mat-icon-button
           matTooltip="Close Sidebar"
           >
-          <mat-icon svgIcon="ic_chevron_left_white_24px"></mat-icon>
+          <mat-icon fontIcon="mdi-chevron-left"></mat-icon>
         </button>
       }
       @if (sidenav && !sidenav?.opened) {
         <button
           (click)="sidenavToggleFn()"
-          [color]="topbarTextColor"
           mat-icon-button
           matTooltip="Open Sidebar"
           >
-          <mat-icon svgIcon="ic_chevron_right_white_24px"></mat-icon>
+          <mat-icon fontIcon="mdi-chevron-right"></mat-icon>
         </button>
       }
     </span>
