@@ -8,7 +8,8 @@
     "response_type": "code",
     "scope": "openid profile email caster",
     "automaticSilentRenew": true,
-    "silent_redirect_uri": "http://localhost:4310/auth-callback-silent/"
+    
+    "silent_redirect_uri": "http://localhost:4310/auth-callback-silent.html"
   },
   "UseLocalAuthStorage": false,
   "AppTopBarHexColor": "#E9831C",
