@@ -31,10 +31,10 @@ export interface Action {
 }
 
 @Component({
-    selector: 'cas-user-list',
-    templateUrl: './user-list.component.html',
-    styleUrls: ['./user-list.component.css'],
-    standalone: false
+  selector: 'cas-user-list',
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.css'],
+  standalone: false,
 })
 export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
   public displayedColumns: string[] = ['id', 'name', 'roleId'];
@@ -94,6 +94,7 @@ export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
       this.create.emit(user);
     } else {
       this.newUser = {};
+      this.addingNewUser = false;
     }
   }
 
