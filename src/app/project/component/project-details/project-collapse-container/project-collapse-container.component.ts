@@ -13,7 +13,7 @@ import {
   Theme,
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { FileQuery } from 'src/app/files/state';
 import { Project, ProjectPermission } from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
@@ -116,7 +116,7 @@ export class ProjectCollapseContainerComponent
       .subscribe(({ p, open, width }) => {
         if (p) {
           this.project = p;
-          this.permissionService.loadProjectPermissions(p.id).subscribe();
+          this.permissionService.loadProjectPermissions(p.id).pipe(take(1)).subscribe();
           this.signalRService
             .startConnection()
             .then(() => {

@@ -18,7 +18,7 @@ import {
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
-import { switchMap, take, takeUntil } from 'rxjs/operators';
+import { filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import {
   FileVersionQuery,
   FileVersionService,
@@ -74,6 +74,9 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public isSaved$: Observable<boolean>;
 
   private unsubscribe$ = new Subject();
+  private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private captureKeydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private editorDomNode: HTMLElement | null = null;
   public breadcrumbString = '';
 
   constructor(
@@ -110,30 +113,29 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
     this.fileQuery
       .selectEntity(this.fileId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((f) => {
-        if (f) {
-          this.filename = f.name;
-          this.updateModelLanguage();
-          this.code = f.editorContent;
+      .pipe(
+        tap((f) => {
+          if (f) {
+            this.filename = f.name;
+            this.updateModelLanguage();
+            this.code = f.editorContent;
 
-          if (!this.file || f.lockedById !== this.file.lockedById) {
-            this.updateEditorOptions(f);
+            if (!this.file || f.lockedById !== this.file.lockedById) {
+              this.updateEditorOptions(f);
+            }
+          } else {
+            this.filename = '';
+            this.code = '';
           }
 
-          this.isEditing$ = this.fileQuery.isEditing(f.id, this.currentUserId);
-          this.isEditing$
-            .pipe(takeUntil(this.unsubscribe$))
-            .subscribe((isEditing) => (this.isEditing = isEditing));
-        } else {
-          this.filename = '';
-          this.code = '';
-        }
-
-        this.file = f;
-
-        this.changeDetectorRef.markForCheck();
-      });
+          this.file = f;
+          this.changeDetectorRef.markForCheck();
+        }),
+        filter((f) => f != null),
+        switchMap((f) => this.fileQuery.isEditing(f.id, this.currentUserId)),
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe((isEditing) => (this.isEditing = isEditing));
 
     this.fileVersionService.load(this.fileId).pipe(take(1)).subscribe();
 
@@ -173,7 +175,9 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     try {
       const domNode = editor.getDomNode() as HTMLElement;
       if (domNode) {
-        domNode.addEventListener('keydown', (e: KeyboardEvent) => {
+        this.editorDomNode = domNode;
+
+        this.keydownListener = (e: KeyboardEvent) => {
           const keyParts: string[] = [];
           if (e.ctrlKey || e.metaKey) keyParts.push('ctrl');
           if (e.altKey) keyParts.push('alt');
@@ -191,29 +195,27 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
           }
           // All other keys (arrow keys, ctrl+Z, letters, etc.): propagate normally
           // so Monaco's document-level keybinding dispatcher can handle them
-        });
+        };
+        domNode.addEventListener('keydown', this.keydownListener);
 
         // Capture-phase listener: prevent Shift+? from inserting a character into the editor.
         // @ngneat/hotkeys registers the help shortcut (shift.?) with preventDefault:false, so the
         // dialog opens but Monaco also sees the keydown and inserts '?'. Using capture phase
         // ensures this runs before Monaco's inner-element listeners, suppressing character
         // insertion while still letting the event bubble to @ngneat/hotkeys at document level.
-        domNode.addEventListener(
-          'keydown',
-          (e: KeyboardEvent) => {
-            if (
-              e.shiftKey &&
-              !e.ctrlKey &&
-              !e.altKey &&
-              !e.metaKey &&
-              e.key === '?'
-            ) {
-              e.preventDefault(); // Suppress '?' character insertion
-              // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
-            }
-          },
-          true
-        ); // useCapture=true: runs before Monaco's inner-element listeners
+        this.captureKeydownListener = (e: KeyboardEvent) => {
+          if (
+            e.shiftKey &&
+            !e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            e.key === '?'
+          ) {
+            e.preventDefault(); // Suppress '?' character insertion
+            // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
+          }
+        };
+        domNode.addEventListener('keydown', this.captureKeydownListener, true);
       }
     } catch (err) {
       console.warn('Monaco keybinding configuration failed:', err);
@@ -424,5 +426,16 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
+
+    if (this.editorDomNode) {
+      if (this.keydownListener) {
+        this.editorDomNode.removeEventListener('keydown', this.keydownListener);
+      }
+      if (this.captureKeydownListener) {
+        this.editorDomNode.removeEventListener('keydown', this.captureKeydownListener, true);
+      }
+    }
+
+    this.ngxEditor?.dispose();
   }
 }

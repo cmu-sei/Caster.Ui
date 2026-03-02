@@ -54,7 +54,6 @@ import {
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 const WAS_CANCELLED = 'wasCancelled';
-type TabSubscription = { id: string; subscription: Subscription };
 
 @Component({
     selector: 'cas-project-tab',
@@ -79,7 +78,7 @@ export class ProjectTabComponent
   public modules$: Observable<Module[]>;
   public showTabs: boolean;
   public projectObjectNames = new Map<string, string>();
-  private nonactiveTabSubscriptions = new Array<TabSubscription>();
+  private nonactiveTabSubscriptions = new Map<string, Subscription>();
   private tabChangeRequested$ = new Subject();
   private unsubscribe$ = new Subject();
   public sidebarOpen$: Observable<boolean>;
@@ -191,10 +190,7 @@ export class ProjectTabComponent
               return EMPTY;
           }
         }),
-        shareReplay(),
-        //share({
-        //    connector: () => new ReplaySubject(),
-        //  })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // unsubscribe automatically when the component is destroyed.
         takeUntil(this.unsubscribe$)
       )
@@ -219,10 +215,7 @@ export class ProjectTabComponent
         tap((obj) => {
           this.watchForChanges();
         }),
-        shareReplay(),
-        //share({
-        //    connector: () => new ReplaySubject(),
-        //  })
+        shareReplay({ bufferSize: 1, refCount: true }),
         takeUntil(this.unsubscribe$),
         catchError((err) => {
           console.log(err);
@@ -238,16 +231,15 @@ export class ProjectTabComponent
 
   watchForChanges() {
     // unsubscribe from closed tab changes
-    for (let i = this.nonactiveTabSubscriptions.length - 1; i >= 0; i--) {
-      const naTab = this.nonactiveTabSubscriptions[i];
+    this.nonactiveTabSubscriptions.forEach((sub, tabId) => {
       const isClosed =
         !this.showTabs ||
-        !this.projectUI.openTabs.some((t) => t.id === naTab.id);
+        !this.projectUI.openTabs.some((t) => t.id === tabId);
       if (isClosed) {
-        naTab.subscription.unsubscribe();
-        this.nonactiveTabSubscriptions.splice(i, 1);
+        sub.unsubscribe();
+        this.nonactiveTabSubscriptions.delete(tabId);
       }
-    }
+    });
     // subscribe to open tab changes
     if (this.showTabs) {
       for (let i = 0; i < this.projectUI.openTabs.length; i++) {
@@ -289,24 +281,22 @@ export class ProjectTabComponent
         } else {
           // subscribe to the file or workspace name for other open tabs
           const tab = this.projectUI.openTabs[i];
-          const alreadyWatching = this.nonactiveTabSubscriptions.some(
-            (ts) => ts.id === tab.id
-          );
+          const alreadyWatching = this.nonactiveTabSubscriptions.has(tab.id);
           if (!alreadyWatching) {
             switch (tab.type) {
               case ProjectObjectType.FILE:
-                this.nonactiveTabSubscriptions[tab.id] = this.fileQuery
+                this.nonactiveTabSubscriptions.set(tab.id, this.fileQuery
                   .selectEntity(tab.id)
                   .subscribe((f) => {
                     this.fileChangeHandler(f);
-                  });
+                  }));
                 break;
               case ProjectObjectType.WORKSPACE:
-                this.nonactiveTabSubscriptions[tab.id] = this.workspaceQuery
+                this.nonactiveTabSubscriptions.set(tab.id, this.workspaceQuery
                   .selectEntity(tab.id)
                   .subscribe((f) => {
                     this.workspaceChangeHandler(f);
-                  });
+                  }));
                 break;
               default:
                 break;
@@ -494,5 +484,8 @@ export class ProjectTabComponent
     this.unsubscribe$.complete();
     this.tabChangeRequested$.next(null);
     this.tabChangeRequested$.complete();
+
+    this.nonactiveTabSubscriptions.forEach((sub) => sub.unsubscribe());
+    this.nonactiveTabSubscriptions.clear();
   }
 }

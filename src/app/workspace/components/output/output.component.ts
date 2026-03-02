@@ -7,6 +7,7 @@ import {
   ElementRef,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
   ViewChild,
@@ -21,7 +22,7 @@ import { FitAddon } from '@xterm/addon-fit';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
-export class OutputComponent implements OnInit, OnChanges {
+export class OutputComponent implements OnInit, OnChanges, OnDestroy {
   @Input() loading: boolean;
   @Input() output: string;
   @ViewChild('xterm', { static: true, read: ElementRef }) eleXtern: ElementRef;
@@ -35,6 +36,10 @@ export class OutputComponent implements OnInit, OnChanges {
     this.xterm.loadAddon(this.fitAddon);
     this.xterm.options.scrollback = 9999999; // there is no infinite scrolling for xterm.  Set number of lines to very large number!
     this.fitAddon.fit();
+  }
+
+  ngOnDestroy() {
+    this.xterm.dispose();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

@@ -66,6 +66,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.disposeStream();
+    this.xterm.dispose();
     window.removeEventListener('wheel', this.scroll);
   }
 
