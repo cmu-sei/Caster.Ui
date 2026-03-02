@@ -22,9 +22,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
   </mat-form-field>
   @if (canEdit) {
-    <div style="width: 100px">
-      <button mat-flat-button color="primary" (click)="addingNewUser = true">Add User</button>
-    </div>
+    <button
+      mat-icon-button
+      color="primary"
+      (click)="addingNewUser = true"
+      matTooltip="Add User"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+    </button>
   }
   <div class="button-end">
     <mat-paginator

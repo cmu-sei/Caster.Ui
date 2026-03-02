@@ -34,11 +34,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         @if (canCreate$ | async) {
         <button
           mat-icon-button
+          color="primary"
           matTooltip="Add New Project"
           hotkeyAction="PROJECT_NEW"
           (click)="create()"
         >
-          <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
         </button>
         }
       </mat-toolbar-row>
