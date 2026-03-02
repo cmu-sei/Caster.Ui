@@ -40,7 +40,6 @@ import { PartitionComponent } from './component/admin-vlans/partition/partition.
 import { MatSliderModule } from '@angular/material/slider';
 import { VlanListComponent } from './component/admin-vlans/vlan-list/vlan-list.component';
 import { MatTableModule } from '@angular/material/table';
-import { TableVirtualScrollModule } from 'ng-table-virtual-scroll';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatSelectModule } from '@angular/material/select';
 import { PoolsComponent } from './component/admin-vlans/pools/pools.component';
@@ -97,7 +96,6 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     CwdTableModule,
     WorkspaceModule,
     ScrollingModule,
-    TableVirtualScrollModule,
     AdminAppRoutingModule,
     MatButtonModule,
     MatCardModule,
