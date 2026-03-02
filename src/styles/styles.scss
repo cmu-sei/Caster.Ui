@@ -109,3 +109,9 @@ mat-paginator {
   --mat-form-field-outlined-focus-outline-color: transparent;
   min-width: 200px !important;
 }
+
+// Allow tab body content to scroll in project tabs
+cas-project-tab .mat-mdc-tab-body-content {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 126px);
+}
