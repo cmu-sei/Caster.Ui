@@ -10,7 +10,9 @@
   flex-direction: column;
   margin-top: 40px;
   max-height: calc(100vh - 38px);
-  width: 800px;
+  width: 80%;
+  min-width: 100px;
+  max-width: 1400px;
 }
 
 .mat-mdc-table {
