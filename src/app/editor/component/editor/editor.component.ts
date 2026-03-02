@@ -250,8 +250,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     const theme = this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light';
     const readOnly = !writable;
 
-    // Only update if values actually changed — creating a new object reference
-    // triggers ngx-monaco-editor to dispose and recreate the editor instance
     if (
       this.editorOptions.theme === theme &&
       this.editorOptions.readOnly === readOnly
@@ -259,12 +257,30 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.editorOptions = {
-      theme,
-      language: 'plaintext',
-      automaticLayout: true,
-      readOnly,
-    };
+    if (this.ngxEditor) {
+      // Update the live editor instance directly to avoid disposal/recreation,
+      // which would destroy focus and keyboard state
+      this.ngxEditor.updateOptions({ readOnly });
+      const monaco = (window as any).monaco;
+      if (monaco) {
+        monaco.editor.setTheme(theme);
+      }
+      // Keep editorOptions in sync for future editor creation (e.g. view switches)
+      this.editorOptions.readOnly = readOnly;
+      this.editorOptions.theme = theme;
+      // Focus the editor when entering edit mode so the user can type immediately
+      if (!readOnly) {
+        this.ngxEditor.focus();
+      }
+    } else {
+      // No live editor — set options for initial creation
+      this.editorOptions = {
+        theme,
+        language: 'plaintext',
+        automaticLayout: true,
+        readOnly,
+      };
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
