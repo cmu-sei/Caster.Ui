@@ -231,8 +231,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <ngx-monaco-diff-editor
         class="code-editor"
         [options]="editorOptions"
-        [original]="code"
-        [modified]="selectedVersionForDiff.content"
+        [originalModel]="{ code: code, language: detectedLanguage }"
+        [modifiedModel]="{ code: selectedVersionForDiff.content, language: detectedLanguage }"
       >
       </ngx-monaco-diff-editor>
       }

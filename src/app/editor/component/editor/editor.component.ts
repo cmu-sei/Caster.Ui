@@ -221,49 +221,21 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     this.updateModelLanguage();
   }
 
+  get detectedLanguage(): string {
+    const monaco = (window as any).monaco;
+    if (!this.filename || !monaco) return 'plaintext';
+    const dotIndex = this.filename.lastIndexOf('.');
+    const ext = dotIndex !== -1 ? this.filename.substring(dotIndex) : '';
+    if (!ext) return 'plaintext';
+    return monaco.languages.getLanguages()
+      .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext';
+  }
+
   updateModelLanguage(): void {
     const model = this.ngxEditor?.getModel();
     const monaco = (window as any).monaco;
-
-    if (!model || !monaco || !this.filename) return;
-
-    const dotIndex = this.filename.lastIndexOf('.');
-    const ext = dotIndex !== -1 ? this.filename.substring(dotIndex) : '';
-
-    const languageId = ext
-      ? monaco.languages
-          .getLanguages()
-          .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext'
-      : 'plaintext';
-
-    monaco.editor.setModelLanguage(model, languageId);
-  }
-
-  updateModelLanguage2(): void {
-    if (!this.ngxEditor) {
-      return;
-    }
-    const model = this.ngxEditor.getModel();
-    if (!model) {
-      return;
-    }
-    const monaco = (window as any).monaco;
-    if (!monaco) {
-      return;
-    }
-    const dotIndex = this.filename.lastIndexOf('.');
-    const ext = dotIndex >= 0 ? this.filename.substring(dotIndex) : '';
-    let languageId = 'plaintext';
-    if (ext) {
-      const languages = monaco.languages.getLanguages();
-      const match = languages.find(
-        (lang: any) => lang.extensions && lang.extensions.includes(ext)
-      );
-      if (match) {
-        languageId = match.id;
-      }
-    }
-    monaco.editor.setModelLanguage(model, languageId);
+    if (!model || !monaco) return;
+    monaco.editor.setModelLanguage(model, this.detectedLanguage);
   }
 
   updateEditorOptions(file: ModelFile): void {
