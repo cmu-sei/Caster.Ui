@@ -247,13 +247,24 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       writable = file.lockedById === this.currentUserId;
     }
 
-    const options = {
-      theme: this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light',
+    const theme = this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light';
+    const readOnly = !writable;
+
+    // Only update if values actually changed — creating a new object reference
+    // triggers ngx-monaco-editor to dispose and recreate the editor instance
+    if (
+      this.editorOptions.theme === theme &&
+      this.editorOptions.readOnly === readOnly
+    ) {
+      return;
+    }
+
+    this.editorOptions = {
+      theme,
       language: 'plaintext',
       automaticLayout: true,
-      readOnly: !writable,
+      readOnly,
     };
-    this.editorOptions = Object.assign({}, { ...options });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
