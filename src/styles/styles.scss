@@ -6,7 +6,7 @@
 @use '@mdi/font/scss/materialdesignicons.scss';
 
 @import '@fortawesome/fontawesome-free/css/all.css';
-@import 'xterm/css/xterm.css';
+@import '@xterm/xterm/css/xterm.css';
 
 // @include mat.all-component-typographies();
 @include mat.elevation-classes();

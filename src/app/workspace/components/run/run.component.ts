@@ -18,8 +18,8 @@ import {
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
-import { ITerminalOptions, Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { ITerminalOptions, Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
 
 @Component({
   selector: 'cas-run',

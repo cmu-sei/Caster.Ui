@@ -11,8 +11,8 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
 
 @Component({
     selector: 'cas-output',
