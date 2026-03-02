@@ -12,41 +12,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   margin-bottom: 40px;
 }
 
-.mat-mdc-table {
-  display: block;
-}
-
-.mat-mdc-header-row {
-  min-height: 56px;
-}
-
-.mat-mdc-row {
-  min-height: 48px;
-}
-
-.mat-mdc-row,
-.mat-mdc-header-row {
-  display: flex;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  align-items: center;
-  padding: 0 24px;
-  box-sizing: border-box;
-}
-
-.mat-mdc-cell,
-.mat-mdc-header-cell {
-  flex: 1;
-  overflow: hidden;
-  word-wrap: break-word;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.mat-mdc-cell {
-  font-weight: 400;
-}
-
 .button-end {
   margin-left: 100px;
 }
@@ -55,16 +20,45 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   margin-left: 10px;
 }
 
-.mat-accordion .mat-mdc-header-row {
-  padding-left: 1.5rem;
-  padding-right: 2rem;
-  border-bottom: none;
+.add-module-row {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.mat-expansion-panel-header.mat-mdc-row {
-  border-bottom: none;
-  --mat-expansion-header-text-size: 0.875rem;
-  --mat-expansion-header-text-weight: 400;
+.add-module-cell:nth-child(1) {
+  flex: 0 0 25%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.add-module-cell:nth-child(2) {
+  flex: 0 0 50%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.add-module-cell:nth-child(3) {
+  flex: 0 0 25%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.mat-column-name {
+  width: 25%;
+}
+
+.mat-column-path {
+  width: 35%;
+}
+
+.mat-column-versionsCount {
+  width: 15%;
+}
+
+.mat-column-dateModified {
+  width: 25%;
 }
 
 .tooltip {

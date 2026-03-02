@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   OnInit,
@@ -12,19 +13,12 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSort, Sort } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { User } from '../../../../generated/caster-api';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import {
-  fromMatSort,
-  sortRows,
-  fromMatPaginator,
-  paginateRows,
-} from 'src/app/datasource-utils';
+import { Observable } from 'rxjs';
 import { RoleService } from 'src/app/roles/roles.service.service';
 import { MatSelectChange } from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
@@ -42,21 +36,14 @@ export interface Action {
     styleUrls: ['./user-list.component.css'],
     standalone: false
 })
-export class UserListComponent implements OnInit, OnChanges {
-  public displayedColumns: string[] = ['id', 'name'];
+export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
+  public displayedColumns: string[] = ['id', 'name', 'roleId'];
   public filterString = '';
   public savedFilterString = '';
-  public userDataSource = new MatTableDataSource<User>(new Array<User>());
+  public dataSource = new MatTableDataSource<User>(new Array<User>());
   public newUser: User = {};
 
-  // MatPaginator Output
-  public defaultPageSize = 10;
-  public pageEvent: PageEvent;
   public addingNewUser: boolean;
-  displayedRows$: Observable<User[]>;
-  totalRows$: Observable<number>;
-  sortEvents$: Observable<Sort>;
-  pageEvents$: Observable<PageEvent>;
   roles$ = this.roleService.roles$;
 
   @Input() users: User[];
@@ -64,8 +51,8 @@ export class UserListComponent implements OnInit, OnChanges {
   @Input() canEdit: boolean;
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
     private dialog: MatDialog,
@@ -73,57 +60,30 @@ export class UserListComponent implements OnInit, OnChanges {
     private userService: UserService
   ) {}
 
-  /**
-   * Initialization
-   */
   ngOnInit() {
-    this.sortEvents$ = fromMatSort(this.sort);
-    this.pageEvents$ = fromMatPaginator(this.paginator);
-
     this.roleService.getRoles().subscribe();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!!changes.users && !!changes.users.currentValue) {
-      this.userDataSource.data = changes.users.currentValue;
-      this.filterAndSort(this.filterString);
+      this.dataSource.data = changes.users.currentValue;
     }
   }
 
-  /**
-   * Called by UI to add a filter to the userDataSource
-   * @param filterValue
-   */
   applyFilter(filterValue: string) {
-    this.filterString = filterValue.toLowerCase();
-    this.filterAndSort(this.filterString);
+    this.filterString = filterValue;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  /**
-   * Clears the search string
-   */
   clearFilter() {
     this.applyFilter('');
   }
 
-  /**
-   * filters and sorts the displayed rows
-   */
-  filterAndSort(filterValue: string) {
-    this.userDataSource.filter = filterValue;
-    const rows$ = of(this.userDataSource.filteredData);
-    this.totalRows$ = rows$.pipe(map((rows) => rows.length));
-    if (!!this.sortEvents$ && !!this.pageEvents$) {
-      this.displayedRows$ = rows$.pipe(
-        sortRows(this.sortEvents$),
-        paginateRows(this.pageEvents$)
-      );
-    }
-  }
-
-  /**
-   * Adds a new user
-   */
   addNewUser(addUser: boolean) {
     if (addUser) {
       const user = {
