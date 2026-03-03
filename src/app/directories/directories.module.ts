@@ -10,8 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
-import { FlexLayoutModule } from '@angular/flex-layout';
-import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
+import { CwdToolbarModule} from '../sei-cwd-common/cwd-toolbar';
 import { FilesModule } from '../files/files.module';
 import { DirectoryEditComponent } from './components/directory-edit-container/directory-edit/directory-edit.component';
 import { DirectoryEditContainerComponent } from './components/directory-edit-container/directory-edit-container.component';
@@ -32,7 +31,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    FlexLayoutModule,
     CwdToolbarModule,
     FilesModule,
     MatSelectModule,

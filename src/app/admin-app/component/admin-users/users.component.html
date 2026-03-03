@@ -4,17 +4,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div class="component-container mat-elevation-z8">
-  <div fxLayout="row" class="add-margin">
-    <div fxFlex>
-      <cas-user-list
-        *ngIf="!!users$ && !!isLoading$"
-        [users]="users$ | async"
-        [isLoading]="isLoading$ | async"
-        [canEdit]="canEdit$ | async"
-        (create)="create($event)"
-        (delete)="deleteUser($event)"
-      >
-      </cas-user-list>
+  <div class="add-margin d-flex flex-row">
+    <div class="flex-grow-1">
+      @if (!!users$ && !!isLoading$) {
+        <cas-user-list
+          [users]="users$ | async"
+          [isLoading]="isLoading$ | async"
+          [canEdit]="canEdit$ | async"
+          (create)="create($event)"
+          (delete)="deleteUser($event)"
+          >
+        </cas-user-list>
+      }
     </div>
   </div>
 </div>

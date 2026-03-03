@@ -20,9 +20,10 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-  selector: 'cas-system-roles',
-  templateUrl: './system-roles.component.html',
-  styleUrls: ['./system-roles.component.scss'],
+    selector: 'cas-system-roles',
+    templateUrl: './system-roles.component.html',
+    styleUrls: ['./system-roles.component.scss'],
+    standalone: false
 })
 export class SystemRolesComponent implements OnInit, OnDestroy {
   private roleService = inject(RoleService);

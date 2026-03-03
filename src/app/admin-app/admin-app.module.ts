@@ -7,7 +7,6 @@ import { CommonModule } from '@angular/common';
 import { AdminContainerComponent } from './component/admin-container/admin-container.component';
 import { UsersComponent } from './component/admin-users/users.component';
 import { UserListComponent } from './component/admin-users/user-list/user-list.component';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { ClipboardModule } from 'ngx-clipboard';
 import { AdminModuleListComponent } from './component/admin-modules/modules-list/module-list.component';
@@ -41,7 +40,6 @@ import { PartitionComponent } from './component/admin-vlans/partition/partition.
 import { MatSliderModule } from '@angular/material/slider';
 import { VlanListComponent } from './component/admin-vlans/vlan-list/vlan-list.component';
 import { MatTableModule } from '@angular/material/table';
-import { TableVirtualScrollModule } from 'ng-table-virtual-scroll';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatSelectModule } from '@angular/material/select';
 import { PoolsComponent } from './component/admin-vlans/pools/pools.component';
@@ -94,12 +92,10 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     CommonModule,
     SharedModule,
     RouterModule,
-    FlexLayoutModule,
     FormsModule,
     CwdTableModule,
     WorkspaceModule,
     ScrollingModule,
-    TableVirtualScrollModule,
     AdminAppRoutingModule,
     MatButtonModule,
     MatCardModule,

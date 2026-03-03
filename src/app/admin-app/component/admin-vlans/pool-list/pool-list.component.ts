@@ -15,10 +15,11 @@ import { Pool } from 'src/app/generated/caster-api';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 
 @Component({
-  selector: 'cas-pool-list',
-  templateUrl: './pool-list.component.html',
-  styleUrls: ['./pool-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-pool-list',
+    templateUrl: './pool-list.component.html',
+    styleUrls: ['./pool-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PoolListComponent implements OnInit {
   @Input() pools: Pool[];

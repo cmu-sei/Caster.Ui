@@ -16,10 +16,11 @@ import { PartitionService } from 'src/app/vlans/state/partition/partition.servic
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 
 @Component({
-  selector: 'cas-partition-list',
-  templateUrl: './partition-list.component.html',
-  styleUrls: ['./partition-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-partition-list',
+    templateUrl: './partition-list.component.html',
+    styleUrls: ['./partition-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PartitionListComponent implements OnInit {
   @Input()

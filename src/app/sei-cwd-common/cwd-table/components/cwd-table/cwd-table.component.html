@@ -3,40 +3,26 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <div class="sp-icon">
     <!--
     <img height="35" src="assets/img/SP_Icon_Cartographer.png" alt="Definitions">
     -->
   </div>
-  <mat-icon
-    style="margin-left: 50px; transform: scale(0.85); margin-right: 5px"
-    class="mdi mdi-18px"
-    fontIcon="mdi-magnify-outline"
-  ></mat-icon>
   <mat-form-field style="width: 320px">
+    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
     <input
       matInput
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
-    />
+      />
+    @if (filterString != '') {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+    }
   </mat-form-field>
-  <div style="width: 50px">
-    <button
-      *ngIf="filterString != ''"
-      fxLayoutAlign="start center"
-      mat-icon-button
-      (click)="clearFilter()"
-      style="outline: none"
-      title="Clear Search"
-    >
-      <mat-icon
-        style="transform: scale(0.85)"
-        svgIcon="ic_cancel_circle"
-      ></mat-icon>
-    </button>
-  </div>
   <mat-paginator
     #paginator
     [length]="totalRows$ | async"
@@ -51,55 +37,64 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div class="spacer"></div>
 </div>
 
-<mat-card
-  *ngIf="loading"
-  style="display: flex; justify-content: center; align-items: center"
->
-  <mat-progress-spinner color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-</mat-card>
-
-<mat-accordion [fxShow]="!loading" displayMode="flat" multi class="mat-table">
-  <section matSort class="mat-elevation-z2 mat-header-row">
-    <ng-container *ngFor="let label of displayedColumns; let idx = index">
-      <div class="mat-header-cell" [mat-sort-header]="label">{{ label }}</div>
-    </ng-container>
-  </section>
-  <mat-expansion-panel
-    *ngFor="let item of displayedRows$ | async; trackBy: trackByFn.bind(this)"
-    [expanded]="isExpanded(item)"
-    (afterExpand)="afterExpand($event, item)"
-    (afterCollapse)="afterCollapse($event, item)"
-  >
-    <mat-expansion-panel-header
-      class="mat-row"
-      [ngClass]="!getRowStyle ? '' : getRowStyle(item)"
+@if (loading) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
     >
-      <ng-container *ngFor="let key of displayedColumns; let idx = index">
-        <ng-container [ngSwitch]="idx">
-          <!-- first cell -->
-          <span class="mat-cell" *ngSwitchCase="0">
-            {{ item[key] }}
-          </span>
-          <!-- Regular Cell -->
-          <span class="mat-cell" *ngSwitchDefault>
-            {{ item[key] }}
-          </span>
-          <!-- Actions Cell -->
-          <span class="mat-cell" *ngSwitchCase="displayedColumns.length - 1">
-            <ng-container
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card>
+}
+
+<mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-mdc-table">
+  <section matSort class="mat-elevation-z2 mat-mdc-header-row">
+    @for (label of displayedColumns; track label; let idx = $index) {
+      <div class="mat-mdc-header-cell" [mat-sort-header]="label">{{ label }}</div>
+    }
+  </section>
+  @for (item of displayedRows$ | async; track trackByFn.bind(this)($index, item)) {
+    <mat-expansion-panel
+      [expanded]="isExpanded(item)"
+      (afterExpand)="afterExpand($event, item)"
+      (afterCollapse)="afterCollapse($event, item)"
+      >
+      <mat-expansion-panel-header
+        class="mat-mdc-row"
+        [ngClass]="!getRowStyle ? '' : getRowStyle(item)"
+        >
+        @for (key of displayedColumns; track key; let idx = $index) {
+          @switch (idx) {
+            <!-- first cell -->
+            @case (0) {
+              <span class="mat-mdc-cell">
+                {{ item[key] }}
+              </span>
+            }
+            <!-- Regular Cell -->
+            @default {
+              <span class="mat-mdc-cell">
+                {{ item[key] }}
+              </span>
+            }
+            <!-- Actions Cell -->
+            @case (displayedColumns.length - 1) {
+              <span class="mat-mdc-cell">
+                <ng-container
               *ngTemplateOutlet="
                 tableActionItemTemplate;
                 context: { $implicit: item }
               "
-            ></ng-container>
-          </span>
-        </ng-container>
+                ></ng-container>
+              </span>
+            }
+          }
+        }
+      </mat-expansion-panel-header>
+      <ng-container
+        *ngTemplateOutlet="tableItemContent; context: { $implicit: item }"
+        >
       </ng-container>
-    </mat-expansion-panel-header>
-    <ng-container
-      *ngTemplateOutlet="tableItemContent; context: { $implicit: item }"
-    >
-    </ng-container>
-  </mat-expansion-panel>
+    </mat-expansion-panel>
+  }
 </mat-accordion>

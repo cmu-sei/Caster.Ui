@@ -16,6 +16,7 @@ import { CurrentUserQuery, CurrentUserStore } from './users/state';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  standalone: false,
 })
 export class AppComponent implements OnDestroy {
   @HostBinding('class') componentCssClass: string;
@@ -73,16 +74,41 @@ export class AppComponent implements OnDestroy {
   }
 
   setTheme(theme: Theme) {
-    const body = document.getElementsByTagName('body')[0];
-    switch (theme) {
-      case Theme.LIGHT:
-        body.classList.remove(Theme.DARK);
-        body.classList.add(Theme.LIGHT);
-        break;
-      case Theme.DARK:
-        body.classList.remove(Theme.LIGHT);
-        body.classList.add(Theme.DARK);
+    document.body.classList.toggle('darkMode', theme === Theme.DARK);
+    const topBarColor =
+      this.settingsService.settings?.AppTopBarHexColor || '#C41230';
+    const topBarTextColor =
+      this.settingsService.settings?.AppTopBarHexTextColor || '#FFFFFF';
+    if (topBarColor) {
+      document.documentElement.style.setProperty(
+        '--mat-sys-primary',
+        topBarColor
+      );
+      document.body.style.setProperty('--mat-sys-primary', topBarColor);
+      this.updateFavicon(topBarColor);
     }
+    if (topBarTextColor) {
+      document.documentElement.style.setProperty(
+        '--mat-sys-on-primary',
+        topBarTextColor
+      );
+      document.body.style.setProperty('--mat-sys-on-primary', topBarTextColor);
+    }
+  }
+
+  private updateFavicon(color: string) {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) return;
+    fetch(link.href)
+      .then((res) => res.text())
+      .then((svg) => {
+        const colored = svg.replace(
+          /\.cls-1\{[^}]*\}/,
+          `.cls-1{fill:${color};}`
+        );
+        const blob = new Blob([colored], { type: 'image/svg+xml' });
+        link.href = URL.createObjectURL(blob);
+      });
   }
 
   updateLastRoute(route: string) {

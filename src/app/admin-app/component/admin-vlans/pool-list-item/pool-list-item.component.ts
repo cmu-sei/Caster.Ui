@@ -18,10 +18,11 @@ import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/serv
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 
 @Component({
-  selector: 'cas-pool-list-item',
-  templateUrl: './pool-list-item.component.html',
-  styleUrls: ['./pool-list-item.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-pool-list-item',
+    templateUrl: './pool-list-item.component.html',
+    styleUrls: ['./pool-list-item.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PoolListItemComponent implements OnInit {
   @Input() pool: Pool;

@@ -17,10 +17,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
-  selector: 'cas-directory-edit',
-  templateUrl: './directory-edit.component.html',
-  styleUrls: ['./directory-edit.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-directory-edit',
+    templateUrl: './directory-edit.component.html',
+    styleUrls: ['./directory-edit.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DirectoryEditComponent implements OnInit {
   @Input() directory: Directory;

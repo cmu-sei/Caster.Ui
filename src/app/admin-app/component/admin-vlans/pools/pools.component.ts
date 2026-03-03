@@ -15,10 +15,11 @@ import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 
 @Component({
-  selector: 'cas-pools',
-  templateUrl: './pools.component.html',
-  styleUrls: ['./pools.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-pools',
+    templateUrl: './pools.component.html',
+    styleUrls: ['./pools.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PoolsComponent implements OnInit {
   @Input()

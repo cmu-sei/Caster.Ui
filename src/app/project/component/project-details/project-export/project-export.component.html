@@ -6,28 +6,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <h2>Export {{ typeString | titlecase }}: {{ name }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="export()">
-  <mat-form-field *ngIf="isArchiveable" fxLayout="row">
+  @if (isArchiveable) {
+  <mat-form-field class="d-flex flex-row">
     <mat-label>Archive Type</mat-label>
     <mat-select formControlName="archiveType">
-      <mat-option
-        *ngFor="let archiveType of archiveTypes"
-        [value]="archiveType"
-      >
+      @for (archiveType of archiveTypes; track archiveType) {
+      <mat-option [value]="archiveType">
         {{ archiveType }}
       </mat-option>
+      }
     </mat-select>
   </mat-form-field>
+  }
 
-  <mat-form-field floatLabel="always" appearance="none" fxLayout="row">
-    <mat-label>Include Ids </mat-label>
-    <mat-slide-toggle
-      formControlName="includeIds"
-      matTooltip="Append Ids to Directory names to be optionally preserved on import"
-    ></mat-slide-toggle>
-    <textarea matInput hidden></textarea>
-  </mat-form-field>
+  <mat-label>Include Ids </mat-label>
+  <mat-slide-toggle
+    formControlName="includeIds"
+    matTooltip="Append Ids to Directory names to be optionally preserved on import"
+  ></mat-slide-toggle>
 
-  <div fxLayout="row" fxLayoutAlign="space-around center">
+  <div class="d-flex flex-row justify-content-around align-items-center">
     <button
       type="submit"
       color="primary"

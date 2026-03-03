@@ -11,10 +11,11 @@ import {
 import { ProjectObjectType, Breadcrumb } from '../../../state';
 
 @Component({
-  selector: 'cas-project-breadcrumb',
-  templateUrl: './project-breadcrumb.component.html',
-  styleUrls: ['./project-breadcrumb.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-breadcrumb',
+    templateUrl: './project-breadcrumb.component.html',
+    styleUrls: ['./project-breadcrumb.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectBreadcrumbComponent {
   @Input() useButtonStyleBreadcrumbs: boolean;

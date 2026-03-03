@@ -1,6 +1,5 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-@import '../../../../../styles/theme';
 
 .spacer {
   flex: 1 1 auto;
@@ -11,10 +10,12 @@
   flex-direction: column;
   margin-top: 40px;
   max-height: calc(100vh - 38px);
-  width: 800px;
+  width: 80%;
+  min-width: 100px;
+  max-width: 1400px;
 }
 
-.mat-table {
+.mat-mdc-table {
   overflow: auto;
   max-height: 700px;
 }

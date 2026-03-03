@@ -14,7 +14,8 @@ import { HotkeysService } from '@ngneat/hotkeys';
 import { Subscription } from 'rxjs';
 
 @Directive({
-  selector: '[hotkeyAction]',
+    selector: '[hotkeyAction]',
+    standalone: false
 })
 export class CrucibleHotkeyDirective implements AfterViewInit {
   constructor(

@@ -4,7 +4,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { ModelFile } from 'src/app/generated/caster-api';
 
-@Pipe({ name: 'filesFilter' })
+@Pipe({
+    name: 'filesFilter',
+    standalone: false
+})
 export class FilesFilterPipe implements PipeTransform {
   transform(value, args: string): ModelFile[] {
     let files = value as ModelFile[];

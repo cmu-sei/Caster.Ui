@@ -4,8 +4,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'cas-cwd-toolbar',
-  templateUrl: './cwd-toolbar.component.html',
-  styleUrls: ['./cwd-toolbar.component.scss'],
+    selector: 'cas-cwd-toolbar',
+    templateUrl: './cwd-toolbar.component.html',
+    styleUrls: ['./cwd-toolbar.component.scss'],
+    standalone: false
 })
 export class CwdToolbarComponent {}

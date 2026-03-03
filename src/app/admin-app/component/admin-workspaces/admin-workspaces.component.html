@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<mat-card>
+<mat-card appearance="outlined">
   <h1>Settings</h1>
   <cas-locking-status
     [lockingEnabled]="lockingEnabled$ | async"
@@ -11,7 +11,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   ></cas-locking-status>
 </mat-card>
 
-<mat-card>
+<mat-card appearance="outlined">
   <cas-active-runs
     [runs]="activeRuns$ | async"
     [expandedRuns]="expandedRuns$ | async"

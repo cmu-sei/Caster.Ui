@@ -13,21 +13,21 @@ import {
   ChangeDetectorRef,
   OnChanges,
 } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { Observable, Subject } from 'rxjs';
 import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
-import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { FormControl } from '@angular/forms';
 
 @Component({
-  selector: 'cas-vlan-list',
-  templateUrl: './vlan-list.component.html',
-  styleUrls: ['./vlan-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-vlan-list',
+    templateUrl: './vlan-list.component.html',
+    styleUrls: ['./vlan-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VlanListComponent implements OnInit, OnChanges {
   @Input() showUnassigned = true;
@@ -36,15 +36,16 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   @Input() set vlans(vlans: Vlan[]) {
     this._vlans = vlans;
-    this.dataSource.data = vlans.sort((a, b) => a.vlanId - b.vlanId);
-    this.calculateTableHeight();
+    this.dataSource.data = [...vlans].sort((a, b) => a.vlanId - b.vlanId);
 
     // deselect items if they no longer exist in the data
-    this.selection.selected.forEach((x) => {
-      if (!vlans.map((y) => y.id).includes(x)) {
-        this.selection.deselect(x);
-      }
-    });
+    const vlanIds = new Set(vlans.map((v) => v.id));
+    const toDeselect = this.selection.selected.filter((id) => !vlanIds.has(id));
+    if (toDeselect.length > 0) {
+      this.selection.deselect(...toDeselect);
+    }
+
+    this.calculateTableHeight();
   }
 
   get vlans() {
@@ -52,7 +53,7 @@ export class VlanListComponent implements OnInit, OnChanges {
   }
 
   _vlans: Vlan[];
-  dataSource = new TableVirtualScrollDataSource<Vlan>();
+  dataSource = new MatTableDataSource<Vlan>();
   selection = new SelectionModel<string>(true, []);
 
   viewColumns = ['vlanId', 'inUse', 'reserved', 'tag'];
@@ -67,9 +68,9 @@ export class VlanListComponent implements OnInit, OnChanges {
   public headerSize = 56;
   public maxSize = this.itemSize * 7;
   public tableHeight = '0px';
+
   private unsubscribe$ = new Subject<void>();
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
@@ -79,23 +80,8 @@ export class VlanListComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.filterControl.valueChanges
-      .pipe(debounceTime(500), takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
-        this.selection.clear();
-        this.dataSource.filter = value?.trim().toLowerCase();
-      });
-
-    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    this.dataSource.filterPredicate = function (
-      data: Vlan,
-      filter: string
-    ): boolean {
-      if (!filter) {
-        return true;
-      }
-
+    this.dataSource.filterPredicate = (data: Vlan, filter: string): boolean => {
       const terms = filter
         .split(',')
         .map((s) => s?.trim()?.toLowerCase())
@@ -127,6 +113,15 @@ export class VlanListComponent implements OnInit, OnChanges {
 
       return idMatches || stringMatches;
     };
+
+    this.filterControl.valueChanges
+      .pipe(debounceTime(500), takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.selection.clear();
+        this.dataSource.filter = value?.trim().toLowerCase() || '';
+        this.calculateTableHeight();
+        this.changeDetector.markForCheck();
+      });
   }
 
   ngOnDestroy(): void {
@@ -279,13 +274,10 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   calculateTableHeight() {
     const count = this.dataSource.filteredData.length;
-    let height: number;
-    height = this.headerSize * 1.2 + count * this.itemSize;
-
+    let height = this.headerSize * 1.2 + count * this.itemSize;
     if (height > this.maxSize) {
       height = this.maxSize;
     }
-
     this.tableHeight = `${height}px`;
   }
 

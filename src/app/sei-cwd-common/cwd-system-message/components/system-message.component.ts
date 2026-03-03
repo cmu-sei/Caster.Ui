@@ -8,9 +8,10 @@ import {
 } from '@angular/material/bottom-sheet';
 
 @Component({
-  selector: 'app-system-message',
-  templateUrl: './system-message.component.html',
-  styleUrls: ['./system-message.component.css'],
+    selector: 'app-system-message',
+    templateUrl: './system-message.component.html',
+    styleUrls: ['./system-message.component.css'],
+    standalone: false
 })
 export class SystemMessageComponent implements OnInit {
   public displayTitle: string;

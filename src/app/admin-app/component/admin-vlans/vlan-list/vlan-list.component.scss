@@ -7,6 +7,18 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   width: 100%;
 }
 
+.vlan-table-viewport {
+  overflow: auto;
+
+  // The global styles.scss sets `position: sticky; top: 0` on .mat-mdc-header-row.
+  // Inside a CDK virtual scroll viewport, this fights CDK's dynamic per-cell
+  // top offset compensation. Remove row-level sticky so CDK's cell-level
+  // positioning works without interference.
+  ::ng-deep .mat-mdc-header-row {
+    position: static;
+  }
+}
+
 .tag {
   display: flex;
   align-items: center;

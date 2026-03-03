@@ -3,7 +3,6 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -22,7 +21,6 @@ import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive'
     MatButtonModule,
     MatSlideToggleModule,
     MatIconModule,
-    FlexLayoutModule,
     RouterModule,
   ],
   exports: [CrucibleHotkeyDirective, TopbarComponent],

@@ -7,7 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="appcontent-container"
   [hasBackdrop]="false"
   autosize
->
+  >
   <mat-sidenav
     class="appbarmenu-container"
     #sidenav
@@ -19,18 +19,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (resizeEnd)="resizeEndFn($event)"
     [opened]="leftSidebarOpen"
     (openedChange)="leftSidebarOpenFn($event)"
-  >
+    >
     <div class="grid">
-      <div fxFill fxLayout="column" fxLayoutAlign="space-between center">
+      <div class="w-100 h-100 d-flex flex-column justify-content-between align-items-center">
         <div
-          fxFlex="8"
-          fxFill
-          fxLayout="row"
-          fxLayoutAlign="start center"
-          fxLayoutGap="20px"
-        >
+          class="d-flex flex-row justify-content-start align-items-center gap-3 w-100 h-100"
+          style="flex: 1 1 8%"
+          >
           <a [routerLink]="['/']">
-            <div fxLayout="row" fxLayoutAlign="start center">
+            <div class="d-flex flex-row justify-content-start align-items-center">
               <mat-icon
                 class="caster-icon"
                 svgIcon="ic_crucible_caster"
@@ -43,12 +40,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
 
         <mat-divider></mat-divider>
-        <div fxFlex fxFill class="scroll-y">
+        <div class="scroll-y flex-grow-1 w-100 h-100">
           <cas-project-navigation></cas-project-navigation>
         </div>
         <mat-divider></mat-divider>
 
-        <div fxFlex="8" fxFill fxLayout="row" fxLayoutAlign="start end">
+        <div class="d-flex flex-row justify-content-start align-items-end w-100 h-100" style="flex: 1 1 8%">
           <img
             class="crucible-logo"
             [src]="
@@ -56,7 +53,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 ? 'assets/img/crucible-logo-light.png'
                 : 'assets/img/crucible-logo-dark.png'
             "
-          />
+            />
         </div>
       </div>
       <div
@@ -67,35 +64,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content fxLayout="column" *ngIf="project">
-    <cas-topbar
-      [title]="project.name"
-      [topbarColor]="topbarColor"
-      [topbarTextColor]="topbarTextColor"
-      [topbarView]="TopbarView.CASTER_PROJECT"
-      [sidenav]="sidenav"
-      [projectId]="project.id"
-      (sidenavToggle)="sidenav.toggle()"
-      (editMemberships)="openEditMemberships()"
-    ></cas-topbar>
-    <div fxLayout="row" fxLayoutAlign="center stretch" fxFlex="0 1 auto">
-      <div fxFill>
-        <div
-          fxLayout="row"
-          fxLayoutAlign="space-between stretch"
-          fxLayoutGap="50px"
-        >
-          <cas-project
-            fxFlex="1 2 auto"
-            [loading]="loading$ | async"
-            [project]="project$ | async"
-            [projectUI]="projectUI$ | async"
-            (closeTab)="closeTab($event)"
-            (tabChanged)="tabChangedFn($event)"
-          >
-          </cas-project>
-        </div>
-      </div>
-    </div>
-  </mat-sidenav-content>
+  @if (project) {
+    <mat-sidenav-content class="d-flex flex-column">
+      <cas-topbar
+        [title]="project.name"
+        [topbarColor]="topbarColor"
+        [topbarTextColor]="topbarTextColor"
+        [topbarView]="TopbarView.CASTER_PROJECT"
+        [sidenav]="sidenav"
+        [projectId]="project.id"
+        (sidenavToggle)="sidenav.toggle()"
+        (editMemberships)="openEditMemberships()"
+      ></cas-topbar>
+      <cas-project
+        class="project-content"
+        [loading]="loading$ | async"
+        [project]="project$ | async"
+        [projectUI]="projectUI$ | async"
+        (closeTab)="closeTab($event)"
+        (tabChanged)="tabChangedFn($event)"
+      >
+      </cas-project>
+    </mat-sidenav-content>
+  }
 </mat-sidenav-container>

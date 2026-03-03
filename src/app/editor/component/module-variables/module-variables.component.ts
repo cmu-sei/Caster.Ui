@@ -23,10 +23,11 @@ import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 @Component({
-  selector: 'cas-module-variables',
-  templateUrl: './module-variables.component.html',
-  styleUrls: ['./module-variables.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-module-variables',
+    templateUrl: './module-variables.component.html',
+    styleUrls: ['./module-variables.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() name: string;

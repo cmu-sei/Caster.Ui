@@ -2,12 +2,15 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 /* VENDOR IMPORTS */
 @use '@angular/material' as mat;
-@import '~xterm/css/xterm.css';
+@use './theme-colors' as theme;
+@use '@mdi/font/scss/materialdesignicons.scss';
 
-$mdi-font-path: '~@mdi/font/fonts';
-@import '@mdi/font/scss/materialdesignicons';
-@import '~@fortawesome/fontawesome-free/css/all.css';
-@include mat.core();
+@import '@fortawesome/fontawesome-free/css/all.css';
+@import '@xterm/xterm/css/xterm.css';
+
+// @include mat.all-component-typographies();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 /* BOOTSTRAP IMPORTS */
 /* Required */
@@ -24,27 +27,91 @@ $mdi-font-path: '~@mdi/font/fonts';
 /* END VENDOR IMPORTS */
 
 /* LOCAL IMPORTS */
-@import 'theme';
 @import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 /* END LOCAL IMPORTS */
 
-.light-theme {
-  @include mat.all-component-themes($light-theme);
-  @include cwd-toolbar-theme($light-theme);
-  @include globals($light-theme);
+// .light-theme {
+//   @include mat.all-component-themes($light-theme);
+//   @include cwd-toolbar-theme($light-theme);
+//   @include globals($light-theme);
+// }
+
+// .dark-theme {
+//   @include mat.all-component-themes($dark-theme);
+//   @include cwd-toolbar-theme($dark-theme);
+//   @include globals($dark-theme);
+// }
+
+html {
+  @include mat.theme(
+    (
+      color: theme.$primary-palette,
+      typography: '"Open Sans", sans-serif',
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-primary),
+    )
+  );
 }
 
-.dark-theme {
-  @include mat.all-component-themes($dark-theme);
-  @include cwd-toolbar-theme($dark-theme);
-  @include globals($dark-theme);
+.darkMode {
+  @include mat.theme(
+    (
+      color: (
+        primary: theme.$primary-palette,
+        typography: '"Open Sans", sans-serif',
+        theme-type: dark,
+      ),
+    )
+  );
 }
 
 body {
   height: calc(100vh - 40px);
   margin: 0;
+  font-family: 'Open Sans', sans-serif;
 }
 
-.light-theme .mat-simple-snackbar-action {
-  color: white;
+// .light-theme .mat-mdc-snack-bar-action {
+//   color: white;
+// }
+
+// prevent table header rows from scrolling
+.mat-mdc-header-row {
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
+  z-index: 9 !important;
+}
+
+// support color="warn" on icon buttons
+.mat-mdc-icon-button.mat-warn {
+  --mat-icon-button-icon-color: var(--mat-sys-error);
+}
+
+// Highlight rows that represent a destroy operation or tainted resource
+.isDestroy {
+  background: var(--mat-sys-error-container) !important;
+  color: var(--mat-sys-on-error-container);
+
+  &:hover {
+    background: var(--mat-sys-error-container) !important;
+    opacity: 0.85;
+  }
+}
+
+// remove the border around paginator items per page selection
+mat-paginator {
+  --mat-form-field-outlined-outline-color: transparent;
+  --mat-form-field-outlined-hover-outline-color: transparent;
+  --mat-form-field-outlined-focus-outline-color: transparent;
+  min-width: 200px !important;
+}
+
+// Allow tab body content to scroll in project tabs
+cas-project-tab .mat-mdc-tab-body-content {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 126px);
 }

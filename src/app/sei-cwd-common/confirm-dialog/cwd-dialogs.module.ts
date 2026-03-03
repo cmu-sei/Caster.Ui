@@ -10,7 +10,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import { FlexLayoutModule } from '@angular/flex-layout';
 
 @NgModule({
   declarations: [ConfirmDialogComponent],
@@ -22,9 +21,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     MatButtonModule,
     MatTooltipModule,
     FormsModule,
-    FlexLayoutModule,
   ],
-  entryComponents: [ConfirmDialogComponent],
   providers: [ConfirmDialogService],
 })
 export class CwdDialogsModule {}

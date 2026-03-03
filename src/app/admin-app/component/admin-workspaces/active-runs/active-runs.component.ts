@@ -12,10 +12,11 @@ import {
 import { Run } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-active-runs',
-  templateUrl: './active-runs.component.html',
-  styleUrls: ['./active-runs.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-active-runs',
+    templateUrl: './active-runs.component.html',
+    styleUrls: ['./active-runs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ActiveRunsComponent implements OnInit {
   @Input() runs: Run[];

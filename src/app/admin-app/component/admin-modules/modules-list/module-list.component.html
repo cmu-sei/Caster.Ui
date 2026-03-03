@@ -3,38 +3,27 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <div class="sp-icon">
     <mat-icon class="mdi-24px" fontIcon="mdi-view-module"></mat-icon>
   </div>
-  <mat-icon
-    style="margin-left: 40px; transform: scale(0.85); margin-right: 5px"
-    svgIcon="ic_magnify_search"
-  ></mat-icon>
   <mat-form-field style="width: 300px">
+    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
     <input
       matInput
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
-    />
+      />
+    @if (!!filterString) {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+    }
   </mat-form-field>
-  <div style="width: 30px">
-    <button
-      *ngIf="!!filterString"
-      fxLayoutAlign="start center"
-      mat-icon-button
-      (click)="clearFilter()"
-      style="outline: none"
-      title="Clear Search"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
-    </button>
-  </div>
   <div class="button-end">
     <mat-paginator
       #paginator
-      [length]="totalRows$ | async"
       [pageIndex]="0"
       [pageSize]="20"
       [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
@@ -42,114 +31,121 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 </div>
 
-<mat-accordion displayMode="flat" class="mat-table">
-  <mat-expansion-panel *ngIf="canEdit" [disabled]="true">
-    <mat-expansion-panel-header class="mat-row">
-      <span class="mat-cell">
-        <h6 style="float: right; margin-right: 50px">Add/Update Modules >></h6>
-      </span>
-      <span class="mat-cell">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="External Module ID"
-            [(ngModel)]="externalModuleId"
-            matTooltip="Must be a valid ID from the module repository."
+@if (canEdit) {
+  <div class="add-module-row">
+    <span class="add-module-cell">
+      <h6 style="float: right; margin-right: 50px">Add/Update Modules >></h6>
+    </span>
+    <span class="add-module-cell">
+      <mat-form-field subscriptSizing="dynamic">
+        <input
+          matInput
+          placeholder="External Module ID"
+          [(ngModel)]="externalModuleId"
+          matTooltip="Must be a valid ID from the module repository."
           />
-        </mat-form-field>
-        <button
-          mat-icon-button
-          (click)="updateModuleFromRepository()"
-          [disabled]="!externalModuleId || isLoading"
+      </mat-form-field>
+      <button
+        mat-icon-button
+        (click)="updateModuleFromRepository()"
+        [disabled]="!externalModuleId || isLoading"
         >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-note-plus"
-            matTooltip="Add/Update this module from the repository"
-          ></mat-icon>
-        </button>
-      </span>
-      <span class="mat-cell">
-        <button
-          mat-icon-button
-          (click)="updateAllModules()"
-          [disabled]="isLoading"
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-note-plus"
+          matTooltip="Add/Update this module from the repository"
+        ></mat-icon>
+      </button>
+    </span>
+    <span class="add-module-cell">
+      <button
+        mat-icon-button
+        (click)="updateAllModules()"
+        [disabled]="isLoading"
         >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-cloud-download"
-            matTooltip="Add/Update ALL from the repository"
-          ></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-cloud-download"
+          matTooltip="Add/Update ALL from the repository"
+        ></mat-icon>
+      </button>
+    </span>
+  </div>
+}
 
-  <section matSort class="mat-elevation-z2 mat-header-row">
-    <span class="mat-header-cell" mat-sort-header="name">Name</span>
-    <span class="mat-header-cell" mat-sort-header="path">Path</span>
-    <span class="mat-header-cell" mat-sort-header="versionsCount"
-      >Versions</span
-    >
-    <span class="mat-header-cell" mat-sort-header="description"
-      >Date Loaded</span
-    >
-  </section>
-
-  <mat-expansion-panel
-    *ngFor="let item of displayedRows$ | async"
-    [disabled]="true"
-  >
-    <mat-expansion-panel-header class="mat-row" *ngIf="!isLoading">
-      <span class="mat-cell">
+<table mat-table matSort [dataSource]="dataSource" class="w-100">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+    <td mat-cell *matCellDef="let item">
+      <div class="d-flex align-items-center">
         <button
           mat-icon-button
           ngxClipboard
           [cbContent]="item.id"
           (click)="$event.stopPropagation()"
           title="Copy:  {{ item.id }}"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
         </button>
         {{ item.name }}
-      </span>
-      <span class="mat-cell">
-        {{ item.path }}
-      </span>
-      <span class="mat-cell">
-        <span
-          [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
-          [matTooltip]="
-            item.versionsCount == 0
-              ? 'This Module will not be able to be added to a Design until at least 1 Version is created in the git repository.'
-              : null
-          "
-          matTooltipShowDelay="0"
-          >{{ item.versionsCount }}</span
-        >
-      </span>
-      <span class="mat-cell">
-        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
-        <button
-          *ngIf="canEdit"
-          mat-icon-button
-          (click)="deleteModule(item); $event.stopPropagation()"
-          title="Delete Module"
-        >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-delete-forever-outline"
-          ></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
-</mat-accordion>
+      </div>
+    </td>
+  </ng-container>
 
-<mat-card
-  *ngIf="isLoading"
-  style="display: flex; justify-content: center; align-items: center"
->
-  <mat-progress-spinner color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-</mat-card>
+  <ng-container matColumnDef="path">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Path</th>
+    <td mat-cell *matCellDef="let item">
+      {{ item.path }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="versionsCount">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Versions</th>
+    <td mat-cell *matCellDef="let item">
+      <span
+        [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
+        [matTooltip]="
+          item.versionsCount == 0
+            ? 'This Module will not be able to be added to a Design until at least 1 Version is created in the git repository.'
+            : null
+        "
+        matTooltipShowDelay="0"
+        >{{ item.versionsCount }}</span
+        >
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="dateModified">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
+    <td mat-cell *matCellDef="let item">
+      <div class="d-flex align-items-center">
+        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
+        @if (canEdit) {
+          <button
+            mat-icon-button
+            (click)="deleteModule(item); $event.stopPropagation()"
+            title="Delete Module"
+            >
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-delete-forever-outline"
+            ></mat-icon>
+          </button>
+        }
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+@if (isLoading) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
+    >
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card>
+}

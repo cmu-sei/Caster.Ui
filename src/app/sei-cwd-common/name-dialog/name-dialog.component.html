@@ -15,19 +15,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       autocomplete="off"
     />
 
-    <mat-error *ngIf="name.invalid && (name.dirty || name.touched)">
-      <ng-container *ngFor="let validator of validators">
-        <ng-container *ngIf="name.hasError(validator.name)">
-          {{ validator.errorMessage }}<br />
-        </ng-container>
-      </ng-container>
+    @if (name.invalid && (name.dirty || name.touched)) {
+    <mat-error>
+      @for (validator of validators; track validator) { @if
+      (name.hasError(validator.name)) {
+      {{ validator.errorMessage }}<br />
+      } }
     </mat-error>
+    }
   </mat-form-field>
 </form>
 
-<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-around center">
+<mat-dialog-actions
+  class="d-flex flex-row justify-content-around align-items-center"
+>
   <button
-    mat-stroked-button
+    mat-flat-button
+    color="primary"
     hotkeyAction="ENTER"
     (click)="onClick()"
     [disabled]="!form.valid || !form.dirty"
@@ -35,5 +39,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
     Save
   </button>
-  <button mat-stroked-button (click)="onCancel()" tabindex="3">Cancel</button>
+  <button mat-flat-button color="primary" (click)="onCancel()" tabindex="3">
+    Cancel
+  </button>
 </mat-dialog-actions>

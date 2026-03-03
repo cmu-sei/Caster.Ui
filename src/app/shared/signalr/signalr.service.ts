@@ -41,8 +41,8 @@ export class SignalRService {
   private projectId: string;
   private projectAdminId: string;
   private groupId: string;
-  private workspaceIds: string[] = [];
-  private designIds: string[] = [];
+  private workspaceIds = new Set<string>();
+  private designIds = new Set<string>();
   private joinedWorkspacesAdmin = false;
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
@@ -100,16 +100,24 @@ export class SignalRService {
       this.joinGroup(this.groupId);
     }
 
-    if (this.workspaceIds) {
-      this.workspaceIds.forEach((x) => this.joinWorkspace(x));
+    if (this.workspaceIds.size > 0) {
+      this.workspaceIds.forEach((x) => {
+        if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+          this.hubConnection.invoke('JoinWorkspace', x);
+        }
+      });
     }
 
     if (this.joinedWorkspacesAdmin) {
       this.joinWorkspacesAdmin();
     }
 
-    if (this.designIds) {
-      this.designIds.forEach((x) => this.joinDesign(x));
+    if (this.designIds.size > 0) {
+      this.designIds.forEach((x) => {
+        if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+          this.hubConnection.invoke('JoinDesign', x);
+        }
+      });
     }
 
     if (this.joinedVlansAdmin) {
@@ -165,7 +173,7 @@ export class SignalRService {
   }
 
   public joinWorkspace(workspaceId: string) {
-    this.workspaceIds.push(workspaceId);
+    this.workspaceIds.add(workspaceId);
 
     if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
       this.hubConnection.invoke('JoinWorkspace', workspaceId);
@@ -173,7 +181,7 @@ export class SignalRService {
   }
 
   public leaveWorkspace(workspaceId: string) {
-    this.workspaceIds = this.workspaceIds.filter((x) => x !== workspaceId);
+    this.workspaceIds.delete(workspaceId);
     this.hubConnection.invoke('LeaveWorkspace', workspaceId);
   }
 
@@ -191,7 +199,7 @@ export class SignalRService {
   }
 
   public joinDesign(designId: string) {
-    this.designIds.push(designId);
+    this.designIds.add(designId);
 
     if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
       this.hubConnection.invoke('JoinDesign', designId);
@@ -199,7 +207,7 @@ export class SignalRService {
   }
 
   public leaveDesign(designId: string) {
-    this.designIds = this.designIds.filter((x) => x !== designId);
+    this.designIds.delete(designId);
     this.hubConnection.invoke('LeaveDesign', designId);
   }
 

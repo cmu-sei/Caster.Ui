@@ -11,9 +11,10 @@ import { DesignQuery } from '../../state/design.query';
 import { VariableService } from '../../state/variables/variables.service';
 
 @Component({
-  selector: 'cas-design',
-  templateUrl: './design.component.html',
-  styleUrls: ['./design.component.scss'],
+    selector: 'cas-design',
+    templateUrl: './design.component.html',
+    styleUrls: ['./design.component.scss'],
+    standalone: false
 })
 export class DesignComponent implements OnInit, OnDestroy {
   @Input()

@@ -18,7 +18,7 @@ import {
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
-import { switchMap, take, takeUntil } from 'rxjs/operators';
+import { filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import {
   FileVersionQuery,
   FileVersionService,
@@ -38,6 +38,7 @@ const SIDEBAR_MIN_WIDTH = 300;
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() fileId: string;
@@ -61,7 +62,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public codeTheme: Theme;
   public editorOptions = {
     theme: 'vs-light',
-    language: 'ruby',
+    language: 'plaintext',
     automaticLayout: true,
     readOnly: true,
   };
@@ -73,6 +74,9 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public isSaved$: Observable<boolean>;
 
   private unsubscribe$ = new Subject();
+  private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private captureKeydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private editorDomNode: HTMLElement | null = null;
   public breadcrumbString = '';
 
   constructor(
@@ -109,29 +113,29 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
     this.fileQuery
       .selectEntity(this.fileId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((f) => {
-        if (f) {
-          this.filename = f.name;
-          this.code = f.editorContent;
+      .pipe(
+        tap((f) => {
+          if (f) {
+            this.filename = f.name;
+            this.updateModelLanguage();
+            this.code = f.editorContent;
 
-          if (!this.file || f.lockedById !== this.file.lockedById) {
-            this.updateEditorOptions(f);
+            if (!this.file || f.lockedById !== this.file.lockedById) {
+              this.updateEditorOptions(f);
+            }
+          } else {
+            this.filename = '';
+            this.code = '';
           }
 
-          this.isEditing$ = this.fileQuery.isEditing(f.id, this.currentUserId);
-          this.isEditing$
-            .pipe(takeUntil(this.unsubscribe$))
-            .subscribe((isEditing) => (this.isEditing = isEditing));
-        } else {
-          this.filename = '';
-          this.code = '';
-        }
-
-        this.file = f;
-
-        this.changeDetectorRef.markForCheck();
-      });
+          this.file = f;
+          this.changeDetectorRef.markForCheck();
+        }),
+        filter((f) => f != null),
+        switchMap((f) => this.fileQuery.isEditing(f.id, this.currentUserId)),
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe((isEditing) => (this.isEditing = isEditing));
 
     this.fileVersionService.load(this.fileId).pipe(take(1)).subscribe();
 
@@ -155,32 +159,85 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   editorInit(editor: any) {
-    // get the defined hot keys
+    this.ngxEditor = editor;
     const hotKeys = this.settingsService.settings.Hotkeys;
-    const bubbleKeys = [];
-    // create search strings for the defined hot keys that need to bubble out of the editor
-    // transforms control.x, alt.x, etc. to ctrl+X, alt+X, etc.
-    for (const [key, hk] of Object.entries(hotKeys)) {
+    const bubbleKeys: string[] = [];
+    const stopKeys: string[] = [];
+    for (const [, hk] of Object.entries(hotKeys)) {
       const parts = (hk as any).keys.split('.');
       if (parts.length === 2) {
         if (parts[0] === 'control') parts[0] = 'ctrl';
         bubbleKeys.push(parts[0] + '+' + parts[1].toUpperCase());
+      } else if (parts.length === 1) {
+        stopKeys.push(parts[0].toUpperCase());
       }
     }
-    // get the editor default key bindings
-    const bindings =
-      editor._standaloneKeybindingService._getResolver()._defaultKeybindings;
-    // set the editor key bindings to bubble the defined hot keys that would be intercepted
-    // by clearing the command and setting bubble to true
-    bindings.forEach((binding) => {
-      if (
-        binding.keypressParts.length === 1 &&
-        bubbleKeys.some((bk) => bk === binding.keypressParts[0])
-      ) {
-        binding.command = '';
-        binding.bubble = true;
+    try {
+      const domNode = editor.getDomNode() as HTMLElement;
+      if (domNode) {
+        this.editorDomNode = domNode;
+
+        this.keydownListener = (e: KeyboardEvent) => {
+          const keyParts: string[] = [];
+          if (e.ctrlKey || e.metaKey) keyParts.push('ctrl');
+          if (e.altKey) keyParts.push('alt');
+          keyParts.push(e.key.toUpperCase());
+          const keyStr = keyParts.join('+');
+          if (bubbleKeys.includes(keyStr)) {
+            // Modifier+key hotkeys: bubble to @ngneat/hotkeys (e.g. Ctrl+S → FILE_SAVE)
+            return;
+          }
+          if (stopKeys.includes(e.key.toUpperCase())) {
+            // Single-key hotkeys (ENTER, ESCAPE): stop propagation so @ngneat/hotkeys
+            // cannot call preventDefault(), which would block Monaco's NativeEditContext
+            // beforeinput handler
+            e.stopPropagation();
+          }
+          // All other keys (arrow keys, ctrl+Z, letters, etc.): propagate normally
+          // so Monaco's document-level keybinding dispatcher can handle them
+        };
+        domNode.addEventListener('keydown', this.keydownListener);
+
+        // Capture-phase listener: prevent Shift+? from inserting a character into the editor.
+        // @ngneat/hotkeys registers the help shortcut (shift.?) with preventDefault:false, so the
+        // dialog opens but Monaco also sees the keydown and inserts '?'. Using capture phase
+        // ensures this runs before Monaco's inner-element listeners, suppressing character
+        // insertion while still letting the event bubble to @ngneat/hotkeys at document level.
+        this.captureKeydownListener = (e: KeyboardEvent) => {
+          if (
+            e.shiftKey &&
+            !e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            e.key === '?'
+          ) {
+            e.preventDefault(); // Suppress '?' character insertion
+            // No stopPropagation — @ngneat/hotkeys must still see this event to open the dialog
+          }
+        };
+        domNode.addEventListener('keydown', this.captureKeydownListener, true);
       }
-    });
+    } catch (err) {
+      console.warn('Monaco keybinding configuration failed:', err);
+    }
+    this.updateModelLanguage();
+  }
+
+  get detectedLanguage(): string {
+    const monaco = (window as any).monaco;
+    if (!this.filename || !monaco) return 'plaintext';
+    const dotIndex = this.filename.lastIndexOf('.');
+    const ext = dotIndex !== -1 ? this.filename.substring(dotIndex) : '';
+    if (!ext) return 'plaintext';
+    return monaco.languages.getLanguages()
+      .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext';
+  }
+
+  updateModelLanguage(): void {
+    const model = this.ngxEditor?.getModel();
+    const monaco = (window as any).monaco;
+    if (!model || !monaco) return;
+    monaco.editor.setModelLanguage(model, this.detectedLanguage);
   }
 
   updateEditorOptions(file: ModelFile): void {
@@ -190,13 +247,40 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       writable = file.lockedById === this.currentUserId;
     }
 
-    const options = {
-      theme: this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light',
-      language: 'ruby',
-      automaticLayout: true,
-      readOnly: !writable,
-    };
-    this.editorOptions = Object.assign({}, { ...options });
+    const theme = this.codeTheme === Theme.DARK ? 'vs-dark' : 'vs-light';
+    const readOnly = !writable;
+
+    if (
+      this.editorOptions.theme === theme &&
+      this.editorOptions.readOnly === readOnly
+    ) {
+      return;
+    }
+
+    if (this.ngxEditor) {
+      // Update the live editor instance directly to avoid disposal/recreation,
+      // which would destroy focus and keyboard state
+      this.ngxEditor.updateOptions({ readOnly });
+      const monaco = (window as any).monaco;
+      if (monaco) {
+        monaco.editor.setTheme(theme);
+      }
+      // Keep editorOptions in sync for future editor creation (e.g. view switches)
+      this.editorOptions.readOnly = readOnly;
+      this.editorOptions.theme = theme;
+      // Focus the editor when entering edit mode so the user can type immediately
+      if (!readOnly) {
+        this.ngxEditor.focus();
+      }
+    } else {
+      // No live editor — set options for initial creation
+      this.editorOptions = {
+        theme,
+        language: 'plaintext',
+        automaticLayout: true,
+        readOnly,
+      };
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -369,5 +453,16 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
+
+    if (this.editorDomNode) {
+      if (this.keydownListener) {
+        this.editorDomNode.removeEventListener('keydown', this.keydownListener);
+      }
+      if (this.captureKeydownListener) {
+        this.editorDomNode.removeEventListener('keydown', this.captureKeydownListener, true);
+      }
+    }
+
+    this.ngxEditor?.dispose();
   }
 }

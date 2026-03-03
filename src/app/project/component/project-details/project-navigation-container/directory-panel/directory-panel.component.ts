@@ -49,9 +49,10 @@ const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-  selector: 'cas-directory-panel',
-  templateUrl: './directory-panel.component.html',
-  styleUrls: ['./directory-panel.component.scss'],
+    selector: 'cas-directory-panel',
+    templateUrl: './directory-panel.component.html',
+    styleUrls: ['./directory-panel.component.scss'],
+    standalone: false
 })
 export class DirectoryPanelComponent implements OnInit, OnDestroy {
   @Input() parentDirectory: Directory;

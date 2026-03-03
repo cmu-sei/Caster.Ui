@@ -15,13 +15,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [(opened)]="sidebarOpen"
     position="end"
   >
-    <div *ngIf="sidebarOpen" class="grid">
+    @if (sidebarOpen) {
+    <div class="grid">
       <div
         class="resize-handle-left"
         mwlResizeHandle
         [resizeEdges]="{ left: true }"
       ></div>
-      <div fxLayout="column" fxLayoutAlign="start stretch">
+      <div class="d-flex flex-column justify-content-start align-items-stretch">
         <button
           mat-icon-button
           (click)="resetSidebar()"
@@ -32,88 +33,85 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             fontIcon="mdi-chevron-double-right"
           ></mat-icon>
         </button>
-        <ng-container [ngSwitch]="sidebarView">
-          <div *ngSwitchCase="'modules'">
-            <cas-module-list
-              *ngIf="filename.endsWith('.tf')"
-              [modules]="modules"
-              [selectedModule]="selectedModule$ | async"
-              [isEditing]="isEditing$ | async"
-              (getModule)="getModuleFn($event)"
-              (insertModule)="insertModuleFn($event)"
-            ></cas-module-list>
-          </div>
-          <div *ngSwitchCase="'versions'">
-            <cas-version-list
-              *ngSwitchCase="'versions'"
-              [fileId]="fileId"
-              [selectedVersionId]="
-                selectedVersionForDiff ? selectedVersionForDiff.id : ''
-              "
-              (getVersion)="getVersionFn($event)"
-              (revertToVersion)="revertToVersionFn($event)"
-            ></cas-version-list>
-          </div>
-        </ng-container>
+        @switch (sidebarView) { @case ('modules') {
+        <div>
+          @if (filename.endsWith('.tf')) {
+          <cas-module-list
+            [modules]="modules"
+            [selectedModule]="selectedModule$ | async"
+            [isEditing]="isEditing$ | async"
+            (getModule)="getModuleFn($event)"
+            (insertModule)="insertModuleFn($event)"
+          ></cas-module-list>
+          }
+        </div>
+        } @case ('versions') {
+        <div>
+          <cas-version-list
+            [fileId]="fileId"
+            [selectedVersionId]="
+              selectedVersionForDiff ? selectedVersionForDiff.id : ''
+            "
+            (getVersion)="getVersionFn($event)"
+            (revertToVersion)="revertToVersionFn($event)"
+          ></cas-version-list>
+        </div>
+        } }
       </div>
     </div>
+    }
   </mat-sidenav>
 
   <mat-sidenav-content #sidenavContent id="sidenavContent">
-    <div fxLayout="column" fxFlex="1 1 auto">
-      <mat-toolbar class="editor-toolbar" fxFlex="0 1 auto">
+    <div class="d-flex flex-column flex-fill">
+      <mat-toolbar class="editor-toolbar">
         <mat-toolbar-row
-          class="editor-toolbar"
-          fxLayout="row"
-          fxLayoutAlign="end center"
-          fxLayoutGap="5px"
+          class="editor-toolbar d-flex flex-row justify-content-end align-items-center gap-1"
         >
           <div class="breadcrumb-bar">
             {{ breadcrumbString }}
           </div>
           <div class="spacer"></div>
+          @if (file && !file.administrativelyLocked) {
           <button
             mat-icon-button
             color="primary"
-            fxFlexAlign="center"
-            *ngIf="file && !file.administrativelyLocked"
+            class="align-self-center"
             [disabled]="!canAdminLock"
             (click)="adminLockFile()"
           >
             <mat-icon
-              class="fa-lg"
-              fontSet="fas"
-              fontIcon="fa-unlock"
+              class="mdi-24px"
+              fontIcon="mdi-lock-open-outline"
               matTooltip="Not administratively locked"
             ></mat-icon>
           </button>
+          } @if (file && file.administrativelyLocked) {
           <button
             mat-icon-button
             color="primary"
-            fxFlexAlign="center"
-            *ngIf="file && file.administrativelyLocked"
+            class="align-self-center"
             [disabled]="!canAdminLock"
             (click)="adminUnlockFile()"
           >
             <mat-icon
-              fontSet="fas"
-              class="fa-lg"
-              fontIcon="fa-lock"
+              class="mdi-24px"
+              fontIcon="mdi-lock-outline"
               matTooltip="Administratively locked"
             ></mat-icon>
           </button>
+          }
           <button
             mat-icon-button
             hotkeyAction="FILE_SAVE"
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             [disabled]="!canEdit || (isSaved$ | async)"
             (click)="saveFile()"
           >
             <mat-icon
-              fontSet="fas"
-              class="fa-lg"
-              fontIcon="fa-save"
+              class="mdi-24px"
+              fontIcon="mdi-content-save"
               matTooltip="Save Changes"
             ></mat-icon>
           </button>
@@ -121,37 +119,32 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-icon-button
             hotkeyAction="DISCARD_CHANGES"
             color="primary"
-            fxFlexAlign="center"
+            class="align-self-center"
             [disabled]="
               !canEdit || (file && file.editorContent === file.content)
             "
             (click)="discardFileChanges()"
           >
             <mat-icon
-              fontSet="fas"
-              class="fa-lg"
-              fontIcon="fa-undo-alt"
+              class="mdi-24px"
+              fontIcon="mdi-undo"
               matTooltip="Discard Changes"
             ></mat-icon>
           </button>
+          @if (file && file.lockedById && file.lockedById !== currentUserId) {
           <button
             mat-icon-button
-            fxFlexAlign="center"
-            *ngIf="file && file.lockedById && file.lockedById !== currentUserId"
+            class="align-self-center"
             color="warn"
             matTooltip="This file is being edited by {{ file.lockedByName }}"
           >
-            <mat-icon
-              fontSet="fas"
-              class="fa-lg"
-              fontIcon="fa-user-edit"
-            ></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-account-edit"></mat-icon>
           </button>
+          } @if (file && !file.lockedById) {
           <button
             mat-icon-button
             hotkeyAction="FILE_LOCK_TOGGLE"
-            fxFlexAlign="center"
-            *ngIf="file && !file.lockedById"
+            class="align-self-center"
             color="primary"
             (click)="lockFile()"
             [disabled]="!canEdit"
@@ -161,26 +154,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 : 'You do not have permissions to edit this file'
             "
           >
-            <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-edit"></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"></mat-icon>
           </button>
+          } @if (file && file.lockedById === currentUserId) {
           <button
             mat-icon-button
             hotkeyAction="FILE_LOCK_TOGGLE"
-            fxFlexAlign="center"
-            *ngIf="file && file.lockedById === currentUserId"
+            class="align-self-center"
             [disabled]="file.editorContent !== file.content"
             color="warn"
             (click)="unlockFile()"
             matTooltip="Finish editing and allow someone else to edit this file"
           >
-            <mat-icon fontSet="fas" class="fa-lg" fontIcon="fa-edit"></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"></mat-icon>
           </button>
+          }
           <mat-divider vertical style="height: 100%"></mat-divider>
-          <div *ngIf="filename.endsWith('.tf')">
+          @if (filename.endsWith('.tf')) {
+          <div>
             <button
               mat-icon-button
               hotkeyAction="FILE_MODULES"
-              fxFlexAlign="center"
+              class="align-self-center"
               color="primary"
               (click)="
                 sidebarView = 'modules'; sidebarChangedFn('modules', true)
@@ -188,16 +183,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [disabled]="sidebarView === 'modules'"
               matTooltip="Show the module list"
             >
-              <mat-icon
-                fontSet="fas"
-                class="fa-lg"
-                fontIcon="fa-code"
-              ></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-code-tags"></mat-icon>
             </button>
             <button
               mat-icon-button
               hotkeyAction="FILE_VERSIONS"
-              fxFlexAlign="center"
+              class="align-self-center"
               color="primary"
               (click)="
                 sidebarView = 'versions'; sidebarChangedFn('versions', true)
@@ -205,37 +196,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [disabled]="sidebarView === 'versions'"
               matTooltip="Show the file versions"
             >
-              <mat-icon
-                fontSet="fas"
-                class="fa-lg"
-                fontIcon="fa-history"
-              ></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-history"></mat-icon>
             </button>
           </div>
+          }
         </mat-toolbar-row>
       </mat-toolbar>
 
+      @if (!selectedVersionForDiff) {
       <ngx-monaco-editor
         #editor
-        *ngIf="!selectedVersionForDiff"
         id="editor"
         class="code-editor"
         [options]="editorOptions"
-        (init)="editorInit($event)"
+        (onInit)="editorInit($event)"
         [(ngModel)]="code"
         (ngModelChange)="codeChangedEventHandler($event)"
       >
       </ngx-monaco-editor>
-
-      <mat-toolbar
-        class="version-toolbar"
-        fxFlex="0 1 auto"
-        *ngIf="selectedVersionForDiff"
-      >
+      } @if (selectedVersionForDiff) {
+      <mat-toolbar class="version-toolbar">
         <mat-toolbar-row
-          class="version-toolbar"
-          fxLayout="row"
-          fxLayoutAlign="space-between center"
+          class="version-toolbar d-flex flex-row justify-content-between align-items-center"
         >
           <span class="left-version-text"> CURRENT </span>
           <span class="right-version-text">
@@ -245,14 +227,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </span>
         </mat-toolbar-row>
       </mat-toolbar>
+      } @if (selectedVersionForDiff) {
       <ngx-monaco-diff-editor
         class="code-editor"
-        *ngIf="selectedVersionForDiff"
         [options]="editorOptions"
-        [original]="code"
-        [modified]="selectedVersionForDiff.content"
+        [originalModel]="{ code: code, language: detectedLanguage }"
+        [modifiedModel]="{ code: selectedVersionForDiff.content, language: detectedLanguage }"
       >
       </ngx-monaco-diff-editor>
+      }
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

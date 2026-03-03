@@ -22,8 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ExtendedModule, FlexModule } from '@angular/flex-layout';
-import { OutputComponent } from './components/output/output.component';
+import { OutputComponent} from './components/output/output.component';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
 import { RunComponent } from './components/run/run.component';
@@ -66,10 +65,8 @@ import { ImportResourceComponent } from './components/import-resource/import-res
     MatToolbarModule,
     MatTooltipModule,
     MatButtonToggleModule,
-    FlexModule,
     ClipboardModule,
     CwdTableModule,
-    ExtendedModule,
     MatOptionModule,
     MatSelectModule,
     DragDropModule,

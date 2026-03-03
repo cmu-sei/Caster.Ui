@@ -1,8 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-@import 'theme';
-
 .code-editor {
   border: 2px solid lightgray;
   min-height: calc(100vh - 127px);
@@ -29,10 +27,12 @@
   font-size: small;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 mat-button-toggle-group {
   width: 100%;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 mat-button-toggle {
   flex: 1 1 100%;
   box-sizing: border-box;
@@ -41,6 +41,7 @@ mat-button-toggle {
   display: flex;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 .mat-button-toggle {
   line-height: 34px;
   height: 30px;

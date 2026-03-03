@@ -3,61 +3,69 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div *ngIf="showTabs">
-  <mat-tab-group
-    dynamicHeight
-    animationDuration="0ms"
-    selectedIndex="{{ projectUI.selectedTab }}"
-    (selectedTabChange)="tabChangeClickHandler($event)"
-  >
-    <mat-tab *ngFor="let tab of projectUI.openTabs" [label]="tab.id">
-      <ng-template mat-tab-label>
-        <button mat-icon-button (click)="closeTabClickHandler(tab)">
-          <mat-icon class="mdi-18px" fontIcon="mdi-close"></mat-icon>
-        </button>
-        {{ projectObjectNames[tab.id] }}
-      </ng-template>
-      <ng-template matTabContent>
-        <span *ngIf="tab.type === tabType.FILE">
-          <cas-editor
-            [fileId]="tab.id"
-            [modules]="modules$ | async"
-            [sidebarOpen]="sidebarOpen$ | async"
-            [sidebarView]="sidebarView$ | async"
-            [sidenavWidth]="sidebarWidth$ | async"
-            [breadcrumb]="breadcrumb$ | async"
-            [canEdit]="canEdit$ | async"
-            [canAdminLock]="canAdminLock$ | async"
-            (sidebarChanged)="sidebarChangedFn($event)"
-            (sidebarViewChanged)="sidebarViewChangedFn($event)"
-            (sidenavWidthChanged)="sidebarWidthChangedFn($event)"
-          >
-          </cas-editor>
-        </span>
-        <cas-workspace-container
-          *ngIf="tab.type === tabType.WORKSPACE"
-          [workspaceId]="tab.id"
-          [breadcrumb]="breadcrumb$ | async"
-          [canEdit]="canEdit$ | async"
+@if (showTabs) {
+  <div>
+    <mat-tab-group
+      dynamicHeight
+      animationDuration="0ms"
+      selectedIndex="{{ projectUI.selectedTab }}"
+      (selectedTabChange)="tabChangeClickHandler($event)"
+      >
+      @for (tab of projectUI.openTabs; track tab) {
+        <mat-tab [label]="tab.id">
+          <ng-template mat-tab-label>
+            <button mat-icon-button (click)="closeTabClickHandler(tab)">
+              <mat-icon class="mdi-18px" fontIcon="mdi-close"></mat-icon>
+            </button>
+            {{ projectObjectNames[tab.id] }}
+          </ng-template>
+          <ng-template matTabContent>
+            @if (tab.type === tabType.FILE) {
+              <span>
+                <cas-editor
+                  [fileId]="tab.id"
+                  [modules]="modules$ | async"
+                  [sidebarOpen]="sidebarOpen$ | async"
+                  [sidebarView]="sidebarView$ | async"
+                  [sidenavWidth]="sidebarWidth$ | async"
+                  [breadcrumb]="breadcrumb$ | async"
+                  [canEdit]="canEdit$ | async"
+                  [canAdminLock]="canAdminLock$ | async"
+                  (sidebarChanged)="sidebarChangedFn($event)"
+                  (sidebarViewChanged)="sidebarViewChangedFn($event)"
+                  (sidenavWidthChanged)="sidebarWidthChangedFn($event)"
+                  >
+                </cas-editor>
+              </span>
+            }
+            @if (tab.type === tabType.WORKSPACE) {
+              <cas-workspace-container
+                [workspaceId]="tab.id"
+                [breadcrumb]="breadcrumb$ | async"
+                [canEdit]="canEdit$ | async"
+                >
+              </cas-workspace-container>
+            }
+            @if (tab.type === tabType.DESIGN) {
+              <cas-design
+                [designId]="tab.id"
+                [canEdit]="canEdit$ | async"
+              ></cas-design>
+            }
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  </div>
+}
+@if (!showTabs) {
+  <div>
+    <div class="w-100 h-100">
+      <div
+        class="message-text d-flex flex-column justify-content-around align-items-center"
         >
-        </cas-workspace-container>
-        <cas-design
-          *ngIf="tab.type === tabType.DESIGN"
-          [designId]="tab.id"
-          [canEdit]="canEdit$ | async"
-        ></cas-design>
-      </ng-template>
-    </mat-tab>
-  </mat-tab-group>
-</div>
-<div *ngIf="!showTabs">
-  <div fxFill>
-    <div
-      class="message-text"
-      fxLayout="column"
-      fxLayoutAlign="space-around center"
-    >
-      Please open a file or workspace
+        Please open a file or workspace
+      </div>
     </div>
   </div>
-</div>
+}

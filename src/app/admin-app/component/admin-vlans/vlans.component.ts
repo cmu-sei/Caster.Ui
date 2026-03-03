@@ -15,10 +15,11 @@ import { ProjectQuery } from 'src/app/project';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 @Component({
-  selector: 'cas-vlans',
-  templateUrl: './vlans.component.html',
-  styleUrls: ['./vlans.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-vlans',
+    templateUrl: './vlans.component.html',
+    styleUrls: ['./vlans.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VlansComponent implements OnInit, OnDestroy {
   public projects$ = this.projectQuery.selectAll();

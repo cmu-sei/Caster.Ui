@@ -11,110 +11,110 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       matInput
       placeholder="Name"
       [value]="directory.name"
-    />
-  </mat-form-field>
+      />
+    </mat-form-field>
 
-  <mat-form-field class="flex">
-    <mat-label>Terraform Version</mat-label>
-    <mat-select formControlName="terraformVersion">
-      <mat-option *ngFor="let version of sortedVersions" [value]="version">
-        {{ version
-        }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+    <mat-form-field class="flex">
+      <mat-label>Terraform Version</mat-label>
+      <mat-select formControlName="terraformVersion">
+        @for (version of sortedVersions; track version) {
+          <mat-option [value]="version">
+            {{ version
+            }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
 
-  <mat-form-field>
-    <mat-label
-      >Parallelism
-      <mat-icon
-        class="pointer"
-        fontIcon="mdi-information"
-        matTooltip="Limit the number of concurrent Terraform operations. Value will be set on new Workspaces created in this Directory"
-        matTooltipShowDelay="0"
-        matTooltipHideDelay="0"
-        color="primary"
-      >
-      </mat-icon>
-    </mat-label>
-    <input
-      formControlName="parallelism"
-      type="number"
-      matInput
-      [max]="maxParallelism"
-      [min]="1"
-      autocomplete="off"
-    />
-    <mat-error
-      *ngIf="parallelism.invalid && (parallelism.dirty || parallelism.touched)"
-    >
-      <ng-container
-        *ngIf="parallelism.hasError('min') || parallelism.hasError('max')"
-      >
-        Must be between 1 and {{ maxParallelism }}
-      </ng-container>
-    </mat-error>
-  </mat-form-field>
-
-  <div class="flex">
     <mat-form-field>
       <mat-label
-        >Azure Threshold
+        >Parallelism
         <mat-icon
           class="pointer"
           fontIcon="mdi-information"
-          matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
+          matTooltip="Limit the number of concurrent Terraform operations. Value will be set on new Workspaces created in this Directory"
           matTooltipShowDelay="0"
           matTooltipHideDelay="0"
           color="primary"
-        >
+          >
         </mat-icon>
       </mat-label>
       <input
-        formControlName="azureDestroyFailureThreshold"
+        formControlName="parallelism"
         type="number"
         matInput
-        [max]="10"
+        [max]="maxParallelism"
         [min]="1"
         autocomplete="off"
-      />
-      <mat-error
-        *ngIf="
-          azureDestroyFailureThreshold.invalid &&
-          (azureDestroyFailureThreshold.dirty ||
-            azureDestroyFailureThreshold.touched)
-        "
-      >
-        <ng-container
-          *ngIf="
-            azureDestroyFailureThreshold.hasError('min') ||
-            azureDestroyFailureThreshold.hasError('max')
-          "
-        >
-          Must be between 1 and 10
-        </ng-container>
-      </mat-error>
-    </mat-form-field>
-    <mat-checkbox
-      formControlName="azureDestroyFailureThresholdEnabled"
-      (change)="toggleAzureThresholdEnabled($event)"
-      matTooltip="Ignore Azure Threshold if disabled"
-      >Enabled</mat-checkbox
-    >
-  </div>
+        />
+        @if (parallelism.invalid && (parallelism.dirty || parallelism.touched)) {
+          <mat-error
+            >
+            @if (parallelism.hasError('min') || parallelism.hasError('max')) {
+              Must be between 1 and {{ maxParallelism }}
+            }
+          </mat-error>
+        }
+      </mat-form-field>
 
-  <div fxLayout="row" fxLayoutAlign="space-around center">
-    <button
-      color="primary"
-      type="submit"
-      mat-raised-button
-      [disabled]="!form.valid || !form.dirty"
-    >
-      Save
-    </button>
+      <div class="flex">
+        <mat-form-field>
+          <mat-label
+            >Azure Threshold
+            <mat-icon
+              class="pointer"
+              fontIcon="mdi-information"
+              matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
+              matTooltipShowDelay="0"
+              matTooltipHideDelay="0"
+              color="primary"
+              >
+            </mat-icon>
+          </mat-label>
+          <input
+            formControlName="azureDestroyFailureThreshold"
+            type="number"
+            matInput
+            [max]="10"
+            [min]="1"
+            autocomplete="off"
+            />
+            @if (
+              azureDestroyFailureThreshold.invalid &&
+              (azureDestroyFailureThreshold.dirty ||
+              azureDestroyFailureThreshold.touched)
+              ) {
+              <mat-error
+                >
+                @if (
+                  azureDestroyFailureThreshold.hasError('min') ||
+                  azureDestroyFailureThreshold.hasError('max')
+                  ) {
+                  Must be between 1 and 10
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+          <mat-checkbox
+            formControlName="azureDestroyFailureThresholdEnabled"
+            (change)="toggleAzureThresholdEnabled($event)"
+            matTooltip="Ignore Azure Threshold if disabled"
+            >Enabled</mat-checkbox
+            >
+          </div>
 
-    <button color="primary" type="button" mat-raised-button (click)="cancel()">
-      Cancel
-    </button>
-  </div>
-</form>
+          <div class="d-flex flex-row justify-content-around align-items-center">
+            <button
+              color="primary"
+              type="submit"
+              mat-raised-button
+              [disabled]="!form.valid || !form.dirty"
+              >
+              Save
+            </button>
+
+            <button color="primary" type="button" mat-raised-button (click)="cancel()">
+              Cancel
+            </button>
+          </div>
+        </form>

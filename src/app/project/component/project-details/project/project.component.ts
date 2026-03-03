@@ -13,10 +13,11 @@ import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-project',
-  templateUrl: './project.component.html',
-  styleUrls: ['./project.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project',
+    templateUrl: './project.component.html',
+    styleUrls: ['./project.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectComponent {
   @Input() loading: boolean;

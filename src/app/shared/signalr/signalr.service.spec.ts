@@ -9,7 +9,7 @@ describe('SignalrService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: SignalRService = TestBed.get(SignalRService);
+    const service: SignalRService = TestBed.inject(SignalRService);
     expect(service).toBeTruthy();
   });
 });

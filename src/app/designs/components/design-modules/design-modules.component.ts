@@ -16,10 +16,11 @@ import { DesignModuleQuery } from '../../state/design-modules/design-module.quer
 import { DesignModuleService } from '../../state/design-modules/design-module.service';
 
 @Component({
-  selector: 'cas-design-modules',
-  templateUrl: './design-modules.component.html',
-  styleUrls: ['./design-modules.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-design-modules',
+    templateUrl: './design-modules.component.html',
+    styleUrls: ['./design-modules.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DesignModulesComponent implements OnInit {
   @Input()

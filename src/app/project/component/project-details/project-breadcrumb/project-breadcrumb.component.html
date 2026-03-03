@@ -3,54 +3,64 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div *ngIf="useButtonStyleBreadcrumbs" style="margin: 10px">
-  <ng-container *ngFor="let breadcrumb of breadcrumbs; let i = index">
-    <button
-      mat-button
-      [ngClass]="i === 0 ? 'breadcrumb-btn-first' : 'breadcrumb-btn'"
-      (click)="buttonClick.emit(breadcrumb)"
-    >
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.DIRECTORY"
-        class="mdi-18px icon"
-        fontIcon="mdi-folder"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.FILE"
-        class="mdi-18px icon"
-        fontIcon="mdi-file"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.WORKSPACE"
-        class="mdi-18px icon"
-        fontIcon="mdi-briefcase"
-      ></mat-icon>
-      {{ breadcrumb?.name }}
-    </button>
-  </ng-container>
-</div>
-
-<div *ngIf="!useButtonStyleBreadcrumbs" style="margin: 10px">
-  <ng-container *ngFor="let breadcrumb of breadcrumbs; let i = index">
-    <span [ngClass]="i === 0 ? 'breadcrumb-item-first' : 'breadcrumb-item'">
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.DIRECTORY"
-        class="mdi-18px icon"
-        fontIcon="mdi-folder"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.FILE"
-        class="mdi-18px icon"
-        fontIcon="mdi-file"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="breadcrumb.type === tabType.WORKSPACE"
-        class="mdi-18px icon"
-        fontIcon="mdi-briefcase"
-      ></mat-icon>
-      <span style="font-size: 14px">
+@if (useButtonStyleBreadcrumbs) {
+  <div style="margin: 10px">
+    @for (breadcrumb of breadcrumbs; track breadcrumb; let i = $index) {
+      <button
+        mat-button
+        [ngClass]="i === 0 ? 'breadcrumb-btn-first' : 'breadcrumb-btn'"
+        (click)="buttonClick.emit(breadcrumb)"
+        >
+        @if (breadcrumb.type === tabType.DIRECTORY) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-folder"
+          ></mat-icon>
+        }
+        @if (breadcrumb.type === tabType.FILE) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-file"
+          ></mat-icon>
+        }
+        @if (breadcrumb.type === tabType.WORKSPACE) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-briefcase"
+          ></mat-icon>
+        }
         {{ breadcrumb?.name }}
+      </button>
+    }
+  </div>
+}
+
+@if (!useButtonStyleBreadcrumbs) {
+  <div style="margin: 10px">
+    @for (breadcrumb of breadcrumbs; track breadcrumb; let i = $index) {
+      <span [ngClass]="i === 0 ? 'breadcrumb-item-first' : 'breadcrumb-item'">
+        @if (breadcrumb.type === tabType.DIRECTORY) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-folder"
+          ></mat-icon>
+        }
+        @if (breadcrumb.type === tabType.FILE) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-file"
+          ></mat-icon>
+        }
+        @if (breadcrumb.type === tabType.WORKSPACE) {
+          <mat-icon
+            class="mdi-18px icon"
+            fontIcon="mdi-briefcase"
+          ></mat-icon>
+        }
+        <span style="font-size: 14px">
+          {{ breadcrumb?.name }}
+        </span>
       </span>
-    </span>
-  </ng-container>
-</div>
+    }
+  </div>
+}
