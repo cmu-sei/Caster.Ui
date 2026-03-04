@@ -17,16 +17,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [trackByPropertyName]="'id'"
     [expandedItems]="expandedRuns"
     (expand)="expand($event)"
-  >
+    >
     <div *cwdTableItemContent="let item">
-      <ng-container *ngIf="expandedRuns.includes(item.id)">
+      @if (expandedRuns.includes(item.id)) {
         <cas-run
           [run]="item"
           (planOutput)="planOutput($event, item)"
           (applyOutput)="applyOutput($event, item)"
-        >
+          >
         </cas-run>
-      </ng-container>
+      }
     </div>
   </cwd-table>
 </div>

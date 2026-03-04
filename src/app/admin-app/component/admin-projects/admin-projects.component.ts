@@ -7,9 +7,10 @@ import { Component, OnInit } from '@angular/core';
 import { ProjectQuery, ProjectService } from 'src/app/project';
 
 @Component({
-  selector: 'cas-admin-projects',
-  templateUrl: './admin-projects.component.html',
-  styleUrls: ['./admin-projects.component.scss'],
+    selector: 'cas-admin-projects',
+    templateUrl: './admin-projects.component.html',
+    styleUrls: ['./admin-projects.component.scss'],
+    standalone: false
 })
 export class AdminProjectsComponent implements OnInit {
   constructor(

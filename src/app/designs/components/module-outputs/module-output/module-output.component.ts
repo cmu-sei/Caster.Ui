@@ -13,10 +13,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModuleOutput } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-module-output',
-  templateUrl: './module-output.component.html',
-  styleUrls: ['./module-output.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-module-output',
+    templateUrl: './module-output.component.html',
+    styleUrls: ['./module-output.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ModuleOutputComponent implements OnInit {
   @Input()

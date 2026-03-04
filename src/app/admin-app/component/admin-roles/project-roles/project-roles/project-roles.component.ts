@@ -11,9 +11,10 @@ import { map } from 'rxjs/operators';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
 
 @Component({
-  selector: 'cas-project-roles',
-  templateUrl: './project-roles.component.html',
-  styleUrls: ['./project-roles.component.scss'],
+    selector: 'cas-project-roles',
+    templateUrl: './project-roles.component.html',
+    styleUrls: ['./project-roles.component.scss'],
+    standalone: false
 })
 export class ProjectRolesComponent implements OnInit {
   private projectRoleService = inject(ProjectRoleService);

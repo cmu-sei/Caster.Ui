@@ -3,83 +3,86 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div *ngIf="project$ | async as project">
-  <div *ngFor="let obj of projectDirectories$ | async">
-    <cas-directory-panel [parentDirectory]="obj"> </cas-directory-panel>
-  </div>
-  <div
-    *ngIf="canEdit$ | async"
-    fxLayout="row"
-    fxLayoutAlign="start center"
-    class="nav-background"
-  >
-    <mat-icon
-      (click)="createNewDirectory()"
-      title="Add New Directory"
-      class="add-icon mdi-18px icon"
-      fontIcon="mdi-folder-plus-outline"
-      matTooltip="Add New Directory to Project {{ project.name }}"
-    ></mat-icon>
-    <a
-      class="add-link"
-      matTooltip="Add New Directory to Project {{ project.name }}"
-      (click)="createNewDirectory()"
-      >Add Directory</a
-    >
-  </div>
-  <div fxLayout="row" fxLayoutAlign="start center" class="nav-background">
-    <mat-icon
-      (click)="exportProject()"
-      title="Export Project"
-      class="add-icon fa"
-      fontSet="fas"
-      fontIcon="fa-file-export"
-      matTooltip="Export Project {{ project.name }}"
-    ></mat-icon>
-    <a
-      class="add-link"
-      matTooltip="Export Project {{ project.name }}"
-      (click)="exportProject()"
-      >Export Project</a
-    >
-  </div>
-  <div
-    fxLayout="row"
-    fxLayoutAlign="start center"
-    class="nav-background"
-    (click)="importProject()"
-  >
-    <mat-icon
-      title="Import Project"
-      class="add-icon fa"
-      fontSet="fas"
-      fontIcon="fa-file-import"
-      matTooltip="Import Project {{ project.name }}"
-    ></mat-icon>
-    <a class="add-link" matTooltip="Import Project {{ project.name }}"
-      >Import Project</a
-    >
-  </div>
-</div>
+@if (project$ | async; as project) {
+  <div>
+    @for (obj of projectDirectories$ | async; track obj) {
+      <div>
+        <cas-directory-panel [parentDirectory]="obj"> </cas-directory-panel>
+      </div>
+    }
+    @if (canEdit$ | async) {
+      <div
+        class="nav-background d-flex flex-row justify-content-start align-items-center"
+        >
+        <mat-icon
+          (click)="createNewDirectory()"
+          title="Add New Directory"
+          class="add-icon mdi-18px icon"
+          fontIcon="mdi-folder-plus-outline"
+          matTooltip="Add New Directory to Project {{ project.name }}"
+        ></mat-icon>
+        <a
+          class="add-link"
+          matTooltip="Add New Directory to Project {{ project.name }}"
+          (click)="createNewDirectory()"
+          >Add Directory</a
+          >
+        </div>
+      }
+      <div class="nav-background d-flex flex-row justify-content-start align-items-center">
+        <mat-icon
+          (click)="exportProject()"
+          title="Export Project"
+          class="add-icon fa"
+          fontSet="fas"
+          fontIcon="fa-file-export"
+          matTooltip="Export Project {{ project.name }}"
+        ></mat-icon>
+        <a
+          class="add-link"
+          matTooltip="Export Project {{ project.name }}"
+          (click)="exportProject()"
+          >Export Project</a
+          >
+        </div>
+        <div
+          class="nav-background d-flex flex-row justify-content-start align-items-center"
+          (click)="importProject()"
+          >
+          <mat-icon
+            title="Import Project"
+            class="add-icon fa"
+            fontSet="fas"
+            fontIcon="fa-file-import"
+            matTooltip="Import Project {{ project.name }}"
+          ></mat-icon>
+          <a class="add-link" matTooltip="Import Project {{ project.name }}"
+            >Import Project</a
+            >
+          </div>
+        </div>
+      }
 
-<ng-template #exportDialog>
-  <cas-project-export
-    *ngIf="project$ | async as project"
-    [id]="project.id"
-    [type]="objType"
-    [name]="project.name"
-    (exportComplete)="onExportComplete()"
-  >
-  </cas-project-export>
-</ng-template>
+      <ng-template #exportDialog>
+        @if (project$ | async; as project) {
+          <cas-project-export
+            [id]="project.id"
+            [type]="objType"
+            [name]="project.name"
+            (exportComplete)="onExportComplete()"
+            >
+          </cas-project-export>
+        }
+      </ng-template>
 
-<ng-template #importDialog>
-  <cas-project-import
-    *ngIf="project$ | async as project"
-    [id]="project.id"
-    [type]="objType"
-    [name]="project.name"
-    (importComplete)="onImportComplete()"
-  >
-  </cas-project-import>
-</ng-template>
+      <ng-template #importDialog>
+        @if (project$ | async; as project) {
+          <cas-project-import
+            [id]="project.id"
+            [type]="objType"
+            [name]="project.name"
+            (importComplete)="onImportComplete()"
+            >
+          </cas-project-import>
+        }
+      </ng-template>

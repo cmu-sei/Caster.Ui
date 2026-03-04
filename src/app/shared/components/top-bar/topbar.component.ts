@@ -27,10 +27,11 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectPermission } from 'src/app/generated/caster-api';
 import { ProjectQuery } from 'src/app/project';
 @Component({
-  selector: 'cas-topbar',
-  templateUrl: './topbar.component.html',
-  styleUrls: ['./topbar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-topbar',
+    templateUrl: './topbar.component.html',
+    styleUrls: ['./topbar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() title?: string = 'Caster';

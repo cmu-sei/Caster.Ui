@@ -7,12 +7,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div>
     <mat-toolbar class="toolbar">
       <mat-toolbar-row>
-        <mat-icon
-          fontSet="fas"
-          fontIcon="fa-search"
-          class="fa-search"
-        ></mat-icon>
         <mat-form-field>
+          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
           <input
             matInput
             [(ngModel)]="filterString"
@@ -20,32 +16,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             #input
             placeholder="Search Projects"
           />
+          @if (filterString != '') {
+          <button
+            matSuffix
+            mat-icon-button
+            aria-label="Clear"
+            (click)="clearFilter()"
+          >
+            <mat-icon
+              class="mdi-24px"
+              fontIcon="mdi-close-circle-outline"
+            ></mat-icon>
+          </button>
+          }
         </mat-form-field>
-        <button
-          *ngIf="filterString != ''"
-          fxLayoutAlign="start center"
-          matTooltip="Clear Search"
-          mat-icon-button
-          (click)="clearFilter()"
-          style="outline: none"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"></mat-icon>
-        </button>
         <div class="spacer"></div>
+        @if (canCreate$ | async) {
         <button
-          *ngIf="canCreate$ | async"
           mat-icon-button
+          color="primary"
           matTooltip="Add New Project"
           hotkeyAction="PROJECT_NEW"
           (click)="create()"
         >
-          <mat-icon fontSet="fas" fontIcon="fa-plus"></mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
         </button>
+        }
       </mat-toolbar-row>
     </mat-toolbar>
   </div>
 
-  <div *ngIf="projects">
+  @if (projects) {
+  <div>
     <mat-table
       matSort
       matSortActive="name"
@@ -58,15 +60,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           Project Name
         </mat-header-cell>
         <mat-cell *matCellDef="let element">
+          @if (!manageMode) {
           <a
-            *ngIf="!manageMode"
             class="project-text"
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
             >{{ element.name }}</a
           >
+          } @if (manageMode) {
           <a
-            *ngIf="manageMode"
             class="project-text"
             matTooltip="Edit {{ element.name }}"
             [routerLink]="['/projects', element.id, 'memberships']"
@@ -80,14 +82,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               {{ element.name }}
             </p></a
           >
+          }
         </mat-cell>
       </ng-container>
-
       <ng-container matColumnDef="actions">
         <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
         <mat-cell *matCellDef="let element">
+          @if (manageMode) {
           <a
-            *ngIf="manageMode"
             mat-icon-button
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
@@ -99,49 +101,35 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               fontIcon="fa-external-link-alt"
             ></mat-icon>
           </a>
-          <ng-container
-            *ngIf="
-              (canManageAll$ | async) ||
-              (canManageProjects$ | async).includes(element.id)
-            "
+          } @if ( (canManageAll$ | async) || (canManageProjects$ |
+          async).includes(element.id) ) {
+          <button mat-icon-button matTooltip="Rename" (click)="update(element)">
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-pencil-alt"
+            ></mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Delete {{ element.name }}"
+            (click)="delete(element)"
           >
-            <button
-              mat-icon-button
-              matTooltip="Rename"
-              (click)="update(element)"
-            >
-              <mat-icon
-                color="primary"
-                fontSet="fas"
-                fontIcon="fa-pencil-alt"
-              ></mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              matTooltip="Delete {{ element.name }}"
-              (click)="delete(element)"
-            >
-              <mat-icon
-                color="primary"
-                fontSet="fas"
-                fontIcon="fa-trash"
-              ></mat-icon>
-            </button>
-          </ng-container>
+            <mat-icon
+              color="primary"
+              fontSet="fas"
+              fontIcon="fa-trash"
+            ></mat-icon>
+          </button>
+          }
         </mat-cell>
       </ng-container>
-
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
-
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">
-          <ng-container *ngIf="input.value; else noProjects">
-            No data matching the filter "{{ input.value }}"
-          </ng-container>
-          <ng-template #noProjects>
-            You are not a member of any Projects
-          </ng-template>
+      <tr class="mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell" colspan="4">
+          @if (input.value) { No data matching the filter "{{ input.value }}" }
+          @else { You are not a member of any Projects }
         </td>
       </tr>
     </mat-table>
@@ -152,13 +140,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       (click)="createRequest()"
     ></button>
   </div>
+  }
 
   <!-- Loading Spinner -->
+  @if (!projects || isLoading) {
   <mat-card
-    *ngIf="!projects || isLoading"
+    appearance="outlined"
     style="display: flex; justify-content: center; align-items: center"
   >
     <mat-progress-spinner color="primary" mode="indeterminate">
     </mat-progress-spinner>
   </mat-card>
+  }
 </div>

@@ -3,12 +3,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="column" fxLayoutAlign="center space-between">
-  <mat-toolbar class="editor-toolbar" fxFlex="0 1 auto">
+<div class="d-flex flex-column justify-content-center align-content-between">
+  <mat-toolbar class="editor-toolbar">
     <mat-toolbar-row
-      fxLayout="row"
-      fxLayoutAlign="start center"
-      fxLayoutGap="5px"
+      class="d-flex flex-row justify-content-start align-items-center gap-1"
     >
       <div class="breadcrumb-bar">
         {{ breadcrumbString }}
@@ -36,289 +34,262 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-button-toggle-group>
     </mat-toolbar-row>
   </mat-toolbar>
-  <ng-container [ngSwitch]="workspaceView$ | async">
-    <!-- Runs Table -->
-    <ng-container *ngSwitchCase="'runs'">
-      <cwd-table
-        [items]="workspaceRuns$ | async"
-        [loading]="this.loading$ | async"
-        [displayedColumns]="[
-          'createdAt',
-          'modifiedBy',
-          'isDestroy',
-          'status',
-          'actions'
-        ]"
-        [expandedItems]="expandedRunIds$ | async"
-        [getRowStyle]="setRowStyle"
-        [trackByPropertyName]="'id'"
-        (expand)="expandRun($event)"
+  @switch (workspaceView$ | async) {
+  <!-- Runs Table -->
+  @case ('runs') {
+  <cwd-table
+    [items]="workspaceRuns$ | async"
+    [loading]="this.loading$ | async"
+    [displayedColumns]="[
+      'createdAt',
+      'modifiedBy',
+      'isDestroy',
+      'status',
+      'actions'
+    ]"
+    [expandedItems]="expandedRunIds$ | async"
+    [getRowStyle]="setRowStyle"
+    [trackByPropertyName]="'id'"
+    (expand)="expandRun($event)"
+  >
+    <div
+      *cwdTableAction
+      class="d-flex flex-row gap-2 justify-content-center align-items-center"
+    >
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canEdit || !enablePlanApply()"
+        (click)="plan($event)"
       >
-        <div
-          *cwdTableAction
-          fxLayout="row"
-          fxLayoutGap="10px"
-          fxLayoutAlign="center center"
-        >
-          <button
-            mat-flat-button
-            color="primary"
-            [disabled]="!canEdit || !enablePlanApply()"
-            (click)="plan($event)"
-          >
-            Plan
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            [disabled]="!canEdit || !enablePlanApply()"
-            (click)="destroy($event)"
-          >
-            Destroy
-          </button>
-          <cas-workspace-version
-            *ngIf="workspace$ | async as workspace"
-            [workspace]="workspace"
-          >
-          </cas-workspace-version>
-        </div>
-        <div
-          *cwdTableItemAction="let item"
-          fxLayout="row no-wrap"
-          fxLayoutAlign="start space-between"
-          fxLayoutGap="10px"
-        >
-          <button
-            mat-flat-button
-            color="primary"
-            *ngIf="hasPlan(item)"
-            [disabled]="!canEdit"
-            (click)="apply($event, item)"
-          >
-            Apply
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            *ngIf="hasPlan(item)"
-            [disabled]="!canEdit"
-            (click)="reject($event, item)"
-          >
-            Reject
-          </button>
-          <div
-            *ngIf="isCancelable(item)"
-            fxLayout="row"
-            fxLayoutAlign="start center"
-            fxLayoutGap="1em"
-          >
-            <button
-              mat-flat-button
-              color="primary"
-              matTooltip="Attempt to cancel the Run. Data loss may occur"
-              [disabled]="!canEdit"
-              (click)="cancel($event, item)"
-            >
-              Cancel
-            </button>
-            <mat-checkbox
-              matTooltip="When cancelling, forcefully terminate the Run immediately"
-              (click)="$event.stopPropagation()"
-              [disabled]="!canEdit"
-              [(ngModel)]="forceCancel"
-            >
-              force
-            </mat-checkbox>
-          </div>
-          <button
-            mat-flat-button
-            color="primary"
-            *ngIf="hasStateError(item)"
-            [disabled]="!canEdit"
-            (click)="saveState($event, item)"
-          >
-            <span>
-              Retry
-              <mat-icon
-                class="mdi-24px"
-                fontIcon="mdi-information"
-                matTooltip="Retry saving State. Workspace operations are disabled until State has been successfully saved, to avoid data loss."
-              ></mat-icon>
-            </span>
-          </button>
-        </div>
-        <div *cwdTableItemContent="let item">
-          <ng-container *ngIf="(expandedRunIds$ | async).includes(item.id)">
-            <cas-run
-              [run]="item"
-              (planOutput)="planOutput($event, item)"
-              (applyOutput)="applyOutput($event, item)"
-            >
-            </cas-run>
-          </ng-container>
-        </div>
-      </cwd-table>
-    </ng-container>
-
-    <!-- Resources Table -->
-    <ng-container *ngSwitchCase="'state'">
-      <cwd-table
-        [items]="workspaceResources$ | async"
-        [loading]="loading$ | async"
-        [displayedColumns]="[
-          'name',
-          'type',
-          'address',
-          'replace &nbsp; target'
-        ]"
-        [excludedAttributes]="['attributes']"
-        [expandedItems]="expandedResourceIds$ | async"
-        [getRowStyle]="setRowStyle"
-        idPropertyName="address"
-        (expand)="expandResource($event)"
+        Plan
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canEdit || !enablePlanApply()"
+        (click)="destroy($event)"
       >
-        <div
-          *cwdTableAction
-          fxLayout="column"
-          fxLayoutGap="10px"
-          fxLayoutAlign="center center"
+        Destroy
+      </button>
+      @if (workspace$ | async; as workspace) {
+      <cas-workspace-version [workspace]="workspace"> </cas-workspace-version>
+      }
+    </div>
+    <div
+      *cwdTableItemAction="let item"
+      class="d-flex flex-row flex-nowrap justify-content-start align-content-between gap-2"
+    >
+      @if (hasPlan(item)) {
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canEdit"
+        (click)="apply($event, item)"
+      >
+        Apply
+      </button>
+      } @if (hasPlan(item)) {
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canEdit"
+        (click)="reject($event, item)"
+      >
+        Reject
+      </button>
+      } @if (isCancelable(item)) {
+      <div
+        class="d-flex flex-row justify-content-start align-items-center gap-3"
+      >
+        <button
+          mat-flat-button
+          color="primary"
+          matTooltip="Attempt to cancel the Run. Data loss may occur"
+          [disabled]="!canEdit"
+          (click)="cancel($event, item)"
         >
-          <div class="split-buttons">
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="
-                !canEdit ||
-                (loading$ | async) ||
-                (resourcesToReplace.length === 0 &&
-                  resourcesToTarget.length === 0)
-              "
-              (click)="replaceResources()"
-              matTooltip="Starts a plan process that will replace all of the selected resources"
-            >
-              Plan</button
-            >&nbsp;
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="!canEdit || (loading$ | async)"
-              (click)="refreshResources()"
-              matTooltip="Refreshes deployed resources and their properties"
-            >
-              Refresh</button
-            >&nbsp;
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="!(canImport$ | async) || (loading$ | async)"
-              (click)="openImportResourceDialog()"
-              matTooltip="Import an existing resource into this workspace"
-            >
-              Import
-            </button>
-          </div>
-        </div>
-        <div *cwdTableItemAction="let item" class="action-cell">
-          <ng-container
-            *ngIf="{
-              value: (resourceActionIds$ | async).includes(item.address),
-              action: (resourceAction$ | async)
-            } as loading"
+          Cancel
+        </button>
+        <mat-checkbox
+          matTooltip="When cancelling, forcefully terminate the Run immediately"
+          (click)="$event.stopPropagation()"
+          [disabled]="!canEdit"
+          [(ngModel)]="forceCancel"
+        >
+          force
+        </mat-checkbox>
+      </div>
+      } @if (hasStateError(item)) {
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canEdit"
+        (click)="saveState($event, item)"
+      >
+        <span>
+          Retry
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-information"
+            matTooltip="Retry saving State. Workspace operations are disabled until State has been successfully saved, to avoid data loss."
+          ></mat-icon>
+        </span>
+      </button>
+      }
+    </div>
+    <div *cwdTableItemContent="let item">
+      @if ((expandedRunIds$ | async).includes(item.id)) {
+      <cas-run
+        [run]="item"
+        (planOutput)="planOutput($event, item)"
+        (applyOutput)="applyOutput($event, item)"
+      >
+      </cas-run>
+      }
+    </div>
+  </cwd-table>
+  }
+  <!-- Resources Table -->
+  @case ('state') {
+  <cwd-table
+    [items]="workspaceResources$ | async"
+    [loading]="loading$ | async"
+    [displayedColumns]="['name', 'type', 'address', 'replace &nbsp; target']"
+    [excludedAttributes]="['attributes']"
+    [expandedItems]="expandedResourceIds$ | async"
+    [getRowStyle]="setRowStyle"
+    idPropertyName="address"
+    (expand)="expandResource($event)"
+  >
+    <div
+      *cwdTableAction
+      class="d-flex flex-column gap-2 justify-content-center align-items-center"
+    >
+      <div class="split-buttons">
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="
+            !canEdit ||
+            (loading$ | async) ||
+            (resourcesToReplace.length === 0 && resourcesToTarget.length === 0)
+          "
+          (click)="replaceResources()"
+          matTooltip="Starts a plan process that will replace all of the selected resources"
+        >
+          Plan</button
+        >&nbsp;
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canEdit || (loading$ | async)"
+          (click)="refreshResources()"
+          matTooltip="Refreshes deployed resources and their properties"
+        >
+          Refresh</button
+        >&nbsp;
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!(canImport$ | async) || (loading$ | async)"
+          (click)="openImportResourceDialog()"
+          matTooltip="Import an existing resource into this workspace"
+        >
+          Import
+        </button>
+      </div>
+    </div>
+    <div *cwdTableItemAction="let item" class="action-cell">
+      @if ({ value: (resourceActionIds$ | async).includes(item.address), action:
+      (resourceAction$ | async) }; as loading) {
+      <div class="action-checkboxes">
+        <mat-checkbox
+          matTooltip="Replace"
+          (click)="$event.stopPropagation()"
+          (change)="markResourceForReplace($event, item.address)"
+          [checked]="resourceToReplace(item.id)"
+          [disabled]="!canEdit"
+          style="align-self: center"
+        >
+        </mat-checkbox>
+        <mat-checkbox
+          matTooltip="Target"
+          (click)="$event.stopPropagation()"
+          (change)="markResourceForTarget($event, item.address)"
+          [checked]="resourceToTarget(item.id)"
+          [disabled]="!canEdit"
+          style="align-self: center"
+        >
+        </mat-checkbox>
+      </div>
+      <div class="action-buttons">
+        <button
+          mat-flat-button
+          color="primary"
+          [class.d-none]="item.tainted"
+          [disabled]="!canEdit || loading.action != resourceActions.None"
+          (click)="taint($event, item)"
+        >
+          @switch ( loading.value && loading.action == resourceActions.Taint &&
+          !item.tainted ) { @case (true) {
+          <mat-progress-spinner
+            color="accent"
+            diameter="35"
+            mode="indeterminate"
           >
-            <div class="action-checkboxes">
-              <mat-checkbox
-                matTooltip="Replace"
-                (click)="$event.stopPropagation()"
-                (change)="markResourceForReplace($event, item.address)"
-                [checked]="resourceToReplace(item.id)"
-                [disabled]="!canEdit"
-                style="align-self: center"
-              >
-              </mat-checkbox>
-              <mat-checkbox
-                matTooltip="Target"
-                (click)="$event.stopPropagation()"
-                (change)="markResourceForTarget($event, item.address)"
-                [checked]="resourceToTarget(item.id)"
-                [disabled]="!canEdit"
-                style="align-self: center"
-              >
-              </mat-checkbox>
-            </div>
-            <div class="action-buttons">
-              <button
-                mat-flat-button
-                color="primary"
-                [ngSwitch]="
-                  loading.value &&
-                  loading.action == resourceActions.Taint &&
-                  !item.tainted
-                "
-                [fxShow]="!item.tainted"
-                [disabled]="!canEdit || loading.action != resourceActions.None"
-                (click)="taint($event, item)"
-              >
-                <mat-progress-spinner
-                  *ngSwitchCase="true"
-                  color="accent"
-                  diameter="35"
-                  mode="indeterminate"
-                >
-                </mat-progress-spinner>
-                <span *ngSwitchDefault>Taint</span>
-              </button>
-              <button
-                mat-flat-button
-                color="primary"
-                [ngSwitch]="
-                  loading.value &&
-                  loading.action == resourceActions.Taint &&
-                  item.tainted
-                "
-                [fxShow]="item.tainted"
-                [disabled]="!canEdit || loading.action != resourceActions.None"
-                (click)="untaint($event, item)"
-              >
-                <mat-progress-spinner
-                  *ngSwitchCase="true"
-                  color="accent"
-                  diameter="35"
-                  mode="indeterminate"
-                >
-                </mat-progress-spinner>
-                <span *ngSwitchDefault>Untaint</span>
-              </button>
-              <button
-                mat-flat-button
-                color="primary"
-                [ngSwitch]="
-                  loading.value && loading.action == resourceActions.Remove
-                "
-                [disabled]="!canEdit || loading.action != resourceActions.None"
-                (click)="remove($event, item)"
-              >
-                <mat-progress-spinner
-                  *ngSwitchCase="true"
-                  color="accent"
-                  diameter="35"
-                  mode="indeterminate"
-                >
-                </mat-progress-spinner>
-                <span *ngSwitchDefault>Remove</span>
-              </button>
-            </div>
-          </ng-container>
-        </div>
-        <div *cwdTableItemContent="let item">
-          <ng-container
-            *ngIf="(expandedResourceIds$ | async).includes(item.address)"
+          </mat-progress-spinner>
+          } @default {
+          <span>Taint</span>
+          } }
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [class.d-none]="!item.tainted"
+          [disabled]="!canEdit || loading.action != resourceActions.None"
+          (click)="untaint($event, item)"
+        >
+          @switch ( loading.value && loading.action == resourceActions.Taint &&
+          item.tainted ) { @case (true) {
+          <mat-progress-spinner
+            color="accent"
+            diameter="35"
+            mode="indeterminate"
           >
-            <pre>{{ item | json }}</pre>
-          </ng-container>
-        </div>
-      </cwd-table>
-    </ng-container>
-  </ng-container>
+          </mat-progress-spinner>
+          } @default {
+          <span>Untaint</span>
+          } }
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canEdit || loading.action != resourceActions.None"
+          (click)="remove($event, item)"
+        >
+          @switch ( loading.value && loading.action == resourceActions.Remove )
+          { @case (true) {
+          <mat-progress-spinner
+            color="accent"
+            diameter="35"
+            mode="indeterminate"
+          >
+          </mat-progress-spinner>
+          } @default {
+          <span>Remove</span>
+          } }
+        </button>
+      </div>
+      }
+    </div>
+    <div *cwdTableItemContent="let item">
+      @if ((expandedResourceIds$ | async).includes(item.address)) {
+      <pre>{{ item | json }}</pre>
+      }
+    </div>
+  </cwd-table>
+  } }
 </div>
 
 <ng-template #importResourceDialog>

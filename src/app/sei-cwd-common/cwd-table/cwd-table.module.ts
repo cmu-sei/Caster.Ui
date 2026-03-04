@@ -8,11 +8,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule } from '@angular/material/sort';
-import { FlexModule, ExtendedModule } from '@angular/flex-layout';
 import { FormsModule } from '@angular/forms';
 import { TableItemContentDirective } from './directives/table-item-content.directive';
 import { TableActionDirective } from './directives/table-action.directive';
@@ -33,10 +33,9 @@ import { TableItemActionDirective } from './directives/table-item-action.directi
     MatCardModule,
     MatProgressSpinnerModule,
     MatExpansionModule,
+    MatButtonModule,
     MatInputModule,
     MatSortModule,
-    FlexModule,
-    ExtendedModule,
     FormsModule,
   ],
   exports: [

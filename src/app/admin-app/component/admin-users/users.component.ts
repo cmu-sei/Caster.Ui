@@ -11,9 +11,10 @@ import { map, take } from 'rxjs/operators';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
-  selector: 'cas-users',
-  templateUrl: './users.component.html',
-  styleUrls: ['./users.component.css'],
+    selector: 'cas-users',
+    templateUrl: './users.component.html',
+    styleUrls: ['./users.component.css'],
+    standalone: false
 })
 export class UsersComponent implements OnInit {
   public matcher = new UserErrorStateMatcher();

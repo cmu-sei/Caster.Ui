@@ -3,10 +3,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<cas-workspace-edit
-  *ngIf="versionResult$ | async as versionResult"
-  [workspace]="workspace$ | async"
-  [terraformVersions]="versionResult"
-  [maxParallelism]="maxParallelism$ | async"
-  (updateWorkspace)="onUpdateWorkspace($event)"
-></cas-workspace-edit>
+@if (versionResult$ | async; as versionResult) {
+  <cas-workspace-edit
+    [workspace]="workspace$ | async"
+    [terraformVersions]="versionResult"
+    [maxParallelism]="maxParallelism$ | async"
+    (updateWorkspace)="onUpdateWorkspace($event)"
+  ></cas-workspace-edit>
+}

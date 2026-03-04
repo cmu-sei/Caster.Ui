@@ -9,8 +9,7 @@ import { DesignComponent } from './components/design/design.component';
 import { EditorModule } from '../editor/editor.module';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { FlexLayoutModule } from '@angular/flex-layout';
-import { VariablesComponent } from './components/variables/variables.component';
+import { VariablesComponent} from './components/variables/variables.component';
 import { VariableComponent } from './components/variables/variable/variable.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,7 +42,6 @@ import { ModuleOutputComponent } from './components/module-outputs/module-output
     EditorModule,
     MatButtonModule,
     MatCardModule,
-    FlexLayoutModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,

@@ -23,6 +23,7 @@ import {
   selector: 'cas-cwd-toolbar-action-item',
   templateUrl: './cwd-toolbar-action-item.component.html',
   styleUrls: ['./cwd-toolbar-action-item.component.scss'],
+  standalone: false,
 })
 export class CwdToolbarActionItemComponent
   implements OnInit, AfterViewInit, OnDestroy
@@ -44,7 +45,6 @@ export class CwdToolbarActionItemComponent
   ngAfterViewInit(): void {
     this.portalOutlet = new DomPortalOutlet(
       document.querySelector(this.selector),
-      this.componentFactoryResolver,
       this.appRef,
       this.injector
     );

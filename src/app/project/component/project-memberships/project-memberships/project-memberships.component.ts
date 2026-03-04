@@ -27,9 +27,10 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 @Component({
-  selector: 'cas-project-memberships',
-  templateUrl: './project-memberships.component.html',
-  styleUrls: ['./project-memberships.component.scss'],
+    selector: 'cas-project-memberships',
+    templateUrl: './project-memberships.component.html',
+    styleUrls: ['./project-memberships.component.scss'],
+    standalone: false
 })
 export class ProjectMembershipsComponent implements OnInit, OnChanges {
   @Input()

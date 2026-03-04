@@ -2,9 +2,11 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { OverlayModule } from '@angular/cdk/overlay';
-import { HttpClientModule } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -32,6 +34,7 @@ import {
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { HotkeysModule } from '@ngneat/hotkeys';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { environment } from '../environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -67,6 +70,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
 
 @NgModule({
   declarations: [AppComponent, SystemMessageComponent],
+  bootstrap: [AppComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -85,10 +89,9 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     MatExpansionModule,
     MatToolbarModule,
     ProjectModule,
-    HttpClientModule,
-    FlexLayoutModule,
     OverlayModule,
     HotkeysModule,
+    MonacoEditorModule.forRoot(),
     DesignModule,
     MatCheckboxModule,
     CwdDialogsModule,
@@ -106,7 +109,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
       useValue: myCustomSnackBarDefaults,
     },
+    provideHttpClient(withInterceptorsFromDi()),
   ],
-  bootstrap: [AppComponent],
 })
 export class AppModule {}

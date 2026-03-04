@@ -22,10 +22,11 @@ import {
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
 
 @Component({
-  selector: 'cas-project-export',
-  templateUrl: './project-export.component.html',
-  styleUrls: ['./project-export.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-export',
+    templateUrl: './project-export.component.html',
+    styleUrls: ['./project-export.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectExportComponent implements OnInit {
   @Input() id: string;

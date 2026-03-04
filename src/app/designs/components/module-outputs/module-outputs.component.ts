@@ -12,10 +12,11 @@ import {
 import { ModuleOutput } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-module-outputs',
-  templateUrl: './module-outputs.component.html',
-  styleUrls: ['./module-outputs.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-module-outputs',
+    templateUrl: './module-outputs.component.html',
+    styleUrls: ['./module-outputs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ModuleOutputsComponent implements OnInit {
   @Input()

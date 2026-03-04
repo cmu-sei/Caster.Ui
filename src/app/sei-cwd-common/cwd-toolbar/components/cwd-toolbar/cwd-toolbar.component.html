@@ -4,29 +4,22 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <mat-toolbar class="top-bar">
-  <mat-toolbar-row fxlayout="row" fxLayoutAlign="start center" class="nav-row">
-    <span class="text" fxFlex="nogrow">Caster</span>
-    <div fxFlex="auto">
+  <mat-toolbar-row class="nav-row d-flex flex-row justify-content-start align-items-center">
+    <span class="text flex-grow-0">Caster</span>
+    <div class="flex-fill">
       <div
-        class="text"
+        class="text d-flex flex-row justify-content-end align-items-center gap-2"
         id="toolbar-navigation"
-        fxLayout="row"
-        fxLayoutAlign="end center"
-        fxLayoutGap="10px"
       ></div>
     </div>
   </mat-toolbar-row>
   <mat-toolbar-row
-    class="cwd-action-row"
-    fxLayout="row"
-    fxLayoutAlign="start center"
+    class="cwd-action-row d-flex flex-row justify-content-start align-items-center"
   >
-    <div fxFlexOffset="15">
+    <div style="margin-left: 15%">
       <div
         id="toolbar-action"
-        fxLayout="row"
-        fxLayoutAlign="start center"
-        fxLayoutGap="10px"
+        class="d-flex flex-row justify-content-start align-items-center gap-2"
       ></div>
     </div>
   </mat-toolbar-row>

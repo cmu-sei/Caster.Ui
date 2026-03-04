@@ -2,7 +2,6 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -97,7 +96,6 @@ const projectRoutes: Routes = [
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    FlexLayoutModule,
     MatButtonModule,
     MatSortModule,
     MatTooltipModule,

@@ -4,7 +4,8 @@
 import { Directive } from '@angular/core';
 
 @Directive({
-  selector: '[cwdTableAction]',
+    selector: '[cwdTableAction]',
+    standalone: false
 })
 export class TableActionDirective {
   constructor() {}

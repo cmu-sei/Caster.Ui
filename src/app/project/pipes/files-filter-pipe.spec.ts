@@ -9,7 +9,7 @@ describe('FilesFilterPipeService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: FilesFilterPipe = TestBed.get(FilesFilterPipe);
+    const service: FilesFilterPipe = TestBed.inject(FilesFilterPipe);
     expect(service).toBeTruthy();
   });
 });

@@ -10,10 +10,11 @@ import {
 import { Workspace } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-workspace-version',
-  templateUrl: './workspace-version.component.html',
-  styleUrls: ['./workspace-version.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-workspace-version',
+    templateUrl: './workspace-version.component.html',
+    styleUrls: ['./workspace-version.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class WorkspaceVersionComponent implements OnInit {
   @Input() workspace: Workspace;

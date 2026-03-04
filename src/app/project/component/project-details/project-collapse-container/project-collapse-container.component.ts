@@ -13,7 +13,7 @@ import {
   Theme,
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { FileQuery } from 'src/app/files/state';
 import { Project, ProjectPermission } from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
@@ -35,10 +35,11 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 const LEFT_SIDEBAR_MIN_WIDTH = 300;
 
 @Component({
-  selector: 'cas-project-collapse-container',
-  templateUrl: './project-collapse-container.component.html',
-  styleUrls: ['./project-collapse-container.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-collapse-container',
+    templateUrl: './project-collapse-container.component.html',
+    styleUrls: ['./project-collapse-container.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectCollapseContainerComponent
   implements OnInit, OnDestroy, CanComponentDeactivate
@@ -115,7 +116,7 @@ export class ProjectCollapseContainerComponent
       .subscribe(({ p, open, width }) => {
         if (p) {
           this.project = p;
-          this.permissionService.loadProjectPermissions(p.id).subscribe();
+          this.permissionService.loadProjectPermissions(p.id).pipe(take(1)).subscribe();
           this.signalRService
             .startConnection()
             .then(() => {

@@ -25,10 +25,11 @@ import {
 } from 'src/app/generated/caster-api';
 
 @Component({
-  selector: 'cas-project-membership-list',
-  templateUrl: './project-membership-list.component.html',
-  styleUrls: ['./project-membership-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-membership-list',
+    templateUrl: './project-membership-list.component.html',
+    styleUrls: ['./project-membership-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectMembershipListComponent
   implements OnInit, OnChanges, AfterViewInit

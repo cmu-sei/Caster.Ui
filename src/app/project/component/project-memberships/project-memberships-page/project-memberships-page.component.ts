@@ -8,9 +8,10 @@ import { ActivatedRoute } from '@angular/router';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
-  selector: 'cas-project-memberships-page',
-  templateUrl: './project-memberships-page.component.html',
-  styleUrls: ['./project-memberships-page.component.scss'],
+    selector: 'cas-project-memberships-page',
+    templateUrl: './project-memberships-page.component.html',
+    styleUrls: ['./project-memberships-page.component.scss'],
+    standalone: false
 })
 export class ProjectMembershipsPageComponent implements OnInit {
   projectId: string;

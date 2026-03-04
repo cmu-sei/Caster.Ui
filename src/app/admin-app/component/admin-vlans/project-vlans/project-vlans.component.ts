@@ -28,10 +28,11 @@ import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 
 @Component({
-  selector: 'cas-project-vlans',
-  templateUrl: './project-vlans.component.html',
-  styleUrls: ['./project-vlans.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-vlans',
+    templateUrl: './project-vlans.component.html',
+    styleUrls: ['./project-vlans.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectVlansComponent implements OnInit {
   @Input() set projects(projects: Project[]) {

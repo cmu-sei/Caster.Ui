@@ -25,10 +25,11 @@ import { Variable, VariableType } from 'src/app/generated/caster-api';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 
 @Component({
-  selector: 'cas-variable',
-  templateUrl: './variable.component.html',
-  styleUrls: ['./variable.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-variable',
+    templateUrl: './variable.component.html',
+    styleUrls: ['./variable.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VariableComponent implements OnInit, OnChanges {
   @Input()

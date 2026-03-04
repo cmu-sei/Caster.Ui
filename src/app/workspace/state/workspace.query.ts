@@ -144,7 +144,7 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
 
     return this.selectAll().pipe(
       map((w) =>
-        w.map((x) => x.runs.filter((r) => activeStatuses.includes(r.status)))
+        w.map((x) => (x.runs || []).filter((r) => activeStatuses.includes(r.status)))
       ),
       map((r) => [].concat(...r))
     );

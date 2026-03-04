@@ -31,10 +31,11 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-  selector: 'cas-project-list',
-  templateUrl: './project-list.component.html',
-  styleUrls: ['./project-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-project-list',
+    templateUrl: './project-list.component.html',
+    styleUrls: ['./project-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() projects: Project[];

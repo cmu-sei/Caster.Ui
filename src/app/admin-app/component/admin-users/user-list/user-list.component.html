@@ -3,41 +3,37 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="row" fxLayoutAlign="start center">
+<div class="d-flex flex-row justify-content-start align-items-center">
   <div class="sp-icon">
     <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
   </div>
-  <mat-icon
-    style="margin-left: 40px; transform: scale(0.85); margin-right: 5px"
-    svgIcon="ic_magnify_search"
-  ></mat-icon>
   <mat-form-field style="width: 300px">
+    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
     <input
       matInput
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
-    />
+      />
+    @if (!!filterString) {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+    }
   </mat-form-field>
-  <div style="width: 30px">
+  @if (canEdit) {
     <button
-      *ngIf="!!filterString"
-      fxLayoutAlign="start center"
       mat-icon-button
-      (click)="clearFilter()"
-      style="outline: none"
-      title="Clear Search"
+      color="primary"
+      (click)="addingNewUser = true"
+      matTooltip="Add User"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
     </button>
-  </div>
-  <div *ngIf="canEdit" style="width: 100px">
-    <button mat-stroked-button (click)="addingNewUser = true">Add User</button>
-  </div>
+  }
   <div class="button-end">
     <mat-paginator
       #paginator
-      [length]="totalRows$ | async"
       [pageIndex]="0"
       [pageSize]="20"
       [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
@@ -45,109 +41,118 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 </div>
 
-<mat-accordion displayMode="flat" class="mat-table">
-  <section matSort class="mat-elevation-z2 mat-header-row">
-    <span class="mat-header-cell" mat-sort-header="id">ID</span>
-    <span class="mat-header-cell" mat-sort-header="name">Name</span>
-    <span class="mat-header-cell" mat-sort-header="role">Role</span>
-  </section>
-
-  <mat-expansion-panel *ngIf="addingNewUser" [disabled]="true">
-    <mat-expansion-panel-header class="mat-row">
-      <span class="mat-cell">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="User ID"
-            [(ngModel)]="newUser.id"
-            matTooltip="Must be a valid Guid"
+@if (addingNewUser) {
+  <div class="add-user-row">
+    <span class="add-user-cell">
+      <mat-form-field subscriptSizing="dynamic">
+        <input
+          matInput
+          placeholder="User ID"
+          [(ngModel)]="newUser.id"
+          matTooltip="Must be a valid Guid"
           />
-        </mat-form-field>
-      </span>
-      <span class="mat-cell">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="User Name"
-            [(ngModel)]="newUser.name"
-            matTooltip="Must have a minimum of 4 characters"
+      </mat-form-field>
+    </span>
+    <span class="add-user-cell">
+      <mat-form-field subscriptSizing="dynamic">
+        <input
+          matInput
+          placeholder="User Name"
+          [(ngModel)]="newUser.name"
+          matTooltip="Must have a minimum of 4 characters"
           />
-        </mat-form-field>
-      </span>
-      <span class="mat-cell">
-        <button
-          mat-icon-button
-          (click)="addNewUser(true)"
-          [disabled]="!newUser.id || !newUser.name || newUser.name.length < 4"
+      </mat-form-field>
+    </span>
+    <span class="add-user-cell">
+      <button
+        mat-icon-button
+        (click)="addNewUser(true)"
+        [disabled]="!newUser.id || !newUser.name || newUser.name.length < 4"
         >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-account-plus"
-            matTooltip="Add this user"
-          ></mat-icon>
-        </button>
-        <button mat-icon-button (click)="addNewUser(false)" matTooltip="Cancel">
-          <mat-icon class="mdi-24px" fontIcon="mdi-account-remove"></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-account-plus"
+          matTooltip="Add this user"
+        ></mat-icon>
+      </button>
+      <button mat-icon-button (click)="addNewUser(false)" matTooltip="Cancel">
+        <mat-icon class="mdi-24px" fontIcon="mdi-account-remove"></mat-icon>
+      </button>
+    </span>
+  </div>
+}
 
-  <mat-expansion-panel
-    *ngFor="let item of displayedRows$ | async"
-    [disabled]="true"
-  >
-    <mat-expansion-panel-header class="mat-row" *ngIf="!isLoading">
-      <span class="mat-cell">
+<table mat-table matSort [dataSource]="dataSource" class="w-100">
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+    <td mat-cell *matCellDef="let item">
+      <div class="d-flex align-items-center">
         <button
           mat-icon-button
           ngxClipboard
           [cbContent]="item.id"
           (click)="$event.stopPropagation()"
           title="Copy:  {{ item.id }}"
-        >
+          >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
         </button>
         {{ item.id }}
-      </span>
-      <span class="mat-cell">
-        {{ item.name }}
-      </span>
-      <span class="mat-cell">
-        <mat-form-field>
+      </div>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+    <td mat-cell *matCellDef="let item">
+      {{ item.name }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="roleId">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header="roleId">Role</th>
+    <td mat-cell *matCellDef="let item">
+      <div class="d-flex align-items-center">
+        <mat-form-field subscriptSizing="dynamic">
           <mat-select
             [disabled]="!canEdit"
             [value]="item.roleId == null ? '' : item.roleId"
             (selectionChange)="updateRole(item, $event)"
-          >
-            <mat-option value="">None</mat-option>
-            <mat-option
-              *ngFor="let role of roles$ | async; trackBy: trackById"
-              [value]="role.id"
-              >{{ role.name }}</mat-option
             >
-          </mat-select>
-        </mat-form-field>
-        <button
-          *ngIf="canEdit"
-          mat-icon-button
-          (click)="deleteUser(item); $event.stopPropagation()"
-          title="Delete User"
-        >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-delete-forever-outline"
-          ></mat-icon>
-        </button>
-      </span>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
-</mat-accordion>
+            <mat-option value="">None</mat-option>
+            @for (role of roles$ | async; track trackById($index, role)) {
+              <mat-option
+                [value]="role.id"
+                >{{ role.name }}</mat-option
+                >
+              }
+            </mat-select>
+          </mat-form-field>
+          @if (canEdit) {
+            <button
+              mat-icon-button
+              (click)="deleteUser(item); $event.stopPropagation()"
+              title="Delete User"
+              >
+              <mat-icon
+                class="mdi-24px"
+                fontIcon="mdi-delete-forever-outline"
+              ></mat-icon>
+            </button>
+          }
+      </div>
+    </td>
+  </ng-container>
 
-<mat-card
-  *ngIf="isLoading"
-  style="display: flex; justify-content: center; align-items: center"
->
-  <mat-progress-spinner color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-</mat-card>
+  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+@if (isLoading) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
+    >
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card>
+}

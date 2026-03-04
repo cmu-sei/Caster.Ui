@@ -3,75 +3,73 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div fxLayout="column" *ngIf="!!dataSource">
-  <mat-card class="version-heading" fxFlex="1 1 auto" fxFill>
-    <span><strong>FILE VERSIONS</strong></span>
-    <div class="version-search">
-      <mat-icon
-        class="mdi-24px"
-        fontIcon="mdi-magnify"
-        style="margin-right: 5px"
-      ></mat-icon>
-      <mat-form-field class="search-input">
-        <input
-          matInput
-          [(ngModel)]="filterString"
-          (keyup)="applyFilter($event.target.value)"
-          placeholder="Search"
-        />
-      </mat-form-field>
-      <button
-        *ngIf="filterString != ''"
-        matTooltip="Clear Search"
-        mat-icon-button
-        (click)="clearFilter()"
-        style="outline: none"
-      >
-        <mat-icon class="mdi-18px" fontIcon="mdi-close-circle"></mat-icon>
-      </button>
-    </div>
-  </mat-card>
-  <mat-card
-    *ngFor="let version of dataSource.filteredData"
-    class="version-card"
-    fxFlex="1 1 auto"
-    fxFill
-    [class.selected]="selectedVersionId == version.id"
-    class="clickable highlight version-card"
-    (click)="selectVersionFn(version)"
-  >
-    <mat-card-content>
-      <div fxLayout="column" fxLayoutAlign="space-around start">
-        <div>
-          <span class="version-name"
-            >{{ version.dateSaved | date: 'yyyy-MM-dd HH:mm' }} by
-            {{ version.modifiedByName }} as {{ version.name }}</span
-          >
-        </div>
-        <span *ngIf="version.tag" class="version-text"
-          ><strong>{{ version.tag }}</strong> tag by
-          {{ version.taggedByName }} on
-          {{ version.dateTagged | date: 'yyyy-MM-dd HH:mm' }}</span
+@if (!!dataSource) {
+  <div class="d-flex flex-column">
+    <mat-card appearance="outlined" class="version-heading flex-fill w-100 h-100">
+      <span><strong>FILE VERSIONS</strong></span>
+      <div class="version-search">
+        <mat-form-field class="search-input">
+          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+          <input
+            matInput
+            [(ngModel)]="filterString"
+            (keyup)="applyFilter($event.target.value)"
+            placeholder="Search"
+            />
+          @if (filterString != '') {
+            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+            </button>
+          }
+        </mat-form-field>
+      </div>
+    </mat-card>
+    @for (version of dataSource.filteredData; track version) {
+      <mat-card
+        appearance="outlined"
+        [class.selected]="selectedVersionId == version.id"
+        class="clickable highlight version-card flex-fill w-100 h-100"
+        (click)="selectVersionFn(version)"
         >
-        <div fxLayout="row" fxFill fxLayoutAlign="end center">
-          <button
-            mat-stroked-button
-            (click)="$event.stopPropagation(); revertFile(version)"
-          >
-            Revert
-          </button>
-        </div>
+        <mat-card-content>
+          <div class="d-flex flex-column justify-content-around align-items-start">
+            <div>
+              <span class="version-name"
+                >{{ version.dateSaved | date: 'yyyy-MM-dd HH:mm' }} by
+                {{ version.modifiedByName }} as {{ version.name }}</span
+                >
+              </div>
+              @if (version.tag) {
+                <span class="version-text"
+                  ><strong>{{ version.tag }}</strong> tag by
+                  {{ version.taggedByName }} on
+                  {{ version.dateTagged | date: 'yyyy-MM-dd HH:mm' }}</span
+                  >
+                }
+                <div class="d-flex flex-row w-100 h-100 justify-content-end align-items-center">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    (click)="$event.stopPropagation(); revertFile(version)"
+                    >
+                    Revert
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+        @if (!dataSource.data || dataSource.data.length === 0) {
+          <mat-card
+            appearance="outlined"
+            class="version-card"
+            >
+            <mat-card-content>
+              <div>
+                <span class="version-name">No saved versions ...</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
       </div>
-    </mat-card-content>
-  </mat-card>
-  <mat-card
-    class="version-card"
-    *ngIf="!dataSource.data || dataSource.data.length === 0"
-  >
-    <mat-card-content>
-      <div>
-        <span class="version-name">No saved versions ...</span>
-      </div>
-    </mat-card-content>
-  </mat-card>
-</div>
+    }

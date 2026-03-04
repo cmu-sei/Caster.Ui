@@ -18,14 +18,15 @@ import {
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
-import { ITerminalOptions, Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { ITerminalOptions, Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
 
 @Component({
   selector: 'cas-run',
   templateUrl: './run.component.html',
   styleUrls: ['./run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() run: Run;
@@ -65,6 +66,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.disposeStream();
+    this.xterm.dispose();
     window.removeEventListener('wheel', this.scroll);
   }
 
@@ -233,10 +235,10 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.fitAddon.fit();
   }
 
-  @HostListener('document:fullscreenchange', ['$event'])
-  @HostListener('document:webkitfullscreenchange', ['$event'])
-  @HostListener('document:mozfullscreenchange', ['$event'])
-  @HostListener('document:MSFullscreenChange', ['$event'])
+  @HostListener('document:fullscreenchange')
+  @HostListener('document:webkitfullscreenchange')
+  @HostListener('document:mozfullscreenchange')
+  @HostListener('document:MSFullscreenChange')
   fullscreenmode() {
     // return to previous height when exiting fullscreen
     if (document.fullscreenElement == null) {

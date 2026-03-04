@@ -32,9 +32,10 @@ const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-  selector: 'cas-project-navigation',
-  templateUrl: './project-navigation-container.component.html',
-  styleUrls: ['./project-navigation-container.component.scss'],
+    selector: 'cas-project-navigation',
+    templateUrl: './project-navigation-container.component.html',
+    styleUrls: ['./project-navigation-container.component.scss'],
+    standalone: false
 })
 export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   public project$: Observable<Project>;

@@ -11,10 +11,11 @@ import {
 } from '@angular/core';
 
 @Component({
-  selector: 'cas-locking-status',
-  templateUrl: './locking-status.component.html',
-  styleUrls: ['./locking-status.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-locking-status',
+    templateUrl: './locking-status.component.html',
+    styleUrls: ['./locking-status.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class LockingStatusComponent implements OnInit {
   @Input() lockingEnabled: boolean;

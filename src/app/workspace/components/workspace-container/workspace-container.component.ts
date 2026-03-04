@@ -38,10 +38,11 @@ import { OutputComponent } from '../output/output.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
-  selector: 'cas-workspace-container',
-  templateUrl: './workspace-container.component.html',
-  styleUrls: ['./workspace-container.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-workspace-container',
+    templateUrl: './workspace-container.component.html',
+    styleUrls: ['./workspace-container.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class WorkspaceContainerComponent
   implements OnInit, OnDestroy, OnChanges

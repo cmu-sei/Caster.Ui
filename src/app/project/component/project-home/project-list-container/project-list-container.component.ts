@@ -13,9 +13,10 @@ import { ProjectQuery, ProjectService } from '../../../state';
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
 
 @Component({
-  selector: 'cas-project-container',
-  templateUrl: './project-list-container.component.html',
-  styleUrls: ['./project-list-container.component.scss'],
+    selector: 'cas-project-container',
+    templateUrl: './project-list-container.component.html',
+    styleUrls: ['./project-list-container.component.scss'],
+    standalone: false
 })
 export class ProjectListContainerComponent implements OnInit {
   public username: string;

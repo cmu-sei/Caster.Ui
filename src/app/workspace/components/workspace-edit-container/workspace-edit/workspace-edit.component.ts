@@ -17,10 +17,11 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 
 @Component({
-  selector: 'cas-workspace-edit',
-  templateUrl: './workspace-edit.component.html',
-  styleUrls: ['./workspace-edit.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'cas-workspace-edit',
+    templateUrl: './workspace-edit.component.html',
+    styleUrls: ['./workspace-edit.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class WorkspaceEditComponent implements OnInit {
   @Input() workspace: Workspace;

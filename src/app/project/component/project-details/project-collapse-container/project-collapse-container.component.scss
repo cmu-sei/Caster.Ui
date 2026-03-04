@@ -1,6 +1,5 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-@import 'theme';
 
 a {
   color: inherit;
@@ -85,4 +84,10 @@ a {
   display: grid;
   grid-template-columns: 1fr 0px;
   height: 100%;
+}
+
+.project-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }

@@ -19,11 +19,12 @@ import { takeUntil } from 'rxjs/operators';
 import { FileVersionQuery } from 'src/app/fileVersions/state';
 
 @Component({
-  selector: 'cas-version-list',
-  templateUrl: './version-list.component.html',
-  styleUrls: ['./version-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
+    selector: 'cas-version-list',
+    templateUrl: './version-list.component.html',
+    styleUrls: ['./version-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class VersionListComponent implements OnInit, OnDestroy {
   @Input() fileId: string;
