@@ -80,10 +80,11 @@ body {
 
 // prevent table header rows from scrolling
 .mat-mdc-header-row {
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0;
   z-index: 9 !important;
+}
+
+.mat-mdc-table .mat-mdc-header-cell {
+  background-color: var(--mat-sys-surface) !important;
 }
 
 // support color="warn" on icon buttons

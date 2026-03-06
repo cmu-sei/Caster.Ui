@@ -104,7 +104,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {} });
+    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
@@ -127,7 +127,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   exportProject() {
-    this.exportDialogRef = this.dialog.open(this.exportDialog);
+    this.exportDialogRef = this.dialog.open(this.exportDialog, { minWidth: '400px', maxWidth: '90vw' });
   }
 
   importProject() {

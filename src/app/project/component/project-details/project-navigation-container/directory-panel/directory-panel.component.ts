@@ -162,7 +162,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {} });
+    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
@@ -434,12 +434,12 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   editWorkspace(workspace: Workspace) {
     this.editingWorkspaceId = workspace.id;
-    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog);
+    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog, { minWidth: '400px', maxWidth: '90vw' });
   }
 
   editDirectory(directory: Directory) {
     this.editingDirectoryId = directory.id;
-    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog);
+    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog, { minWidth: '400px', maxWidth: '90vw' });
   }
 
   onEditWorkspaceComplete() {
@@ -485,7 +485,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.exportId = obj.object.id;
       this.exportName = obj.object.name;
       this.exportObjectType = obj.type as ProjectObjectType;
-      this.exportDialogRef = this.dialog.open(this.exportDialog);
+      this.exportDialogRef = this.dialog.open(this.exportDialog, { minWidth: '400px', maxWidth: '90vw' });
     }
   }
 
