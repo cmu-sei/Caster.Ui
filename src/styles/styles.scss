@@ -3,6 +3,7 @@
 /* VENDOR IMPORTS */
 @use '@angular/material' as mat;
 @use './theme-colors' as theme;
+@use './dark-theme-colors' as dark-theme;
 @use '@mdi/font/scss/materialdesignicons.scss';
 
 @import '@fortawesome/fontawesome-free/css/all.css';
@@ -60,7 +61,7 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: theme.$primary-palette,
+        primary: dark-theme.$dark-primary-palette,
         typography: '"Open Sans", sans-serif',
         theme-type: dark,
       ),
