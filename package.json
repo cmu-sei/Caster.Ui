@@ -26,6 +26,7 @@
     "test:vitest:coverage": "vitest run --coverage",
     "test:vitest:browser": "vitest --config vitest.browser.config.ts",
     "test:vitest:browser:ui": "vitest --config vitest.browser.config.ts --ui",
+    "test:vitest:preview": "vitest --config vitest.preview.config.ts",
     "test:compare": "npm run test && npm run test:vitest",
     "postinstall": "node scripts/patch-akita-esm.js",
     "lint": "ng lint caster-ui",
