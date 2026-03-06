@@ -1,15 +1,16 @@
 // Copyright 2024 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
+import { By } from '@angular/platform-browser';
 import { TopbarComponent } from './topbar.component';
 import { TopbarView } from './topbar.models';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -81,7 +82,41 @@ async function renderTopbar(
   });
 }
 
+/**
+ * Opens the Material menu via the MatMenuTrigger directive and waits
+ * for the overlay panel to appear in the DOM.  Returns the overlay
+ * element for content assertions.
+ */
+async function openMenu(fixture: any): Promise<HTMLElement> {
+  const triggerDebug = fixture.debugElement.query(By.directive(MatMenuTrigger));
+  expect(triggerDebug).toBeTruthy();
+  const trigger = triggerDebug.injector.get(MatMenuTrigger);
+  trigger.openMenu();
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  // Give the overlay one extra micro-task tick to render
+  await new Promise<void>((r) => setTimeout(r, 0));
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  const overlay = document.querySelector(
+    '.cdk-overlay-container'
+  ) as HTMLElement;
+  return overlay;
+}
+
 describe('TopbarComponent', () => {
+  afterEach(() => {
+    // Remove the CDK overlay container entirely so the next test's
+    // OverlayContainer service creates a fresh one.  Simply clearing
+    // innerHTML leaves a broken container that the CDK cannot reuse.
+    const overlay = document.querySelector('.cdk-overlay-container');
+    if (overlay) {
+      overlay.remove();
+    }
+  });
+
   it('should create', async () => {
     const { fixture } = await renderTopbar();
     expect(fixture.componentInstance).toBeTruthy();
@@ -128,17 +163,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    // Click the menu trigger to open menu
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Check the overlay for the menu panel
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).toContain('Administration');
   });
 
@@ -155,15 +180,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).not.toContain('Administration');
   });
 
@@ -177,15 +194,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).toContain('Dark Theme');
   });
 
@@ -199,15 +208,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).toContain('Logout');
   });
 
@@ -234,15 +235,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     const buttons = overlay?.querySelectorAll('button') ?? [];
     let logoutBtn: HTMLElement | null = null;
     buttons.forEach((btn) => {
@@ -251,7 +244,9 @@ describe('TopbarComponent', () => {
       }
     });
     expect(logoutBtn).toBeTruthy();
-    logoutBtn!.click();
+    logoutBtn!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true })
+    );
     fixture.detectChanges();
 
     expect(logoutSpy).toHaveBeenCalledOnce();
@@ -270,15 +265,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).toContain('Exit Administration');
   });
 
@@ -298,15 +285,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).toContain('Manage Project');
   });
 
@@ -323,15 +302,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).not.toContain('Manage Project');
   });
 
@@ -350,15 +321,7 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const menuTrigger = fixture.nativeElement.querySelector(
-      'button.menu-trigger'
-    ) as HTMLElement;
-    expect(menuTrigger).toBeTruthy();
-    menuTrigger.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const overlay = document.querySelector('.cdk-overlay-container');
+    const overlay = await openMenu(fixture);
     expect(overlay?.textContent).not.toContain('Manage Project');
   });
 
@@ -456,15 +419,7 @@ describe('TopbarComponent', () => {
         fixture.detectChanges();
         await fixture.whenStable();
 
-        const menuTrigger = fixture.nativeElement.querySelector(
-          'button.menu-trigger'
-        ) as HTMLElement;
-        expect(menuTrigger).toBeTruthy();
-        menuTrigger.click();
-        fixture.detectChanges();
-        await fixture.whenStable();
-
-        const overlay = document.querySelector('.cdk-overlay-container');
+        const overlay = await openMenu(fixture);
         expect(overlay?.textContent).toContain('Administration');
       });
     });
@@ -482,15 +437,7 @@ describe('TopbarComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const menuTrigger = fixture.nativeElement.querySelector(
-        'button.menu-trigger'
-      ) as HTMLElement;
-      expect(menuTrigger).toBeTruthy();
-      menuTrigger.click();
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const overlay = document.querySelector('.cdk-overlay-container');
+      const overlay = await openMenu(fixture);
       expect(overlay?.textContent).not.toContain('Administration');
     });
   });
@@ -511,15 +458,7 @@ describe('TopbarComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const menuTrigger = fixture.nativeElement.querySelector(
-        'button.menu-trigger'
-      ) as HTMLElement;
-      expect(menuTrigger).toBeTruthy();
-      menuTrigger.click();
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const overlay = document.querySelector('.cdk-overlay-container');
+      const overlay = await openMenu(fixture);
       expect(overlay?.textContent).toContain('Manage Project');
     });
 
@@ -545,15 +484,7 @@ describe('TopbarComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const menuTrigger = fixture.nativeElement.querySelector(
-        'button.menu-trigger'
-      ) as HTMLElement;
-      expect(menuTrigger).toBeTruthy();
-      menuTrigger.click();
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const overlay = document.querySelector('.cdk-overlay-container');
+      const overlay = await openMenu(fixture);
       expect(overlay?.textContent).toContain('Manage Project');
     });
   });
