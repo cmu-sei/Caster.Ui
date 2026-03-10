@@ -3,17 +3,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<cas-topbar
-  title="Caster"
-  [topbarView]="TopbarView.CASTER_HOME"
-  [topbarColor]="topbarColor"
-  [topbarTextColor]="topbarTextColor"
-  [sidenav]="null"
-></cas-topbar>
+<cas-topbar title="Caster" [topbarView]="TopbarView.CASTER_HOME" [topbarColor]="topbarColor"
+  [topbarTextColor]="topbarTextColor" [sidenav]="null"></cas-topbar>
 
-<cas-project-list
-  class="background w-100 h-100 d-flex flex-row justify-content-center align-items-start"
-  [projects]="projects | async"
-  [isLoading]="isLoading$ | async"
->
-</cas-project-list>
+<div class="content-container elevate">
+  <cas-project-list class="background w-100 h-100 d-flex flex-row justify-content-center align-items-start"
+    [projects]="projects | async" [isLoading]="isLoading$ | async">
+  </cas-project-list>
+</div>
