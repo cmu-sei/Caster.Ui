@@ -70,6 +70,10 @@ body {
   background-color: var(--mat-sys-surface) !important;
 }
 
+.element-row:hover td {
+  background-color: var(--mat-sys-surface-variant);
+}
+
 // support color="warn" on icon buttons
 .mat-mdc-icon-button.mat-warn {
   --mat-icon-button-icon-color: var(--mat-sys-error);
