@@ -95,8 +95,8 @@ async function openMenu(fixture: any): Promise<HTMLElement> {
   fixture.detectChanges();
   await fixture.whenStable();
 
-  // Give the overlay one extra micro-task tick to render
-  await new Promise<void>((r) => setTimeout(r, 0));
+  // Give the overlay time to render (real browsers need more than a microtask)
+  await new Promise<void>((r) => setTimeout(r, 50));
   fixture.detectChanges();
   await fixture.whenStable();
 
@@ -107,16 +107,6 @@ async function openMenu(fixture: any): Promise<HTMLElement> {
 }
 
 describe('TopbarComponent', () => {
-  afterEach(() => {
-    // Remove the CDK overlay container entirely so the next test's
-    // OverlayContainer service creates a fresh one.  Simply clearing
-    // innerHTML leaves a broken container that the CDK cannot reuse.
-    const overlay = document.querySelector('.cdk-overlay-container');
-    if (overlay) {
-      overlay.remove();
-    }
-  });
-
   it('should create', async () => {
     const { fixture } = await renderTopbar();
     expect(fixture.componentInstance).toBeTruthy();
