@@ -49,6 +49,11 @@ beforeEach(() => {
     // Suppress cleanup errors from child components with async subscriptions
   }
 
-  // Apply the light theme class so Material components render with correct colors
-  document.body.classList.add('light-theme');
+  // Clean up stale CDK overlay containers from previous Material dialog/menu tests
+  document
+    .querySelectorAll('.cdk-overlay-container')
+    .forEach((el) => el.remove());
+
+  // Match the production index.html body classes
+  document.body.classList.add('mat-typography', 'mat-app-background');
 });

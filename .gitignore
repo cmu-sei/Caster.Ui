@@ -62,3 +62,7 @@ src/assets/config/settings.[Ee]nv.json
 /docker/docker-compose
 
 .angular/cache
+
+# Claude Code
+CLAUDE.md
+.claude/

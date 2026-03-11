@@ -12,6 +12,9 @@ export default defineConfig({
       'src/': path.resolve(__dirname, 'src') + '/',
     },
   },
+  optimizeDeps: {
+    entries: [],
+  },
   test: {
     globals: true,
     environment: 'jsdom',
