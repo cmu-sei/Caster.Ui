@@ -52,7 +52,6 @@ html {
 }
 
 body {
-  height: calc(100vh - 40px);
   margin: 0;
   font-family: 'Open Sans', sans-serif;
 }
@@ -98,8 +97,3 @@ mat-paginator {
   min-width: 200px !important;
 }
 
-// Allow tab body content to scroll in project tabs
-cas-project-tab .mat-mdc-tab-body-content {
-  overflow-y: auto !important;
-  max-height: calc(100vh - 126px);
-}

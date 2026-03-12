@@ -16,7 +16,8 @@ a {
 }
 
 .appbarmenu-container {
-  min-width: 50px;
+  width: 250px;
+  border-right: solid var(--mat-sys-surface-container);
 }
 
 .cmu-logo {
@@ -65,11 +66,40 @@ a {
 
 .scroll-y {
   overflow-y: auto;
+  min-height: 0;
 }
 
 .icon-text {
   margin-left: 10px;
-  font-family: open_sansbold;
+  font-weight: bold;
+}
+
+.sidenav-header {
+  height: 40px;
+  border-bottom: 2px solid var(--mat-sys-surface-container);
+}
+
+.caster-icon-header {
+  color: var(--mat-sys-primary);
+}
+
+.icon-35px {
+  width: 35px;
+  height: 35px;
+  font-size: 35px;
+}
+
+.cssLayoutRowStartCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nolink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .resize-handle-right {

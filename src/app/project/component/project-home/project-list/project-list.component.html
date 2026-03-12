@@ -3,57 +3,53 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="project-list-container mat-elevation-z8">
-  <div>
-    <mat-toolbar class="toolbar">
-      <mat-toolbar-row>
-        <mat-form-field>
-          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
-          <input
-            matInput
-            [(ngModel)]="filterString"
-            (keyup)="applyFilter($event.target.value)"
-            #input
-            placeholder="Search Projects"
-          />
-          @if (filterString != '') {
-          <button
-            matSuffix
-            mat-icon-button
-            aria-label="Clear"
-            (click)="clearFilter()"
-          >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-close-circle-outline"
-            ></mat-icon>
-          </button>
-          }
-        </mat-form-field>
-        <div class="spacer"></div>
-        @if (canCreate$ | async) {
+<div class="project-list-container elevate">
+  <div class="icon-text-container">
+    <mat-icon class="crucible-icon-caster" svgIcon="ic_crucible_caster"></mat-icon>
+    <span class="project-title text">My Projects</span>
+    @if (canCreate$ | async) {
+    <button
+      mat-icon-button
+      matTooltip="Add New Project"
+      hotkeyAction="PROJECT_NEW"
+      (click)="create()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
+    </button>
+    }
+    <div class="searchBox">
+      <mat-form-field style="width: 320px">
+        <input
+          matInput
+          [(ngModel)]="filterString"
+          (keyup)="applyFilter($event.target.value)"
+          #input
+          placeholder="Search"
+        />
+        @if (filterString !== '') {
         <button
+          matSuffix
           mat-icon-button
-          color="primary"
-          matTooltip="Add New Project"
-          hotkeyAction="PROJECT_NEW"
-          (click)="create()"
+          aria-label="Clear"
+          (click)="clearFilter()"
+          title="Clear Search"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+          <mat-icon
+            style="transform: scale(0.85)"
+            fontIcon="mdi-close-circle-outline"
+          ></mat-icon>
         </button>
         }
-      </mat-toolbar-row>
-    </mat-toolbar>
+      </mat-form-field>
+    </div>
   </div>
 
   @if (projects) {
-  <div>
     <mat-table
       matSort
       matSortActive="name"
       matSortDirection="asc"
       [dataSource]="dataSource"
-      matSort
     >
       <ng-container matColumnDef="name">
         <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -97,8 +93,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           >
             <mat-icon
               color="primary"
-              fontSet="fas"
-              fontIcon="fa-external-link-alt"
+              fontIcon="mdi-open-in-new"
             ></mat-icon>
           </a>
           } @if ( (canManageAll$ | async) || (canManageProjects$ |
@@ -137,7 +132,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       hotkeyAction="PROJECT_NEW"
       (click)="createRequest()"
     ></button>
-  </div>
   }
 
   <!-- Loading Spinner -->

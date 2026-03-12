@@ -86,6 +86,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Navigate to home page
+   */
+  goToHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  /**
    * Set the display to Users
    */
   adminGotoUsers(): void {
@@ -128,7 +135,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Sets the display to Groups
+   * Sets the display to Projects
    */
   adminGotoProjects(): void {
     this.navigateToSection(this.projectsText);

@@ -2,7 +2,6 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   OnInit,
@@ -33,7 +32,7 @@ export interface Action {
     styleUrls: ['./module-list.component.css'],
     standalone: false
 })
-export class AdminModuleListComponent implements OnInit, OnChanges, AfterViewInit {
+export class AdminModuleListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = ['name', 'path', 'versionsCount', 'dateModified'];
   public filterString = '';
   public savedFilterString = '';
@@ -46,27 +45,33 @@ export class AdminModuleListComponent implements OnInit, OnChanges, AfterViewIni
   @Output() load: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() loadModuleById: EventEmitter<string> = new EventEmitter<string>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(private dialog: MatDialog) {}
 
-  ngOnInit() {}
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+  ngOnInit() {
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
     this.dataSource.sort = this.sort;
+    this.filterAndSort(this.filterString);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!!changes.modules && !!changes.modules.currentValue) {
       this.dataSource.data = changes.modules.currentValue;
+      this.filterAndSort(this.filterString);
     }
   }
 
+  filterAndSort(filterValue: string) {
+    this.dataSource.filter = filterValue;
+  }
+
   applyFilter(filterValue: string) {
-    this.filterString = filterValue;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.filterString = filterValue.toLowerCase();
+    this.filterAndSort(this.filterString);
   }
 
   clearFilter() {

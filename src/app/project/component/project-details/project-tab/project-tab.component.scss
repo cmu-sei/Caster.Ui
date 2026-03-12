@@ -1,6 +1,33 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+:host {
+  display: block;
+  height: 100%;
+}
+
+:host ::ng-deep {
+  .mat-mdc-tab-group {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .mat-mdc-tab-body-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .mat-mdc-tab-body {
+    height: 100%;
+  }
+
+  .mat-mdc-tab-body-content {
+    height: 100%;
+    overflow-y: auto !important;
+  }
+}
+
 .message-text {
   height: 100px;
   margin-top: 50px;
