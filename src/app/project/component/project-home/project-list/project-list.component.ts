@@ -2,7 +2,6 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
@@ -37,7 +36,7 @@ const NAME_VALUE = 'nameValue';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
-export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
+export class ProjectListComponent implements OnInit, OnChanges {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
   @Input() manageMode = false;
@@ -45,7 +44,7 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   @Output() selectedProjectId = new EventEmitter<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   filterString = '';
   displayedColumns: string[] = ['name', 'actions'];
@@ -82,20 +81,25 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
 
   ngOnInit() {
     this.loadProjects();
-  }
-
-  ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
+    this.filterAndSort(this.filterString);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.projects) {
       this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
+      this.filterAndSort(this.filterString);
     }
     if (changes.isLoading) {
       this.isLoading = changes.isLoading.currentValue;
     }
+  }
+
+  filterAndSort(filterValue: string) {
+    this.dataSource.filter = filterValue;
   }
 
   private loadProjects() {
@@ -107,10 +111,8 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   applyFilter(filterValue: string) {
-    this.filterString = filterValue;
-    filterValue = filterValue.trim(); // Remove whitespace
-    filterValue = filterValue.toLowerCase(); // MatTableDataSource defaults to lowercase matches
-    this.dataSource.filter = filterValue;
+    this.filterString = filterValue.toLowerCase();
+    this.filterAndSort(this.filterString);
   }
 
   clearFilter() {
@@ -131,6 +133,10 @@ export class ProjectListComponent implements OnInit, OnChanges, AfterViewInit {
         }
       }
     );
+  }
+
+  createRequest() {
+    this.create();
   }
 
   update(project: Project) {

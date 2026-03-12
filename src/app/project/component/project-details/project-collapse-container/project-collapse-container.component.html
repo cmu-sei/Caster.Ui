@@ -22,24 +22,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
     <div class="grid">
       <div class="w-100 h-100 d-flex flex-column justify-content-between align-items-center">
-        <div
-          class="d-flex flex-row justify-content-start align-items-center gap-3 w-100 h-100"
-          style="flex: 1 1 8%"
-          >
-          <a [routerLink]="['/']">
-            <div class="d-flex flex-row justify-content-start align-items-center">
-              <mat-icon
-                class="caster-icon"
-                svgIcon="ic_crucible_caster"
-              ></mat-icon>
-              <h2 class="icon-text">
-                {{ titleText }}
-              </h2>
+        <mat-toolbar class="sidenav-header" title="Return to Home" (click)="goToHome()">
+          <a class="nolink" (click)="goToHome()">
+            <div class="cssLayoutRowStartCenter">
+              <mat-icon class="icon-35px caster-icon-header" svgIcon="ic_crucible_caster"></mat-icon>
+              <h2 class="icon-text">{{ titleText }}</h2>
             </div>
           </a>
-        </div>
-
-        <mat-divider></mat-divider>
+        </mat-toolbar>
         <div class="scroll-y flex-grow-1 w-100 h-100">
           <cas-project-navigation></cas-project-navigation>
         </div>

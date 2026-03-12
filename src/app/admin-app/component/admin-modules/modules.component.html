@@ -3,20 +3,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="component-container mat-elevation-z8">
-  <div class="add-margin d-flex flex-row">
-    <div class="flex-grow-1">
-      @if (!!modules$ && !!isLoading$) {
-        <cas-admin-module-list
-          [modules]="modules$ | async"
-          [isLoading]="isLoading$ | async"
-          [canEdit]="canEdit$ | async"
-          (load)="load()"
-          (loadModuleById)="createOrUpdateById($event)"
-          (delete)="deleteModule($event)"
-          >
-        </cas-admin-module-list>
-      }
-    </div>
-  </div>
-</div>
+<cas-admin-module-list
+  [modules]="modules$ | async"
+  [isLoading]="isLoading$ | async"
+  [canEdit]="canEdit$ | async"
+  (load)="load()"
+  (loadModuleById)="createOrUpdateById($event)"
+  (delete)="deleteModule($event)">
+</cas-admin-module-list>

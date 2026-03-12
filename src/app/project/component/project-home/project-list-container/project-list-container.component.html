@@ -6,8 +6,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <cas-topbar title="Caster" [topbarView]="TopbarView.CASTER_HOME" [topbarColor]="topbarColor"
   [topbarTextColor]="topbarTextColor" [sidenav]="null"></cas-topbar>
 
-<div class="content-container elevate">
-  <cas-project-list class="background w-100 h-100 d-flex flex-row justify-content-center align-items-start"
+<div class="content-container">
+  <cas-project-list
     [projects]="projects | async" [isLoading]="isLoading$ | async">
   </cas-project-list>
 </div>

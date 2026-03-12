@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (!selectedProjectId) {
   <cas-project-list
-    class="background w-100 h-100 d-flex flex-row justify-content-center align-items-start"
+    class="background w-100 h-100"
     [projects]="projects$ | async"
     [isLoading]="loading$ | async"
     [manageMode]="true"

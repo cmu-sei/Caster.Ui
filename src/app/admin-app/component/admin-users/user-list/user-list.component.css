@@ -10,7 +10,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   min-height: 0;
 }
 
-.d-flex.flex-row {
+.cssLayoutRowStartCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
   flex-shrink: 0;
 }
 
@@ -21,14 +25,22 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 }
 
 table {
+  width: 100%;
   --mat-table-row-item-container-height: auto;
 }
 
 .mat-mdc-cell,
 .mat-mdc-header-cell {
+  overflow: hidden;
+  word-wrap: break-word;
+  padding-right: 10px;
   padding-top: 2px;
   padding-bottom: 2px;
   vertical-align: middle;
+
+  button[mat-icon-button] {
+    vertical-align: middle;
+  }
 }
 
 .button-end {
@@ -36,42 +48,23 @@ table {
 }
 
 .sp-icon {
-  margin-left: 10px;
+  width: 5%;
+  color: var(--mat-sys-primary);
+  text-align: center;
+  min-width: 30px;
 }
 
-.add-user-row {
+.new-user-row {
   display: flex;
   align-items: center;
   padding: 0 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  min-height: 48px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
-.add-user-cell:nth-child(1) {
-  flex: 0 0 40%;
+.new-user-cell {
+  flex: 1;
   overflow: hidden;
-  word-wrap: break-word;
-}
-
-.add-user-cell:nth-child(2) {
-  flex: 0 0 25%;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-.add-user-cell:nth-child(3) {
-  flex: 0 0 35%;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-.mat-column-id {
-  width: 40%;
-}
-
-.mat-column-name {
-  width: 25%;
-}
-
-.mat-column-roleId {
-  width: 35%;
+  display: flex;
+  align-items: center;
 }

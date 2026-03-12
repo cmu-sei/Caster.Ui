@@ -3,17 +3,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="component-container mat-elevation-z8">
-  <div class="add-margin">
-    @if (!!users$ && !!isLoading$) {
-      <cas-user-list
-        [users]="users$ | async"
-        [isLoading]="isLoading$ | async"
-        [canEdit]="canEdit$ | async"
-        (create)="create($event)"
-        (delete)="deleteUser($event)"
-        >
-      </cas-user-list>
-    }
-  </div>
-</div>
+<cas-user-list
+  [users]="users$ | async"
+  [isLoading]="isLoading$ | async"
+  [canEdit]="canEdit$ | async"
+  (create)="create($event)"
+  (delete)="deleteUser($event)">
+</cas-user-list>

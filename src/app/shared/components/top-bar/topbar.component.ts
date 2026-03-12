@@ -114,6 +114,10 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
     this.router.navigate([this.currentUserQuery.getLastRoute()]);
   }
 
+  goToHome(): void {
+    this.router.navigate(['/']);
+  }
+
   ngOnDestroy(): void {
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();

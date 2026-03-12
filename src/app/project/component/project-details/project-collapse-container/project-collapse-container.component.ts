@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   ComnAuthQuery,
   ComnSettingsService,
@@ -70,7 +71,8 @@ export class ProjectCollapseContainerComponent
     private settingsService: ComnSettingsService,
     private fileQuery: FileQuery,
     private signalRService: SignalRService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private router: Router
   ) {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
@@ -163,6 +165,10 @@ export class ProjectCollapseContainerComponent
   }
 
   openEditMemberships() {}
+
+  goToHome(): void {
+    this.router.navigate(['/']);
+  }
 
   // @HostListener handles browser refresh, close, etc.
   @HostListener('window:beforeunload')

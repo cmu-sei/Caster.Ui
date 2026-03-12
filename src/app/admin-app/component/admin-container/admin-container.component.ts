@@ -32,8 +32,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public vlansText = 'VLANs';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
-  public projectsText = 'Projects';
-  public showStatus = this.projectsText;
+  public showStatus = this.modulesText;
   public theme$: Observable<Theme>;
   public topbarColor;
   public topbarTextColor;
@@ -86,6 +85,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Navigate to home page
+   */
+  goToHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  /**
    * Set the display to Users
    */
   adminGotoUsers(): void {
@@ -125,13 +131,6 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoGroups(): void {
     this.navigateToSection(this.groupsText);
-  }
-
-  /**
-   * Sets the display to Groups
-   */
-  adminGotoProjects(): void {
-    this.navigateToSection(this.projectsText);
   }
 
   private navigateToSection(sectionName: string) {
