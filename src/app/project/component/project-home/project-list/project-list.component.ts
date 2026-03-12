@@ -44,7 +44,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @Output() selectedProjectId = new EventEmitter<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild(MatSort, { static: false }) sort: MatSort;
 
   filterString = '';
   displayedColumns: string[] = ['name', 'actions'];
@@ -91,6 +91,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
     if (changes.projects) {
       this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
+      if (this.sort) {
+        this.dataSource.sort = this.sort;
+      }
       this.filterAndSort(this.filterString);
     }
     if (changes.isLoading) {

@@ -22,11 +22,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-list
         class="appitems-container"
         >
-        @if (permissions.includes(SystemPermission.ViewModules)) {
-          <mat-list-item id="wrapper showhand" (click)="adminGotoModules()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-view-module"></mat-icon>
-            {{ modulesText }}
-            <button aria-labelledby="modulesText" mat-icon-button class="pull-right">
+        @if (permissions.includes(SystemPermission.ManageProjects)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoProjects()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-notebook"></mat-icon>
+            {{ projectsText }}
+            <button aria-labelledby="projectsText" mat-icon-button class="pull-right">
               <mat-icon fontIcon="mdi-menu-right"></mat-icon>
             </button>
           </mat-list-item>
@@ -45,6 +45,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-lan"></mat-icon>
             {{ vlansText }}
             <button aria-labelledby="vlansText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewModules)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoModules()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-view-module"></mat-icon>
+            {{ modulesText }}
+            <button aria-labelledby="modulesText" mat-icon-button class="pull-right">
               <mat-icon fontIcon="mdi-menu-right"></mat-icon>
             </button>
           </mat-list-item>
@@ -139,6 +148,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           ) {
           <cas-admin-groups
           ></cas-admin-groups>
+        }
+        @if (
+          showStatus === projectsText &&
+          permissions.includes(SystemPermission.ManageProjects)
+          ) {
+          <cas-admin-projects
+          ></cas-admin-projects>
         }
       </span>
     }
