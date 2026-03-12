@@ -11,8 +11,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [(opened)]="isSidebarOpen"
     >
     @if (permissions$ | async; as permissions) {
-      <mat-toolbar class="sidenav-header" title="Exit Administration" (click)="goToHome()">
-        <a class="nolink" (click)="goToHome()">
+      <mat-toolbar class="sidenav-header" title="Exit Administration" [routerLink]="['/']">
+        <a class="nolink" [routerLink]="['/']">
           <div class="cssLayoutRowStartCenter">
             <mat-icon class="icon-35px caster-icon-header" svgIcon="ic_crucible_caster"></mat-icon>
             <h2 class="icon-text">Administration</h2>
