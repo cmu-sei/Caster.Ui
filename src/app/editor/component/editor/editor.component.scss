@@ -3,7 +3,13 @@
 
 .code-editor {
   border: 2px solid lightgray;
-  min-height: calc(100vh - 127px);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-container {
+  height: calc(100vh - 126px);
   overflow: hidden;
 }
 
