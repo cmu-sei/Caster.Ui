@@ -33,7 +33,7 @@ import {
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
-const LEFT_SIDEBAR_MIN_WIDTH = 300;
+const LEFT_SIDEBAR_MIN_WIDTH = 250;
 
 @Component({
     selector: 'cas-project-collapse-container',

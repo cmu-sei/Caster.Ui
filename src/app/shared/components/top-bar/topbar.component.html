@@ -9,9 +9,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
   <mat-toolbar-row>
     <span class="margin-auto">
-      <button mat-icon-button style="outline: none; background-color: var(--mat-sys-on-primary);" (click)="goToHome()">
+      <a mat-icon-button style="outline: none; background-color: var(--mat-sys-on-primary);" [routerLink]="['/']">
         <mat-icon svgIcon="ic_crucible_caster"></mat-icon>
-      </button>
+      </a>
     </span>
     <span class="view-text">{{ title }}</span>
     <span class="spacer"></span>

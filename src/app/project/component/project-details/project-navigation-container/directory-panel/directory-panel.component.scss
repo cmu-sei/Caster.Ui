@@ -7,16 +7,23 @@
 
 .icon-space {
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .panel-header {
   margin-top: 11px;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .link-text {
   color: inherit;
   cursor: pointer;
   font-size: medium;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .link-locked-text {
@@ -46,6 +53,16 @@
   margin-bottom: 5px !important;
   padding-right: 1 !important;
 }
+
+:host ::ng-deep .mat-expansion-panel-header-title {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+:host ::ng-deep .mat-expansion-panel-header-title .d-flex {
+  align-items: flex-start !important;
+}
 :host ::ng-deep .mat-expansion-panel-body {
   padding-right: 0 !important;
 }
@@ -53,4 +70,15 @@
 :host ::ng-deep .mat-mdc-list .mat-mdc-list-item {
   height: auto !important;
   margin-top: 5px !important;
+}
+
+strong {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+mat-icon {
+  flex-shrink: 0;
+  margin-right: 4px;
 }
