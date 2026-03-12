@@ -90,3 +90,12 @@ a:hover {
 a:active {
   color: var(--mat-sys-on-background);
 }
+
+a[mat-icon-button] {
+  text-decoration: none;
+  line-height: 1;
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
