@@ -2,7 +2,6 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   OnInit,
@@ -36,7 +35,7 @@ export interface Action {
   styleUrls: ['./user-list.component.css'],
   standalone: false,
 })
-export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
+export class UserListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = ['id', 'name', 'roleId'];
   public filterString = '';
   public savedFilterString = '';
@@ -51,8 +50,8 @@ export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() canEdit: boolean;
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     private dialog: MatDialog,
@@ -61,23 +60,28 @@ export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    this.roleService.getRoles().subscribe();
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
     this.dataSource.sort = this.sort;
+    this.roleService.getRoles().subscribe();
+    this.filterAndSort(this.filterString);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!!changes.users && !!changes.users.currentValue) {
       this.dataSource.data = changes.users.currentValue;
+      this.filterAndSort(this.filterString);
     }
   }
 
+  filterAndSort(filterValue: string) {
+    this.dataSource.filter = filterValue;
+  }
+
   applyFilter(filterValue: string) {
-    this.filterString = filterValue;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.filterString = filterValue.toLowerCase();
+    this.filterAndSort(this.filterString);
   }
 
   clearFilter() {
@@ -92,10 +96,9 @@ export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
       };
       this.savedFilterString = this.filterString;
       this.create.emit(user);
-    } else {
-      this.newUser = {};
-      this.addingNewUser = false;
     }
+    this.newUser = {};
+    this.addingNewUser = false;
   }
 
   deleteUser(user: User) {
@@ -128,7 +131,7 @@ export class UserListComponent implements OnInit, OnChanges, AfterViewInit {
   updateRole(user: User, event: MatSelectChange) {
     this.userService.editUser({
       ...user,
-      roleId: event.value == '' ? null : event.value,
+      roleId: event.value === '' ? null : event.value,
     });
   }
 }

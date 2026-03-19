@@ -3,92 +3,68 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="mat-elevation-z8 w-100 mx-auto mt-5">
-  <div>
-    <mat-toolbar class="toolbar">
-      <mat-toolbar-row>
-        <mat-form-field>
-          <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
-          <input
-            matInput
-            [(ngModel)]="filterString"
-            (keyup)="applyFilter($event.target.value)"
-            placeholder="Search Groups"
-            />
-          @if (filterString != '') {
-            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
-              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
-            </button>
-          }
-        </mat-form-field>
-        <div class="spacer"></div>
-        @if (canEdit$ | async) {
-          <button
-            mat-icon-button
-            color="primary"
-            matTooltip="Add New Group"
-            (click)="createGroup()"
-            >
-            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
-          </button>
-        }
-      </mat-toolbar-row>
-    </mat-toolbar>
+<div class="cssLayoutColumnCenterStart">
+  <div class="move-container">
+    <div>
+      <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-account-group"></mat-icon>
+    </div>
+    <mat-form-field class="search-field">
+      <input matInput [(ngModel)]="filterString" (keyup)="applyFilter($event.target.value)"
+        placeholder="Search Groups" />
+      @if (filterString) {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      </button>
+      }
+    </mat-form-field>
   </div>
-
-  <mat-table [dataSource]="dataSource$ | async" matSort>
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        Group Name
-        <button
-          mat-icon-button
-          color="primary"
-          matTooltip="Users can be added to Groups here or, if enabled in your environment, can be matched to Group Names from the token of the Identity Provider in use."
-          matTooltipShowDelay="0"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+  <div class="table-container">
+  <table mat-table [dataSource]="dataSource$ | async" matSort multiTemplateDataRows>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+        <div class="button-cell">
+          <button mat-icon-button matTooltip="Add New Group" (click)="createGroup()" [disabled]="!(canEdit$ | async)">
+            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
+          </button>
+          <button mat-icon-button class="primary-color" disabled
+              matTooltip="Users can be added to Groups here or, if enabled in your environment, can be matched to Group Names from the token of the Identity Provider in use."
+              matTooltipShowDelay="0">
+            <mat-icon class="mdi-24px" fontIcon="mdi-information"></mat-icon>
+          </button>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button matTooltip="Delete {{ element.name }}"
+          (click)="$event.stopPropagation(); deleteGroup(element)" [disabled]="!(canEdit$ | async)">
+          <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-trash-can-outline"></mat-icon>
         </button>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let element">
-        <mat-expansion-panel class="w-100">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              @if (canEdit$ | async) {
-                <button
-                  mat-icon-button
-                  matTooltip="Delete {{ element.name }}"
-                  (click)="$event.stopPropagation(); deleteGroup(element)"
-                  >
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-trash"
-                  ></mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Rename">
-                  <mat-icon
-                    color="primary"
-                    fontSet="fas"
-                    fontIcon="fa-pencil-alt"
-                    (click)="$event.stopPropagation(); updateGroup(element)"
-                  ></mat-icon>
-                </button>
-              }
-              {{ element.name }}
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <ng-template matExpansionPanelContent>
-            <cas-admin-groups-detail
-              [groupId]="element.id"
-              [canEdit]="canEdit$ | async"
-            ></cas-admin-groups-detail>
-          </ng-template>
-        </mat-expansion-panel>
-      </mat-cell>
+        <button mat-icon-button matTooltip="Rename"
+          (click)="$event.stopPropagation(); updateGroup(element)" [disabled]="!(canEdit$ | async)">
+          <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-square-edit-outline"></mat-icon>
+        </button>
+      </td>
     </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
-  </mat-table>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Group Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="expandedDetail">
+      <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+        <div [@detailExpand]="element.id === expandedGroupId ? 'expanded' : 'collapsed'"
+          (click)="$event.stopPropagation()">
+          @if (element.id === expandedGroupId) {
+            <cas-admin-groups-detail [groupId]="element.id" [canEdit]="canEdit$ | async"></cas-admin-groups-detail>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="element-row"
+      (click)="toggleExpand(row.id)"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+  </table>
+  </div>
 </div>

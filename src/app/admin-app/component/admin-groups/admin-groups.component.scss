@@ -1,8 +1,93 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 46px);
+}
+
+.cssLayoutColumnCenterStart {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.move-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  text-align: left;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.search-field {
+  min-width: 100px;
+  margin-left: 10px;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+table {
+  width: 100%;
+}
+
 mat-cell {
   padding: 0 !important;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  overflow: hidden;
+  word-wrap: break-word;
+  padding-right: 10px;
+}
+
+.mat-column-actions {
+  width: 140px;
+  max-width: 140px;
+  white-space: nowrap;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+.element-row td {
+  border-bottom-width: 0;
+  cursor: pointer;
+}
+
+.sp-icon {
+  margin-left: 20px;
+  margin-right: 20px;
+  min-width: 30px;
+  width: 5%;
+  color: var(--mat-sys-primary);
+}
+
+.button-cell {
+  display: flex;
+  align-items: center;
+}
+
+.primary-color {
+  color: var(--mat-sys-primary);
+}
+
+.toolbar {
+  background: transparent;
+}
+
+.spacer {
+  flex: 1;
 }

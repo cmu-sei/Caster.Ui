@@ -65,6 +65,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     language: 'plaintext',
     automaticLayout: true,
     readOnly: true,
+    scrollBeyondLastLine: false,
   };
   public selectedModule$: Observable<Module>;
   public filename = '';
@@ -279,6 +280,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         language: 'plaintext',
         automaticLayout: true,
         readOnly,
+        scrollBeyondLastLine: false,
       };
     }
   }

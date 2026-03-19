@@ -17,7 +17,12 @@
 }
 
 .appitems-container .mat-mdc-list-item {
-  height: auto;
+  min-height: 48px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
 }
 
 .appslist {
@@ -37,10 +42,15 @@
   bottom: 0;
   left: 0;
   right: 0;
+
+  ::ng-deep .mat-sidenav-content {
+    overflow: hidden;
+  }
 }
 
 .appbarmenu-container {
-  min-width: 50px;
+  width: 250px;
+  border-right: solid var(--mat-sys-surface-container);
 }
 
 .cmu-logo {
@@ -49,9 +59,14 @@
   bottom: 0;
 }
 
+.mat-list-item-icon {
+  color: var(--mat-sys-primary) !important;
+}
+
 .pull-right {
   position: absolute;
-  right: 35px;
+  right: 0px;
+  margin-top: -8px;
 }
 
 .notification-height {
@@ -82,40 +97,6 @@
   text-decoration: none;
 }
 
-#wrapper {
-  display: table;
-  table-layout: fixed;
-  width: 250px;
-  margin-top: 5px;
-  border-width: 0.25pt;
-  border-color: darkgray;
-}
-#wrapper > div {
-  display: table-cell;
-}
-
-#lefticon {
-  width: 60px;
-  font-size: 75%;
-  padding: 0.5em;
-}
-#lefticon > img {
-  height: 35px;
-  width: 35px;
-  text-align: center;
-  cursor: pointer;
-}
-#rightcontext {
-  width: 30px;
-  font-size: 75%;
-}
-#content {
-  text-align: left;
-  vertical-align: middle;
-  width: 160px;
-  font-size: 90%;
-  padding: 0.5em;
-}
 
 .crucible-logo {
   position: absolute;
@@ -124,10 +105,32 @@
 
 .icon-text {
   margin-left: 10px;
-  font-family: open_sansbold;
+  font-weight: bold;
+}
+
+.sidenav-header {
+  height: 40px;
+  border-bottom: 2px solid var(--mat-sys-surface-container);
 }
 
 .caster-icon {
   transform: scale(2);
   width: 60px;
+}
+
+.caster-icon-header {
+  color: var(--mat-sys-primary);
+}
+
+.icon-35px {
+  width: 35px;
+  height: 35px;
+  font-size: 35px;
+}
+
+.cssLayoutRowStartCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }

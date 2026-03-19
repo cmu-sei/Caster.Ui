@@ -3,12 +3,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="d-flex flex-row justify-content-start align-items-center">
+<div class="cssLayoutRowStartCenter">
   <div class="sp-icon">
     <mat-icon class="mdi-24px" fontIcon="mdi-view-module"></mat-icon>
   </div>
   <mat-form-field style="width: 300px">
-    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
     <input
       matInput
       [(ngModel)]="filterString"
@@ -33,11 +32,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (canEdit) {
   <div class="add-module-row">
-    <span class="add-module-cell">
-      <h6 style="float: right; margin-right: 50px">Add/Update Modules >></h6>
-    </span>
-    <span class="add-module-cell">
-      <mat-form-field subscriptSizing="dynamic">
+    <div class="add-module-cell">
+      <mat-form-field>
         <input
           matInput
           placeholder="External Module ID"
@@ -56,8 +52,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Add/Update this module from the repository"
         ></mat-icon>
       </button>
-    </span>
-    <span class="add-module-cell">
+    </div>
+    <div class="add-module-cell">
       <button
         mat-icon-button
         (click)="updateAllModules()"
@@ -69,26 +65,25 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Add/Update ALL from the repository"
         ></mat-icon>
       </button>
-    </span>
+    </div>
   </div>
 }
 
-<table mat-table matSort [dataSource]="dataSource" class="w-100">
+<div class="table-container">
+<table mat-table matSort [dataSource]="dataSource">
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
     <td mat-cell *matCellDef="let item">
-      <div class="d-flex align-items-center">
-        <button
-          mat-icon-button
-          ngxClipboard
-          [cbContent]="item.id"
-          (click)="$event.stopPropagation()"
-          title="Copy:  {{ item.id }}"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
-        </button>
-        {{ item.name }}
-      </div>
+      <button
+        mat-icon-button
+        ngxClipboard
+        [cbContent]="item.id"
+        (click)="$event.stopPropagation()"
+        title="Copy:  {{ item.id }}"
+        >
+        <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+      </button>
+      {{ item.name }}
     </td>
   </ng-container>
 
@@ -118,21 +113,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <ng-container matColumnDef="dateModified">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
     <td mat-cell *matCellDef="let item">
-      <div class="d-flex align-items-center">
-        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
-        @if (canEdit) {
-          <button
-            mat-icon-button
-            (click)="deleteModule(item); $event.stopPropagation()"
-            title="Delete Module"
-            >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-delete-forever-outline"
-            ></mat-icon>
-          </button>
-        }
-      </div>
+      {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
+      @if (canEdit) {
+        <button
+          mat-icon-button
+          (click)="deleteModule(item); $event.stopPropagation()"
+          title="Delete Module"
+          >
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-trash-can-outline"
+          ></mat-icon>
+        </button>
+      }
     </td>
   </ng-container>
 
@@ -140,12 +133,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
 
-@if (isLoading) {
-  <mat-card
-    appearance="outlined"
-    style="display: flex; justify-content: center; align-items: center"
-    >
-    <mat-progress-spinner color="primary" mode="indeterminate">
-    </mat-progress-spinner>
-  </mat-card>
-}
+  @if (isLoading) {
+    <mat-card
+      appearance="outlined"
+      style="display: flex; justify-content: center; align-items: center"
+      >
+      <mat-progress-spinner color="primary" mode="indeterminate">
+      </mat-progress-spinner>
+    </mat-card>
+  }
+</div>

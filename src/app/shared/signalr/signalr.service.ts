@@ -143,7 +143,9 @@ export class SignalRService {
 
   public leaveProject(projectId: string) {
     this.projectId = null;
-    this.hubConnection.invoke('LeaveProject', projectId);
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveProject', projectId);
+    }
   }
 
   public joinProjectAdmin(projectId: string) {
@@ -156,7 +158,9 @@ export class SignalRService {
 
   public leaveProjectAdmin(projectId: string) {
     this.projectAdminId = null;
-    this.hubConnection.invoke('LeaveProjectAdmin', projectId);
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveProjectAdmin', projectId);
+    }
   }
 
   public joinGroup(groupId: string) {
@@ -169,7 +173,9 @@ export class SignalRService {
 
   public leaveGroup(groupId: string) {
     this.groupId = null;
-    this.hubConnection.invoke('LeaveGroup', groupId);
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveGroup', groupId);
+    }
   }
 
   public joinWorkspace(workspaceId: string) {
@@ -182,7 +188,9 @@ export class SignalRService {
 
   public leaveWorkspace(workspaceId: string) {
     this.workspaceIds.delete(workspaceId);
-    this.hubConnection.invoke('LeaveWorkspace', workspaceId);
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveWorkspace', workspaceId);
+    }
   }
 
   public joinWorkspacesAdmin() {
@@ -195,7 +203,9 @@ export class SignalRService {
 
   public leaveWorkspacesAdmin() {
     this.joinedWorkspacesAdmin = false;
-    this.hubConnection.invoke('LeaveWorkspacesAdmin');
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveWorkspacesAdmin');
+    }
   }
 
   public joinDesign(designId: string) {
@@ -208,7 +218,9 @@ export class SignalRService {
 
   public leaveDesign(designId: string) {
     this.designIds.delete(designId);
-    this.hubConnection.invoke('LeaveDesign', designId);
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveDesign', designId);
+    }
   }
 
   public joinVlansAdmin() {
@@ -221,7 +233,9 @@ export class SignalRService {
 
   public leaveVlansAdmin() {
     this.joinedVlansAdmin = false;
-    this.hubConnection.invoke('LeaveVlansAdmin');
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveVlansAdmin');
+    }
   }
 
   public joinRolesAdmin() {
@@ -234,7 +248,9 @@ export class SignalRService {
 
   public leaveRolesAdmin() {
     this.joinedRolesAdmin = false;
-    this.hubConnection.invoke('LeaveRolesAdmin');
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveRolesAdmin');
+    }
   }
 
   public streamPlanOutput(planId: string) {

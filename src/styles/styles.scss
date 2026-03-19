@@ -3,6 +3,7 @@
 /* VENDOR IMPORTS */
 @use '@angular/material' as mat;
 @use './theme-colors' as theme;
+@use './dark-theme-colors' as dark-theme;
 @use '@mdi/font/scss/materialdesignicons.scss';
 
 @import '@fortawesome/fontawesome-free/css/all.css';
@@ -30,46 +31,27 @@
 @import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 /* END LOCAL IMPORTS */
 
-// .light-theme {
-//   @include mat.all-component-themes($light-theme);
-//   @include cwd-toolbar-theme($light-theme);
-//   @include globals($light-theme);
-// }
-
-// .dark-theme {
-//   @include mat.all-component-themes($dark-theme);
-//   @include cwd-toolbar-theme($dark-theme);
-//   @include globals($dark-theme);
-// }
+.elevate {
+  @include mat.elevation(5);
+}
 
 html {
-  @include mat.theme(
-    (
-      color: theme.$primary-palette,
+  @include mat.theme((color: theme.$primary-palette,
       typography: '"Open Sans", sans-serif',
-    )
-  );
-  @include mat.icon-button-overrides(
-    (
-      icon-color: var(--mat-sys-primary),
-    )
-  );
+    ));
+  @include mat.icon-button-overrides((icon-color: var(--mat-sys-primary),
+    ));
 }
 
 .darkMode {
-  @include mat.theme(
-    (
-      color: (
-        primary: theme.$primary-palette,
+  @include mat.theme((color: (primary: dark-theme.$dark-primary-palette,
         typography: '"Open Sans", sans-serif',
         theme-type: dark,
       ),
-    )
-  );
+    ));
 }
 
 body {
-  height: calc(100vh - 40px);
   margin: 0;
   font-family: 'Open Sans', sans-serif;
 }
@@ -80,10 +62,15 @@ body {
 
 // prevent table header rows from scrolling
 .mat-mdc-header-row {
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0;
   z-index: 9 !important;
+}
+
+.mat-mdc-table .mat-mdc-header-cell {
+  background-color: var(--mat-sys-surface) !important;
+}
+
+.element-row:hover td {
+  background-color: var(--mat-sys-surface-variant);
 }
 
 // support color="warn" on icon buttons
@@ -110,8 +97,3 @@ mat-paginator {
   min-width: 200px !important;
 }
 
-// Allow tab body content to scroll in project tabs
-cas-project-tab .mat-mdc-tab-body-content {
-  overflow-y: auto !important;
-  max-height: calc(100vh - 126px);
-}

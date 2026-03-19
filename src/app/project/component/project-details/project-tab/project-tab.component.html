@@ -4,7 +4,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 @if (showTabs) {
-  <div>
+  <div class="h-100">
     <mat-tab-group
       dynamicHeight
       animationDuration="0ms"
@@ -21,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </ng-template>
           <ng-template matTabContent>
             @if (tab.type === tabType.FILE) {
-              <span>
+              <div class="h-100">
                 <cas-editor
                   [fileId]="tab.id"
                   [modules]="modules$ | async"
@@ -36,7 +36,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   (sidenavWidthChanged)="sidebarWidthChangedFn($event)"
                   >
                 </cas-editor>
-              </span>
+              </div>
             }
             @if (tab.type === tabType.WORKSPACE) {
               <cas-workspace-container

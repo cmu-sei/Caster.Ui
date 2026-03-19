@@ -9,24 +9,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
   <mat-toolbar-row>
     <span class="margin-auto">
-      @if (sidenav && sidenav?.opened) {
-        <button
-          (click)="sidenavToggleFn()"
-          mat-icon-button
-          matTooltip="Close Sidebar"
-          >
-          <mat-icon fontIcon="mdi-chevron-left"></mat-icon>
-        </button>
-      }
-      @if (sidenav && !sidenav?.opened) {
-        <button
-          (click)="sidenavToggleFn()"
-          mat-icon-button
-          matTooltip="Open Sidebar"
-          >
-          <mat-icon fontIcon="mdi-chevron-right"></mat-icon>
-        </button>
-      }
+      <a mat-icon-button style="outline: none; background-color: var(--mat-sys-on-primary);" [routerLink]="['/']">
+        <mat-icon svgIcon="ic_crucible_caster"></mat-icon>
+      </a>
     </span>
     <span class="view-text">{{ title }}</span>
     <span class="spacer"></span>
@@ -36,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
         <button mat-button class="menu-trigger" [matMenuTriggerFor]="menu" style="outline: none">
           <strong>{{ currentUser.name }}</strong>
-          <mat-icon svgIcon="ic_expand_more_white_24px"></mat-icon>
+          <mat-icon aria-hidden="false" class="menu-trigger" fontIcon="mdi-chevron-down"></mat-icon>
         </button>
         <mat-menu #menu="matMenu" [overlapTrigger]="false">
           @if (projectId && (canManageProject$ | async)) {

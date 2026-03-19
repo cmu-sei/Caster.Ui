@@ -11,129 +11,78 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [(opened)]="isSidebarOpen"
     >
     @if (permissions$ | async; as permissions) {
+      <mat-toolbar class="sidenav-header" title="Exit Administration" [routerLink]="['/']">
+        <a class="nolink" [routerLink]="['/']">
+          <div class="cssLayoutRowStartCenter">
+            <mat-icon class="icon-35px caster-icon-header" svgIcon="ic_crucible_caster"></mat-icon>
+            <h2 class="icon-text">Administration</h2>
+          </div>
+        </a>
+      </mat-toolbar>
       <mat-list
         class="appitems-container"
         >
-        <mat-list-item class="appslist">
-          <a class="nolink" [routerLink]="['/']">
-            <div class="d-flex flex-row justify-content-start align-items-center">
-              <mat-icon
-                class="caster-icon"
-                svgIcon="ic_crucible_caster"
-              ></mat-icon>
-              <h2 class="icon-text">Administration</h2>
-            </div>
-          </a>
-          <mat-divider></mat-divider>
-        </mat-list-item>
-        @if (permissions.includes(SystemPermission.ViewProjects)) {
-          <mat-list-item
-            >
-            <div class="showhand" id="wrapper" (click)="adminGotoProjects()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-notebook"></mat-icon>
-              </div>
-              <div id="content">{{ projectsText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
-          </mat-list-item>
-        }
-        @if (permissions.includes(SystemPermission.ViewUsers)) {
-          <mat-list-item>
-            <div class="showhand" id="wrapper" (click)="adminGotoUsers()">
-              <div id="lefticon">
-                <mat-icon
-                  class="mdi-24px"
-                  fontIcon="mdi-account-multiple"
-                ></mat-icon>
-              </div>
-              <div id="content">{{ usersText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
-          </mat-list-item>
-        }
-        @if (permissions.includes(SystemPermission.ViewModules)) {
-          <mat-list-item>
-            <div class="showhand" id="wrapper" (click)="adminGotoModules()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-view-module"></mat-icon>
-              </div>
-              <div id="content">{{ modulesText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
+        @if (permissions.includes(SystemPermission.ManageProjects)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoProjects()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-notebook"></mat-icon>
+            {{ projectsText }}
+            <button aria-labelledby="projectsText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewWorkspaces)) {
-          <mat-list-item
-            >
-            <div class="showhand" id="wrapper" (click)="adminGotoWorkspaces()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-briefcase"></mat-icon>
-              </div>
-              <div id="content">{{ workspacesText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
+          <mat-list-item id="wrapper showhand" (click)="adminGotoWorkspaces()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-briefcase"></mat-icon>
+            {{ workspacesText }}
+            <button aria-labelledby="workspacesText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewVlans)) {
-          <mat-list-item>
-            <div class="showhand" id="wrapper" (click)="adminGotoVlans()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-lan"></mat-icon>
-              </div>
-              <div id="content">{{ vlansText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
+          <mat-list-item id="wrapper showhand" (click)="adminGotoVlans()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-lan"></mat-icon>
+            {{ vlansText }}
+            <button aria-labelledby="vlansText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewModules)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoModules()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-view-module"></mat-icon>
+            {{ modulesText }}
+            <button aria-labelledby="modulesText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewUsers)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoUsers()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-account-multiple"></mat-icon>
+            {{ usersText }}
+            <button aria-labelledby="usersText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewRoles)) {
-          <mat-list-item>
-            <div class="showhand" id="wrapper" (click)="adminGotoRoles()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-lock"></mat-icon>
-              </div>
-              <div id="content">{{ rolesText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
+          <mat-list-item id="wrapper showhand" (click)="adminGotoRoles()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-lock"></mat-icon>
+            {{ rolesText }}
+            <button aria-labelledby="rolesText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewGroups)) {
-          <mat-list-item>
-            <div class="showhand" id="wrapper" (click)="adminGotoGroups()">
-              <div id="lefticon">
-                <mat-icon class="mdi-24px" fontIcon="mdi-account-group"></mat-icon>
-              </div>
-              <div id="content">{{ groupsText }}</div>
-              <div class="pull-right" id="rightcontext">
-                <button mat-icon-button style="outline: none">
-                  <mat-icon class="mdi-24px" fontIcon="mdi-menu-right"></mat-icon>
-                </button>
-              </div>
-            </div>
+          <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
+            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-account-group"></mat-icon>
+            {{ groupsText }}
+            <button aria-labelledby="groupsText" mat-icon-button class="pull-right">
+              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            </button>
           </mat-list-item>
         }
       </mat-list>
@@ -158,13 +107,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     ></cas-topbar>
     @if (permissions$ | async; as permissions) {
       <span>
-        @if (
-          showStatus === projectsText &&
-          permissions.includes(SystemPermission.ViewProjects)
-          ) {
-          <cas-admin-projects
-          ></cas-admin-projects>
-        }
         @if (
           showStatus === usersText &&
           permissions.includes(SystemPermission.ViewUsers)
@@ -206,6 +148,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           ) {
           <cas-admin-groups
           ></cas-admin-groups>
+        }
+        @if (
+          showStatus === projectsText &&
+          permissions.includes(SystemPermission.ManageProjects)
+          ) {
+          <cas-admin-projects
+          ></cas-admin-projects>
         }
       </span>
     }
