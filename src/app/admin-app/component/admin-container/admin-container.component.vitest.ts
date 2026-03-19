@@ -15,7 +15,7 @@ import { of } from 'rxjs';
 import { RouterQuery } from '@datorama/akita-ng-router-store';
 
 const allViewPermissions = [
-  SystemPermission.ViewProjects,
+  SystemPermission.ManageProjects,
   SystemPermission.ViewUsers,
   SystemPermission.ViewModules,
   SystemPermission.ViewWorkspaces,
@@ -103,7 +103,9 @@ describe('AdminContainerComponent', () => {
   });
 
   it('should show only Users when user has ViewUsers', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewUsers]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewUsers,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
@@ -117,7 +119,9 @@ describe('AdminContainerComponent', () => {
   });
 
   it('should show only Modules when user has ViewModules', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewModules]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewModules,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
@@ -127,7 +131,9 @@ describe('AdminContainerComponent', () => {
   });
 
   it('should show only VLANs when user has ViewVlans', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewVlans]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewVlans,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
@@ -137,7 +143,9 @@ describe('AdminContainerComponent', () => {
   });
 
   it('should show only Roles when user has ViewRoles', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewRoles]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewRoles,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
@@ -147,7 +155,9 @@ describe('AdminContainerComponent', () => {
   });
 
   it('should show only Groups when user has ViewGroups', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewGroups]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewGroups,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
@@ -161,10 +171,18 @@ describe('AdminContainerComponent', () => {
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
-    const items = ['Users', 'Modules', 'Workspaces', 'VLANs', 'Roles', 'Groups', 'Projects'];
+    const items = [
+      'Users',
+      'Modules',
+      'Workspaces',
+      'VLANs',
+      'Roles',
+      'Groups',
+      'Projects',
+    ];
     items.forEach((item) => {
       const el = sidenavScope.getByText(item);
-      expect(el.closest('.showhand')).toBeInTheDocument();
+      expect(el.closest('mat-list-item')).toBeInTheDocument();
     });
   });
 
@@ -172,28 +190,38 @@ describe('AdminContainerComponent', () => {
     const { container } = await renderAdminContainer(allViewPermissions);
 
     expect(
-      container.querySelectorAll('.showhand mat-icon[fontIcon="mdi-menu-right"]')
+      container.querySelectorAll(
+        'mat-list-item mat-icon[fontIcon="mdi-menu-right"]'
+      )
     ).toHaveLength(7);
   });
 
   it('should display correct icon for Users menu item', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewUsers]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewUsers,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
     const usersEl = sidenavScope.getByText('Users');
-    const showhand = usersEl.closest('.showhand');
-    expect(showhand.querySelector('mat-icon[fontIcon="mdi-account-multiple"]')).toBeInTheDocument();
+    const listItem = usersEl.closest('mat-list-item');
+    expect(
+      listItem.querySelector('mat-icon[fontIcon="mdi-account-multiple"]')
+    ).toBeInTheDocument();
   });
 
   it('should display correct icon for Modules menu item', async () => {
-    const { container } = await renderAdminContainer([SystemPermission.ViewModules]);
+    const { container } = await renderAdminContainer([
+      SystemPermission.ViewModules,
+    ]);
     const sidenav = getSidenav(container);
     const sidenavScope = within(sidenav);
 
     const modulesEl = sidenavScope.getByText('Modules');
-    const showhand = modulesEl.closest('.showhand');
-    expect(showhand.querySelector('mat-icon[fontIcon="mdi-view-module"]')).toBeInTheDocument();
+    const listItem = modulesEl.closest('mat-list-item');
+    expect(
+      listItem.querySelector('mat-icon[fontIcon="mdi-view-module"]')
+    ).toBeInTheDocument();
   });
 
   it('should show Administration heading in sidebar', async () => {
@@ -205,6 +233,8 @@ describe('AdminContainerComponent', () => {
   it('should start with sidebar open', async () => {
     const { container } = await renderAdminContainer(allViewPermissions);
 
-    expect(container.querySelector('mat-sidenav')).toHaveClass('mat-drawer-opened');
+    expect(container.querySelector('mat-sidenav')).toHaveClass(
+      'mat-drawer-opened'
+    );
   });
 });

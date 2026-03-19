@@ -223,14 +223,16 @@ describe('AdminModuleListComponent', () => {
   });
 
   it('should show Add/Update section when canEdit is true', async () => {
-    await renderModuleList({
+    const { container } = await renderModuleList({
       modules: mockModules,
       isLoading: false,
       canEdit: true,
       dataSource: moduleDataSource(mockModules),
     });
 
-    expect(screen.getByText(/Add\/Update Modules/)).toBeInTheDocument();
+    expect(
+      container.querySelector('input[placeholder="External Module ID"]')
+    ).toBeInTheDocument();
   });
 
   it('should hide Add/Update section when canEdit is false', async () => {

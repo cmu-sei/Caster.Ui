@@ -119,7 +119,7 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'Alpha');
 
@@ -136,13 +136,13 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'Alpha');
     expect(screen.queryByText('Beta Project')).not.toBeInTheDocument();
 
     const clearButton = container.querySelector(
-      'button[aria-label="Clear"]'
+      'button[title="Clear Search"]'
     ) as HTMLButtonElement;
     await userEvent.click(clearButton);
 
@@ -159,7 +159,7 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'alpha');
 
@@ -175,7 +175,7 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'eta');
 
@@ -192,13 +192,11 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'zzz_nothing');
 
-    expect(
-      screen.getByText(/No data matching the filter/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No data matching the filter/)).toBeInTheDocument();
     expect(screen.queryByText('Alpha Project')).not.toBeInTheDocument();
   });
 
@@ -210,7 +208,7 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'Project');
 
@@ -266,9 +264,7 @@ describe('ProjectListComponent', () => {
       providers: [permissionProvider([])],
     });
 
-    expect(
-      container.querySelector('button[matTooltip="Rename"]')
-    ).toBeNull();
+    expect(container.querySelector('button[matTooltip="Rename"]')).toBeNull();
   });
 
   it('should show delete button per project with ManageProjects permission', async () => {
@@ -283,7 +279,7 @@ describe('ProjectListComponent', () => {
       container.querySelectorAll('button[matTooltip="Rename"]')
     ).toHaveLength(mockProjects.length);
     expect(
-      container.querySelectorAll('mat-icon[fontIcon="fa-trash"]')
+      container.querySelectorAll('mat-icon[fontIcon="mdi-trash-can-outline"]')
     ).toHaveLength(mockProjects.length);
   });
 
@@ -294,9 +290,7 @@ describe('ProjectListComponent', () => {
       dataSource: projectDataSource(mockProjects),
     });
 
-    expect(
-      container.querySelector('button[aria-label="Clear"]')
-    ).toBeNull();
+    expect(container.querySelector('button[title="Clear Search"]')).toBeNull();
   });
 
   it('should show clear button when filter has text', async () => {
@@ -307,12 +301,12 @@ describe('ProjectListComponent', () => {
     });
 
     const input = container.querySelector(
-      'input[placeholder="Search Projects"]'
+      'input[placeholder="Search"]'
     ) as HTMLInputElement;
     await userEvent.type(input, 'Alpha');
 
     expect(
-      container.querySelector('button[aria-label="Clear"]')
+      container.querySelector('button[title="Clear Search"]')
     ).toBeInTheDocument();
   });
 

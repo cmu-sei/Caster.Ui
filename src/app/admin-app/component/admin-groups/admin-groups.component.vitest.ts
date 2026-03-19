@@ -96,7 +96,9 @@ describe('AdminGroupsComponent', () => {
   it('should filter groups by name', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    const input = container.querySelector('input[placeholder="Search Groups"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search Groups"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'Security');
     expect(screen.getByText('Security Team')).toBeInTheDocument();
     expect(screen.queryByText('Operations Group')).not.toBeInTheDocument();
@@ -106,7 +108,9 @@ describe('AdminGroupsComponent', () => {
   it('should filter groups case-insensitively', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    const input = container.querySelector('input[placeholder="Search Groups"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search Groups"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'operations');
     expect(screen.getByText('Operations Group')).toBeInTheDocument();
     expect(screen.queryByText('Security Team')).not.toBeInTheDocument();
@@ -115,7 +119,9 @@ describe('AdminGroupsComponent', () => {
   it('should filter groups by partial match', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    const input = container.querySelector('input[placeholder="Search Groups"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search Groups"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'Squad');
     expect(screen.getByText('Development Squad')).toBeInTheDocument();
     expect(screen.queryByText('Security Team')).not.toBeInTheDocument();
@@ -125,7 +131,9 @@ describe('AdminGroupsComponent', () => {
   it('should show no rows when search has no match', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    const input = container.querySelector('input[placeholder="Search Groups"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search Groups"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'zzz_no_match');
     expect(screen.queryByText('Security Team')).not.toBeInTheDocument();
     expect(screen.queryByText('Operations Group')).not.toBeInTheDocument();
@@ -135,11 +143,15 @@ describe('AdminGroupsComponent', () => {
   it('should clear search and restore all groups', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    const input = container.querySelector('input[placeholder="Search Groups"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search Groups"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'Security');
     expect(screen.queryByText('Operations Group')).not.toBeInTheDocument();
 
-    const clearButton = container.querySelector('button[aria-label="Clear"]') as HTMLButtonElement;
+    const clearButton = container.querySelector(
+      'button[aria-label="Clear"]'
+    ) as HTMLButtonElement;
     await userEvent.click(clearButton);
     expect(screen.getByText('Security Team')).toBeInTheDocument();
     expect(screen.getByText('Operations Group')).toBeInTheDocument();
@@ -149,13 +161,19 @@ describe('AdminGroupsComponent', () => {
   it('should show Add New Group button when canEdit', async () => {
     const { container } = await renderAdminGroups(mockGroups, true);
 
-    expect(container.querySelector('button[matTooltip="Add New Group"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('button[matTooltip="Add New Group"]')
+    ).toBeInTheDocument();
   });
 
-  it('should hide Add New Group button without permission', async () => {
+  it('should disable Add New Group button without permission', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    expect(container.querySelector('button[matTooltip="Add New Group"]')).toBeNull();
+    const btn = container.querySelector(
+      'button[matTooltip="Add New Group"]'
+    ) as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    expect(btn.disabled).toBe(true);
   });
 
   it('should show Group Name header', async () => {
@@ -167,12 +185,18 @@ describe('AdminGroupsComponent', () => {
   it('should show delete and rename buttons per group when canEdit', async () => {
     const { container } = await renderAdminGroups(mockGroups, true);
 
-    expect(container.querySelectorAll('button[matTooltip="Rename"]')).toHaveLength(mockGroups.length);
+    expect(
+      container.querySelectorAll('button[matTooltip="Rename"]')
+    ).toHaveLength(mockGroups.length);
   });
 
-  it('should hide delete and rename buttons without permission', async () => {
+  it('should disable delete and rename buttons without permission', async () => {
     const { container } = await renderAdminGroups(mockGroups, false);
 
-    expect(container.querySelector('button[matTooltip="Rename"]')).toBeNull();
+    const renameBtn = container.querySelector(
+      'button[matTooltip="Rename"]'
+    ) as HTMLButtonElement;
+    expect(renameBtn).toBeTruthy();
+    expect(renameBtn.disabled).toBe(true);
   });
 });

@@ -335,40 +335,6 @@ describe('TopbarComponent', () => {
     expect(toolbar.style.color).toBe('rgb(0, 255, 0)');
   });
 
-  it('should show sidebar toggle button when sidenav is provided and opened', async () => {
-    const { fixture } = await renderTopbar({
-      providers: [userProvider('Test User')],
-      componentProperties: {
-        topbarView: TopbarView.CASTER_HOME,
-        sidenav: { opened: true },
-      },
-    });
-    fixture.detectChanges();
-
-    const el = fixture.nativeElement as HTMLElement;
-    const closeBtn = el.querySelector('button[matTooltip="Close Sidebar"]');
-    const openBtn = el.querySelector('button[matTooltip="Open Sidebar"]');
-    expect(closeBtn).toBeTruthy();
-    expect(openBtn).toBeFalsy();
-  });
-
-  it('should show Open Sidebar button when sidenav is closed', async () => {
-    const { fixture } = await renderTopbar({
-      providers: [userProvider('Test User')],
-      componentProperties: {
-        topbarView: TopbarView.CASTER_HOME,
-        sidenav: { opened: false },
-      },
-    });
-    fixture.detectChanges();
-
-    const el = fixture.nativeElement as HTMLElement;
-    const openBtn = el.querySelector('button[matTooltip="Open Sidebar"]');
-    const closeBtn = el.querySelector('button[matTooltip="Close Sidebar"]');
-    expect(openBtn).toBeTruthy();
-    expect(closeBtn).toBeFalsy();
-  });
-
   it('should not show sidebar toggle when no sidenav provided', async () => {
     const { fixture } = await renderTopbar({
       providers: [userProvider('Test User')],

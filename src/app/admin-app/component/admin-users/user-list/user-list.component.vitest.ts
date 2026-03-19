@@ -105,10 +105,12 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    expect(container.querySelector('button[matTooltip="Add User"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('button[title="Add User"]')
+    ).toBeInTheDocument();
   });
 
-  it('should hide Add User button when canEdit is false', async () => {
+  it('should disable Add User button when canEdit is false', async () => {
     const { container } = await renderUserList({
       users: mockUsers,
       isLoading: false,
@@ -116,7 +118,11 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    expect(container.querySelector('button[matTooltip="Add User"]')).toBeNull();
+    const btn = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    expect(btn.disabled).toBe(true);
   });
 
   it('should show add user form when Add button clicked', async () => {
@@ -127,11 +133,17 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    expect(container.querySelector('input[placeholder="User ID"]')).toBeVisible();
-    expect(container.querySelector('input[placeholder="User Name"]')).toBeVisible();
+    expect(
+      container.querySelector('input[placeholder="User ID"]')
+    ).toBeVisible();
+    expect(
+      container.querySelector('input[placeholder="User Name"]')
+    ).toBeVisible();
   });
 
   it('should disable submit when name is too short', async () => {
@@ -142,15 +154,23 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const idInput = container.querySelector('input[placeholder="User ID"]') as HTMLInputElement;
-    const nameInput = container.querySelector('input[placeholder="User Name"]') as HTMLInputElement;
+    const idInput = container.querySelector(
+      'input[placeholder="User ID"]'
+    ) as HTMLInputElement;
+    const nameInput = container.querySelector(
+      'input[placeholder="User Name"]'
+    ) as HTMLInputElement;
     await userEvent.type(idInput, '12345678-1234-1234-1234-123456789abc');
     await userEvent.type(nameInput, 'Ab');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(true);
   });
@@ -163,15 +183,23 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const idInput = container.querySelector('input[placeholder="User ID"]') as HTMLInputElement;
-    const nameInput = container.querySelector('input[placeholder="User Name"]') as HTMLInputElement;
+    const idInput = container.querySelector(
+      'input[placeholder="User ID"]'
+    ) as HTMLInputElement;
+    const nameInput = container.querySelector(
+      'input[placeholder="User Name"]'
+    ) as HTMLInputElement;
     await userEvent.type(idInput, '12345678-1234-1234-1234-123456789abc');
     await userEvent.type(nameInput, 'Valid Name');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(false);
   });
@@ -184,7 +212,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const input = container.querySelector('input[placeholder="Search"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'Alice');
     expect(screen.getByText('Alice Smith')).toBeInTheDocument();
     expect(screen.queryByText('Bob Jones')).not.toBeInTheDocument();
@@ -199,7 +229,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const input = container.querySelector('input[placeholder="Search"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'u2-guid');
     expect(screen.getByText('Bob Jones')).toBeInTheDocument();
     expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument();
@@ -214,7 +246,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const input = container.querySelector('input[placeholder="Search"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'charlie');
     expect(screen.getByText('Charlie Brown')).toBeInTheDocument();
     expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument();
@@ -228,7 +262,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const input = container.querySelector('input[placeholder="Search"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'zzz_no_match');
     expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument();
     expect(screen.queryByText('Bob Jones')).not.toBeInTheDocument();
@@ -243,11 +279,15 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const input = container.querySelector('input[placeholder="Search"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[placeholder="Search"]'
+    ) as HTMLInputElement;
     await userEvent.type(input, 'Alice');
     expect(screen.queryByText('Bob Jones')).not.toBeInTheDocument();
 
-    const clearButton = container.querySelector('button[aria-label="Clear"]') as HTMLButtonElement;
+    const clearButton = container.querySelector(
+      'button[aria-label="Clear"]'
+    ) as HTMLButtonElement;
     await userEvent.click(clearButton);
     expect(screen.getByText('Alice Smith')).toBeInTheDocument();
     expect(screen.getByText('Bob Jones')).toBeInTheDocument();
@@ -262,7 +302,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    expect(container.querySelectorAll('button[title="Delete User"]')).toHaveLength(mockUsers.length);
+    expect(
+      container.querySelectorAll('button[title="Delete User"]')
+    ).toHaveLength(mockUsers.length);
   });
 
   it('should cancel add user form when cancel button clicked', async () => {
@@ -273,11 +315,17 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
-    expect(container.querySelector('input[placeholder="User ID"]')).toBeVisible();
+    expect(
+      container.querySelector('input[placeholder="User ID"]')
+    ).toBeVisible();
 
-    const cancelButton = container.querySelector('button[matTooltip="Cancel"]') as HTMLButtonElement;
+    const cancelButton = container.querySelector(
+      'button[matTooltip="Cancel"]'
+    ) as HTMLButtonElement;
     await userEvent.click(cancelButton);
     expect(container.querySelector('input[placeholder="User ID"]')).toBeNull();
   });
@@ -325,7 +373,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    expect(container.querySelectorAll('table mat-select')).toHaveLength(mockUsers.length);
+    expect(container.querySelectorAll('table mat-select')).toHaveLength(
+      mockUsers.length
+    );
   });
 
   it('should disable submit when only ID is filled', async () => {
@@ -336,13 +386,19 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const idInput = container.querySelector('input[placeholder="User ID"]') as HTMLInputElement;
+    const idInput = container.querySelector(
+      'input[placeholder="User ID"]'
+    ) as HTMLInputElement;
     await userEvent.type(idInput, '12345678-1234-1234-1234-123456789abc');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(true);
   });
@@ -355,13 +411,19 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const nameInput = container.querySelector('input[placeholder="User Name"]') as HTMLInputElement;
+    const nameInput = container.querySelector(
+      'input[placeholder="User Name"]'
+    ) as HTMLInputElement;
     await userEvent.type(nameInput, 'Valid Name');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(true);
   });
@@ -374,15 +436,23 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const idInput = container.querySelector('input[placeholder="User ID"]') as HTMLInputElement;
-    const nameInput = container.querySelector('input[placeholder="User Name"]') as HTMLInputElement;
+    const idInput = container.querySelector(
+      'input[placeholder="User ID"]'
+    ) as HTMLInputElement;
+    const nameInput = container.querySelector(
+      'input[placeholder="User Name"]'
+    ) as HTMLInputElement;
     await userEvent.type(idInput, '12345678-1234-1234-1234-123456789abc');
     await userEvent.type(nameInput, 'Abc');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(true);
   });
@@ -395,15 +465,23 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    const addButton = container.querySelector('button[matTooltip="Add User"]') as HTMLButtonElement;
+    const addButton = container.querySelector(
+      'button[title="Add User"]'
+    ) as HTMLButtonElement;
     await userEvent.click(addButton);
 
-    const idInput = container.querySelector('input[placeholder="User ID"]') as HTMLInputElement;
-    const nameInput = container.querySelector('input[placeholder="User Name"]') as HTMLInputElement;
+    const idInput = container.querySelector(
+      'input[placeholder="User ID"]'
+    ) as HTMLInputElement;
+    const nameInput = container.querySelector(
+      'input[placeholder="User Name"]'
+    ) as HTMLInputElement;
     await userEvent.type(idInput, '12345678-1234-1234-1234-123456789abc');
     await userEvent.type(nameInput, 'Abcd');
 
-    const submitIcon = container.querySelector('mat-icon[matTooltip="Add this user"]');
+    const submitIcon = container.querySelector(
+      'mat-icon[matTooltip="Add this user"]'
+    );
     const submitButton = submitIcon?.closest('button') as HTMLButtonElement;
     expect(submitButton.disabled).toBe(false);
   });
@@ -416,7 +494,9 @@ describe('UserListComponent', () => {
       dataSource: userDataSource(mockUsers),
     });
 
-    expect(container.querySelectorAll('button[title^="Copy:"]')).toHaveLength(mockUsers.length);
+    expect(container.querySelectorAll('button[title^="Copy:"]')).toHaveLength(
+      mockUsers.length
+    );
   });
 
   it('should hide delete buttons when canEdit is false', async () => {
