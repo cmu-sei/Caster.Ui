@@ -4,6 +4,33 @@ Caster is the primary deployment component of the Crucible framework. Caster is 
 
 For more information on native Terraform constructs used in Caster, please refer to the [Terraform documentation](https://www.terraform.io/docs/index.html).
 
+## Running unit tests
+
+Caster UI uses **Vitest** with `@testing-library/angular`. Test files use the `.vitest.ts` extension.
+
+```bash
+npm test                    # Run all tests (jsdom, fast)
+npm run test:watch          # Watch mode
+npm run test:coverage       # With coverage report
+npm run test:browser        # Run in headless Chromium via Playwright
+```
+
+### Permission Tests
+
+Caster has the most comprehensive permission test suite covering 21 system permissions and 5 project permissions:
+
+| File | Coverage |
+|------|----------|
+| `src/app/test-utils/mock-permission.service.ts` | `permissionProvider(systemPerms, projectPerms)` factory |
+| `src/app/permissions/permission.service.vitest.ts` | All `SystemPermission` and `ProjectPermission` values, hierarchy, `canEditProject/canManageProject/canAdminLockProject()` |
+| `src/app/project/component/project-details/project-navigation-container/project-navigation-container.component.vitest.ts` | `EditProject` permission gates "Add Directory"; project-level perm only grants for matching project ID |
+| `src/app/project/component/project-memberships/project-memberships-page/project-memberships-page.component.vitest.ts` | `ManageProject` permission, `loadProjectPermissions()` called with correct project ID |
+
+Key patterns tested:
+- `SystemPermission.EditProjects` grants edit access to all projects
+- `ProjectPermission.EditProject` only grants edit access to the specific project
+- Export/Import Project are not permission-gated (always visible)
+
 ## Reporting bugs and requesting features
 
 Think you found a bug? Please report all Crucible bugs - including bugs for the individual Crucible apps - in the [cmu-sei/crucible issue tracker](https://github.com/cmu-sei/crucible/issues).
