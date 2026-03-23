@@ -144,6 +144,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private resetOutput() {
+    this.output = '';
     this.xterm.clear();
   }
 
@@ -194,6 +195,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
       }
       case RunStatus.Failed: {
         if (
+          this.status === RunStatus.Planning ||
           this.status === RunStatus.Applying ||
           this.status === RunStatus.FailedStateError
         ) {
