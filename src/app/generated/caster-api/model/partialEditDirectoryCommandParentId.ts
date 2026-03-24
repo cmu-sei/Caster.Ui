@@ -11,10 +11,13 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
-}
+/**
+ * Id of the directory that will be the parent of this directory
+ */
+/**
+ * @type PartialEditDirectoryCommandParentId
+ * Id of the directory that will be the parent of this directory
+ * @export
+ */
+export type PartialEditDirectoryCommandParentId = any | string;
 

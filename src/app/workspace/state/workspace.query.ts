@@ -140,6 +140,7 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
       RunStatus.Queued,
       RunStatus.Planning,
       RunStatus.Applying,
+      RunStatus.ApplyQueued,
     ];
 
     return this.selectAll().pipe(

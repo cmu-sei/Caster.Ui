@@ -11,10 +11,9 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
+export interface QueuePosition { 
+    itemId?: string;
+    workspaceId?: string;
+    position?: number;
 }
 

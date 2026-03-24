@@ -11,10 +11,13 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
-}
+/**
+ * An optional Workspace to assign this File to.
+ */
+/**
+ * @type PartialEditFileCommandWorkspaceId
+ * An optional Workspace to assign this File to.
+ * @export
+ */
+export type PartialEditFileCommandWorkspaceId = any | string;
 

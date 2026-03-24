@@ -1,8 +1,3 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 export * from './acquireVlanCommand';
 export * from './addOrUpdateValuesDesignModuleCommand';
 export * from './addVlansToPartitionCommand';
@@ -63,11 +58,17 @@ export * from './moduleValue';
 export * from './moduleVariable';
 export * from './moduleVersion';
 export * from './partialEditDirectoryCommand';
+export * from './partialEditDirectoryCommandAzureDestroyFailureThreshold';
+export * from './partialEditDirectoryCommandParallelism';
+export * from './partialEditDirectoryCommandParentId';
 export * from './partialEditFileCommand';
+export * from './partialEditFileCommandWorkspaceId';
 export * from './partialEditPartitionCommand';
 export * from './partialEditPoolCommand';
 export * from './partialEditVlanCommand';
 export * from './partialEditWorkspaceCommand';
+export * from './partialEditWorkspaceCommandAzureDestroyFailureThreshold';
+export * from './partialEditWorkspaceCommandParallelism';
 export * from './partition';
 export * from './plan';
 export * from './planStatus';
@@ -78,6 +79,7 @@ export * from './projectMembership';
 export * from './projectPermission';
 export * from './projectPermissionsClaim';
 export * from './projectRole';
+export * from './queuePosition';
 export * from './reassignVlansCommand';
 export * from './removeResourcesCommand';
 export * from './removeVlansFromPartitionCommand';

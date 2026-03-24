@@ -397,6 +397,7 @@ export class WorkspaceContainerComponent
         run.status === RunStatus.Planning ||
         run.status === RunStatus.Planned ||
         run.status === RunStatus.Applying ||
+        run.status === RunStatus.ApplyQueued ||
         run.status === RunStatus.AppliedStateError ||
         run.status === RunStatus.FailedStateError
       ) {
