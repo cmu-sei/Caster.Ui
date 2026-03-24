@@ -423,7 +423,9 @@ export class WorkspaceContainerComponent
   isCancelable(run?: Run) {
     return (
       this.hasStatus(RunStatus.Planning, run) ||
-      this.hasStatus(RunStatus.Applying, run)
+      this.hasStatus(RunStatus.Applying, run) ||
+      this.hasStatus(RunStatus.Queued, run) ||
+      this.hasStatus(RunStatus.ApplyQueued, run)
     );
   }
 
