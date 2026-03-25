@@ -16,13 +16,16 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export type PlanStatus = 'Queued' | 'Failed' | 'Rejected' | 'Planning' | 'Planned';
+export type PlanStatus = 'Queued' | 'Failed' | 'Rejected' | 'Planning' | 'Planned' | 'Initializing' | 'PrePlanning' | 'PostPlanning';
 
 export const PlanStatus = {
     Queued: 'Queued' as PlanStatus,
     Failed: 'Failed' as PlanStatus,
     Rejected: 'Rejected' as PlanStatus,
     Planning: 'Planning' as PlanStatus,
-    Planned: 'Planned' as PlanStatus
+    Planned: 'Planned' as PlanStatus,
+    Initializing: 'Initializing' as PlanStatus,
+    PrePlanning: 'PrePlanning' as PlanStatus,
+    PostPlanning: 'PostPlanning' as PlanStatus
 };
 

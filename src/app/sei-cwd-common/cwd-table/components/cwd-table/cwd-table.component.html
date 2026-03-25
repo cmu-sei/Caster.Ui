@@ -50,7 +50,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-mdc-table">
   <section matSort class="mat-elevation-z2 mat-mdc-header-row">
     @for (label of displayedColumns; track label; let idx = $index) {
-      <div class="mat-mdc-header-cell" [mat-sort-header]="label">{{ label }}</div>
+      <div class="mat-mdc-header-cell" [mat-sort-header]="label">{{ columnLabels[label] || label }}</div>
     }
   </section>
   @for (item of displayedRows$ | async; track trackByFn.bind(this)($index, item)) {

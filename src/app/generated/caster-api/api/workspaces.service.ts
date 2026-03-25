@@ -248,7 +248,7 @@ export class WorkspacesService {
     }
 
     /**
-     * Disable Workspace locking globally. Can only be accessed by a System Administrator.  Use before taking the application down for maintenance and ensure no Workspace operations are in progress.
+     * Disable Workspace locking globally. Can only be accessed by a System Administrator. Use before taking the application down for maintenance and ensure no Workspace operations are in progress.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
