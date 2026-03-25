@@ -26,15 +26,15 @@ export interface Resource {
      */
     name?: string | null;
     /**
-     * The Terraform identifier for the type of this Resource.  e.g. vsphere_virtual_machine, vsphere_virtual_network, etc
+     * The Terraform identifier for the type of this Resource. e.g. vsphere_virtual_machine, vsphere_virtual_network, etc
      */
     type?: string | null;
     /**
-     * The Terraform Resource Address that references this Resource\'s Base Resource.  If this Resource was created with count > 1, using the Base Address as a target  will target all of the resources created from it.  BaseAddress will be null if the Resource was created with count = 1.
+     * The Terraform Resource Address that references this Resource\'s Base Resource. If this Resource was created with count > 1, using the Base Address as a target will target all of the resources created from it. BaseAddress will be null if the Resource was created with count = 1.
      */
     baseAddress?: string | null;
     /**
-     * The Terraform Resource Address that references this specific Resource.  Used for the targets list when creating a Run
+     * The Terraform Resource Address that references this specific Resource. Used for the targets list when creating a Run
      */
     address?: string | null;
     /**

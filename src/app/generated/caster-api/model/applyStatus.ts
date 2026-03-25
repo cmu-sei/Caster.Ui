@@ -16,7 +16,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export type ApplyStatus = 'Queued' | 'Failed' | 'Applying' | 'Applied' | 'Applied - State Error' | 'Failed - State Error';
+export type ApplyStatus = 'Queued' | 'Failed' | 'Applying' | 'Applied' | 'Applied - State Error' | 'Failed - State Error' | 'PostApply';
 
 export const ApplyStatus = {
     Queued: 'Queued' as ApplyStatus,
@@ -24,6 +24,7 @@ export const ApplyStatus = {
     Applying: 'Applying' as ApplyStatus,
     Applied: 'Applied' as ApplyStatus,
     AppliedStateError: 'Applied - State Error' as ApplyStatus,
-    FailedStateError: 'Failed - State Error' as ApplyStatus
+    FailedStateError: 'Failed - State Error' as ApplyStatus,
+    PostApply: 'PostApply' as ApplyStatus
 };
 

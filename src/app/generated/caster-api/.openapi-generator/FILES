@@ -1,4 +1,5 @@
 .gitignore
+.openapi-generator-ignore
 README.md
 api.module.ts
 api/api.ts
@@ -89,11 +90,17 @@ model/moduleValue.ts
 model/moduleVariable.ts
 model/moduleVersion.ts
 model/partialEditDirectoryCommand.ts
+model/partialEditDirectoryCommandAzureDestroyFailureThreshold.ts
+model/partialEditDirectoryCommandParallelism.ts
+model/partialEditDirectoryCommandParentId.ts
 model/partialEditFileCommand.ts
+model/partialEditFileCommandWorkspaceId.ts
 model/partialEditPartitionCommand.ts
 model/partialEditPoolCommand.ts
 model/partialEditVlanCommand.ts
 model/partialEditWorkspaceCommand.ts
+model/partialEditWorkspaceCommandAzureDestroyFailureThreshold.ts
+model/partialEditWorkspaceCommandParallelism.ts
 model/partition.ts
 model/plan.ts
 model/planStatus.ts
@@ -104,6 +111,7 @@ model/projectMembership.ts
 model/projectPermission.ts
 model/projectPermissionsClaim.ts
 model/projectRole.ts
+model/queuePosition.ts
 model/reassignVlansCommand.ts
 model/removeResourcesCommand.ts
 model/removeVlansFromPartitionCommand.ts

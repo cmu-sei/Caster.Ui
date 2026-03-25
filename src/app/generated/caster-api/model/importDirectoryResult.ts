@@ -18,7 +18,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 export interface ImportDirectoryResult { 
     /**
-     * A list of Files that were unable to be updated because  they were locked or the current user does not have permission to lock them
+     * A list of Files that were unable to be updated because they were locked or the current user does not have permission to lock them
      */
     lockedFiles?: Array<string> | null;
 }

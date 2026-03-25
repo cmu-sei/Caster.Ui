@@ -14,22 +14,15 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { PartialEditFileCommandWorkspaceId } from './partialEditFileCommandWorkspaceId';
 
 
-export interface PartialEditFileCommand { 
-    /**
-     * Name of the file.
-     */
-    name?: string | null;
-    /**
-     * ID of the directory this file is under.
-     */
-    directoryId?: string | null;
-    workspaceId?: PartialEditFileCommandWorkspaceId;
-    /**
-     * The full contents of the file.
-     */
-    content?: string | null;
-}
+/**
+ * Id of the directory that will be the parent of this directory
+ */
+/**
+ * @type PartialEditDirectoryCommandParentId
+ * Id of the directory that will be the parent of this directory
+ * @export
+ */
+export type PartialEditDirectoryCommandParentId = any | string;
 
