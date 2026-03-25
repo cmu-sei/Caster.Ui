@@ -124,19 +124,25 @@ export class WorkspaceService {
       runs: arrayUpsert(entity.runs, run.id, updatedRun),
     }));
 
-    if (run.status === RunStatus.Queued || run.status === RunStatus.ApplyQueued) {
-      this.runsService.getRunQueuePosition(run.id).pipe(take(1)).subscribe((position) => {
-        if (position) {
-          this.queuePositionUpdated(position);
-        }
-      });
+    if (
+      run.status === RunStatus.Queued ||
+      run.status === RunStatus.ApplyQueued
+    ) {
+      this.runsService
+        .getRunQueuePosition(run.id)
+        .pipe(take(1))
+        .subscribe((position) => {
+          if (position) {
+            this.queuePositionUpdated(position);
+          }
+        });
     }
   }
 
   queuePositionUpdated(position: QueuePosition) {
     this.workspaceStore.update(position.workspaceId, (entity) => ({
       runs: entity.runs.map((run) =>
-        run.id === position.itemId
+        run.id === position.runId
           ? { ...run, displayStatus: `Queued (Position ${position.position})` }
           : run
       ),
@@ -311,19 +317,29 @@ export class WorkspaceService {
         this.runsService.getRunsByWorkspaceId(_id, null, false, false)
       ),
       tap((runs) => {
-        const runsWithDisplay = runs.map((r) => ({ ...r, displayStatus: r.status }));
+        const runsWithDisplay = runs.map((r) => ({
+          ...r,
+          displayStatus: r.status,
+        }));
         this.workspaceStore.update(id, (entity) => ({
           runs: runsWithDisplay,
         }));
 
         runsWithDisplay
-          .filter((r) => r.status === RunStatus.Queued || r.status === RunStatus.ApplyQueued)
+          .filter(
+            (r) =>
+              r.status === RunStatus.Queued ||
+              r.status === RunStatus.ApplyQueued
+          )
           .forEach((r) => {
-            this.runsService.getRunQueuePosition(r.id).pipe(take(1)).subscribe((position) => {
-              if (position) {
-                this.queuePositionUpdated(position);
-              }
-            });
+            this.runsService
+              .getRunQueuePosition(r.id)
+              .pipe(take(1))
+              .subscribe((position) => {
+                if (position) {
+                  this.queuePositionUpdated(position);
+                }
+              });
           });
       }),
       tap(() => {

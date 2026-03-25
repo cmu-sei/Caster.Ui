@@ -12,7 +12,7 @@
 
 
 export interface QueuePosition { 
-    itemId?: string;
+    runId?: string;
     workspaceId?: string;
     position?: number;
 }
