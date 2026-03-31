@@ -1,6 +1,6 @@
 {
   "name": "caster-ui",
-  "version": "3.0.5",
+  "version": "0.0.0",
   "scriptComments": {
     "swagger:gen": "// uses swagger-codegen to generate Angular services and models from the API swagger specification",
     "swagger:gen-win": "// use instead of swagger-gen when running from a Windows machine",
