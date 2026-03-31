@@ -62,3 +62,4 @@ src/assets/config/settings.[Ee]nv.json
 /docker/docker-compose
 
 .angular/cache
+tsconfig.local-npm.json

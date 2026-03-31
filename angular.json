@@ -79,6 +79,19 @@
                   "maximumWarning": "6kb"
                 }
               ]
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": {
+                "scripts": true,
+                "styles": true,
+                "vendor": true
+              },
+              "namedChunks": true
+            },
+            "localNPM": {
+              "tsConfig": "tsconfig.local-npm.json"
             }
           }
         },
@@ -87,9 +100,16 @@
           "options": {
             "buildTarget": "caster-ui:build"
           },
+          "defaultConfiguration": "development",
           "configurations": {
             "production": {
               "buildTarget": "caster-ui:build:production"
+            },
+            "development": {
+              "buildTarget": "caster-ui:build:development"
+            },
+            "localNPM": {
+              "buildTarget": "caster-ui:build:development,localNPM"
             }
           }
         },
