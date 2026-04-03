@@ -47,6 +47,7 @@ Thumbs.db
 /swagger.json
 /terraform/
 src/assets/config/settings.[Ee]nv.json
+src/assets/config/settings.shared.json
 
 # Terraform
 /terraform-working
