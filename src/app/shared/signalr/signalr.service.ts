@@ -18,6 +18,7 @@ import {
   Partition,
   Pool,
   ProjectMembership,
+  QueuePosition,
   Run,
   SystemRole,
   Variable,
@@ -333,8 +334,16 @@ export class SignalRService {
   }
 
   private addRunHandlers() {
+    this.hubConnection.on('RunCreated', (run: Run) => {
+      this.workspaceService.runUpdated(run);
+    });
+
     this.hubConnection.on('RunUpdated', (run: Run) => {
       this.workspaceService.runUpdated(run);
+    });
+
+    this.hubConnection.on('RunQueuePositionUpdated', (position: QueuePosition) => {
+      this.workspaceService.queuePositionUpdated(position);
     });
   }
 

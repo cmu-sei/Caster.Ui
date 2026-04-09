@@ -14,22 +14,15 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { PartialEditFileCommandWorkspaceId } from './partialEditFileCommandWorkspaceId';
 
 
-export interface PartialEditFileCommand { 
-    /**
-     * Name of the file.
-     */
-    name?: string | null;
-    /**
-     * ID of the directory this file is under.
-     */
-    directoryId?: string | null;
-    workspaceId?: PartialEditFileCommandWorkspaceId;
-    /**
-     * The full contents of the file.
-     */
-    content?: string | null;
-}
+/**
+ * Limit the number of concurrent operations as Terraform walks the graph.  If not set, will traverse parents until a value is found. If still not set, the Terraform default will be used.
+ */
+/**
+ * @type PartialEditDirectoryCommandParallelism
+ * Limit the number of concurrent operations as Terraform walks the graph.  If not set, will traverse parents until a value is found. If still not set, the Terraform default will be used.
+ * @export
+ */
+export type PartialEditDirectoryCommandParallelism = any | number;
 

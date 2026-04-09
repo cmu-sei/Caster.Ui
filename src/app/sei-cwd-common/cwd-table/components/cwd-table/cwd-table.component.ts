@@ -52,6 +52,7 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
 
   @Input() items: T[];
   @Input() displayedColumns: (keyof T)[];
+  @Input() columnLabels: { [key: string]: string } = {};
   @Input() loading: boolean;
   @Input() expandedItems: string[];
   @Input() getRowStyle: (item: T) => {};
