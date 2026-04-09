@@ -14,6 +14,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PartialEditWorkspaceCommandParallelism } from './partialEditWorkspaceCommandParallelism';
+import { PartialEditWorkspaceCommandAzureDestroyFailureThreshold } from './partialEditWorkspaceCommandAzureDestroyFailureThreshold';
 
 
 export interface PartialEditWorkspaceCommand { 
@@ -30,16 +32,10 @@ export interface PartialEditWorkspaceCommand {
      */
     dynamicHost?: boolean | null;
     /**
-     * The version of Terraform that will be used for Runs in this Workspace.  If null or empty, the default version will be used.
+     * The version of Terraform that will be used for Runs in this Workspace. If null or empty, the default version will be used.
      */
     terraformVersion?: string | null;
-    /**
-     * Limit the number of concurrent operations as Terraform walks the graph.  If null, the Terraform default will be used.
-     */
-    parallelism?: number;
-    /**
-     * If set, the number of consecutive failed destroys in an Azure Workspace before  Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
-     */
-    azureDestroyFailureThreshold?: number;
+    parallelism?: PartialEditWorkspaceCommandParallelism;
+    azureDestroyFailureThreshold?: PartialEditWorkspaceCommandAzureDestroyFailureThreshold;
 }
 
