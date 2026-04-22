@@ -37,16 +37,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div class="spacer"></div>
 </div>
 
-@if (loading) {
-  <mat-card
-    appearance="outlined"
-    style="display: flex; justify-content: center; align-items: center"
-    >
-    <mat-progress-spinner color="primary" mode="indeterminate">
-    </mat-progress-spinner>
-  </mat-card>
-}
-
 <mat-accordion [class.d-none]="loading" displayMode="flat" multi class="mat-mdc-table">
   <section matSort class="mat-elevation-z2 mat-mdc-header-row">
     @for (label of displayedColumns; track label; let idx = $index) {
@@ -98,3 +88,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-expansion-panel>
   }
 </mat-accordion>
+
+@if (loading) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
+    >
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+  </mat-card>
+}

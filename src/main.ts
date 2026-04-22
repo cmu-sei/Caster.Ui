@@ -22,6 +22,7 @@ export const storage = persistState({
     'UI/directories',
     'UI/workspaces',
     'currentUser',
+    'auth.ui',
   ],
   preStorageUpdate(storeName, state) {
     if (storeName === 'UI/workspaces') {
