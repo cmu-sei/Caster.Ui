@@ -15,6 +15,9 @@ export default defineConfig({
   optimizeDeps: {
     entries: [],
   },
+  ssr: {
+    noExternal: ['@material/material-color-utilities', '@cmusei/crucible-common'],
+  },
   test: {
     globals: true,
     environment: 'jsdom',
