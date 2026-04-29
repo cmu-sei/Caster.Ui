@@ -144,6 +144,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private resetOutput() {
+    this.output = '';
     this.xterm.clear();
   }
 
@@ -154,7 +155,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   private shouldStartStream(): boolean {
     if (this.run == null) {
       return false;
-    } else if (this.status == null && this.run.status !== RunStatus.Queued) {
+    } else if (this.status == null && this.run.status !== RunStatus.Queued && this.run.status !== RunStatus.ApplyQueued) {
       // if we haven't started streaming yet and there is something to stream, start stream
       this.setStatus();
       return true;
@@ -194,6 +195,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
       }
       case RunStatus.Failed: {
         if (
+          this.status === RunStatus.Planning ||
           this.status === RunStatus.Applying ||
           this.status === RunStatus.FailedStateError
         ) {

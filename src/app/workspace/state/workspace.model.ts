@@ -38,6 +38,12 @@ declare module 'src/app/generated/caster-api/model/workspace' {
   }
 }
 
+declare module 'src/app/generated/caster-api/model/run' {
+  interface Run {
+    displayStatus?: string;
+  }
+}
+
 export enum ResourceActions {
   None,
   Taint,

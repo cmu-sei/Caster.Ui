@@ -30,6 +30,7 @@ import {
   ComnSettingsConfig,
   ComnSettingsModule,
   ComnSettingsService,
+  ComnHeaderBarModule,
 } from '@cmusei/crucible-common';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
@@ -49,6 +50,7 @@ import { CwdToolbarModule } from './sei-cwd-common/cwd-toolbar/cwd-toolbar.modul
 
 export const settings: ComnSettingsConfig = {
   url: `assets/config/settings.json`,
+  sharedUrl: 'assets/config/settings.shared.json',
   envUrl: `assets/config/settings.env.json`,
 };
 
@@ -95,6 +97,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     DesignModule,
     MatCheckboxModule,
     CwdDialogsModule,
+    ComnHeaderBarModule,
   ],
   providers: [
     {

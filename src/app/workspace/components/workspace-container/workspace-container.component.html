@@ -44,9 +44,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       'createdAt',
       'modifiedBy',
       'isDestroy',
-      'status',
+      'displayStatus',
       'actions'
     ]"
+    [columnLabels]="{ displayStatus: 'status' }"
     [expandedItems]="expandedRunIds$ | async"
     [getRowStyle]="setRowStyle"
     [trackByPropertyName]="'id'"

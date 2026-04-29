@@ -51,9 +51,17 @@ html {
     ));
 }
 
+html,
 body {
+  height: 100%;
   margin: 0;
+  overflow: hidden;
   font-family: 'Open Sans', sans-serif;
+}
+
+app-root {
+  display: block;
+  height: 100%;
 }
 
 // .light-theme .mat-mdc-snack-bar-action {
@@ -62,6 +70,9 @@ body {
 
 // prevent table header rows from scrolling
 .mat-mdc-header-row {
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
   z-index: 9 !important;
 }
 
@@ -95,5 +106,15 @@ mat-paginator {
   --mat-form-field-outlined-hover-outline-color: transparent;
   --mat-form-field-outlined-focus-outline-color: transparent;
   min-width: 200px !important;
+}
+
+// Allow mat-tab-group content to scroll within a constrained height container
+.scrollable-tabs .mat-mdc-tab-body-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.scrollable-tabs .mat-mdc-tab-body-content {
+  overflow: auto;
 }
 

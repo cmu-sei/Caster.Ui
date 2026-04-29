@@ -93,9 +93,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
     </mat-panel-description>
     @if (partition && canEdit) {
-      <div>
+      <div class="action-buttons">
         <mat-form-field
           class="vlan-amount"
+          subscriptSizing="dynamic"
           matTooltip="Number of VLANs to add or remove"
           >
           <input

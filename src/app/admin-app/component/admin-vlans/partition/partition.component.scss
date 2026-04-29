@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -9,10 +9,15 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 }
 
 .vlan-amount {
-  width: 6ch;
+  width: 8ch;
   text-align: center;
 }
 
 .title {
+  align-items: center;
+}
+
+.action-buttons {
+  display: flex;
   align-items: center;
 }

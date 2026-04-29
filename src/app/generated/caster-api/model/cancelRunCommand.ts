@@ -18,7 +18,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 export interface CancelRunCommand { 
     /**
-     * If true, will forcefully terminate the Run.  If false, will attempt to gracefully cancel the Run.
+     * If true, will forcefully terminate the Run. If false, will attempt to gracefully cancel the Run.
      */
     force?: boolean;
 }

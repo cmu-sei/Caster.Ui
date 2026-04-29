@@ -14,22 +14,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { PartialEditFileCommandWorkspaceId } from './partialEditFileCommandWorkspaceId';
 
 
-export interface PartialEditFileCommand { 
-    /**
-     * Name of the file.
-     */
-    name?: string | null;
-    /**
-     * ID of the directory this file is under.
-     */
-    directoryId?: string | null;
-    workspaceId?: PartialEditFileCommandWorkspaceId;
-    /**
-     * The full contents of the file.
-     */
-    content?: string | null;
+export interface QueuePosition { 
+    runId?: string;
+    workspaceId?: string;
+    position?: number;
 }
 

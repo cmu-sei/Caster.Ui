@@ -97,66 +97,68 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       />
   </mat-sidenav>
   <mat-sidenav-content>
-    <cas-topbar
-      [title]="showStatus"
-      [topbarColor]="topbarColor"
-      [topbarTextColor]="topbarTextColor"
-      [topbarView]="TopbarView.CASTER_ADMIN"
-      [sidenav]="sidenav"
-      (sidenavToggle)="sidenav.toggle()"
-    ></cas-topbar>
-    @if (permissions$ | async; as permissions) {
-      <span>
-        @if (
-          showStatus === usersText &&
-          permissions.includes(SystemPermission.ViewUsers)
-          ) {
-          <cas-users
-          ></cas-users>
+    <div class="sidenav-layout">
+      <cas-topbar
+        [title]="showStatus"
+        [topbarColor]="topbarColor"
+        [topbarTextColor]="topbarTextColor"
+        [topbarView]="TopbarView.CASTER_ADMIN"
+        [sidenav]="sidenav"
+        (sidenavToggle)="sidenav.toggle()"
+      ></cas-topbar>
+      <div class="admin-content">
+        @if (permissions$ | async; as permissions) {
+          @if (
+            showStatus === usersText &&
+            permissions.includes(SystemPermission.ViewUsers)
+            ) {
+            <cas-users
+            ></cas-users>
+          }
+          @if (
+            showStatus === modulesText &&
+            permissions.includes(SystemPermission.ViewModules)
+            ) {
+            <cas-admin-modules
+            ></cas-admin-modules>
+          }
+          @if (
+            showStatus === workspacesText &&
+            permissions.includes(SystemPermission.ViewWorkspaces)
+            ) {
+            <cas-admin-workspaces
+            ></cas-admin-workspaces>
+          }
+          @if (
+            showStatus === vlansText &&
+            permissions.includes(SystemPermission.ViewVlans)
+            ) {
+            <cas-vlans
+            ></cas-vlans>
+          }
+          @if (
+            showStatus === rolesText &&
+            permissions.includes(SystemPermission.ViewRoles)
+            ) {
+            <cas-admin-roles
+            ></cas-admin-roles>
+          }
+          @if (
+            showStatus === groupsText &&
+            permissions.includes(SystemPermission.ViewGroups)
+            ) {
+            <cas-admin-groups
+            ></cas-admin-groups>
+          }
+          @if (
+            showStatus === projectsText &&
+            permissions.includes(SystemPermission.ManageProjects)
+            ) {
+            <cas-admin-projects
+            ></cas-admin-projects>
+          }
         }
-        @if (
-          showStatus === modulesText &&
-          permissions.includes(SystemPermission.ViewModules)
-          ) {
-          <cas-admin-modules
-          ></cas-admin-modules>
-        }
-        @if (
-          showStatus === workspacesText &&
-          permissions.includes(SystemPermission.ViewWorkspaces)
-          ) {
-          <cas-admin-workspaces
-          ></cas-admin-workspaces>
-        }
-        @if (
-          showStatus === vlansText &&
-          permissions.includes(SystemPermission.ViewVlans)
-          ) {
-          <cas-vlans
-          ></cas-vlans>
-        }
-        @if (
-          showStatus === rolesText &&
-          permissions.includes(SystemPermission.ViewRoles)
-          ) {
-          <cas-admin-roles
-          ></cas-admin-roles>
-        }
-        @if (
-          showStatus === groupsText &&
-          permissions.includes(SystemPermission.ViewGroups)
-          ) {
-          <cas-admin-groups
-          ></cas-admin-groups>
-        }
-        @if (
-          showStatus === projectsText &&
-          permissions.includes(SystemPermission.ManageProjects)
-          ) {
-          <cas-admin-projects
-          ></cas-admin-projects>
-        }
-      </span>
-    }
+      </div>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

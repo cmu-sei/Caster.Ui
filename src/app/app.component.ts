@@ -5,8 +5,8 @@ import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
-import { NavigationEnd, Router } from '@angular/router';
-import { ComnSettingsService, Theme } from '@cmusei/crucible-common';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ComnAuthQuery, ComnAuthService, ComnSettingsService, Theme } from '@cmusei/crucible-common';
 import { HotkeysHelpComponent, HotkeysService } from '@ngneat/hotkeys';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -21,10 +21,13 @@ import { CurrentUserQuery, CurrentUserStore } from './users/state';
 export class AppComponent implements OnDestroy {
   @HostBinding('class') componentCssClass: string;
   title = 'Caster';
+  private paramTheme;
   unsubscribe$: Subject<null> = new Subject<null>();
   constructor(
     public matIconRegistry: MatIconRegistry,
     public overlayContainer: OverlayContainer,
+    private authQuery: ComnAuthQuery,
+    private authService: ComnAuthService,
     private currentUserQuery: CurrentUserQuery,
     public sanitizer: DomSanitizer,
     public titleService: Title,
@@ -32,12 +35,28 @@ export class AppComponent implements OnDestroy {
     private HotkeysService: HotkeysService,
     private hotkeysDialog: MatDialog,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private currentUserStore: CurrentUserStore
   ) {
-    currentUserQuery.userTheme$
+    this.authQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((theme) => {
+        if (this.paramTheme && this.paramTheme !== theme) {
+          this.router.navigate([], {
+            queryParams: { theme: theme },
+            queryParamsHandling: 'merge',
+          });
+        }
         this.setTheme(theme);
+      });
+    this.activatedRoute.queryParamMap
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((params) => {
+        const theme = params.get('theme');
+        if (theme != null) {
+          this.paramTheme = theme === Theme.DARK ? Theme.DARK : Theme.LIGHT;
+          this.authService.setUserTheme(this.paramTheme);
+        }
       });
 
     titleService.setTitle(settingsService.settings.AppTopBarText);

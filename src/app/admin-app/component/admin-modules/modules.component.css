@@ -6,5 +6,5 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 :host {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 46px);
+  height: 100%;
 }
