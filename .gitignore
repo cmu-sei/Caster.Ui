@@ -66,3 +66,6 @@ src/assets/config/settings.[Ee]nv.json
 # Claude Code
 CLAUDE.md
 .claude/
+
+# Git worktrees
+.worktrees/
