@@ -13,7 +13,7 @@
   },
   "config": {
     "port": "4310",
-    "openapiArgs": "--additional-properties ngVersion=14.2 --additional-properties modelPropertyNaming=original",
+    "openapiArgs": "--additional-properties ngVersion=21 --additional-properties modelPropertyNaming=original --type-mappings=DateTime=Date --skip-validate-spec",
     "deleteGeneratedCommand": "rimraf src/app/generated/caster-api/*"
   },
   "scripts": {
@@ -24,7 +24,7 @@
     "lint": "ng lint caster-ui",
     "e2e": "ng e2e caster-ui",
     "swagger:gen": "cross-var $npm_package_config_deleteGeneratedCommand && cross-var curl --insecure http://localhost:4309/swagger/v1/swagger.json --output swagger.json && node_modules/@openapitools/openapi-generator-cli/bin/openapi-generator-cli generate -i ./swagger.json -g typescript-angular -o src/app/generated/caster-api $npm_package_config_openapiArgs",
-    "swagger:gen-docker": "cross-var $npm_package_config_deleteGeneratedCommand && cross-env-shell docker run --rm -v $INIT_CWD:/local openapitools/openapi-generator-cli:v6.2.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api $npm_package_config_openapiArgs"
+    "swagger:gen-docker": "cross-var $npm_package_config_deleteGeneratedCommand && cross-env-shell docker run --rm -v $INIT_CWD:/local openapitools/openapi-generator-cli:v7.2.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api $npm_package_config_openapiArgs"
   },
   "private": true,
   "dependencies": {
@@ -77,7 +77,7 @@
     "@types/jasminewd2": "^2.0.10",
     "@types/node": "^16.4.11",
     "codelyzer": "^6.0.2",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "cross-var": "^1.1.0",
     "jasmine-core": "^6.1.0",
     "jasmine-spec-reporter": "^7.0.0",
