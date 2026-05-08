@@ -45,6 +45,7 @@ testem.log
 .DS_Store
 Thumbs.db
 /swagger.json
+serve.json
 /terraform/
 src/assets/config/settings.[Ee]nv.json
 src/assets/config/settings.shared.json
