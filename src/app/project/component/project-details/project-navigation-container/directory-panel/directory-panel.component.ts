@@ -280,7 +280,9 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           statusFilter: new Array<StatusFilter>(),
           runs: new Array<Run>(),
         } as Workspace;
-        this.workspaceService.add(newWorkspace);
+        this.workspaceService.add(newWorkspace, (workspace) => {
+          this.openWorkspace(workspace);
+        });
       }
     });
   }

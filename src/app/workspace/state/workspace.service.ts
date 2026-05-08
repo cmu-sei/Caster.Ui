@@ -75,13 +75,16 @@ export class WorkspaceService {
     });
   }
 
-  add(workspace: Workspace) {
+  add(workspace: Workspace, onCreated?: (workspace: Workspace) => void) {
     this.workspacesService.createWorkspace(workspace).subscribe((w) => {
       this.workspaceStore.add(w);
       this.fileService
         .loadFilesByDirectory(w.directoryId)
         .pipe(take(1))
         .subscribe();
+      if (onCreated) {
+        onCreated(w);
+      }
     });
   }
 
