@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (useButtonStyleBreadcrumbs) {
   <div style="margin: 10px">
-    @for (breadcrumb of breadcrumbs; track breadcrumb; let i = $index) {
+    @for (breadcrumb of breadcrumbs; track breadcrumb.id; let i = $index) {
       <button
         mat-button
         [ngClass]="i === 0 ? 'breadcrumb-btn-first' : 'breadcrumb-btn'"
@@ -37,7 +37,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (!useButtonStyleBreadcrumbs) {
   <div style="margin: 10px">
-    @for (breadcrumb of breadcrumbs; track breadcrumb; let i = $index) {
+    @for (breadcrumb of breadcrumbs; track breadcrumb.id; let i = $index) {
       <span [ngClass]="i === 0 ? 'breadcrumb-item-first' : 'breadcrumb-item'">
         @if (breadcrumb.type === tabType.DIRECTORY) {
           <mat-icon
