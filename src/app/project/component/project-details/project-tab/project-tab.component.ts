@@ -25,6 +25,8 @@ import { DirectoryQuery } from 'src/app/directories/state';
 import { FileQuery, FileService } from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { HotkeysService } from '@ngneat/hotkeys';
+import { HotkeysHelpDialogComponent } from 'src/app/shared/components/hotkeys-help/hotkeys-help-dialog.component';
 import { MatTab } from '@angular/material/tabs';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
@@ -101,13 +103,26 @@ export class ProjectTabComponent
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
     private designQuery: DesignQuery,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private hotkeysService: HotkeysService
   ) {}
 
   /**
    * ngOninit handles initialization required for all open tabs
    */
+  private helpDialogOpen = false;
+
   ngOnInit() {
+    this.hotkeysService.registerHelpModal(() => {
+      if (this.helpDialogOpen) return;
+      this.helpDialogOpen = true;
+      const ref = this.dialog.open(HotkeysHelpDialogComponent, {
+        width: '500px',
+        id: 'hotkeys-help',
+      });
+      ref.afterClosed().subscribe(() => (this.helpDialogOpen = false));
+    });
+
     this.canEdit$ = this.permissionService.canEditProject(this.project.id);
     this.canAdminLock$ = this.permissionService.canAdminLockProject(
       this.project.id

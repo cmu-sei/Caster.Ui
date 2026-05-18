@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>Keyboard Shortcuts</h2>
+
+<mat-dialog-content>
+  @for (group of hotkeys; track group.group) {
+    @if (group.group) {
+      <h3 class="group-title">{{ group.group }}</h3>
+    }
+    <table class="shortcuts-table">
+      <tbody>
+        @for (hotkey of group.hotkeys; track hotkey.keys) {
+          <tr>
+            <td class="shortcut-description">{{ hotkey.description }}</td>
+            <td class="shortcut-keys">
+              @for (key of hotkey.keys.split('.'); track key; let last = $last) {
+                <kbd>{{ key | titlecase }}</kbd>
+                @if (!last) {
+                  <span class="separator">+</span>
+                }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>
