@@ -2,12 +2,11 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, ComnSettingsService, Theme } from '@cmusei/crucible-common';
-import { HotkeysHelpComponent, HotkeysService } from '@ngneat/hotkeys';
+import { HotkeysService } from '@ngneat/hotkeys';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery, CurrentUserStore } from './users/state';
@@ -33,7 +32,6 @@ export class AppComponent implements OnDestroy {
     public titleService: Title,
     public settingsService: ComnSettingsService,
     private HotkeysService: HotkeysService,
-    private hotkeysDialog: MatDialog,
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private currentUserStore: CurrentUserStore
@@ -64,15 +62,7 @@ export class AppComponent implements OnDestroy {
     this.addIcons();
 
     // Register hotkeys
-    const helpFcn: () => void = () => {
-      const ref = this.hotkeysDialog.open(HotkeysHelpComponent, {
-        width: '500px',
-      });
-      ref.componentInstance.title = 'Shortcuts Help';
-      ref.componentInstance.dimiss.subscribe(() => ref.close());
-    };
     const hotkeys = this.settingsService.settings.Hotkeys;
-    this.HotkeysService.registerHelpModal(helpFcn);
 
     for (const k in hotkeys) {
       const v = hotkeys[k];
