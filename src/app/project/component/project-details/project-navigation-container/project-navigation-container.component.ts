@@ -8,7 +8,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 import {
   ProjectObjectType,
   ProjectQuery,
@@ -20,13 +20,15 @@ import {
   DirectoryService,
 } from '../../../../directories/state';
 import { Directory, Project } from '../../../../generated/caster-api';
-import { map, take, takeUntil } from 'rxjs/operators';
+import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { RouterQuery } from '@datorama/akita-ng-router-store';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ProjectExportComponent } from '../project-export/project-export.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectImportComponent } from '../project-import/project-import.component';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -61,7 +63,9 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     private directoryQuery: DirectoryQuery,
     private directoryService: DirectoryService,
     private dialog: MatDialog,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -86,12 +90,27 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           this.projectService
             .loadProject(this.projectId)
-            .pipe(take(1))
+            .pipe(
+              take(1),
+              catchError((error) => {
+                if (error.status === 404) {
+                  this.snackBar.open('Project not found', 'Dismiss', {
+                    duration: 5000,
+                    verticalPosition: 'top'
+                  });
+                  this.router.navigate(['/']);
+                }
+                return EMPTY;
+              })
+            )
             .subscribe();
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           this.directoryService
             .loadDirectories(this.projectId)
-            .pipe(take(1))
+            .pipe(
+              take(1),
+              catchError(() => EMPTY)
+            )
             .subscribe();
 
           this.projectStore.setActive(this.projectId);
