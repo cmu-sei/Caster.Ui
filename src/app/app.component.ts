@@ -2,11 +2,13 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, ComnSettingsService, Theme } from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
+import { HotkeysHelpDialogComponent } from './shared/components/hotkeys-help/hotkeys-help-dialog.component';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery, CurrentUserStore } from './users/state';
@@ -21,6 +23,7 @@ export class AppComponent implements OnDestroy {
   @HostBinding('class') componentCssClass: string;
   title = 'Caster';
   private paramTheme;
+  private helpDialogOpen = false;
   unsubscribe$: Subject<null> = new Subject<null>();
   constructor(
     public matIconRegistry: MatIconRegistry,
@@ -32,6 +35,7 @@ export class AppComponent implements OnDestroy {
     public titleService: Title,
     public settingsService: ComnSettingsService,
     private HotkeysService: HotkeysService,
+    private dialog: MatDialog,
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private currentUserStore: CurrentUserStore
@@ -60,6 +64,17 @@ export class AppComponent implements OnDestroy {
     titleService.setTitle(settingsService.settings.AppTopBarText);
 
     this.addIcons();
+
+    // Register hotkeys help modal
+    this.HotkeysService.registerHelpModal(() => {
+      if (this.helpDialogOpen) return;
+      this.helpDialogOpen = true;
+      const ref = this.dialog.open(HotkeysHelpDialogComponent, {
+        width: '500px',
+        id: 'hotkeys-help',
+      });
+      ref.afterClosed().subscribe(() => (this.helpDialogOpen = false));
+    });
 
     // Register hotkeys
     const hotkeys = this.settingsService.settings.Hotkeys;
