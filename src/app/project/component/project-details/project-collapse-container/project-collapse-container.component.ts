@@ -176,6 +176,9 @@ export class ProjectCollapseContainerComponent
     // check if there are pending changes
     // returning true will navigate without confirmation
     // returning false will show a confirm dialog before navigating away
+    if (!this.projectUI || !this.projectUI.openTabs) {
+      return true;
+    }
     const thereAreUnsavedChanges = this.projectUI.openTabs.some((tab) => {
       return (
         tab.type === ProjectObjectType.FILE && this.isFileContentChanged(tab.id)
@@ -187,6 +190,9 @@ export class ProjectCollapseContainerComponent
   ngOnDestroy() {
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
-    this.signalRService.leaveProject(this.projectQuery.getActive().id);
+    const activeProject = this.projectQuery.getActive();
+    if (activeProject) {
+      this.signalRService.leaveProject(activeProject.id);
+    }
   }
 }
