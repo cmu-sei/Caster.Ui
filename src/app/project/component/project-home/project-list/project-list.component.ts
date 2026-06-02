@@ -236,7 +236,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
           catchError((error) => {
             if (error.status === 409) {
               this.snackBar.open(
-                error.error || 'Cannot delete Project. It may have deployed resources or pending runs.',
+                'Cannot delete a Project with deployed Resources or pending Runs.',
                 'Dismiss',
                 {
                   duration: 5000,
