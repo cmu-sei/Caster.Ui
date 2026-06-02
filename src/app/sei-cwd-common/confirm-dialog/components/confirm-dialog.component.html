@@ -22,7 +22,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </button>
     }
   </div>
+  @if (buttonFalseText !== '') {
   <button mat-flat-button color="primary" (click)="onCancel()" tabindex="3">
     {{ buttonFalseText }}
   </button>
+  }
 </mat-dialog-actions>

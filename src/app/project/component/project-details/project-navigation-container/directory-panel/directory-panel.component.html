@@ -43,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   </mat-panel-title>
                 </mat-expansion-panel-header>
                 <mat-list>
-                  @for (obj of files$ | async | filesFilter: null; track obj) {
+                  @for (obj of files$ | async | filesFilter: null; track obj.id) {
                     <mat-list-item
                       (contextmenu)="onContextMenu($event, obj, ProjectObjectType.FILE)"
                       >
@@ -140,7 +140,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         </mat-panel-title>
                       </mat-expansion-panel-header>
                       <mat-accordion multi="true">
-                        @for (obj of workspaces$ | async; track obj) {
+                        @for (obj of workspaces$ | async; track obj.id) {
                           <mat-expansion-panel
                             class="mat-elevation-z0"
                             [expanded]="isWorkspaceExpanded(obj.id)"
@@ -165,7 +165,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                                 </mat-panel-title>
                               </mat-expansion-panel-header>
                               <mat-list>
-                                @for (file of files$ | async | filesFilter: obj.id; track file) {
+                                @for (file of files$ | async | filesFilter: obj.id; track file.id) {
                                   <mat-list-item
                   (contextmenu)="
                     onContextMenu($event, file, ProjectObjectType.FILE)
@@ -288,7 +288,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                                       >
                                     </mat-panel-title>
                                   </mat-expansion-panel-header>
-                                  @for (obj of directories$ | async; track obj) {
+                                  @for (obj of directories$ | async; track obj.id) {
                                     <cas-directory-panel
                                       [parentDirectory]="obj"
                                       >
@@ -335,7 +335,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                                         </mat-panel-title>
                                       </mat-expansion-panel-header>
                                       <mat-list>
-                                        @for (obj of designs$ | async; track obj) {
+                                        @for (obj of designs$ | async; track obj.id) {
                                           <mat-list-item
               (contextmenu)="
                 onContextMenu($event, obj, ProjectObjectType.DESIGN)

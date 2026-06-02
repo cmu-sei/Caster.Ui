@@ -33,7 +33,7 @@ import {
   Workspace,
 } from 'src/app/generated/caster-api';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
-import { take } from 'rxjs/operators';
+import { take, catchError, map, concatMap } from 'rxjs/operators';
 import { ProjectExportComponent } from '../../project-export/project-export.component';
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
 import { WorkspaceEditContainerComponent } from 'src/app/workspace/components/workspace-edit-container/workspace-edit-container.component';
@@ -44,6 +44,8 @@ import { Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectImportComponent } from '../../project-import/project-import.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { of } from 'rxjs';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
@@ -105,7 +107,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private designQuery: DesignQuery,
     private designService: DesignService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -286,15 +289,72 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   deleteWorkspace(workspace: Workspace) {
-    this.confirmDialog(
-      'Delete workspace?',
-      'Delete workspace ' + workspace.name + '?',
-      { buttonTrueText: 'Delete' }
-    ).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.workspaceService.delete(workspace);
-      }
-    });
+    // Check if workspace has resources loaded, if not load them first
+    const workspaceEntity = this.workspaceQuery.getEntity(workspace.id);
+
+    if (workspaceEntity && workspaceEntity.resources && workspaceEntity.resources.length > 0) {
+      // Workspace has deployed resources, show error dialog
+      this.confirmDialog(
+        'Cannot Delete Workspace',
+        'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+        { buttonTrueText: 'OK', buttonFalseText: '' }
+      ).subscribe();
+    } else {
+      // Check resources via API to be sure
+      this.workspaceService.loadResourcesByWorkspaceId(workspace.id).pipe(
+        take(1),
+        map(() => this.workspaceQuery.getEntity(workspace.id)),
+        concatMap((updatedWorkspace) => {
+          if (updatedWorkspace && updatedWorkspace.resources && updatedWorkspace.resources.length > 0) {
+            // Has resources, show error dialog
+            return this.confirmDialog(
+              'Cannot Delete Workspace',
+              'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+              { buttonTrueText: 'OK', buttonFalseText: '' }
+            ).pipe(map(() => null));
+          } else {
+            // No resources, proceed with normal delete confirmation
+            return this.confirmDialog(
+              'Delete workspace?',
+              'Delete workspace ' + workspace.name + '?',
+              { buttonTrueText: 'Delete' }
+            ).pipe(
+              concatMap((result) => {
+                if (!result[WAS_CANCELLED]) {
+                  return this.workspaceService.delete(workspace).pipe(
+                    catchError((error) => {
+                      if (error.status === 409) {
+                        this.snackBar.open(
+                          'Cannot delete a Workspace with deployed Resources.',
+                          'Dismiss',
+                          {
+                            duration: 5000,
+                            verticalPosition: 'top',
+                            horizontalPosition: 'center'
+                          }
+                        );
+                      } else {
+                        this.snackBar.open(
+                          `Failed to delete workspace: ${error.statusText || error.message}`,
+                          'Dismiss',
+                          {
+                            duration: 5000,
+                            verticalPosition: 'top',
+                            horizontalPosition: 'center'
+                          }
+                        );
+                      }
+                      return of(null);
+                    })
+                  );
+                }
+                return of(null);
+              })
+            );
+          }
+        })
+      ).subscribe();
+    }
   }
 
   createDesign(dirId: string) {

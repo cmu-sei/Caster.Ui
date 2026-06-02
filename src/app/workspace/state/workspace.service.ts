@@ -105,10 +105,12 @@ export class WorkspaceService {
     this.workspaceStore.upsert(workspace.id, workspace);
   }
 
-  delete(workspace: Workspace) {
-    this.workspacesService.deleteWorkspace(workspace.id).subscribe(() => {
-      this.deleted(workspace.id);
-    });
+  delete(workspace: Workspace): Observable<any> {
+    return this.workspacesService.deleteWorkspace(workspace.id).pipe(
+      tap(() => {
+        this.deleted(workspace.id);
+      })
+    );
   }
 
   deleted(workspaceId: string) {
