@@ -49,6 +49,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() sidenavWidth: number;
   @Input() canEdit: boolean;
   @Input() canAdminLock: boolean;
+  @Input() canManage: boolean;
   @Output() sidebarChanged = new EventEmitter<boolean>();
   @Output() sidebarViewChanged = new EventEmitter<string>();
   @Output() codeChanged = new EventEmitter<string>();
@@ -91,7 +92,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     private changeDetectorRef: ChangeDetectorRef,
     private confirmDialog: ConfirmDialogService,
     private settingsService: ComnSettingsService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.selectedVersionForDiff = undefined;
@@ -315,6 +316,21 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
   discardFileChanges() {
     this.fileService.updateEditorContent(this.file.id, this.file.content);
+  }
+
+  forceUnlockFile() {
+    this.confirmDialog
+      .confirmDialog(
+        'Force release of open file?',
+        `${this.file.lockedByName} has this file open for editing and may have unsaved changes?  Have you contacted ${this.file.lockedByName}?  Are you sure that you want to discard unsaved changes?`,
+        { buttonTrueText: 'Force Release', buttonFalseText: 'Cancel' }
+      )
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (!result[this.confirmDialog.WAS_CANCELLED]) {
+          this.fileService.forceUnlockFile(this.file.id);
+        }
+      });
   }
 
   insertModuleFn(event) {

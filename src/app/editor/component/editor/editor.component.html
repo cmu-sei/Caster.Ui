@@ -132,12 +132,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             ></mat-icon>
           </button>
           @if (file && file.lockedById && file.lockedById !== currentUserId) {
-          <button
-            mat-icon-button
-            class="align-self-center"
-            color="warn"
-            matTooltip="This file is being edited by {{ file.lockedByName }}"
-          >
+          <button mat-icon-button class="align-self-center" color="warn" (click)="canManage && forceUnlockFile()"
+            [matTooltip]="
+              canManage
+                ? 'Force release the file from ' + file.lockedByName
+                : 'This file is being edited by ' + file.lockedByName
+            ">
             <mat-icon class="mdi-24px" fontIcon="mdi-account-edit"></mat-icon>
           </button>
           } @if (file && !file.lockedById) {

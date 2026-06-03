@@ -49,6 +49,7 @@ html {
         theme-type: dark,
       ),
     ));
+  --mat-sys-error: #ba1a1a;
 }
 
 html,
@@ -87,6 +88,12 @@ app-root {
 // support color="warn" on icon buttons
 .mat-mdc-icon-button.mat-warn {
   --mat-icon-button-icon-color: var(--mat-sys-error);
+}
+
+// use the primary palette for mat-badge throughout the app
+.mat-badge-content {
+  --mat-badge-background-color: var(--mat-sys-primary);
+  --mat-badge-text-color: var(--mat-sys-on-primary);
 }
 
 // Highlight rows that represent a destroy operation or tainted resource
