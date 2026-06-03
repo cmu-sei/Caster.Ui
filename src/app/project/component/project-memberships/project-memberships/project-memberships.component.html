@@ -13,21 +13,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <h1>{{ project.name }}</h1>
 </div>
 }
-<div class="d-flex gap-5 justify-content-center">
-  <cas-project-membership-list
-    [users]="nonMembers$ | async"
-    [groups]="groupNonMembers$ | async"
-    [canEdit]="canEdit$ | async"
-    (createMembership)="createMembership($event)"
-  ></cas-project-membership-list>
+<div class="memberships-container">
+  <label class="memberships-label">Memberships</label>
+  <div class="d-flex gap-5 justify-content-center">
+    <cas-project-membership-list
+      [users]="nonMembers$ | async"
+      [groups]="groupNonMembers$ | async"
+      [canEdit]="canEdit$ | async"
+      (createMembership)="createMembership($event)"
+    ></cas-project-membership-list>
 
-  <cas-project-member-list
-    [memberships]="memberships$ | async"
-    [users]="members$ | async"
-    [groups]="groupMembers$ | async"
-    [roles]="roles$ | async"
-    [canEdit]="canEdit$ | async"
-    (deleteMembership)="deleteMembership($event)"
-    (editMembership)="editMembership($event)"
-  ></cas-project-member-list>
+    <cas-project-member-list
+      [memberships]="memberships$ | async"
+      [users]="members$ | async"
+      [groups]="groupMembers$ | async"
+      [roles]="roles$ | async"
+      [canEdit]="canEdit$ | async"
+      (deleteMembership)="deleteMembership($event)"
+      (editMembership)="editMembership($event)"
+    ></cas-project-member-list>
+  </div>
 </div>
