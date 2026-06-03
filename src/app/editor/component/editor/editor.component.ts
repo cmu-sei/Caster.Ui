@@ -322,7 +322,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     this.confirmDialog
       .confirmDialog(
         'Force release of open file?',
-        `${this.file.lockedByName} has this file open for editing and may have unsaved changes?  Have you contacted ${this.file.lockedByName}?  Are you sure that you want to discard unsaved changes?`,
+        `${this.file.lockedByName} has this file open for editing and may have unsaved changes.  Have you contacted ${this.file.lockedByName}?  Are you sure that you want to discard unsaved changes?`,
         { buttonTrueText: 'Force Release', buttonFalseText: 'Cancel' }
       )
       .pipe(take(1))
