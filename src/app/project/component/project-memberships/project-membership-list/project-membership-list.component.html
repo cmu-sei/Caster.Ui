@@ -5,7 +5,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="mat-elevation-z8">
   <mat-toolbar>
-    <mat-toolbar-row><p>Users/Groups</p></mat-toolbar-row
+    <mat-toolbar-row>
+      <mat-icon class="mdi-24px" fontIcon="mdi-account-group"></mat-icon>
+      <p>Users/Groups</p>
+    </mat-toolbar-row
     ><mat-toolbar-row>
     <mat-form-field class="w-50">
       <mat-label>Search</mat-label>
@@ -74,11 +77,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let model">
         <button
-          mat-flat-button
-          color="primary"
+          mat-icon-button
+          matTooltip="Add {{ model.name }}"
           (click)="add(model.id, model.type)"
+          [disabled]="!canEdit"
           >
-          Add
+          <mat-icon class="mdi-24px self-center" fontIcon="mdi-plus-circle-outline"></mat-icon>
         </button>
       </td>
     </ng-container>
