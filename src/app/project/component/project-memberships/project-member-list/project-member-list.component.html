@@ -6,6 +6,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div class="mat-elevation-z8">
   <mat-toolbar>
     <mat-toolbar-row>
+      <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
       <p>Project Members</p>
     </mat-toolbar-row>
     <mat-toolbar-row>
@@ -83,11 +84,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let model">
           <button
-            mat-flat-button
-            color="primary"
+            mat-icon-button
+            matTooltip="Remove {{ model.name }}"
             (click)="delete(model.membership.id)"
+            [disabled]="!canEdit"
             >
-            Remove
+            <mat-icon class="mdi-24px self-center" fontIcon="mdi-minus-circle-outline"></mat-icon>
           </button>
         </td>
       </ng-container>

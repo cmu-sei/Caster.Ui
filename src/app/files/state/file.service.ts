@@ -103,7 +103,17 @@ export class FileService {
     });
   }
 
+  forceUnlockFile(fileId: string) {
+    this.filesService.forceUnlockFile(fileId).subscribe((f) => {
+      this.fileUpdated(f);
+    });
+  }
+
   fileUpdated(file: ModelFile) {
+    const prev = this.fileQuery.getEntity(file.id);
+    if (prev?.lockedById && prev.lockedById !== file.lockedById) {
+      file = { ...file, editorContent: file.content };
+    }
     this.upsertFile(file);
     this.setSave(file.id, true);
   }

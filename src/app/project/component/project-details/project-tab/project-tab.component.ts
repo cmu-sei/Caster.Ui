@@ -87,6 +87,7 @@ export class ProjectTabComponent
   public breadcrumb$: Observable<Breadcrumb[]>;
   public canEdit$: Observable<boolean>;
   public canAdminLock$: Observable<boolean>;
+  public canManage$: Observable<boolean>;
 
   constructor(
     private projectService: ProjectService,
@@ -112,6 +113,7 @@ export class ProjectTabComponent
     this.canAdminLock$ = this.permissionService.canAdminLockProject(
       this.project.id
     );
+    this.canManage$ = this.permissionService.canManageProject(this.project.id);
     this.moduleService.load(false, false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
     this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
