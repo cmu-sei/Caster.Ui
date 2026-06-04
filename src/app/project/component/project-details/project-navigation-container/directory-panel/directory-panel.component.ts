@@ -30,6 +30,7 @@ import {
   Directory,
   ModelFile,
   Run,
+  RunStatus,
   Workspace,
 } from 'src/app/generated/caster-api';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
@@ -173,15 +174,81 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   deleteDirectory(dir: Directory) {
+    // Get all child directories (recursive)
+    const childDirectories = this.directoryQuery.getAll({
+      filterBy: (d) => this.isDescendant(d, dir.id)
+    });
+
+    // Get all workspaces in this directory and its children
+    const allDirectoryIds = [dir.id, ...childDirectories.map(d => d.id)];
+    const workspaces = this.workspaceQuery.getAll({
+      filterBy: (w) => allDirectoryIds.includes(w.directoryId)
+    });
+
+    // Terminal run statuses (completed)
+    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
+
+    // Check if any workspace has resources or incomplete runs
+    const hasResources = workspaces.some(w => w.resources && w.resources.length > 0);
+    const hasIncompleteRuns = workspaces.some(w =>
+      w.runs && w.runs.some(r => !terminalStatuses.includes(r.status))
+    );
+
+    if (hasResources) {
+      this.confirmDialog(
+        'Cannot Delete Directory',
+        'Directory has deployed resources and cannot be deleted. Please destroy the resources first.',
+        { buttonTrueText: 'OK', buttonFalseText: '' }
+      ).subscribe();
+      return;
+    }
+
+    if (hasIncompleteRuns) {
+      this.confirmDialog(
+        'Cannot Delete Directory',
+        'Directory has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+        { buttonTrueText: 'OK', buttonFalseText: '' }
+      ).subscribe();
+      return;
+    }
+
+    // Show confirmation dialog and proceed with deletion
     this.confirmDialog(
       'Delete Directory?',
       'Delete directory ' + dir.name + '?',
       { buttonTrueText: 'Delete' }
     ).subscribe((result) => {
       if (!result[WAS_CANCELLED]) {
-        this.directoryService.delete(dir.id);
+        this.directoryService.delete(dir.id).pipe(
+          take(1),
+          catchError((error) => {
+            if (error.status === 409) {
+              this.snackBar.open(
+                'Cannot delete a Directory with deployed Resources or pending Runs.',
+                'Dismiss',
+                {
+                  duration: 5000,
+                  verticalPosition: 'top',
+                  horizontalPosition: 'center'
+                }
+              );
+            }
+            return of(null);
+          })
+        ).subscribe();
       }
     });
+  }
+
+  private isDescendant(directory: Directory, ancestorId: string): boolean {
+    if (directory.parentId === ancestorId) {
+      return true;
+    }
+    if (!directory.parentId) {
+      return false;
+    }
+    const parent = this.directoryQuery.getEntity(directory.parentId);
+    return parent ? this.isDescendant(parent, ancestorId) : false;
   }
 
   createNewDirectory(dirId?: string) {
@@ -289,72 +356,99 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   deleteWorkspace(workspace: Workspace) {
-    // Check if workspace has resources loaded, if not load them first
+    // Check if workspace has resources or incomplete runs
     const workspaceEntity = this.workspaceQuery.getEntity(workspace.id);
 
-    if (workspaceEntity && workspaceEntity.resources && workspaceEntity.resources.length > 0) {
-      // Workspace has deployed resources, show error dialog
+    // Terminal run statuses (completed)
+    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
+
+    const hasResources = workspaceEntity && workspaceEntity.resources && workspaceEntity.resources.length > 0;
+    const hasIncompleteRuns = workspaceEntity && workspaceEntity.runs &&
+      workspaceEntity.runs.some(r => !terminalStatuses.includes(r.status));
+
+    if (hasResources) {
       this.confirmDialog(
         'Cannot Delete Workspace',
         'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
         { buttonTrueText: 'OK', buttonFalseText: '' }
       ).subscribe();
-    } else {
-      // Check resources via API to be sure
-      this.workspaceService.loadResourcesByWorkspaceId(workspace.id).pipe(
-        take(1),
-        map(() => this.workspaceQuery.getEntity(workspace.id)),
-        concatMap((updatedWorkspace) => {
-          if (updatedWorkspace && updatedWorkspace.resources && updatedWorkspace.resources.length > 0) {
-            // Has resources, show error dialog
-            return this.confirmDialog(
-              'Cannot Delete Workspace',
-              'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
-              { buttonTrueText: 'OK', buttonFalseText: '' }
-            ).pipe(map(() => null));
-          } else {
-            // No resources, proceed with normal delete confirmation
-            return this.confirmDialog(
-              'Delete workspace?',
-              'Delete workspace ' + workspace.name + '?',
-              { buttonTrueText: 'Delete' }
-            ).pipe(
-              concatMap((result) => {
-                if (!result[WAS_CANCELLED]) {
-                  return this.workspaceService.delete(workspace).pipe(
-                    catchError((error) => {
-                      if (error.status === 409) {
-                        this.snackBar.open(
-                          'Cannot delete a Workspace with deployed Resources.',
-                          'Dismiss',
-                          {
-                            duration: 5000,
-                            verticalPosition: 'top',
-                            horizontalPosition: 'center'
-                          }
-                        );
-                      } else {
-                        this.snackBar.open(
-                          `Failed to delete workspace: ${error.statusText || error.message}`,
-                          'Dismiss',
-                          {
-                            duration: 5000,
-                            verticalPosition: 'top',
-                            horizontalPosition: 'center'
-                          }
-                        );
-                      }
-                      return of(null);
-                    })
-                  );
-                }
-                return of(null);
-              })
-            );
-          }
-        })
-      ).subscribe();
+      return;
     }
+
+    if (hasIncompleteRuns) {
+      this.confirmDialog(
+        'Cannot Delete Workspace',
+        'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+        { buttonTrueText: 'OK', buttonFalseText: '' }
+      ).subscribe();
+      return;
+    }
+
+    // Check resources via API to be sure
+    this.workspaceService.loadResourcesByWorkspaceId(workspace.id).pipe(
+      take(1),
+      map(() => this.workspaceQuery.getEntity(workspace.id)),
+      concatMap((updatedWorkspace) => {
+        const hasResourcesAfterLoad = updatedWorkspace && updatedWorkspace.resources && updatedWorkspace.resources.length > 0;
+        const hasIncompleteRunsAfterLoad = updatedWorkspace && updatedWorkspace.runs &&
+          updatedWorkspace.runs.some(r => !terminalStatuses.includes(r.status));
+
+        if (hasResourcesAfterLoad) {
+          return this.confirmDialog(
+            'Cannot Delete Workspace',
+            'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+            { buttonTrueText: 'OK', buttonFalseText: '' }
+          ).pipe(map(() => null));
+        }
+
+        if (hasIncompleteRunsAfterLoad) {
+          return this.confirmDialog(
+            'Cannot Delete Workspace',
+            'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+            { buttonTrueText: 'OK', buttonFalseText: '' }
+          ).pipe(map(() => null));
+        }
+
+        // No resources or runs, proceed with normal delete confirmation
+        return this.confirmDialog(
+          'Delete workspace?',
+          'Delete workspace ' + workspace.name + '?',
+          { buttonTrueText: 'Delete' }
+        ).pipe(
+          concatMap((result) => {
+            if (!result[WAS_CANCELLED]) {
+              return this.workspaceService.delete(workspace).pipe(
+                catchError((error) => {
+                  if (error.status === 409) {
+                    this.snackBar.open(
+                      'Cannot delete a Workspace with deployed Resources or pending Runs.',
+                      'Dismiss',
+                      {
+                        duration: 5000,
+                        verticalPosition: 'top',
+                        horizontalPosition: 'center'
+                      }
+                    );
+                  } else {
+                    this.snackBar.open(
+                      `Failed to delete workspace: ${error.statusText || error.message}`,
+                      'Dismiss',
+                      {
+                        duration: 5000,
+                        verticalPosition: 'top',
+                        horizontalPosition: 'center'
+                      }
+                    );
+                  }
+                  return of(null);
+                })
+              );
+            }
+            return of(null);
+          })
+        );
+      })
+    ).subscribe();
   }
 
   createDesign(dirId: string) {
