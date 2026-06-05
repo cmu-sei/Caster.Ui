@@ -240,27 +240,16 @@ export class ProjectListComponent implements OnInit, OnChanges {
         this.projectService.deleteProject(project.id).pipe(
           take(1),
           catchError((error) => {
-            if (error.status === 409) {
-              this.snackBar.open(
-                'Cannot delete a Project with deployed Resources or pending Runs.',
-                'Dismiss',
-                {
-                  duration: 5000,
-                  verticalPosition: 'top',
-                  horizontalPosition: 'center'
-                }
-              );
-            } else {
-              this.snackBar.open(
-                `Failed to delete project: ${error.statusText || error.message}`,
-                'Dismiss',
-                {
-                  duration: 5000,
-                  verticalPosition: 'top',
-                  horizontalPosition: 'center'
-                }
-              );
-            }
+            const message = error.error?.message || error.message || error.statusText || 'Failed to delete project';
+            this.snackBar.open(
+              message,
+              'Dismiss',
+              {
+                duration: 5000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center'
+              }
+            );
             return of(null);
           })
         ).subscribe();

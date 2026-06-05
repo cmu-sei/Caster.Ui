@@ -221,17 +221,16 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         this.directoryService.delete(dir.id).pipe(
           take(1),
           catchError((error) => {
-            if (error.status === 409) {
-              this.snackBar.open(
-                'Cannot delete a Directory with deployed Resources or pending Runs.',
-                'Dismiss',
-                {
-                  duration: 5000,
-                  verticalPosition: 'top',
-                  horizontalPosition: 'center'
-                }
-              );
-            }
+            const message = error.error?.message || error.message || error.statusText || 'Failed to delete directory';
+            this.snackBar.open(
+              message,
+              'Dismiss',
+              {
+                duration: 5000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center'
+              }
+            );
             return of(null);
           })
         ).subscribe();
@@ -416,27 +415,16 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
             if (!result[WAS_CANCELLED]) {
               return this.workspaceService.delete(workspace).pipe(
                 catchError((error) => {
-                  if (error.status === 409) {
-                    this.snackBar.open(
-                      'Cannot delete a Workspace with deployed Resources or pending Runs.',
-                      'Dismiss',
-                      {
-                        duration: 5000,
-                        verticalPosition: 'top',
-                        horizontalPosition: 'center'
-                      }
-                    );
-                  } else {
-                    this.snackBar.open(
-                      `Failed to delete workspace: ${error.statusText || error.message}`,
-                      'Dismiss',
-                      {
-                        duration: 5000,
-                        verticalPosition: 'top',
-                        horizontalPosition: 'center'
-                      }
-                    );
-                  }
+                  const message = error.error?.message || error.message || error.statusText || 'Failed to delete workspace';
+                  this.snackBar.open(
+                    message,
+                    'Dismiss',
+                    {
+                      duration: 5000,
+                      verticalPosition: 'top',
+                      horizontalPosition: 'center'
+                    }
+                  );
                   return of(null);
                 })
               );
