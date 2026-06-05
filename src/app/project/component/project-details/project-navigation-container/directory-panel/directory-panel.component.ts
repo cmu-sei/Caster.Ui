@@ -50,6 +50,7 @@ import { of } from 'rxjs';
 
 const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
+const TERMINAL_RUN_STATUSES: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
 
 @Component({
     selector: 'cas-directory-panel',
@@ -185,13 +186,11 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       filterBy: (w) => allDirectoryIds.includes(w.directoryId)
     });
 
-    // Terminal run statuses (completed)
-    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
 
     // Check if any workspace has resources or incomplete runs
     const hasResources = workspaces.some(w => w.resources && w.resources.length > 0);
     const hasIncompleteRuns = workspaces.some(w =>
-      w.runs && w.runs.some(r => !terminalStatuses.includes(r.status))
+      w.runs && w.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status))
     );
 
     if (hasResources) {
@@ -359,12 +358,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     // Check if workspace has resources or incomplete runs
     const workspaceEntity = this.workspaceQuery.getEntity(workspace.id);
 
-    // Terminal run statuses (completed)
-    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
 
     const hasResources = workspaceEntity && workspaceEntity.resources && workspaceEntity.resources.length > 0;
     const hasIncompleteRuns = workspaceEntity && workspaceEntity.runs &&
-      workspaceEntity.runs.some(r => !terminalStatuses.includes(r.status));
+      workspaceEntity.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
 
     if (hasResources) {
       this.confirmDialog(
@@ -391,7 +388,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       concatMap((updatedWorkspace) => {
         const hasResourcesAfterLoad = updatedWorkspace && updatedWorkspace.resources && updatedWorkspace.resources.length > 0;
         const hasIncompleteRunsAfterLoad = updatedWorkspace && updatedWorkspace.runs &&
-          updatedWorkspace.runs.some(r => !terminalStatuses.includes(r.status));
+          updatedWorkspace.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
 
         if (hasResourcesAfterLoad) {
           return this.confirmDialog(

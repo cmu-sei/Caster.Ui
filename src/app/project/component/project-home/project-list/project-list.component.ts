@@ -178,81 +178,56 @@ export class ProjectListComponent implements OnInit, OnChanges {
       filterBy: (w) => directories.some(d => d.id === w.directoryId)
     });
 
+    if (workspaces.length === 0) {
+      // No workspaces, proceed with delete
+      this.proceedWithDelete(project);
+      return;
+    }
+
     // Terminal run statuses (completed)
     const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
 
-    // Check if any workspace already has resources loaded
-    const hasResourcesLoaded = workspaces.some(w => w.resources && w.resources.length > 0);
-
-    // Check if any workspace has incomplete runs
-    const hasIncompleteRuns = workspaces.some(w =>
-      w.runs && w.runs.some(r => !terminalStatuses.includes(r.status))
+    // Load resources for all workspaces
+    const resourceChecks = workspaces.map(w =>
+      this.workspaceService.loadResourcesByWorkspaceId(w.id).pipe(
+        take(1),
+        catchError(() => of(null))
+      )
     );
 
-    if (hasResourcesLoaded) {
-      this.confirmDialog(
-        'Cannot Delete Project',
-        'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
-      return;
-    }
+    forkJoin(resourceChecks).pipe(
+      take(1),
+      map(() => {
+        // Check loaded resources and runs
+        const hasResources = workspaces.some(w => {
+          const updated = this.workspaceQuery.getEntity(w.id);
+          return updated?.resources && updated.resources.length > 0;
+        });
 
-    if (hasIncompleteRuns) {
-      this.confirmDialog(
-        'Cannot Delete Project',
-        'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
-      return;
-    }
+        const hasRuns = workspaces.some(w => {
+          const updated = this.workspaceQuery.getEntity(w.id);
+          return updated?.runs && updated.runs.some(r => !terminalStatuses.includes(r.status));
+        });
 
-    // Load resources for all workspaces to be sure
-    if (workspaces.length > 0) {
-      const resourceChecks = workspaces.map(w =>
-        this.workspaceService.loadResourcesByWorkspaceId(w.id).pipe(
-          take(1),
-          catchError(() => of(null))
-        )
-      );
-
-      forkJoin(resourceChecks).pipe(
-        take(1),
-        map(() => {
-          // Check again after loading resources and runs
-          const hasResources = workspaces.some(w => {
-            const updated = this.workspaceQuery.getEntity(w.id);
-            return updated?.resources && updated.resources.length > 0;
-          });
-
-          const hasRuns = workspaces.some(w => {
-            const updated = this.workspaceQuery.getEntity(w.id);
-            return updated?.runs && updated.runs.some(r => !terminalStatuses.includes(r.status));
-          });
-
-          return { hasResources, hasRuns };
-        })
-      ).subscribe(({ hasResources, hasRuns }) => {
-        if (hasResources) {
-          this.confirmDialog(
-            'Cannot Delete Project',
-            'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
-            { buttonTrueText: 'OK', buttonFalseText: '' }
-          ).subscribe();
-        } else if (hasRuns) {
-          this.confirmDialog(
-            'Cannot Delete Project',
-            'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-            { buttonTrueText: 'OK', buttonFalseText: '' }
-          ).subscribe();
-        } else {
-          this.proceedWithDelete(project);
-        }
-      });
-    } else {
-      // No workspaces, proceed with delete
-      this.proceedWithDelete(project);
-    }
+        return { hasResources, hasRuns };
+      })
+    ).subscribe(({ hasResources, hasRuns }) => {
+      if (hasResources) {
+        this.confirmDialog(
+          'Cannot Delete Project',
+          'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
+          { buttonTrueText: 'OK', buttonFalseText: '' }
+        ).subscribe();
+      } else if (hasRuns) {
+        this.confirmDialog(
+          'Cannot Delete Project',
+          'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+          { buttonTrueText: 'OK', buttonFalseText: '' }
+        ).subscribe();
+      } else {
+        this.proceedWithDelete(project);
+      }
+    });
   }
 
   private proceedWithDelete(project: Project) {
