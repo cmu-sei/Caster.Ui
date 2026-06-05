@@ -58,14 +58,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-cell *matCellDef="let element">
           @if (!manageMode) {
           <a
-            class="project-text"
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
             >{{ element.name }}</a
           >
           } @if (manageMode) {
           <a
-            class="project-text"
             matTooltip="Edit {{ element.name }}"
             [routerLink]="['/projects', element.id, 'memberships']"
             ><p
