@@ -86,10 +86,12 @@ export class DirectoryService {
       });
   }
 
-  delete(dirId: string) {
-    this.directoriesService.deleteDirectory(dirId).subscribe(() => {
-      this.deleted(dirId);
-    });
+  delete(dirId: string): Observable<void> {
+    return this.directoriesService.deleteDirectory(dirId).pipe(
+      tap(() => {
+        this.deleted(dirId);
+      })
+    );
   }
 
   updated(directory: Directory) {

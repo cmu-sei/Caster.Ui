@@ -15,17 +15,21 @@ import {
 import {
   Project,
   ProjectPermission,
+  RunStatus,
   SystemPermission,
 } from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ProjectService } from 'src/app/project/state';
-import { filter, map, take } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
+import { Observable, of, forkJoin } from 'rxjs';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DirectoryQuery } from 'src/app/directories/state';
+import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 
 const NAME_VALUE = 'nameValue';
 
@@ -58,7 +62,11 @@ export class ProjectListComponent implements OnInit, OnChanges {
     private projectService: ProjectService,
     private dialogService: ConfirmDialogService,
     private dialog: MatDialog,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar,
+    private directoryQuery: DirectoryQuery,
+    private workspaceQuery: WorkspaceQuery,
+    private workspaceService: WorkspaceService
   ) {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
       map((x) => x.includes(SystemPermission.ManageProjects))
@@ -160,13 +168,91 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   delete(project: Project) {
+    // Get all directories in this project
+    const directories = this.directoryQuery.getAll({
+      filterBy: (d) => d.projectId === project.id
+    });
+
+    // Get all workspaces in those directories
+    const workspaces = this.workspaceQuery.getAll({
+      filterBy: (w) => directories.some(d => d.id === w.directoryId)
+    });
+
+    if (workspaces.length === 0) {
+      // No workspaces, proceed with delete
+      this.proceedWithDelete(project);
+      return;
+    }
+
+    // Terminal run statuses (completed)
+    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
+
+    // Load resources for all workspaces
+    const resourceChecks = workspaces.map(w =>
+      this.workspaceService.loadResourcesByWorkspaceId(w.id).pipe(
+        take(1),
+        catchError(() => of(null))
+      )
+    );
+
+    forkJoin(resourceChecks).pipe(
+      take(1),
+      map(() => {
+        // Check loaded resources and runs
+        const hasResources = workspaces.some(w => {
+          const updated = this.workspaceQuery.getEntity(w.id);
+          return updated?.resources && updated.resources.length > 0;
+        });
+
+        const hasRuns = workspaces.some(w => {
+          const updated = this.workspaceQuery.getEntity(w.id);
+          return updated?.runs && updated.runs.some(r => !terminalStatuses.includes(r.status));
+        });
+
+        return { hasResources, hasRuns };
+      })
+    ).subscribe(({ hasResources, hasRuns }) => {
+      if (hasResources) {
+        this.confirmDialog(
+          'Cannot Delete Project',
+          'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
+          { buttonTrueText: 'OK', buttonFalseText: '' }
+        ).subscribe();
+      } else if (hasRuns) {
+        this.confirmDialog(
+          'Cannot Delete Project',
+          'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+          { buttonTrueText: 'OK', buttonFalseText: '' }
+        ).subscribe();
+      } else {
+        this.proceedWithDelete(project);
+      }
+    });
+  }
+
+  private proceedWithDelete(project: Project) {
     this.confirmDialog(
       'Delete Project?',
       'Delete Project ' + project.name + '?',
       { buttonTrueText: 'Delete' }
     ).subscribe((result) => {
       if (!result[this.dialogService.WAS_CANCELLED]) {
-        this.projectService.deleteProject(project.id).pipe(take(1)).subscribe();
+        this.projectService.deleteProject(project.id).pipe(
+          take(1),
+          catchError((error) => {
+            const message = error.error?.message || error.message || error.statusText || 'Failed to delete project';
+            this.snackBar.open(
+              message,
+              'Dismiss',
+              {
+                duration: 5000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center'
+              }
+            );
+            return of(null);
+          })
+        ).subscribe();
       }
     });
   }
