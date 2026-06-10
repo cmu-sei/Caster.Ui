@@ -54,8 +54,6 @@ export class ProjectCollapseContainerComponent
   public leftSidebarWidth: number;
   public currentUser$: Observable<CurrentUserState>;
   public titleText = 'Caster';
-  public topbarColor;
-  public topbarTextColor;
   public theme$: Observable<Theme>;
 
   TopbarView = TopbarView;
@@ -90,8 +88,6 @@ export class ProjectCollapseContainerComponent
 
     // Set the page title from configuration file
     this.titleText = this.settingsService.settings.AppTopBarText;
-    this.topbarColor = this.settingsService.settings.AppTopBarHexColor;
-    this.topbarTextColor = this.settingsService.settings.AppTopBarHexTextColor;
 
     this.project$
       .pipe(
