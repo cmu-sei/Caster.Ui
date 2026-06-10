@@ -422,9 +422,11 @@ export class ProjectTabComponent
       }
     }
 
-    // discard changes
-    this.fileService.updateEditorContent(file.id, file.content);
-    this.fileService.setSave(file.id, true);
+    // discard changes — only meaningful when the file still exists in the store
+    if (file) {
+      this.fileService.updateEditorContent(file.id, file.content);
+      this.fileService.setSave(file.id, true);
+    }
 
     this.closeTab.emit(fileId);
   }
@@ -437,6 +439,24 @@ export class ProjectTabComponent
   isFileContentChanged(fileId: string): boolean {
     const file = this.fileQuery.getEntity(fileId);
     return file && file.editorContent !== file.content;
+  }
+
+  // True only once the tab's referenced entity is hydrated into its store.
+  // The tab strip is driven by persisted openTabs, but the inner component
+  // (e.g. cas-workspace-container) fires HTTP/SignalR requests on mount, so
+  // it must wait — otherwise a tab pointing at a deleted entity will trigger
+  // a server "does not exist" error before pruneDeletedTabs runs.
+  tabEntityExists(tab: Tab): boolean {
+    switch (tab.type) {
+      case ProjectObjectType.FILE:
+        return this.fileQuery.hasEntity(tab.id);
+      case ProjectObjectType.WORKSPACE:
+        return this.workspaceQuery.hasEntity(tab.id);
+      case ProjectObjectType.DESIGN:
+        return this.designQuery.hasEntity(tab.id);
+      default:
+        return true;
+    }
   }
 
   confirmDialog(
