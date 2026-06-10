@@ -35,8 +35,6 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public projectsText = 'Projects';
   public showStatus = this.projectsText;
   public theme$: Observable<Theme>;
-  public topbarColor;
-  public topbarTextColor;
   TopbarView = TopbarView;
 
   public permissions$ = this.permissionService.permissions$;
@@ -59,8 +57,6 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Set the page title from configuration file
     this.titleText = this.settingsService.settings.AppTopBarText;
-    this.topbarColor = this.settingsService.settings.AppTopBarHexColor;
-    this.topbarTextColor = this.settingsService.settings.AppTopBarHexTextColor;
     this.currentUserQuery
       .select()
       .pipe(takeUntil(this.unsubscribe$))
