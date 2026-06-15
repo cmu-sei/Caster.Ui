@@ -183,14 +183,21 @@ export class SignalRService {
     this.workspaceIds.add(workspaceId);
 
     if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('JoinWorkspace', workspaceId);
+      // Swallow rejection — a stale tab pointing at a deleted workspace will
+      // surface a server error here on initial render; the tab is then pruned
+      // from the UI state once directories finish loading.
+      this.hubConnection
+        .invoke('JoinWorkspace', workspaceId)
+        .catch((err) => console.log(err));
     }
   }
 
   public leaveWorkspace(workspaceId: string) {
     this.workspaceIds.delete(workspaceId);
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('LeaveWorkspace', workspaceId);
+      this.hubConnection
+        .invoke('LeaveWorkspace', workspaceId)
+        .catch((err) => console.log(err));
     }
   }
 
