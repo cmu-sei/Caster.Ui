@@ -16,10 +16,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface CreateProjectCommand { 
+export interface CreateProjectCommand {
     /**
      * Name of the project.
      */
     name?: string | null;
+    /**
+     * Description of the project.
+     */
+    description?: string | null;
 }
 
