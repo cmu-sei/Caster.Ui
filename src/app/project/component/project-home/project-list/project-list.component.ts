@@ -32,6 +32,7 @@ import { DirectoryQuery } from 'src/app/directories/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 
 const NAME_VALUE = 'nameValue';
+const DESCRIPTION_VALUE = 'descriptionValue';
 
 @Component({
     selector: 'cas-project-list',
@@ -51,7 +52,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @ViewChild(MatSort, { static: false }) sort: MatSort;
 
   filterString = '';
-  displayedColumns: string[] = ['name', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'actions'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
   canManageAll$: Observable<boolean>;
@@ -131,19 +132,19 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   create() {
-    this.nameDialog('Create New Project?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (!result[this.dialogService.WAS_CANCELLED]) {
-          const newProject = {
-            name: result[NAME_VALUE],
-          } as Project;
-          this.projectService
-            .createProject(newProject)
-            .pipe(take(1))
-            .subscribe();
-        }
+    this.nameDialog('Create New Project?', '', {
+      nameValue: '',
+      showDescription: true,
+      descriptionValue: '',
+    }).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        const newProject = {
+          name: result[NAME_VALUE],
+          description: result[DESCRIPTION_VALUE],
+        } as Project;
+        this.projectService.createProject(newProject).pipe(take(1)).subscribe();
       }
-    );
+    });
   }
 
   createRequest() {
@@ -151,13 +152,16 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   update(project: Project) {
-    this.nameDialog('Rename ' + project.name, '', {
+    this.nameDialog('Edit ' + project.name, '', {
       nameValue: project.name,
+      showDescription: true,
+      descriptionValue: project.description,
     }).subscribe((result) => {
       if (!result[this.dialogService.WAS_CANCELLED]) {
         const updatedProject = {
           ...project,
           name: result[NAME_VALUE],
+          description: result[DESCRIPTION_VALUE],
         } as Project;
         this.projectService
           .updateProject(updatedProject)
