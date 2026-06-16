@@ -21,8 +21,6 @@ import { TopbarView } from './../../../../shared/components/top-bar/topbar.model
 export class ProjectListContainerComponent implements OnInit {
   public username: string;
   public titleText: string;
-  public topbarColor = '#0FABEA';
-  public topbarTextColor;
   public projects: Observable<Project[]>;
   public isLoading$: Observable<boolean>;
   TopbarView = TopbarView;
@@ -43,10 +41,6 @@ export class ProjectListContainerComponent implements OnInit {
     this.projectService.loadProjects(true).pipe(take(1)).subscribe();
 
     this.isLoading$ = this.projectQuery.selectLoading();
-
-    // Set the topbar color from config file
-    this.topbarColor = this.settingsService.settings.AppTopBarHexColor;
-    this.topbarTextColor = this.settingsService.settings.AppTopBarHexTextColor;
 
     // Set the page title from configuration file
     this.titleText = this.settingsService.settings.AppTopBarText;

@@ -26,6 +26,10 @@ export interface Project {
      */
     name?: string | null;
     /**
+     * Description of the project.
+     */
+    description?: string | null;
+    /**
      * Date the project was created.
      */
     dateCreated?: string;

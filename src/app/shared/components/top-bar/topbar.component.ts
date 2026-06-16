@@ -14,7 +14,6 @@ import { Router } from '@angular/router';
 import {
   ComnAuthQuery,
   ComnAuthService,
-  ComnSettingsService,
   Theme,
 } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
@@ -36,8 +35,6 @@ import { ProjectQuery } from 'src/app/project';
 export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() title?: string = 'Caster';
   @Input() sidenav?;
-  @Input() topbarColor?;
-  @Input() topbarTextColor?;
   @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
   @Input() projectId?: string;
 
@@ -55,7 +52,6 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
     private userService: UserService,
     private authQuery: ComnAuthQuery,
     private router: Router,
-    private settingsService: ComnSettingsService,
     private permissionService: PermissionService
   ) {}
 
@@ -72,15 +68,6 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
     );
 
     this.theme$ = this.authQuery.userTheme$;
-
-    if (!this.topbarColor) {
-      this.topbarColor = this.settingsService.settings.AppTopBarHexColor;
-    }
-
-    if (!this.topbarTextColor) {
-      this.topbarTextColor =
-        this.settingsService.settings.AppTopBarHexTextColor;
-    }
   }
 
   ngOnChanges() {
