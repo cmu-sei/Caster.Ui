@@ -21,6 +21,7 @@ import {
 import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { Router } from '@angular/router';
 import { ProjectService } from 'src/app/project/state';
 import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
 import { Observable, of, forkJoin } from 'rxjs';
@@ -59,7 +60,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   filterString = '';
-  displayedColumns: string[] = ['name', 'description', 'actions', 'dateCreated'];
+  displayedColumns: string[] = ['actions', 'name', 'description', 'dateCreated'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
   canManageAll$: Observable<boolean>;
@@ -74,7 +75,8 @@ export class ProjectListComponent implements OnInit, OnChanges {
     private snackBar: MatSnackBar,
     private directoryQuery: DirectoryQuery,
     private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService
+    private workspaceService: WorkspaceService,
+    private router: Router
   ) {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
       map((x) => x.includes(SystemPermission.ManageProjects))
@@ -149,7 +151,13 @@ export class ProjectListComponent implements OnInit, OnChanges {
           name: result[NAME_VALUE],
           description: result[DESCRIPTION_VALUE],
         } as Project;
-        this.projectService.createProject(newProject).pipe(take(1)).subscribe();
+        this.projectService
+          .createProject(newProject)
+          .pipe(take(1))
+          .subscribe((project) => {
+            // Open the newly created project
+            this.router.navigate(['/projects', project.id]);
+          });
       }
     });
   }

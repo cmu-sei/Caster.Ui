@@ -76,6 +76,26 @@ table {
   border-color: var(--mat-sys-outline-variant);
 }
 
+// Actions column holds at most three icon buttons (~40px each)
+.mat-column-actions {
+  flex: 0 0 132px;
+  max-width: 132px;
+}
+
+// Keep Name close to the action buttons
+.mat-column-name {
+  flex: 0 0 240px;
+}
+
+// Description fills the remaining space, pushing Created to the far right
+.mat-column-description {
+  flex: 1 1 auto;
+}
+
+.mat-column-dateCreated {
+  flex: 0 0 160px;
+}
+
 a:link {
   color: var(--mat-sys-on-background);
 }
