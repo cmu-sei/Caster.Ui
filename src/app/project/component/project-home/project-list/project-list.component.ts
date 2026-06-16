@@ -19,6 +19,7 @@ import {
   SystemPermission,
 } from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ProjectService } from 'src/app/project/state';
 import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
@@ -49,6 +50,12 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
   @ViewChild(MatSort, { static: false }) sort: MatSort;
+
+  @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   filterString = '';
   displayedColumns: string[] = ['name', 'actions', 'dateCreated'];
