@@ -14,5 +14,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     [users]="members$ | async"
     [canEdit]="canEdit"
     (deleteMembership)="deleteMembership($event)"
+    (changeRole)="changeRole($event)"
   ></cas-admin-groups-member-list>
 </div>

@@ -76,7 +76,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
-        @if (permissions.includes(SystemPermission.ViewGroups)) {
+        @if (canViewGroups$ | async) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
             <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-account-group"></mat-icon>
             {{ groupsText }}
@@ -141,10 +141,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <cas-admin-roles
             ></cas-admin-roles>
           }
-          @if (
-            showStatus === groupsText &&
-            permissions.includes(SystemPermission.ViewGroups)
-            ) {
+          @if (showStatus === groupsText && (canViewGroups$ | async)) {
             <cas-admin-groups
             ></cas-admin-groups>
           }

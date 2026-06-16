@@ -9,12 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { GroupPermission } from './groupPermission';
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
+export interface GroupPermissionsClaim { 
+    groupId?: string;
+    permissions?: Array<GroupPermission> | null;
 }
 

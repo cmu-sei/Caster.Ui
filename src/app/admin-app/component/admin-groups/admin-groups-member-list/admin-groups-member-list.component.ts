@@ -16,7 +16,11 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { GroupMembership, User } from 'src/app/generated/caster-api';
+import {
+  GroupMembership,
+  GroupMembershipRole,
+  User,
+} from 'src/app/generated/caster-api';
 
 @Component({
     selector: 'cas-admin-groups-member-list',
@@ -39,10 +43,15 @@ export class AdminGroupsMemberListComponent
   @Output()
   deleteMembership = new EventEmitter<string>();
 
+  @Output()
+  changeRole = new EventEmitter<{ id: string; role: GroupMembershipRole }>();
+
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  viewColumns = ['name'];
+  groupMembershipRoles = Object.values(GroupMembershipRole);
+
+  viewColumns = ['name', 'role'];
   editColumns = ['actions'];
   displayedColumns = this.viewColumns;
   dataSource = new MatTableDataSource<GroupMembershipModel>();
@@ -74,6 +83,7 @@ export class AdminGroupsMemberListComponent
           membership: x,
           user: user,
           name: user?.name,
+          role: x.role,
         } as GroupMembershipModel;
       })
       .filter((x) => x);
@@ -81,6 +91,10 @@ export class AdminGroupsMemberListComponent
 
   delete(id: string) {
     this.deleteMembership.emit(id);
+  }
+
+  onRoleChange(id: string, role: GroupMembershipRole) {
+    this.changeRole.emit({ id, role });
   }
 
   trackById(index: number, item: any) {
@@ -102,4 +116,5 @@ export interface GroupMembershipModel {
   membership: GroupMembership;
   user: User;
   name: string;
+  role: GroupMembershipRole;
 }

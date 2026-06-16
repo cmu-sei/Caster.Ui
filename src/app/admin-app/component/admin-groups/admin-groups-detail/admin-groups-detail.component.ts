@@ -6,7 +6,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CreateGroupMembershipCommand } from 'src/app/generated/caster-api';
+import {
+  CreateGroupMembershipCommand,
+  GroupMembershipRole,
+} from 'src/app/generated/caster-api';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
@@ -88,7 +91,12 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   }
 
   deleteMembership(id: string) {
-    console.log(id);
     this.groupMembershipService.deleteMembership(id).subscribe();
+  }
+
+  changeRole(event: { id: string; role: GroupMembershipRole }) {
+    this.groupMembershipService
+      .editMembership(event.id, { role: event.role })
+      .subscribe();
   }
 }

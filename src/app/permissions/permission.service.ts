@@ -5,6 +5,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import {
+  GroupPermission,
+  GroupPermissionsClaim,
+  GroupPermissionsService,
   ProjectPermission,
   ProjectPermissionsClaim,
   ProjectPermissionsService,
@@ -24,9 +27,15 @@ export class PermissionService {
   >([]);
   public projectPermissions$ = this.projectPermissionsSubject.asObservable();
 
+  private groupPermissionsSubject = new BehaviorSubject<
+    GroupPermissionsClaim[]
+  >([]);
+  public groupPermissions$ = this.groupPermissionsSubject.asObservable();
+
   constructor(
     private permissionsService: SystemPermissionsService,
-    private projectPermissionsService: ProjectPermissionsService
+    private projectPermissionsService: ProjectPermissionsService,
+    private groupPermissionsService: GroupPermissionsService
   ) {}
 
   load(): Observable<SystemPermission[]> {
@@ -36,9 +45,22 @@ export class PermissionService {
   }
 
   canViewAdiminstration() {
-    return this.permissions$.pipe(
-      map((x) => x.filter((y) => y.startsWith('View'))),
-      map((x) => x.length > 0)
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(
+        ([permissions, groupPermissionClaims]) =>
+          permissions.filter((y) => y.startsWith('View')).length > 0 ||
+          groupPermissionClaims.length > 0
+      )
+    );
+  }
+
+  canViewGroupsAdmin() {
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(
+        ([permissions, groupPermissionClaims]) =>
+          permissions.includes(SystemPermission.ViewGroups) ||
+          groupPermissionClaims.length > 0
+      )
     );
   }
 
@@ -93,6 +115,55 @@ export class PermissionService {
           if (
             projectPermissionClaim != null &&
             projectPermissionClaim.permissions.includes(projectPermission)
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      })
+    );
+  }
+
+  loadGroupPermissions(groupId?: string) {
+    return this.groupPermissionsService
+      .getMyGroupPermissions(groupId)
+      .pipe(tap((x) => this.groupPermissionsSubject.next(x)));
+  }
+
+  canManageGroup(groupId: string): Observable<boolean> {
+    return this.canGroup(
+      SystemPermission.ManageGroups,
+      groupId,
+      GroupPermission.ManageMembership
+    );
+  }
+
+  canEditGroup(groupId: string): Observable<boolean> {
+    return this.canGroup(
+      SystemPermission.ManageGroups,
+      groupId,
+      GroupPermission.EditGroup
+    );
+  }
+
+  private canGroup(
+    permission: SystemPermission,
+    groupId?: string,
+    groupPermission?: GroupPermission
+  ) {
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(([permissions, groupPermissionClaims]) => {
+        if (permissions.includes(permission)) {
+          return true;
+        } else if (groupId != null && groupPermission != null) {
+          const groupPermissionClaim = groupPermissionClaims.find(
+            (x) => x.groupId == groupId
+          );
+
+          if (
+            groupPermissionClaim != null &&
+            groupPermissionClaim.permissions.includes(groupPermission)
           ) {
             return true;
           }

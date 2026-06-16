@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import {
   CreateGroupMembershipCommand,
+  EditGroupMembershipCommand,
   GroupMembership,
   GroupsService,
 } from '../generated/caster-api';
@@ -47,6 +48,14 @@ export class GroupMembershipService {
 
   createMembership(groupId: string, command: CreateGroupMembershipCommand) {
     return this.groupService.createGroupMembership(groupId, command).pipe(
+      tap((x) => {
+        this.upsert(x.id, x);
+      })
+    );
+  }
+
+  editMembership(id: string, command: EditGroupMembershipCommand) {
+    return this.groupService.editGroupMembership(id, command).pipe(
       tap((x) => {
         this.upsert(x.id, x);
       })

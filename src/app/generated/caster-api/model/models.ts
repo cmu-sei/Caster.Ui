@@ -1,8 +1,3 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
-
 export * from './acquireVlanCommand';
 export * from './addOrUpdateValuesDesignModuleCommand';
 export * from './addVlansToPartitionCommand';
@@ -39,6 +34,7 @@ export * from './editDesignModuleCommand';
 export * from './editDirectoryCommand';
 export * from './editFileCommand';
 export * from './editGroupCommand';
+export * from './editGroupMembershipCommand';
 export * from './editHostCommand';
 export * from './editPartitionCommand';
 export * from './editPoolCommand';
@@ -51,6 +47,9 @@ export * from './editWorkspaceCommand';
 export * from './fileVersion';
 export * from './group';
 export * from './groupMembership';
+export * from './groupMembershipRole';
+export * from './groupPermission';
+export * from './groupPermissionsClaim';
 export * from './healthStatus';
 export * from './host';
 export * from './importDirectoryResult';

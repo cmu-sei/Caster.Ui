@@ -38,6 +38,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   TopbarView = TopbarView;
 
   public permissions$ = this.permissionService.permissions$;
+  public canViewGroups$ = this.permissionService.canViewGroupsAdmin();
   readonly SystemPermission = SystemPermission;
 
   private unsubscribe$ = new Subject();
@@ -75,6 +76,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
       });
 
     this.permissionService.load().subscribe();
+    this.permissionService.loadGroupPermissions().subscribe();
   }
 
   logout(): void {

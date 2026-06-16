@@ -11,10 +11,10 @@
  */
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
-}
+export type GroupMembershipRole = 'Member' | 'Manager';
+
+export const GroupMembershipRole = {
+    Member: 'Member' as GroupMembershipRole,
+    Manager: 'Manager' as GroupMembershipRole
+};
 

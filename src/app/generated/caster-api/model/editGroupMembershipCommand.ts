@@ -9,12 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { GroupMembershipRole } from './groupMembershipRole';
 
 
-export interface RemoveResourcesCommand { 
-    /**
-     * List of Resource addresses to remove
-     */
-    resourceAddresses?: Array<string> | null;
+export interface EditGroupMembershipCommand { 
+    role?: GroupMembershipRole;
 }
 

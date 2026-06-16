@@ -71,7 +71,19 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
   );
 
   ngOnInit() {
-    forkJoin([this.groupsService.load(), this.usersService.load()]).subscribe();
+    forkJoin([
+      this.groupsService.load(),
+      this.usersService.load(),
+      this.permissionService.loadGroupPermissions(),
+    ]).subscribe();
+  }
+
+  canManageGroup$(groupId: string): Observable<boolean> {
+    return this.permissionService.canManageGroup(groupId);
+  }
+
+  canEditGroup$(groupId: string): Observable<boolean> {
+    return this.permissionService.canEditGroup(groupId);
   }
 
   ngAfterViewInit(): void {
