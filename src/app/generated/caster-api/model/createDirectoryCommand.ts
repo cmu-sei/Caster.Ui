@@ -18,6 +18,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 export interface CreateDirectoryCommand { 
     /**
+     * Optional ID for the directory. If not provided, one will be generated.
+     */
+    id?: string | null;
+    /**
      * Name of the directory.
      */
     name?: string | null;

@@ -30,6 +30,10 @@ export interface Project {
      */
     description?: string | null;
     /**
+     * Date the project was created.
+     */
+    dateCreated?: string;
+    /**
      * The vlan partition this project is a part of.
      */
     partitionId?: string | null;

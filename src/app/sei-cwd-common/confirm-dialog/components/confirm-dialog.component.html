@@ -12,8 +12,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div>
     @if (buttonTrueText !== '') {
     <button
-      mat-flat-button
-      color="primary"
+      mat-stroked-button
       hotkeyAction="ENTER"
       (click)="onClick(true)"
       tabindex="3"
@@ -23,7 +22,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
   </div>
   @if (buttonFalseText !== '') {
-  <button mat-flat-button color="primary" (click)="onCancel()" tabindex="3">
+  <button mat-stroked-button (click)="onCancel()" tabindex="3">
     {{ buttonFalseText }}
   </button>
   }

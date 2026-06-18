@@ -44,8 +44,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="d-flex flex-row justify-content-around align-items-center"
 >
   <button
-    mat-flat-button
-    color="primary"
+    mat-stroked-button
     hotkeyAction="ENTER"
     (click)="onClick()"
     [disabled]="!form.valid || !form.dirty"
@@ -53,7 +52,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
     Save
   </button>
-  <button mat-flat-button color="primary" (click)="onCancel()" tabindex="3">
+  <button mat-stroked-button (click)="onCancel()" tabindex="3">
     Cancel
   </button>
 </mat-dialog-actions>
