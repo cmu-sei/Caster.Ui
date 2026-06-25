@@ -3,40 +3,41 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2>Export {{ typeString | titlecase }}: {{ name }}</h2>
+<h2 mat-dialog-title>Export {{ typeString | titlecase }}: {{ name }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="export()">
-  @if (isArchiveable) {
-  <mat-form-field class="d-flex flex-row">
-    <mat-label>Archive Type</mat-label>
-    <mat-select formControlName="archiveType">
-      @for (archiveType of archiveTypes; track archiveType) {
-      <mat-option [value]="archiveType">
-        {{ archiveType }}
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  }
+  <mat-dialog-content>
+    @if (isArchiveable) {
+    <mat-form-field>
+      <mat-label>Archive Type</mat-label>
+      <mat-select formControlName="archiveType">
+        @for (archiveType of archiveTypes; track archiveType) {
+        <mat-option [value]="archiveType">
+          {{ archiveType }}
+        </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    }
 
-  <mat-label>Include Ids </mat-label>
-  <mat-slide-toggle
-    formControlName="includeIds"
-    matTooltip="Append Ids to Directory names to be optionally preserved on import"
-  ></mat-slide-toggle>
+    <div class="d-flex flex-row align-items-center gap-2">
+      <mat-label>Include Ids</mat-label>
+      <mat-slide-toggle
+        formControlName="includeIds"
+        matTooltip="Append Ids to Directory names to be optionally preserved on import"
+      ></mat-slide-toggle>
+    </div>
+  </mat-dialog-content>
 
-  <div class="d-flex flex-row justify-content-around align-items-center">
+  <mat-dialog-actions align="end">
+    <button type="reset" mat-stroked-button (click)="cancel()">Cancel</button>
     <button
       type="submit"
       color="primary"
-      mat-raised-button
+      mat-flat-button
       [disabled]="!form.valid"
     >
       Export
     </button>
-
-    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
-      Cancel
-    </button>
-  </div>
+  </mat-dialog-actions>
 </form>

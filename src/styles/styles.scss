@@ -5,6 +5,7 @@
 @use './theme-colors' as theme;
 @use './dark-theme-colors' as dark-theme;
 @use '@mdi/font/scss/materialdesignicons.scss';
+@use 'dialogs';
 
 @import '@fortawesome/fontawesome-free/css/all.css';
 @import '@xterm/xterm/css/xterm.css';

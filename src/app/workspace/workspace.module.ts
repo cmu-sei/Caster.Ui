@@ -30,6 +30,7 @@ import { WorkspaceEditContainerComponent } from './components/workspace-edit-con
 import { WorkspaceEditComponent } from './components/workspace-edit-container/workspace-edit/workspace-edit.component';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule } from '@angular/material/dialog';
 import { WorkspaceVersionComponent } from './components/workspace-version/workspace-version.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ImportResourceComponent } from './components/import-resource/import-resource.component';
@@ -70,6 +71,7 @@ import { ImportResourceComponent } from './components/import-resource/import-res
     MatOptionModule,
     MatSelectModule,
     DragDropModule,
+    MatDialogModule,
   ],
   exports: [
     WorkspaceContainerComponent,

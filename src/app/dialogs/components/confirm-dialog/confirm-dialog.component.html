@@ -3,14 +3,12 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h1 mat-dialog-title>{{ title }}</h1>
-<div>{{ message }}</div>
+<h2 mat-dialog-title>{{ title }}</h2>
+<mat-dialog-content>{{ message }}</mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button (click)="onClick(false)" tabIndex="1">
-    NO
-  </button>
-  <button mat-stroked-button (click)="onClick(true)" tabindex="2">
-    YES
+  <button mat-stroked-button (click)="onClick(false)" tabIndex="2">No</button>
+  <button mat-flat-button color="primary" (click)="onClick(true)" tabindex="1">
+    Yes
   </button>
 </mat-dialog-actions>

@@ -1,16 +1,23 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-h1 {
-  display: inline-block;
-}
-
 mat-form-field {
   display: block;
 }
 
-.form-actions {
-  margin-top: 1em;
+.module-path {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.module-description {
+  margin: 4px 0 16px;
+}
+
+.module-fields {
+  overflow-y: auto;
+  max-height: 50vh;
 }
 
 .changed-hint {

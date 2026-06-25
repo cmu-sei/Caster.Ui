@@ -1,0 +1,72 @@
+// Copyright 2025 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+// =============================================================================
+// Shared dialog (modal) styling
+// -----------------------------------------------------------------------------
+// One contract for every modal in the app so that titles, body text, and action
+// rows share the same font, spacing, and rhythm regardless of which component
+// opened them. Individual dialogs should only need the standard Material
+// structure:
+//
+//   <h2 mat-dialog-title>…</h2>
+//   <mat-dialog-content>…</mat-dialog-content>
+//   <mat-dialog-actions align="end">…</mat-dialog-actions>
+//
+// and inherit consistent presentation from the rules below.
+// =============================================================================
+
+.mat-mdc-dialog-container {
+  // Guarantee the app font inside the overlay (the CDK overlay is rendered
+  // outside <app-root>, so it does not always inherit body typography).
+  --mdc-dialog-subhead-font: 'Open Sans', sans-serif;
+  --mdc-dialog-supporting-text-font: 'Open Sans', sans-serif;
+  font-family: 'Open Sans', sans-serif;
+
+  // Comfortable, consistent breathing room around all dialog content.
+  --mat-dialog-with-actions-content-padding: 8px 24px;
+  --mat-dialog-content-padding: 20px 24px;
+  --mat-dialog-headline-padding: 20px 24px 12px;
+}
+
+// Title: uniform size/weight across dialogs that previously mixed <h1>/<h2>.
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+  color: var(--mat-sys-on-surface);
+
+  // Material reserves space for an icon before the title via this pseudo
+  // element; without an icon it just adds dead space on the left.
+  &::before {
+    display: none;
+  }
+}
+
+// Body copy: readable size and color, never flush against the dialog edge.
+.mat-mdc-dialog-container .mat-mdc-dialog-content {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface);
+}
+
+// Action row: consistent right-aligned spacing and a sensible top divider gap.
+.mat-mdc-dialog-container .mat-mdc-dialog-actions {
+  padding: 12px 24px 20px;
+  gap: 8px;
+
+  // Material spaces buttons with a margin; the gap above handles it uniformly.
+  .mat-mdc-button-base + .mat-mdc-button-base {
+    margin-left: 0;
+  }
+}
+
+// Make form fields inside dialogs span the available width by default so the
+// content-driven modals (edit/import/export) line up cleanly.
+.mat-mdc-dialog-container {
+  form .mat-mdc-form-field {
+    width: 100%;
+  }
+}

@@ -3,7 +3,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="d-flex flex-row justify-content-start align-items-center">
+<div
+  mat-dialog-title
+  class="d-flex flex-row justify-content-start align-items-center"
+>
   @if (readOnly) {
     <mat-icon
       class="mdi-24px"
@@ -22,13 +25,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon class="mdi-24px" fontIcon="mdi-alert-circle"> </mat-icon>
     </button>
   }
-  <h1 [ngClass]="promptForReload ? 'alert' : ''">
+  <span [ngClass]="promptForReload ? 'alert' : ''">
     {{ selectedModule.name }}
-  </h1>
+  </span>
 </div>
-<div style="margin-top: -20px">{{ selectedModule.path }}</div>
-<div style="margin-bottom: 20px">{{ selectedModule.description }}</div>
 <form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content>
+  <p class="module-path">{{ selectedModule.path }}</p>
+  <p class="module-description">{{ selectedModule.description }}</p>
   <mat-form-field>
     <mat-label>Version</mat-label>
     <mat-select
@@ -45,7 +49,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-select>
   </mat-form-field>
 
-  <div class="flex-grow-1 d-flex flex-column" style="overflow-y: scroll; height: 400px">
+  <div class="flex-grow-1 d-flex flex-column module-fields">
     <mat-card appearance="outlined">
       <mat-form-field>
         <mat-label [ngClass]="nameChanged ? 'changed-hint' : ''"
@@ -157,32 +161,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             }
           </ng-container>
         </div>
+  </mat-dialog-content>
 
-        <div class="form-actions d-flex flex-row gap-3">
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            [disabled]="readOnly || !form.valid || !form.dirty || isSaving"
-            tabindex="1"
-            >
-            <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
-              {{ isSaving ? 'Saving...' : submitButtonText }}
-            </span>
-          </button>
-          <button
-            type="button"
-            mat-raised-button
-            color="primary"
-            (click)="cancel()"
-            tabIndex="2"
-            >
-            @if (!form.dirty) {
-              Close
-            }
-            @if (form.dirty) {
-              Cancel
-            }
-          </button>
-        </div>
-      </form>
+  <mat-dialog-actions align="end">
+    <button type="button" mat-stroked-button (click)="cancel()" tabIndex="2">
+      @if (!form.dirty) {
+        Close
+      }
+      @if (form.dirty) {
+        Cancel
+      }
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="readOnly || !form.valid || !form.dirty || isSaving"
+      tabindex="1"
+      >
+      <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
+        {{ isSaving ? 'Saving...' : submitButtonText }}
+      </span>
+    </button>
+  </mat-dialog-actions>
+</form>
