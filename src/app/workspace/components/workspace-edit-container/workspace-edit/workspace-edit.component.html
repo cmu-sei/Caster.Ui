@@ -3,59 +3,65 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2 mat-dialog-title>Edit Workspace</h2>
-<form [formGroup]="form" (ngSubmit)="save()">
-  <mat-dialog-content>
-  <mat-form-field>
-    <input formControlName="name" matInput placeholder="Name" />
-    @if (name.invalid && (name.dirty || name.touched)) {
-      <mat-error>
-        @if (name.hasError('maxlength')) {
-          Must be 90 characters or fewer <br />
-        }
-        @if (name.hasError('pattern')) {
-          Letters, numbers, -, _, and . only <br />
-        }
-      </mat-error>
-    }
-  </mat-form-field>
-
-  <mat-form-field class="d-flex flex-row">
-    <mat-label>Terraform Version</mat-label>
-    <mat-select formControlName="terraformVersion">
-      @for (version of sortedVersions; track version) {
-        <mat-option [value]="version">
-          {{ version
-          }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
-        </mat-option>
+<crucible-dialog
+  title="Edit Workspace"
+  [form]="form"
+  submitLabel="Save"
+  [submitDisabled]="!form.valid || !form.dirty"
+  [guardUnsavedWork]="true"
+  (cancel)="cancel()"
+  (submit)="save()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    <mat-form-field>
+      <input formControlName="name" matInput placeholder="Name" cdkFocusInitial />
+      @if (name.invalid && (name.dirty || name.touched)) {
+        <mat-error>
+          @if (name.hasError('maxlength')) {
+            Must be 90 characters or fewer <br />
+          }
+          @if (name.hasError('pattern')) {
+            Letters, numbers, -, _, and . only <br />
+          }
+        </mat-error>
       }
-    </mat-select>
-  </mat-form-field>
+    </mat-form-field>
 
-  <mat-form-field>
-    <mat-label
-      >Parallelism
-      <mat-icon
-        class="pointer"
-        fontIcon="mdi-information"
-        matTooltip="Limit the number of concurrent Terraform operations. Defaults to 10 if not set. Only use for troubleshooting provider errors."
-        matTooltipShowDelay="0"
-        matTooltipHideDelay="0"
-        color="primary"
+    <mat-form-field>
+      <mat-label>Terraform Version</mat-label>
+      <mat-select formControlName="terraformVersion">
+        @for (version of sortedVersions; track version) {
+          <mat-option [value]="version">
+            {{ version
+            }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label
+        >Parallelism
+        <mat-icon
+          class="pointer"
+          fontIcon="mdi-information"
+          matTooltip="Limit the number of concurrent Terraform operations. Defaults to 10 if not set. Only use for troubleshooting provider errors."
+          matTooltipShowDelay="0"
+          matTooltipHideDelay="0"
+          color="primary"
         >
-      </mat-icon>
-    </mat-label>
-    <input
-      formControlName="parallelism"
-      type="number"
-      matInput
-      [max]="maxParallelism"
-      [min]="1"
-      autocomplete="off"
+        </mat-icon>
+      </mat-label>
+      <input
+        formControlName="parallelism"
+        type="number"
+        matInput
+        [max]="maxParallelism"
+        [min]="1"
+        autocomplete="off"
       />
       @if (parallelism.invalid && (parallelism.dirty || parallelism.touched)) {
-        <mat-error
-          >
+        <mat-error>
           @if (parallelism.hasError('min') || parallelism.hasError('max')) {
             Must be between 1 and {{ maxParallelism }}
           }
@@ -63,7 +69,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
     </mat-form-field>
 
-    <mat-form-field class="flex">
+    <mat-form-field>
       <mat-label
         >Azure Threshold
         <mat-icon
@@ -73,7 +79,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltipShowDelay="0"
           matTooltipHideDelay="0"
           color="primary"
-          >
+        >
         </mat-icon>
       </mat-label>
       <input
@@ -83,34 +89,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [max]="10"
         [min]="1"
         autocomplete="off"
-        />
-        @if (
-          azureDestroyFailureThreshold.invalid &&
-          (azureDestroyFailureThreshold.dirty ||
+      />
+      @if (
+        azureDestroyFailureThreshold.invalid &&
+        (azureDestroyFailureThreshold.dirty ||
           azureDestroyFailureThreshold.touched)
+      ) {
+        <mat-error>
+          @if (
+            azureDestroyFailureThreshold.hasError('min') ||
+            azureDestroyFailureThreshold.hasError('max')
           ) {
-          <mat-error
-            >
-            @if (
-              azureDestroyFailureThreshold.hasError('min') ||
-              azureDestroyFailureThreshold.hasError('max')
-              ) {
-              Must be between 1 and 10
-            }
-          </mat-error>
-        }
-      </mat-form-field>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button type="button" mat-stroked-button (click)="cancel()">Cancel</button>
-    <button
-      color="primary"
-      type="submit"
-      mat-flat-button
-      [disabled]="!form.valid || !form.dirty"
-    >
-      Save
-    </button>
-  </mat-dialog-actions>
-</form>
+            Must be between 1 and 10
+          }
+        </mat-error>
+      }
+    </mat-form-field>
+  </div>
+</crucible-dialog>

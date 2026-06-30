@@ -5,10 +5,11 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
   declarations: [ConfirmDialogComponent],
   exports: [],
-  imports: [CommonModule, MatDialogModule],
+  imports: [CommonModule, MatDialogModule, ...CRUCIBLE_DIALOG_IMPORTS],
 })
 export class DialogsModule {}

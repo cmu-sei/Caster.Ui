@@ -18,6 +18,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { User } from '../../../../generated/caster-api';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RoleService } from 'src/app/roles/roles.service.service';
 import { MatSelectChange } from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
@@ -121,7 +122,7 @@ export class UserListComponent implements OnInit, OnChanges {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   trackById(index: number, item: any) {

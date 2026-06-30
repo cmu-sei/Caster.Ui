@@ -24,6 +24,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ResizableModule } from 'angular-resizable-element';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { DirectoriesModule } from '../directories';
 import { FilesModule } from '../files/files.module';
 import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
@@ -71,6 +72,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
         ResizableModule,
         SharedModule,
         MatAutocompleteModule,
+        ...CRUCIBLE_DIALOG_IMPORTS,
     ],
     providers: []
 })

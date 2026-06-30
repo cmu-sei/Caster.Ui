@@ -19,6 +19,8 @@ import { MatOptionModule } from '@angular/material/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
   declarations: [DirectoryEditComponent, DirectoryEditContainerComponent],
@@ -26,6 +28,8 @@ import { MatDialogModule } from '@angular/material/dialog';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
     MatTreeModule,
     MatIconModule,
     MatButtonModule,

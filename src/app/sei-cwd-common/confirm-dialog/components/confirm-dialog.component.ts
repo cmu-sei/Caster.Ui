@@ -21,7 +21,6 @@ export class ConfirmDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<ConfirmDialogComponent>
   ) {
-    this.dialogRef.disableClose = true;
     this.buttonTrueText =
       this.data.buttonTrueText !== undefined ? this.data.buttonTrueText : 'Yes';
     this.buttonFalseText =

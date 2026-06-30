@@ -18,6 +18,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { Module } from '../../../../generated/caster-api';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 const WAS_CANCELLED = 'wasCancelled';
 
@@ -106,6 +107,6 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 }

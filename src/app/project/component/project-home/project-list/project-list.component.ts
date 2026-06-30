@@ -290,6 +290,6 @@ export class ProjectListComponent implements OnInit, OnChanges {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 }

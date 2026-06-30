@@ -162,7 +162,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {
@@ -171,7 +171,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   deleteDirectory(dir: Directory) {

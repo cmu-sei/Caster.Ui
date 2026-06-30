@@ -34,6 +34,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { WorkspaceVersionComponent } from './components/workspace-version/workspace-version.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ImportResourceComponent } from './components/import-resource/import-resource.component';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
   declarations: [
@@ -49,6 +51,8 @@ import { ImportResourceComponent } from './components/import-resource/import-res
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
     CwdToolbarModule,
     MatButtonModule,
     MatTableModule,

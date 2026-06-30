@@ -18,9 +18,7 @@ export class ConfirmDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<ConfirmDialogComponent>
-  ) {
-    this.dialogRef.disableClose = true;
-  }
+  ) {}
 
   onClick(confirm: boolean): void {
     this.data.artifacts && this.data.artifacts.length > 0

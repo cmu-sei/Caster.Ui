@@ -10,6 +10,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
   declarations: [ConfirmDialogComponent],
@@ -21,6 +23,8 @@ import { FormsModule } from '@angular/forms';
     MatButtonModule,
     MatTooltipModule,
     FormsModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
   ],
   providers: [ConfirmDialogService],
 })

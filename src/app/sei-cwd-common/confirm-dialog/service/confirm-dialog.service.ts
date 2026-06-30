@@ -5,6 +5,7 @@ import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../components/confirm-dialog.component';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +21,8 @@ export class ConfirmDialogService {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    // crucible-dialog calls close() with no arg on Escape; map undefined to
+    // cancelled so callers can safely read result.wasCancelled without crashing.
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 }

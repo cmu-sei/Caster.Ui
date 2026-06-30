@@ -3,3 +3,30 @@
 
 // Dialog title, content, and action spacing are inherited from the shared
 // dialog styles in src/styles/_dialogs.scss.
+
+// Content layout (not dialog chrome). Replaces ad-hoc bootstrap utilities.
+.import-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+// §7b: error text uses the themed error token, never a literal hex; the words
+// (not color) carry the meaning.
+.import-error {
+  color: var(--mat-sys-error);
+  margin: 0;
+}

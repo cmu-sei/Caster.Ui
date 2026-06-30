@@ -2,71 +2,49 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 // =============================================================================
-// Shared dialog (modal) styling
+// Shared dialog (modal) styling — CDS-01
 // -----------------------------------------------------------------------------
-// One contract for every modal in the app so that titles, body text, and action
-// rows share the same font, spacing, and rhythm regardless of which component
-// opened them. Individual dialogs should only need the standard Material
-// structure:
+// One contract for every modal in the app. The standard Material structure
 //
 //   <h2 mat-dialog-title>…</h2>
 //   <mat-dialog-content>…</mat-dialog-content>
 //   <mat-dialog-actions align="end">…</mat-dialog-actions>
 //
-// and inherit consistent presentation from the rules below.
+// already inherits the app font (Open Sans, declared via @font-face in
+// styles.scss) and M3 colors from the theme tokens. App-wide adjustments go
+// through `mat.dialog-overrides()` where tokens exist; one scoped rule targets
+// the ::before shim (no token) and one targets form-field width.
 // =============================================================================
 
-.mat-mdc-dialog-container {
-  // Guarantee the app font inside the overlay (the CDK overlay is rendered
-  // outside <app-root>, so it does not always inherit body typography).
-  --mdc-dialog-subhead-font: 'Open Sans', sans-serif;
-  --mdc-dialog-supporting-text-font: 'Open Sans', sans-serif;
-  font-family: 'Open Sans', sans-serif;
+@use '@angular/material' as mat;
 
-  // Comfortable, consistent breathing room around all dialog content.
-  --mat-dialog-with-actions-content-padding: 8px 24px;
-  --mat-dialog-content-padding: 20px 24px;
-  --mat-dialog-headline-padding: 20px 24px 12px;
+html {
+  @include mat.dialog-overrides(
+    (
+      // Title at the Crucible dialog size/weight (was raw .mat-mdc-dialog-title
+      // CSS). subhead-* tokens drive `<h2 mat-dialog-title>`.
+      subhead-size: 1.375rem,
+      subhead-weight: 600,
+      subhead-line-height: 1.75rem,
+      // Consistent breathing room around title, content, and actions.
+      headline-padding: 20px 24px 12px,
+      content-padding: 20px 24px,
+      with-actions-content-padding: 8px 24px,
+      actions-padding: 12px 24px 20px,
+      actions-alignment: flex-end
+    )
+  );
 }
 
-// Title: uniform size/weight across dialogs that previously mixed <h1>/<h2>.
-.mat-mdc-dialog-container .mat-mdc-dialog-title {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 1.375rem;
-  font-weight: 600;
-  line-height: 1.75rem;
-  color: var(--mat-sys-on-surface);
-
-  // Material reserves space for an icon before the title via this pseudo
-  // element; without an icon it just adds dead space on the left.
-  &::before {
-    display: none;
-  }
+// Material v21 renders a 0×40px ::before shim on dialog titles that exceeds the
+// 1.75rem line-height token; no dialog-overrides() token controls it.
+.mat-mdc-dialog-title::before {
+  display: none;
 }
 
-// Body copy: readable size and color, never flush against the dialog edge.
-.mat-mdc-dialog-container .mat-mdc-dialog-content {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--mat-sys-on-surface);
-}
-
-// Action row: consistent right-aligned spacing and a sensible top divider gap.
-.mat-mdc-dialog-container .mat-mdc-dialog-actions {
-  padding: 12px 24px 20px;
-  gap: 8px;
-
-  // Material spaces buttons with a margin; the gap above handles it uniformly.
-  .mat-mdc-button-base + .mat-mdc-button-base {
-    margin-left: 0;
-  }
-}
-
-// Make form fields inside dialogs span the available width by default so the
-// content-driven modals (edit/import/export) line up cleanly.
-.mat-mdc-dialog-container {
-  form .mat-mdc-form-field {
-    width: 100%;
-  }
+// Form fields inside dialogs span the available width so the content-driven
+// modals (edit/import/export) line up cleanly. This is layout the spec does not
+// express as a token; it is the one justified scoped rule (Principle 2).
+.mat-mdc-dialog-container form .mat-mdc-form-field {
+  width: 100%;
 }

@@ -133,7 +133,7 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {
@@ -142,6 +142,6 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 }

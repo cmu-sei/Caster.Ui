@@ -469,7 +469,7 @@ export class ProjectTabComponent
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   sidebarChangedFn(event) {
