@@ -25,7 +25,8 @@
       "keys": "enter",
       "group": "Global",
       "description": "Default 'confirm'",
-      "allowIn": ["INPUT"]
+      "allowIn": ["INPUT"],
+      "preventDefault": false
     },
     "ESCAPE": {
       "keys": "escape",
