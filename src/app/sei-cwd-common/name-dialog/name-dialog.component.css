@@ -7,13 +7,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   margin: 0 0 16px;
 }
 
-/* The single form field establishes the content's minimum width so the dialog
-   isn't uncomfortably narrow when opened without a call-site width. */
-[crucibleDialogContent] {
-  min-width: 300px;
-  max-width: 500px;
-}
-
 .form-full-width {
   width: 100%;
 }
