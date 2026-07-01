@@ -25,7 +25,7 @@ import {
 } from 'src/app/fileVersions/state';
 import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { FileQuery, FileService } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
@@ -90,7 +90,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     private fileVersionQuery: FileVersionQuery,
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
-    private confirmDialog: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     private settingsService: ComnSettingsService
   ) { }
 
@@ -319,15 +319,17 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   forceUnlockFile() {
-    this.confirmDialog
-      .confirmDialog(
-        'Force release of open file?',
-        `${this.file.lockedByName} has this file open for editing and may have unsaved changes.  Have you contacted ${this.file.lockedByName}?  Are you sure that you want to discard unsaved changes?`,
-        { buttonTrueText: 'Force Release', buttonFalseText: 'Cancel' }
-      )
+    this.confirmService
+      .confirm({
+        title: 'Force release of open file?',
+        message: `${this.file.lockedByName} has this file open for editing and may have unsaved changes.  Have you contacted ${this.file.lockedByName}?  Are you sure that you want to discard unsaved changes?`,
+        confirmText: 'Force Release',
+        cancelText: 'Cancel',
+      })
+      .afterClosed()
       .pipe(take(1))
-      .subscribe((result) => {
-        if (!result[this.confirmDialog.WAS_CANCELLED]) {
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.fileService.forceUnlockFile(this.file.id);
         }
       });
@@ -372,25 +374,24 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       .pipe(take(1))
       .subscribe((file) => {
         if (file.content === null || file.content === '') {
-          const data = { buttonTrueText: '', buttonFalseText: 'Ok' };
-          this.confirmDialog
-            .confirmDialog(
-              'No Content',
-              'This version has no content.  Revert canceled.',
-              data
-            )
-            .pipe(take(1))
-            .subscribe();
+          this.confirmService.confirm({
+            title: 'No Content',
+            message: 'This version has no content.  Revert canceled.',
+            confirmText: '',
+            cancelText: 'Ok',
+          });
         } else {
           if (this.isEditing) {
-            this.confirmDialog
-              .confirmDialog(
-                'Revert?',
-                'Are you sure that you want to overwrite the current file?'
-              )
+            this.confirmService
+              .confirm({
+                title: 'Revert?',
+                message:
+                  'Are you sure that you want to overwrite the current file?',
+              })
+              .afterClosed()
               .pipe(take(1))
-              .subscribe((result) => {
-                if (!result[this.confirmDialog.WAS_CANCELLED]) {
+              .subscribe((confirmed) => {
+                if (confirmed) {
                   this.code = file.content;
                   this.fileService.updateEditorContent(this.file.id, this.code);
                   this.changeDetectorRef.markForCheck();
@@ -401,15 +402,12 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
                 }
               });
           } else {
-            const data = { buttonTrueText: '', buttonFalseText: 'Ok' };
-            this.confirmDialog
-              .confirmDialog(
-                'Not in Edit Mode',
-                'The current file must be in edit mode to revert.',
-                data
-              )
-              .pipe(take(1))
-              .subscribe();
+            this.confirmService.confirm({
+              title: 'Not in Edit Mode',
+              message: 'The current file must be in edit mode to revert.',
+              confirmText: '',
+              cancelText: 'Ok',
+            });
           }
         }
       });

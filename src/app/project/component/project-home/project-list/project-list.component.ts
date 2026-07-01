@@ -27,7 +27,7 @@ import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
 import { Observable, of, forkJoin } from 'rxjs';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DirectoryQuery } from 'src/app/directories/state';
@@ -35,6 +35,7 @@ import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 
 const NAME_VALUE = 'nameValue';
 const DESCRIPTION_VALUE = 'descriptionValue';
+const WAS_CANCELLED = 'wasCancelled';
 
 @Component({
     selector: 'cas-project-list',
@@ -69,7 +70,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
   constructor(
     private projectService: ProjectService,
-    private dialogService: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     private dialog: MatDialog,
     private permissionService: PermissionService,
     private snackBar: MatSnackBar,
@@ -146,7 +147,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
       showDescription: true,
       descriptionValue: '',
     }).subscribe((result) => {
-      if (!result[this.dialogService.WAS_CANCELLED]) {
+      if (!result[WAS_CANCELLED]) {
         const newProject = {
           name: result[NAME_VALUE],
           description: result[DESCRIPTION_VALUE],
@@ -172,7 +173,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
       showDescription: true,
       descriptionValue: project.description,
     }).subscribe((result) => {
-      if (!result[this.dialogService.WAS_CANCELLED]) {
+      if (!result[WAS_CANCELLED]) {
         const updatedProject = {
           ...project,
           name: result[NAME_VALUE],
@@ -232,17 +233,21 @@ export class ProjectListComponent implements OnInit, OnChanges {
       })
     ).subscribe(({ hasResources, hasRuns }) => {
       if (hasResources) {
-        this.confirmDialog(
-          'Cannot Delete Project',
-          'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
-          { buttonTrueText: 'OK', buttonFalseText: '' }
-        ).subscribe();
+        this.confirmService.confirm({
+          title: 'Cannot Delete Project',
+          message:
+            'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
+          confirmText: 'OK',
+          cancelText: '',
+        });
       } else if (hasRuns) {
-        this.confirmDialog(
-          'Cannot Delete Project',
-          'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-          { buttonTrueText: 'OK', buttonFalseText: '' }
-        ).subscribe();
+        this.confirmService.confirm({
+          title: 'Cannot Delete Project',
+          message:
+            'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+          confirmText: 'OK',
+          cancelText: '',
+        });
       } else {
         this.proceedWithDelete(project);
       }
@@ -250,12 +255,15 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   private proceedWithDelete(project: Project) {
-    this.confirmDialog(
-      'Delete Project?',
-      'Delete Project ' + project.name + '?',
-      { buttonTrueText: 'Delete' }
-    ).subscribe((result) => {
-      if (!result[this.dialogService.WAS_CANCELLED]) {
+    this.confirmService
+      .confirm({
+        title: 'Delete Project?',
+        message: 'Delete Project ' + project.name + '?',
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+      if (confirmed) {
         this.projectService.deleteProject(project.id).pipe(
           take(1),
           catchError((error) => {
@@ -274,14 +282,6 @@ export class ProjectListComponent implements OnInit, OnChanges {
         ).subscribe();
       }
     });
-  }
-
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    return this.dialogService.confirmDialog(title, message, data);
   }
 
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {

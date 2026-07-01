@@ -23,7 +23,7 @@ import {
 } from '../../../../../workspace/state';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import {
   Design,
@@ -107,6 +107,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     private workspaceService: WorkspaceService,
     private projectService: ProjectService,
     private dialog: MatDialog,
+    private confirmService: CrucibleDialogService,
     private designQuery: DesignQuery,
     private designService: DesignService,
     private permissionService: PermissionService,
@@ -152,19 +153,6 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this._destroyed$.complete();
   }
 
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
-  }
-
   nameDialog(title: string, message: string, data?: any): Observable<boolean> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
@@ -194,30 +182,37 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     );
 
     if (hasResources) {
-      this.confirmDialog(
-        'Cannot Delete Directory',
-        'Directory has deployed resources and cannot be deleted. Please destroy the resources first.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
+      this.confirmService.confirm({
+        title: 'Cannot Delete Directory',
+        message:
+          'Directory has deployed resources and cannot be deleted. Please destroy the resources first.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
       return;
     }
 
     if (hasIncompleteRuns) {
-      this.confirmDialog(
-        'Cannot Delete Directory',
-        'Directory has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
+      this.confirmService.confirm({
+        title: 'Cannot Delete Directory',
+        message:
+          'Directory has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
       return;
     }
 
     // Show confirmation dialog and proceed with deletion
-    this.confirmDialog(
-      'Delete Directory?',
-      'Delete directory ' + dir.name + '?',
-      { buttonTrueText: 'Delete' }
-    ).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+    this.confirmService
+      .confirm({
+        title: 'Delete Directory?',
+        message: 'Delete directory ' + dir.name + '?',
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+      if (confirmed) {
         this.directoryService.delete(dir.id).pipe(
           take(1),
           catchError((error) => {
@@ -305,13 +300,18 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   deleteFile(file: ModelFile) {
-    this.confirmDialog('Delete File?', 'Delete file ' + file.name + '?', {
-      buttonTrueText: 'Delete',
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.fileService.delete(file);
-      }
-    });
+    this.confirmService
+      .confirm({
+        title: 'Delete File?',
+        message: 'Delete file ' + file.name + '?',
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.fileService.delete(file);
+        }
+      });
   }
 
   renameWorkspace(workspace: Workspace) {
@@ -363,20 +363,24 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       workspaceEntity.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
 
     if (hasResources) {
-      this.confirmDialog(
-        'Cannot Delete Workspace',
-        'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
+      this.confirmService.confirm({
+        title: 'Cannot Delete Workspace',
+        message:
+          'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
       return;
     }
 
     if (hasIncompleteRuns) {
-      this.confirmDialog(
-        'Cannot Delete Workspace',
-        'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-        { buttonTrueText: 'OK', buttonFalseText: '' }
-      ).subscribe();
+      this.confirmService.confirm({
+        title: 'Cannot Delete Workspace',
+        message:
+          'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
       return;
     }
 
@@ -390,29 +394,33 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           updatedWorkspace.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
 
         if (hasResourcesAfterLoad) {
-          return this.confirmDialog(
-            'Cannot Delete Workspace',
-            'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
-            { buttonTrueText: 'OK', buttonFalseText: '' }
-          ).pipe(map(() => null));
+          return this.confirmService.confirm({
+            title: 'Cannot Delete Workspace',
+            message:
+              'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+            confirmText: 'OK',
+            cancelText: '',
+          }).afterClosed().pipe(map(() => null));
         }
 
         if (hasIncompleteRunsAfterLoad) {
-          return this.confirmDialog(
-            'Cannot Delete Workspace',
-            'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-            { buttonTrueText: 'OK', buttonFalseText: '' }
-          ).pipe(map(() => null));
+          return this.confirmService.confirm({
+            title: 'Cannot Delete Workspace',
+            message:
+              'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+            confirmText: 'OK',
+            cancelText: '',
+          }).afterClosed().pipe(map(() => null));
         }
 
         // No resources or runs, proceed with normal delete confirmation
-        return this.confirmDialog(
-          'Delete workspace?',
-          'Delete workspace ' + workspace.name + '?',
-          { buttonTrueText: 'Delete' }
-        ).pipe(
-          concatMap((result) => {
-            if (!result[WAS_CANCELLED]) {
+        return this.confirmService.confirm({
+          title: 'Delete workspace?',
+          message: 'Delete workspace ' + workspace.name + '?',
+          confirmText: 'Delete',
+        }).afterClosed().pipe(
+          concatMap((confirmed) => {
+            if (confirmed) {
               return this.workspaceService.delete(workspace).pipe(
                 catchError((error) => {
                   const message = error.error?.message || error.message || error.statusText || 'Failed to delete workspace';
@@ -462,13 +470,18 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   deleteDesign(design: Design) {
-    this.confirmDialog('Delete design?', 'Delete design ' + design.name + '?', {
-      buttonTrueText: 'Delete',
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.designService.delete(design.id);
-      }
-    });
+    this.confirmService
+      .confirm({
+        title: 'Delete design?',
+        message: 'Delete design ' + design.name + '?',
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.designService.delete(design.id);
+        }
+      });
   }
 
   toggleIsExpanded(dirUI: DirectoryUI) {

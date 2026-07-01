@@ -22,7 +22,7 @@ import { BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { VariableService } from 'src/app/designs/state/variables/variables.service';
 import { Variable, VariableType } from 'src/app/generated/caster-api';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 
 @Component({
     selector: 'cas-variable',
@@ -56,7 +56,7 @@ export class VariableComponent implements OnInit, OnChanges {
 
   constructor(
     private variableService: VariableService,
-    private confirmDialogService: ConfirmDialogService,
+    private confirmDialogService: CrucibleDialogService,
     private formBuilder: UntypedFormBuilder,
     private snackBar: MatSnackBar
   ) {}
@@ -154,13 +154,14 @@ export class VariableComponent implements OnInit, OnChanges {
 
   delete() {
     this.confirmDialogService
-      .confirmDialog(
-        'Delete Variable',
-        `Are you sure you want to delete ${this.variable.name}?`
-      )
+      .confirm({
+        title: 'Delete Variable',
+        message: `Are you sure you want to delete ${this.variable.name}?`,
+      })
+      .afterClosed()
       .pipe(take(1))
-      .subscribe((result) => {
-        if (!result[this.confirmDialogService.WAS_CANCELLED]) {
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.variableService.delete(this.variable.id);
         }
       });

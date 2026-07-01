@@ -9,7 +9,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SystemPermission, SystemRole } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { RoleService } from 'src/app/roles/roles.service.service';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SystemRolesModel } from './system-roles.models';
 import { map, take } from 'rxjs/operators';
 import { MatCheckboxChange } from '@angular/material/checkbox';
@@ -18,6 +18,7 @@ import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dia
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 const NAME_VALUE = 'nameValue';
+const WAS_CANCELLED = 'wasCancelled';
 
 @Component({
     selector: 'cas-system-roles',
@@ -28,7 +29,7 @@ const NAME_VALUE = 'nameValue';
 export class SystemRolesComponent implements OnInit, OnDestroy {
   private roleService = inject(RoleService);
   private dialog = inject(MatDialog);
-  private confirmService = inject(ConfirmDialogService);
+  private confirmService = inject(CrucibleDialogService);
   private permissionService = inject(PermissionService);
   private signalRService = inject(SignalRService);
 
@@ -118,7 +119,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Create New Role?', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result[this.confirmService.WAS_CANCELLED]) {
+        if (!result[WAS_CANCELLED]) {
           this.roleService.createRole({ name: result[NAME_VALUE] }).subscribe();
         }
       });
@@ -128,7 +129,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename Role?', '', { nameValue: role.name })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result[this.confirmService.WAS_CANCELLED]) {
+        if (!result[WAS_CANCELLED]) {
           role.name = result[NAME_VALUE];
           this.roleService.editRole(role).subscribe();
         }
@@ -137,16 +138,15 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
 
   deleteRole(role: SystemRole) {
     this.confirmService
-      .confirmDialog(
-        'Delete Role?',
-        `Are you sure you want to delete ${role.name}?`,
-        {
-          buttonTrueText: 'Delete',
-          buttonFalseText: 'Cancel',
-        }
-      )
-      .subscribe((result) => {
-        if (!result[this.confirmService.WAS_CANCELLED]) {
+      .confirm({
+        title: 'Delete Role?',
+        message: `Are you sure you want to delete ${role.name}?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.roleService.deleteRole(role.id).subscribe();
         }
       });

@@ -11,16 +11,11 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { Module } from '../../../../generated/caster-api';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-
-const WAS_CANCELLED = 'wasCancelled';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 
 export interface Action {
   Value: string;
@@ -49,7 +44,7 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private confirmService: CrucibleDialogService) {}
 
   ngOnInit() {
     if (this.paginator) {
@@ -88,25 +83,17 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   }
 
   deleteModule(module: Module) {
-    this.confirmDialog('Delete ' + module.name + ' ?', module.path, {
-      buttonTrueText: 'Delete',
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.delete.emit(module.id);
-      }
-    });
-  }
-
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
+    this.confirmService
+      .confirm({
+        title: 'Delete ' + module.name + ' ?',
+        message: module.path,
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.delete.emit(module.id);
+        }
+      });
   }
 }

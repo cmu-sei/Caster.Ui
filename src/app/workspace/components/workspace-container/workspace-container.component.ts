@@ -16,7 +16,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { filter, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { CurrentUserQuery } from 'src/app/users/state';
 import {
@@ -85,7 +85,7 @@ export class WorkspaceContainerComponent
     private workspaceService: WorkspaceService,
     private workspaceQuery: WorkspaceQuery,
     private signalrService: SignalRService,
-    private confirmService: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     public currentUserQuery: CurrentUserQuery,
     private dialog: MatDialog,
     private permissionService: PermissionService
@@ -232,10 +232,11 @@ export class WorkspaceContainerComponent
     }
 
     this.confirmService
-      .confirmDialog('Confirm Cancel', message)
+      .confirm({ title: 'Confirm Cancel', message })
+      .afterClosed()
       .pipe(take(1))
-      .subscribe((result) => {
-        if (!result[this.confirmService.WAS_CANCELLED]) {
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.workspaceService
             .cancelRun(this.workspaceId, run.id, this.forceCancel)
             .pipe(
@@ -295,13 +296,14 @@ export class WorkspaceContainerComponent
   remove(event: Event, item: Resource) {
     event.stopPropagation();
     this.confirmService
-      .confirmDialog(
-        'Confirm Remove',
-        `Are you sure you want to remove ${item.name}? This will only remove it from the Workspace State. It will NOT change any infrastructure.`
-      )
+      .confirm({
+        title: 'Confirm Remove',
+        message: `Are you sure you want to remove ${item.name}? This will only remove it from the Workspace State. It will NOT change any infrastructure.`,
+      })
+      .afterClosed()
       .pipe(take(1))
-      .subscribe((result) => {
-        if (!result[this.confirmService.WAS_CANCELLED]) {
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.workspaceService
             .remove(this.workspaceId, item)
             .pipe(take(1))

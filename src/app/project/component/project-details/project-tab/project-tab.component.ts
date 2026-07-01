@@ -24,7 +24,6 @@ import {
 import { DirectoryQuery } from 'src/app/directories/state';
 import { FileQuery, FileService } from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTab } from '@angular/material/tabs';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
@@ -40,7 +39,7 @@ import {
   withLatestFrom,
 } from 'rxjs/operators';
 import { ModuleQuery, ModuleService } from 'src/app/modules/state';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { DesignQuery } from 'src/app/designs/state/design.query';
@@ -52,8 +51,6 @@ import {
   Workspace,
 } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
-
-const WAS_CANCELLED = 'wasCancelled';
 
 @Component({
     selector: 'cas-project-tab',
@@ -98,7 +95,7 @@ export class ProjectTabComponent
     private workspaceQuery: WorkspaceQuery,
     private fileQuery: FileQuery,
     private fileService: FileService,
-    private dialog: MatDialog,
+    private confirmService: CrucibleDialogService,
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
     private designQuery: DesignQuery,
@@ -392,15 +389,20 @@ export class ProjectTabComponent
     switch (tab.type) {
       case ProjectObjectType.FILE:
         if (this.isFileContentChanged(tab.id)) {
-          this.confirmDialog(
-            'Not all changes have been saved!!!',
-            'Would you like to continue closing and discard your changes?',
-            { buttonTrueText: 'Discard Changes', buttonFalseText: 'Cancel' }
-          ).subscribe((result) => {
-            if (!result[WAS_CANCELLED]) {
-              this.closeFileTab(tab.id);
-            }
-          });
+          this.confirmService
+            .confirm({
+              title: 'Not all changes have been saved!!!',
+              message:
+                'Would you like to continue closing and discard your changes?',
+              confirmText: 'Discard Changes',
+              cancelText: 'Cancel',
+            })
+            .afterClosed()
+            .subscribe((confirmed) => {
+              if (confirmed) {
+                this.closeFileTab(tab.id);
+              }
+            });
         } else {
           this.closeFileTab(tab.id);
         }
@@ -457,19 +459,6 @@ export class ProjectTabComponent
       default:
         return true;
     }
-  }
-
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 
   sidebarChangedFn(event) {
