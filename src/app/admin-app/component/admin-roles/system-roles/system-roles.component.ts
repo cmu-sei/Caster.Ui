@@ -18,7 +18,6 @@ import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dia
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 
 const NAME_VALUE = 'nameValue';
-const WAS_CANCELLED = 'wasCancelled';
 
 @Component({
     selector: 'cas-system-roles',
@@ -119,7 +118,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Create New Role?', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           this.roleService.createRole({ name: result[NAME_VALUE] }).subscribe();
         }
       });
@@ -129,7 +128,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename Role?', '', { nameValue: role.name })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           role.name = result[NAME_VALUE];
           this.roleService.editRole(role).subscribe();
         }
@@ -152,7 +151,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
       });
   }
 
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+  nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;

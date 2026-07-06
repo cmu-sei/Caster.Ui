@@ -48,7 +48,6 @@ import { ProjectImportComponent } from '../../project-import/project-import.comp
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 
-const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 const TERMINAL_RUN_STATUSES: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
 
@@ -153,7 +152,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this._destroyed$.complete();
   }
 
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+  nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;
@@ -247,7 +246,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createNewDirectory(dirId?: string) {
     this.nameDialog('Create New Directory?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           const newDir = {
             name: result[NAME_VALUE],
             projectId: this.parentDirectory.projectId,
@@ -263,7 +262,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + this.parentDirectory.name, '', {
       nameValue: this.parentDirectory.name,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const updatedDirectory = {
           ...this.parentDirectory,
           name: result[NAME_VALUE],
@@ -276,7 +275,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createFile(dirId: string, workspaceId?: string) {
     this.nameDialog('Create New File?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           const newFile = {
             workspaceId: workspaceId ? workspaceId : null,
             directoryId: dirId,
@@ -293,7 +292,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + file.name, '', {
       nameValue: file.name,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         this.fileService.renameFile(file.id, result[NAME_VALUE]);
       }
     });
@@ -318,7 +317,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + workspace.name, '', {
       nameValue: workspace.name,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const newWorkspace = { ...workspace, name: result[NAME_VALUE] };
         this.workspaceService.update(newWorkspace);
       }
@@ -341,7 +340,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         },
       ],
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const newWorkspace = {
           directoryId: this.parentDirectory.id,
           name: result[NAME_VALUE],
@@ -447,7 +446,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createDesign(dirId: string) {
     this.nameDialog('Create New Design?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           const newDesign = {
             directoryId: dirId,
             name: result[NAME_VALUE],
@@ -462,7 +461,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + design.name, '', {
       nameValue: design.name,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const newDesign = { ...design, name: result[NAME_VALUE] };
         this.designService.edit(design.id, newDesign);
       }

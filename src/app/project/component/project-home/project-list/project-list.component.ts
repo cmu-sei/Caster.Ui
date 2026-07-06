@@ -35,7 +35,6 @@ import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 
 const NAME_VALUE = 'nameValue';
 const DESCRIPTION_VALUE = 'descriptionValue';
-const WAS_CANCELLED = 'wasCancelled';
 
 @Component({
     selector: 'cas-project-list',
@@ -147,7 +146,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
       showDescription: true,
       descriptionValue: '',
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const newProject = {
           name: result[NAME_VALUE],
           description: result[DESCRIPTION_VALUE],
@@ -173,7 +172,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
       showDescription: true,
       descriptionValue: project.description,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         const updatedProject = {
           ...project,
           name: result[NAME_VALUE],
@@ -284,7 +283,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
     });
   }
 
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+  nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;

@@ -30,7 +30,6 @@ import { ProjectImportComponent } from '../project-import/project-import.compone
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 
 @Component({
@@ -125,7 +124,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
       });
   }
 
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+  nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
     dialogRef.componentInstance.title = title;
@@ -139,7 +138,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     this.nameDialog('Create New Directory?', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           this.directoryService.add({
             name: result[NAME_VALUE],
             projectId: this.projectId,
