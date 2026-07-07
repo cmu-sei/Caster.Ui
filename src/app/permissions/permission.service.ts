@@ -60,7 +60,7 @@ export class PermissionService {
       map(
         ([permissions, groupPermissionClaims]) =>
           permissions.filter((y) => y.startsWith('View')).length > 0 ||
-          groupPermissionClaims.length > 0
+          this.hasManageMembershipClaim(groupPermissionClaims)
       )
     );
   }
@@ -70,7 +70,7 @@ export class PermissionService {
       map(
         ([permissions, groupPermissionClaims]) =>
           permissions.includes(SystemPermission.ViewGroups) ||
-          groupPermissionClaims.length > 0
+          this.hasManageMembershipClaim(groupPermissionClaims)
       )
     );
   }
@@ -136,12 +136,12 @@ export class PermissionService {
     );
   }
 
-  // Callers keep calling this wherever they depend on group permissions; the
-  // cache dedups the redundant network round-trip. Pass forceReload = true to
-  // rebuild after the current user's own claims may have changed (e.g. a
-  // self-demotion or self-removal from a group).
+  // Loads the full current-user group claims set. Callers keep calling this
+  // wherever they depend on group permissions; the cache dedups the redundant
+  // network round-trip. Pass forceReload = true to rebuild after the current
+  // user's own claims may have changed (e.g. a self-demotion or self-removal
+  // from a group).
   loadGroupPermissions(
-    groupId?: string,
     forceReload = false
   ): Observable<GroupPermissionsClaim[]> {
     if (this.groupPermissionsCache && !forceReload) {
@@ -149,7 +149,7 @@ export class PermissionService {
     }
 
     this.groupPermissionsCache = this.groupPermissionsService
-      .getMyGroupPermissions(groupId)
+      .getMyGroupPermissions()
       .pipe(
         tap((x) => this.groupPermissionsSubject.next(x)),
         catchError((err) => {
@@ -160,6 +160,14 @@ export class PermissionService {
       );
 
     return this.groupPermissionsCache;
+  }
+
+  private hasManageMembershipClaim(
+    groupPermissionClaims: GroupPermissionsClaim[]
+  ): boolean {
+    return groupPermissionClaims.some((x) =>
+      x.permissions.includes(GroupPermission.ManageMembership)
+    );
   }
 
   canManageGroup(groupId: string): Observable<boolean> {

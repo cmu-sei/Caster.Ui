@@ -117,6 +117,6 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   // A self role-change or self-removal alters the current user's own group claims;
   // force a reload so per-group controls and admin visibility recompute live.
   private refreshOwnGroupPermissions() {
-    this.permissionService.loadGroupPermissions(undefined, true).subscribe();
+    this.permissionService.loadGroupPermissions(true).subscribe();
   }
 }
