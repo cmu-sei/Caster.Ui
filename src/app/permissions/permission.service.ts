@@ -2,8 +2,13 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  throwError,
+} from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import {
   GroupPermission,
   GroupPermissionsClaim,
@@ -31,6 +36,12 @@ export class PermissionService {
     GroupPermissionsClaim[]
   >([]);
   public groupPermissions$ = this.groupPermissionsSubject.asObservable();
+
+  // Cached in-flight/last request so the several components that each declare a
+  // dependency on group permissions (topbar, admin-container, admin-groups) share
+  // a single GET /api/permissions/group/mine instead of firing one apiece.
+  private groupPermissionsCache: Observable<GroupPermissionsClaim[]> | null =
+    null;
 
   constructor(
     private permissionsService: SystemPermissionsService,
@@ -125,10 +136,30 @@ export class PermissionService {
     );
   }
 
-  loadGroupPermissions(groupId?: string) {
-    return this.groupPermissionsService
+  // Callers keep calling this wherever they depend on group permissions; the
+  // cache dedups the redundant network round-trip. Pass forceReload = true to
+  // rebuild after the current user's own claims may have changed (e.g. a
+  // self-demotion or self-removal from a group).
+  loadGroupPermissions(
+    groupId?: string,
+    forceReload = false
+  ): Observable<GroupPermissionsClaim[]> {
+    if (this.groupPermissionsCache && !forceReload) {
+      return this.groupPermissionsCache;
+    }
+
+    this.groupPermissionsCache = this.groupPermissionsService
       .getMyGroupPermissions(groupId)
-      .pipe(tap((x) => this.groupPermissionsSubject.next(x)));
+      .pipe(
+        tap((x) => this.groupPermissionsSubject.next(x)),
+        catchError((err) => {
+          this.groupPermissionsCache = null; // allow retry after failure
+          return throwError(() => err);
+        }),
+        shareReplay(1)
+      );
+
+    return this.groupPermissionsCache;
   }
 
   canManageGroup(groupId: string): Observable<boolean> {

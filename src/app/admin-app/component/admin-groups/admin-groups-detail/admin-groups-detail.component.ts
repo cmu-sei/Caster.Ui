@@ -11,6 +11,7 @@ import {
   GroupMembershipRole,
 } from 'src/app/generated/caster-api';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
 
@@ -36,7 +37,8 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   constructor(
     private userQuery: UserQuery,
     private groupMembershipService: GroupMembershipService,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -90,13 +92,31 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
       .subscribe();
   }
 
-  deleteMembership(id: string) {
-    this.groupMembershipService.deleteMembership(id).subscribe();
+  deleteMembership(event: { id: string; isCurrentUser: boolean }) {
+    this.groupMembershipService.deleteMembership(event.id).subscribe(() => {
+      if (event.isCurrentUser) {
+        this.refreshOwnGroupPermissions();
+      }
+    });
   }
 
-  changeRole(event: { id: string; role: GroupMembershipRole }) {
+  changeRole(event: {
+    id: string;
+    role: GroupMembershipRole;
+    isCurrentUser: boolean;
+  }) {
     this.groupMembershipService
       .editMembership(event.id, { role: event.role })
-      .subscribe();
+      .subscribe(() => {
+        if (event.isCurrentUser) {
+          this.refreshOwnGroupPermissions();
+        }
+      });
+  }
+
+  // A self role-change or self-removal alters the current user's own group claims;
+  // force a reload so per-group controls and admin visibility recompute live.
+  private refreshOwnGroupPermissions() {
+    this.permissionService.loadGroupPermissions(undefined, true).subscribe();
   }
 }

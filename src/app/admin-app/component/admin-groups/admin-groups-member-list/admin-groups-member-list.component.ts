@@ -13,14 +13,18 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatPaginator } from '@angular/material/paginator';
+import { MatSelectChange } from '@angular/material/select';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
   GroupMembership,
   GroupMembershipRole,
   User,
 } from 'src/app/generated/caster-api';
+import { CurrentUserQuery } from 'src/app/users/state';
 
 @Component({
     selector: 'cas-admin-groups-member-list',
@@ -41,10 +45,14 @@ export class AdminGroupsMemberListComponent
   canEdit: boolean;
 
   @Output()
-  deleteMembership = new EventEmitter<string>();
+  deleteMembership = new EventEmitter<{ id: string; isCurrentUser: boolean }>();
 
   @Output()
-  changeRole = new EventEmitter<{ id: string; role: GroupMembershipRole }>();
+  changeRole = new EventEmitter<{
+    id: string;
+    role: GroupMembershipRole;
+    isCurrentUser: boolean;
+  }>();
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -58,9 +66,23 @@ export class AdminGroupsMemberListComponent
 
   filterString = '';
 
-  constructor() {}
+  // Read reactively: the current user's id is populated asynchronously once auth
+  // resolves, so a synchronous snapshot at construction time can be empty.
+  private currentUserId = toSignal(
+    this.currentUserQuery.select((s) => s.id),
+    { initialValue: '' }
+  );
+
+  constructor(
+    private currentUserQuery: CurrentUserQuery,
+    private confirmService: CrucibleDialogService
+  ) {}
 
   ngOnInit(): void {}
+
+  isCurrentUser(model: GroupMembershipModel): boolean {
+    return model.membership.userId === this.currentUserId();
+  }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
@@ -89,12 +111,60 @@ export class AdminGroupsMemberListComponent
       .filter((x) => x);
   }
 
-  delete(id: string) {
-    this.deleteMembership.emit(id);
+  delete(model: GroupMembershipModel) {
+    const isCurrentUser = this.isCurrentUser(model);
+
+    if (isCurrentUser) {
+      // Removing yourself costs you management of this group; confirm first.
+      this.confirmService
+        .confirm({
+          title: 'Remove yourself from this group?',
+          message:
+            'You are about to remove yourself from this group and will lose access to manage it.',
+          confirmText: 'Remove',
+        })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.deleteMembership.emit({
+              id: model.membership.id,
+              isCurrentUser,
+            });
+          }
+        });
+      return;
+    }
+
+    this.deleteMembership.emit({ id: model.membership.id, isCurrentUser });
   }
 
-  onRoleChange(id: string, role: GroupMembershipRole) {
-    this.changeRole.emit({ id, role });
+  onRoleChange(model: GroupMembershipModel, event: MatSelectChange) {
+    const role = event.value as GroupMembershipRole;
+    const isCurrentUser = this.isCurrentUser(model);
+
+    // Warn before demoting yourself out of the Manager role — you would lose
+    // the ability to manage this group.
+    if (isCurrentUser && role !== GroupMembershipRole.Manager) {
+      this.confirmService
+        .confirm({
+          title: 'Change your own role?',
+          message:
+            'Changing your role from Manager means you will no longer be able to manage this group.',
+          confirmText: 'Change Role',
+        })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.changeRole.emit({ id: model.membership.id, role, isCurrentUser });
+          } else {
+            // Revert the select back to the current (Manager) value.
+            event.source.value = model.membership.role;
+          }
+        });
+      return;
+    }
+
+    this.changeRole.emit({ id: model.membership.id, role, isCurrentUser });
   }
 
   trackById(index: number, item: any) {
