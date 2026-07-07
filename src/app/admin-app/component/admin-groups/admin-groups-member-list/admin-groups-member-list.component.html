@@ -50,12 +50,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let model">
-        {{ model.name }}
-        @if (isCurrentUser(model)) {
-          <mat-chip-set class="ms-2">
-            <mat-chip highlighted color="primary">You</mat-chip>
-          </mat-chip-set>
-        }
+        <span class="member-name">
+          <span>{{ model.name }}</span>
+          @if (isCurrentUser(model)) {
+            <mat-chip-set>
+              <mat-chip highlighted color="primary">You</mat-chip>
+            </mat-chip-set>
+          }
+        </span>
       </td>
     </ng-container>
 

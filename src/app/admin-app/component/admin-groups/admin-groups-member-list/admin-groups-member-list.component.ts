@@ -120,7 +120,7 @@ export class AdminGroupsMemberListComponent
         .confirm({
           title: 'Remove yourself from this group?',
           message:
-            'You are about to remove yourself from this group and will lose access to manage it.',
+            'You are about to remove yourself from this group and may lose access to manage it.',
           confirmText: 'Remove',
         })
         .afterClosed()
