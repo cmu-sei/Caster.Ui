@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   BehaviorSubject,
   combineLatest,
@@ -43,11 +43,9 @@ export class PermissionService {
   private groupPermissionsCache: Observable<GroupPermissionsClaim[]> | null =
     null;
 
-  constructor(
-    private permissionsService: SystemPermissionsService,
-    private projectPermissionsService: ProjectPermissionsService,
-    private groupPermissionsService: GroupPermissionsService
-  ) {}
+  private readonly permissionsService = inject(SystemPermissionsService);
+  private readonly projectPermissionsService = inject(ProjectPermissionsService);
+  private readonly groupPermissionsService = inject(GroupPermissionsService);
 
   load(): Observable<SystemPermission[]> {
     return this.permissionsService

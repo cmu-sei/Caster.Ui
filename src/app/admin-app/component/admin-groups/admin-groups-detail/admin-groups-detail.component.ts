@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import {
@@ -28,18 +28,16 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
   canEdit: boolean;
 
+  private readonly userQuery = inject(UserQuery);
+  private readonly groupMembershipService = inject(GroupMembershipService);
+  private readonly signalRService = inject(SignalRService);
+  private readonly permissionService = inject(PermissionService);
+
   memberships$ = of([]);
 
   // All users that are not already members of the project
   nonMembers$ = this.selectUsers(false);
   members$ = this.selectUsers(true);
-
-  constructor(
-    private userQuery: UserQuery,
-    private groupMembershipService: GroupMembershipService,
-    private signalRService: SignalRService,
-    private permissionService: PermissionService
-  ) {}
 
   ngOnInit(): void {
     this.groupMembershipService.loadMemberships(this.groupId).subscribe();

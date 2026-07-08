@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnInit,
@@ -67,17 +68,15 @@ export class AdminGroupsMemberListComponent
 
   filterString = '';
 
+  private readonly currentUserQuery = inject(CurrentUserQuery);
+  private readonly confirmService = inject(CrucibleDialogService);
+
   // Read reactively: the current user's id is populated asynchronously once auth
   // resolves, so a synchronous snapshot at construction time can be empty.
   private currentUserId = toSignal(
     this.currentUserQuery.select((s) => s.id),
     { initialValue: '' }
   );
-
-  constructor(
-    private currentUserQuery: CurrentUserQuery,
-    private confirmService: CrucibleDialogService
-  ) {}
 
   ngOnInit(): void {}
 
