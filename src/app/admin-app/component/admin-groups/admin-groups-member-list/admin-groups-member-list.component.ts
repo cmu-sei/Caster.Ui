@@ -24,6 +24,7 @@ import {
   GroupMembershipRole,
   User,
 } from 'src/app/generated/caster-api';
+import { filter, tap } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 
 @Component({
@@ -124,14 +125,16 @@ export class AdminGroupsMemberListComponent
           confirmText: 'Remove',
         })
         .afterClosed()
-        .subscribe((confirmed) => {
-          if (confirmed) {
+        .pipe(
+          filter((confirmed) => confirmed === true),
+          tap(() => {
             this.deleteMembership.emit({
               id: model.membership.id,
               isCurrentUser,
             });
-          }
-        });
+          })
+        )
+        .subscribe();
       return;
     }
 
@@ -153,14 +156,22 @@ export class AdminGroupsMemberListComponent
           confirmText: 'Change Role',
         })
         .afterClosed()
-        .subscribe((confirmed) => {
-          if (confirmed) {
-            this.changeRole.emit({ id: model.membership.id, role, isCurrentUser });
-          } else {
+        .pipe(
+          tap((confirmed) => {
+            if (confirmed === true) {
+              this.changeRole.emit({
+                id: model.membership.id,
+                role,
+                isCurrentUser,
+              });
+              return;
+            }
+
             // Revert the select back to the current (Manager) value.
             event.source.value = model.membership.role;
-          }
-        });
+          })
+        )
+        .subscribe();
       return;
     }
 

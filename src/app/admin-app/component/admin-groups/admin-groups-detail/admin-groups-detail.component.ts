@@ -1,11 +1,11 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import {
   CreateGroupMembershipCommand,
   GroupMembershipRole,
@@ -16,10 +16,10 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
 
 @Component({
-    selector: 'cas-admin-groups-detail',
-    templateUrl: './admin-groups-detail.component.html',
-    styleUrls: ['./admin-groups-detail.component.scss'],
-    standalone: false
+  selector: 'cas-admin-groups-detail',
+  templateUrl: './admin-groups-detail.component.html',
+  styleUrls: ['./admin-groups-detail.component.scss'],
+  standalone: false,
 })
 export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
@@ -93,11 +93,12 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   }
 
   deleteMembership(event: { id: string; isCurrentUser: boolean }) {
-    this.groupMembershipService.deleteMembership(event.id).subscribe(() => {
-      if (event.isCurrentUser) {
-        this.refreshOwnGroupPermissions();
-      }
-    });
+    this.groupMembershipService
+      .deleteMembership(event.id)
+      .pipe(
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+      )
+      .subscribe();
   }
 
   changeRole(event: {
@@ -107,16 +108,17 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   }) {
     this.groupMembershipService
       .editMembership(event.id, { role: event.role })
-      .subscribe(() => {
-        if (event.isCurrentUser) {
-          this.refreshOwnGroupPermissions();
-        }
-      });
+      .pipe(
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+      )
+      .subscribe();
   }
 
   // A self role-change or self-removal alters the current user's own group claims;
   // force a reload so per-group controls and admin visibility recompute live.
-  private refreshOwnGroupPermissions() {
-    this.permissionService.loadGroupPermissions(true).subscribe();
+  private refreshSelfGroupPermissions(isCurrentUser: boolean) {
+    return isCurrentUser
+      ? this.permissionService.loadGroupPermissions(true)
+      : of(null);
   }
 }
