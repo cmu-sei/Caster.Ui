@@ -14,19 +14,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { GroupMembershipRole } from './groupMembershipRole';
+import { GroupPermission } from './groupPermission';
 
 
-export interface GroupMembership { 
-    id?: string;
-    /**
-     * ID of the group.
-     */
+export interface GroupPermissionsClaim { 
     groupId?: string;
-    /**
-     * Id of the User.
-     */
-    userId?: string;
-    role?: GroupMembershipRole;
+    permissions?: Array<GroupPermission> | null;
 }
 

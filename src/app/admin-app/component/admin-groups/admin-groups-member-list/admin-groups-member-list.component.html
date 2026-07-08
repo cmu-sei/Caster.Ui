@@ -50,7 +50,34 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let model">
-        {{ model.name }}
+        <span class="member-name">
+          <span>{{ model.name }}</span>
+          @if (isCurrentUser(model)) {
+            <mat-chip-set>
+              <mat-chip highlighted color="primary">You</mat-chip>
+            </mat-chip-set>
+          }
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="role">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
+      <td mat-cell *matCellDef="let model">
+        @if (canEdit) {
+          <mat-form-field class="role-field" subscriptSizing="dynamic">
+            <mat-select
+              [value]="model.membership.role"
+              (selectionChange)="onRoleChange(model, $event)"
+              >
+              @for (role of groupMembershipRoles; track role) {
+                <mat-option [value]="role">{{ role }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else {
+          {{ model.membership.role }}
+        }
       </td>
     </ng-container>
 
@@ -60,7 +87,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-flat-button
           color="primary"
-          (click)="delete(model.membership.id)"
+          (click)="delete(model)"
           >
           Remove
         </button>

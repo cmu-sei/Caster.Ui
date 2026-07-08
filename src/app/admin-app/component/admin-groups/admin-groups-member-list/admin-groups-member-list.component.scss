@@ -9,3 +9,13 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   min-width: 0;
 }
 
+.member-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.role-field {
+  width: 10rem;
+}

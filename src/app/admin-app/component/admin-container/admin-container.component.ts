@@ -16,10 +16,10 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { SystemPermission } from 'src/app/generated/caster-api';
 
 @Component({
-    selector: 'cas-admin-container',
-    templateUrl: './admin-container.component.html',
-    styleUrls: ['./admin-container.component.scss'],
-    standalone: false
+  selector: 'cas-admin-container',
+  templateUrl: './admin-container.component.html',
+  styleUrls: ['./admin-container.component.scss'],
+  standalone: false,
 })
 export class AdminContainerComponent implements OnInit, OnDestroy {
   public username: string;
@@ -38,6 +38,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   TopbarView = TopbarView;
 
   public permissions$ = this.permissionService.permissions$;
+  public canViewGroups$ = this.permissionService.canViewGroupsAdmin();
   readonly SystemPermission = SystemPermission;
 
   private unsubscribe$ = new Subject();
@@ -75,6 +76,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
       });
 
     this.permissionService.load().subscribe();
+    this.permissionService.loadGroupPermissions().subscribe();
   }
 
   logout(): void {

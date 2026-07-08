@@ -17,16 +17,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import { GroupMembershipRole } from './groupMembershipRole';
 
 
-export interface GroupMembership { 
-    id?: string;
-    /**
-     * ID of the group.
-     */
-    groupId?: string;
-    /**
-     * Id of the User.
-     */
-    userId?: string;
+export interface EditGroupMembershipCommand { 
     role?: GroupMembershipRole;
 }
 

@@ -14,6 +14,7 @@ import { AdminModulesComponent } from './component/admin-modules/modules.compone
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -100,6 +101,7 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
+    MatChipsModule,
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,

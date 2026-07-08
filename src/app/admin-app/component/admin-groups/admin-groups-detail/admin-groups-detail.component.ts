@@ -1,21 +1,25 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { CreateGroupMembershipCommand } from 'src/app/generated/caster-api';
+import { map, switchMap } from 'rxjs/operators';
+import {
+  CreateGroupMembershipCommand,
+  GroupMembershipRole,
+} from 'src/app/generated/caster-api';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
 
 @Component({
-    selector: 'cas-admin-groups-detail',
-    templateUrl: './admin-groups-detail.component.html',
-    styleUrls: ['./admin-groups-detail.component.scss'],
-    standalone: false
+  selector: 'cas-admin-groups-detail',
+  templateUrl: './admin-groups-detail.component.html',
+  styleUrls: ['./admin-groups-detail.component.scss'],
+  standalone: false,
 })
 export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
@@ -24,17 +28,16 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
   canEdit: boolean;
 
+  private readonly userQuery = inject(UserQuery);
+  private readonly groupMembershipService = inject(GroupMembershipService);
+  private readonly signalRService = inject(SignalRService);
+  private readonly permissionService = inject(PermissionService);
+
   memberships$ = of([]);
 
   // All users that are not already members of the project
   nonMembers$ = this.selectUsers(false);
   members$ = this.selectUsers(true);
-
-  constructor(
-    private userQuery: UserQuery,
-    private groupMembershipService: GroupMembershipService,
-    private signalRService: SignalRService
-  ) {}
 
   ngOnInit(): void {
     this.groupMembershipService.loadMemberships(this.groupId).subscribe();
@@ -87,8 +90,33 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
       .subscribe();
   }
 
-  deleteMembership(id: string) {
-    console.log(id);
-    this.groupMembershipService.deleteMembership(id).subscribe();
+  deleteMembership(event: { id: string; isCurrentUser: boolean }) {
+    this.groupMembershipService
+      .deleteMembership(event.id)
+      .pipe(
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+      )
+      .subscribe();
+  }
+
+  changeRole(event: {
+    id: string;
+    role: GroupMembershipRole;
+    isCurrentUser: boolean;
+  }) {
+    this.groupMembershipService
+      .editMembership(event.id, { role: event.role })
+      .pipe(
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+      )
+      .subscribe();
+  }
+
+  // A self role-change or self-removal alters the current user's own group claims;
+  // force a reload so per-group controls and admin visibility recompute live.
+  private refreshSelfGroupPermissions(isCurrentUser: boolean) {
+    return isCurrentUser
+      ? this.permissionService.loadGroupPermissions(true)
+      : of(null);
   }
 }

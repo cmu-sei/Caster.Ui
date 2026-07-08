@@ -16,7 +16,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface CreateProjectCommand {
+export interface CreateProjectCommand { 
     /**
      * Optional ID for the project. If not provided, one will be generated.
      */

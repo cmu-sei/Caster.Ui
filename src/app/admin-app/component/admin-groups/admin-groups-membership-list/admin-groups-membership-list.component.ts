@@ -20,6 +20,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import {
   CreateGroupMembershipCommand,
   Group,
+  GroupMembershipRole,
   User,
 } from 'src/app/generated/caster-api';
 
@@ -68,8 +69,8 @@ export class AdminGroupsMembershipListComponent
     );
   }
 
-  add(id: string) {
-    this.createMembership.emit({ userId: id });
+  add(id: string, role: GroupMembershipRole = GroupMembershipRole.Member) {
+    this.createMembership.emit({ userId: id, role });
   }
 
   applyFilter(event: Event) {

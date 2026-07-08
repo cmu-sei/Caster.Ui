@@ -14,6 +14,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { GroupMembershipRole } from './groupMembershipRole';
 
 
 export interface CreateGroupMembershipCommand { 
@@ -21,5 +22,6 @@ export interface CreateGroupMembershipCommand {
      * The Id of the User to add.
      */
     userId?: string;
+    role?: GroupMembershipRole;
 }
 
