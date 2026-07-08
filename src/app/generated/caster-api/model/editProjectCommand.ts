@@ -16,11 +16,15 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export interface EditProjectCommand { 
+export interface EditProjectCommand {
     id?: string;
     /**
      * Name of the project.
      */
     name?: string | null;
+    /**
+     * Description of the project.
+     */
+    description?: string | null;
 }
 

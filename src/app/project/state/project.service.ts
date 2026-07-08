@@ -19,6 +19,8 @@ import {
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { WorkspaceQuery } from 'src/app/workspace/state';
+import { FileQuery } from 'src/app/files/state';
+import { DesignQuery } from 'src/app/designs/state/design.query';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FileDownload } from 'src/app/shared/models/file-download';
 
@@ -32,7 +34,9 @@ export class ProjectService {
     private workspaceQuery: WorkspaceQuery,
     private projectQuery: ProjectQuery,
     private projectsService: ProjectsService,
-    private vlanService: VlansService
+    private vlanService: VlansService,
+    private fileQuery: FileQuery,
+    private designQuery: DesignQuery
   ) {}
 
   loadProjects(onlyMine: boolean): Observable<Project[]> {
@@ -102,6 +106,39 @@ export class ProjectService {
       exUi = { ...exUi, selectedTab: index } as ProjectUI;
       this.projectStore.ui.upsert(exUi.id, exUi);
     }
+  }
+
+  pruneDeletedTabs(projectId: string) {
+    const projectUI = this.projectQuery.ui.getEntity(projectId);
+    if (!projectUI || !projectUI.openTabs?.length) {
+      return;
+    }
+    const survivingTabs = projectUI.openTabs.filter((tab) => {
+      switch (tab.type) {
+        case ProjectObjectType.FILE:
+          return this.fileQuery.hasEntity(tab.id);
+        case ProjectObjectType.WORKSPACE:
+          return this.workspaceQuery.hasEntity(tab.id);
+        case ProjectObjectType.DESIGN:
+          return this.designQuery.hasEntity(tab.id);
+        case ProjectObjectType.DIRECTORY:
+          return this.directoryQuery.hasEntity(tab.id);
+        default:
+          return true;
+      }
+    });
+    if (survivingTabs.length === projectUI.openTabs.length) {
+      return;
+    }
+    const selected =
+      projectUI.selectedTab >= survivingTabs.length
+        ? survivingTabs.length - 1
+        : projectUI.selectedTab;
+    this.projectStore.ui.upsert(projectId, {
+      ...projectUI,
+      openTabs: survivingTabs,
+      selectedTab: selected,
+    });
   }
 
   closeTab(id: string) {

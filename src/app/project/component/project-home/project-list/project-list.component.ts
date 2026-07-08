@@ -19,7 +19,9 @@ import {
   SystemPermission,
 } from '../../../../generated/caster-api';
 import { MatSort, MatSortable } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { Router } from '@angular/router';
 import { ProjectService } from 'src/app/project/state';
 import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
 import { Observable, of, forkJoin } from 'rxjs';
@@ -32,6 +34,7 @@ import { DirectoryQuery } from 'src/app/directories/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 
 const NAME_VALUE = 'nameValue';
+const DESCRIPTION_VALUE = 'descriptionValue';
 
 @Component({
     selector: 'cas-project-list',
@@ -50,8 +53,14 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
   @ViewChild(MatSort, { static: false }) sort: MatSort;
 
+  @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
+
   filterString = '';
-  displayedColumns: string[] = ['name', 'actions'];
+  displayedColumns: string[] = ['actions', 'name', 'description', 'dateCreated'];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
   canManageAll$: Observable<boolean>;
@@ -66,7 +75,8 @@ export class ProjectListComponent implements OnInit, OnChanges {
     private snackBar: MatSnackBar,
     private directoryQuery: DirectoryQuery,
     private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService
+    private workspaceService: WorkspaceService,
+    private router: Router
   ) {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
       map((x) => x.includes(SystemPermission.ManageProjects))
@@ -131,19 +141,25 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   create() {
-    this.nameDialog('Create New Project?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (!result[this.dialogService.WAS_CANCELLED]) {
-          const newProject = {
-            name: result[NAME_VALUE],
-          } as Project;
-          this.projectService
-            .createProject(newProject)
-            .pipe(take(1))
-            .subscribe();
-        }
+    this.nameDialog('Create New Project?', '', {
+      nameValue: '',
+      showDescription: true,
+      descriptionValue: '',
+    }).subscribe((result) => {
+      if (!result[this.dialogService.WAS_CANCELLED]) {
+        const newProject = {
+          name: result[NAME_VALUE],
+          description: result[DESCRIPTION_VALUE],
+        } as Project;
+        this.projectService
+          .createProject(newProject)
+          .pipe(take(1))
+          .subscribe((project) => {
+            // Open the newly created project
+            this.router.navigate(['/projects', project.id]);
+          });
       }
-    );
+    });
   }
 
   createRequest() {
@@ -151,13 +167,16 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   update(project: Project) {
-    this.nameDialog('Rename ' + project.name, '', {
+    this.nameDialog('Edit ' + project.name, '', {
       nameValue: project.name,
+      showDescription: true,
+      descriptionValue: project.description,
     }).subscribe((result) => {
       if (!result[this.dialogService.WAS_CANCELLED]) {
         const updatedProject = {
           ...project,
           name: result[NAME_VALUE],
+          description: result[DESCRIPTION_VALUE],
         } as Project;
         this.projectService
           .updateProject(updatedProject)

@@ -111,7 +111,11 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
               take(1),
               catchError(() => EMPTY)
             )
-            .subscribe();
+            .subscribe(() => {
+              // Drop any persisted tabs whose underlying file/workspace/design
+              // no longer exists, so the deleted tab doesn't reappear on load.
+              this.projectService.pruneDeletedTabs(this.projectId);
+            });
 
           this.projectStore.setActive(this.projectId);
           this.projectStore.ui.setActive(this.projectId);
