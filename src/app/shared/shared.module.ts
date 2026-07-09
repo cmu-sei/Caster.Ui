@@ -10,6 +10,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { HotkeysHelpDialogComponent } from './components/hotkeys-help/hotkeys-help-dialog.component';
 import { TopbarComponent } from './components/top-bar/topbar.component';
 import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive';
@@ -29,6 +31,8 @@ import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive'
     MatSlideToggleModule,
     MatIconModule,
     RouterModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
   ],
   exports: [CrucibleHotkeyDirective, TopbarComponent, HotkeysHelpDialogComponent],
 })

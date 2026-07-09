@@ -11,18 +11,14 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { User } from '../../../../generated/caster-api';
-import { Observable } from 'rxjs';
 import { RoleService } from 'src/app/roles/roles.service.service';
 import { MatSelectChange } from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
-
-const WAS_CANCELLED = 'wasCancelled';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 
 export interface Action {
   Value: string;
@@ -54,7 +50,7 @@ export class UserListComponent implements OnInit, OnChanges {
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
-    private dialog: MatDialog,
+    private confirmService: CrucibleDialogService,
     private roleService: RoleService,
     private userService: UserService
   ) {}
@@ -102,26 +98,18 @@ export class UserListComponent implements OnInit, OnChanges {
   }
 
   deleteUser(user: User) {
-    this.confirmDialog('Delete ' + user.name + '?', user.id, {
-      buttonTrueText: 'Delete',
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.delete.emit(user.id);
-      }
-    });
-  }
-
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed();
+    this.confirmService
+      .confirm({
+        title: 'Delete ' + user.name + '?',
+        message: user.id,
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.delete.emit(user.id);
+        }
+      });
   }
 
   trackById(index: number, item: any) {

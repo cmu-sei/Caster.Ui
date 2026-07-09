@@ -12,7 +12,7 @@ import {
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { VlanQuery } from 'src/app/vlans/state/vlan/vlan.query';
@@ -61,7 +61,7 @@ export class PartitionComponent implements OnInit {
     private partitionQuery: PartitionQuery,
     private vlanService: VlanService,
     private vlanQuery: VlanQuery,
-    private confirmService: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -71,12 +71,13 @@ export class PartitionComponent implements OnInit {
     $event.stopPropagation();
 
     this.confirmService
-      .confirmDialog(
-        'Delete Partition',
-        `Are you sure you want to delete ${this.partition.name}?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+      .confirm({
+        title: 'Delete Partition',
+        message: `Are you sure you want to delete ${this.partition.name}?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.partitionService.delete(this.partition.id).subscribe();
         }
       });

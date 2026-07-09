@@ -18,7 +18,7 @@ import {
   Variable,
 } from '../../../generated/caster-api';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
@@ -52,7 +52,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   nameChanged = false;
 
   constructor(
-    private confirmDialogService: ConfirmDialogService,
+    private confirmDialogService: CrucibleDialogService,
     private formBuilder: UntypedFormBuilder
   ) {}
 
@@ -262,13 +262,15 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
     if (this.hasBlankValues()) {
       this.confirmDialogService
-        .confirmDialog(
-          'Some REQUIRED variable values have been left blank!',
-          'Are you sure that you want to insert this module with blank REQUIRED values?',
-          { buttonTrueText: 'Insert' }
-        )
-        .subscribe((x) => {
-          if (!x.wasCancelled) {
+        .confirm({
+          title: 'Some REQUIRED variable values have been left blank!',
+          message:
+            'Are you sure that you want to insert this module with blank REQUIRED values?',
+          confirmText: 'Insert',
+        })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
             // return the snippet command with blank variable values
             this.variablesSelected.emit(result);
           }

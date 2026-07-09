@@ -5,8 +5,6 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
-import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { Project } from '../../../../generated/caster-api';
 import { CurrentUserQuery, UserService } from '../../../../users/state';
 import { ProjectQuery, ProjectService } from '../../../state';

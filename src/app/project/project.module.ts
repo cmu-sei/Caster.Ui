@@ -24,7 +24,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule, Routes } from '@angular/router';
-import { ComnAuthGuardService } from '@cmusei/crucible-common';
+import { A11yModule } from '@angular/cdk/a11y';
+import { ComnAuthGuardService, CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { ResizableModule } from 'angular-resizable-element';
 import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { DesignModule } from '../designs/design.module';
@@ -118,6 +119,8 @@ const projectRoutes: Routes = [
     MatToolbarModule,
     SharedModule,
     SeiCwdCommonModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
     DesignModule,
     ClipboardModule,
     MatSnackBarModule,

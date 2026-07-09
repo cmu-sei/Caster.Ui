@@ -3,40 +3,34 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2>Export {{ typeString | titlecase }}: {{ name }}</h2>
+<crucible-dialog
+  [dialogTitle]="'Export ' + (typeString | titlecase) + ': ' + name"
+  [form]="form"
+  submitLabel="Export"
+  [submitDisabled]="!form.valid"
+  (cancel)="cancel()"
+  (submit)="export()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    @if (isArchiveable) {
+      <mat-form-field>
+        <mat-label>Archive Type</mat-label>
+        <mat-select formControlName="archiveType" cdkFocusInitial>
+          @for (archiveType of archiveTypes; track archiveType) {
+            <mat-option [value]="archiveType">
+              {{ archiveType }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
 
-<form [formGroup]="form" (ngSubmit)="export()">
-  @if (isArchiveable) {
-  <mat-form-field class="d-flex flex-row">
-    <mat-label>Archive Type</mat-label>
-    <mat-select formControlName="archiveType">
-      @for (archiveType of archiveTypes; track archiveType) {
-      <mat-option [value]="archiveType">
-        {{ archiveType }}
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  }
-
-  <mat-label>Include Ids </mat-label>
-  <mat-slide-toggle
-    formControlName="includeIds"
-    matTooltip="Append Ids to Directory names to be optionally preserved on import"
-  ></mat-slide-toggle>
-
-  <div class="d-flex flex-row justify-content-around align-items-center">
-    <button
-      type="submit"
-      color="primary"
-      mat-raised-button
-      [disabled]="!form.valid"
-    >
-      Export
-    </button>
-
-    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
-      Cancel
-    </button>
+    <div class="toggle-row">
+      <mat-label>Include Ids</mat-label>
+      <mat-slide-toggle
+        formControlName="includeIds"
+        matTooltip="Append Ids to Directory names to be optionally preserved on import"
+      ></mat-slide-toggle>
+    </div>
   </div>
-</form>
+</crucible-dialog>

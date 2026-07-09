@@ -104,7 +104,6 @@ export class ModuleListComponent implements OnInit {
     ) {
       this.isDialogOpen = true;
       this.variablesDialogRef = this.dialog.open(this.variablesTemplate, {
-        disableClose: true,
         minWidth: '400px',
         maxWidth: '90vw',
       });

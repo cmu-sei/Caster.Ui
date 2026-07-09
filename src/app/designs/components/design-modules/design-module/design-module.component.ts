@@ -24,7 +24,7 @@ import {
   Variable,
 } from 'src/app/generated/caster-api/model/models';
 import { ModuleService } from 'src/app/modules/state';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 
 @Component({
     selector: 'cas-design-module',
@@ -68,7 +68,7 @@ export class DesignModuleComponent implements OnInit, OnChanges {
   }
 
   constructor(
-    private confirmationService: ConfirmDialogService,
+    private confirmationService: CrucibleDialogService,
     private designModuleService: DesignModuleService,
     private moduleService: ModuleService,
     private variableQuery: VariablesQuery,
@@ -104,13 +104,14 @@ export class DesignModuleComponent implements OnInit, OnChanges {
 
   delete() {
     this.confirmationService
-      .confirmDialog(
-        'Delete Module',
-        `Are you sure you want to delete ${this.designModule.name}?`
-      )
+      .confirm({
+        title: 'Delete Module',
+        message: `Are you sure you want to delete ${this.designModule.name}?`,
+      })
+      .afterClosed()
       .pipe(take(1))
-      .subscribe((result) => {
-        if (!result[this.confirmationService.WAS_CANCELLED]) {
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.designModuleService.delete(this.designModule.id).subscribe();
         }
       });
