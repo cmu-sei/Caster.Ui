@@ -14,19 +14,12 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { GroupMembershipRole } from './groupMembershipRole';
 
 
-export interface GroupMembership { 
-    id?: string;
-    /**
-     * ID of the group.
-     */
-    groupId?: string;
-    /**
-     * Id of the User.
-     */
-    userId?: string;
-    role?: GroupMembershipRole;
-}
+export type GroupPermission = 'ManageMembership' | 'EditGroup';
+
+export const GroupPermission = {
+    ManageMembership: 'ManageMembership' as GroupPermission,
+    EditGroup: 'EditGroup' as GroupPermission
+};
 

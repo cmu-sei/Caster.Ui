@@ -39,7 +39,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-trash-can-outline"></mat-icon>
         </button>
         <button mat-icon-button matTooltip="Rename"
-          (click)="$event.stopPropagation(); updateGroup(element)" [disabled]="!(canEdit$ | async)">
+          (click)="$event.stopPropagation(); updateGroup(element)" [disabled]="!(canEditGroup$(element.id) | async)">
           <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-square-edit-outline"></mat-icon>
         </button>
       </td>
@@ -55,7 +55,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div [@detailExpand]="element.id === expandedGroupId ? 'expanded' : 'collapsed'"
           (click)="$event.stopPropagation()">
           @if (element.id === expandedGroupId) {
-            <cas-admin-groups-detail [groupId]="element.id" [canEdit]="canEdit$ | async"></cas-admin-groups-detail>
+            <cas-admin-groups-detail [groupId]="element.id" [canEdit]="canManageGroup$(element.id) | async"></cas-admin-groups-detail>
           }
         </div>
       </td>

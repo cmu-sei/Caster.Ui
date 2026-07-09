@@ -1,10 +1,18 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { inject, Injectable } from '@angular/core';
 import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  throwError,
+} from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
+import {
+  GroupPermission,
+  GroupPermissionsClaim,
+  GroupPermissionsService,
   ProjectPermission,
   ProjectPermissionsClaim,
   ProjectPermissionsService,
@@ -24,10 +32,20 @@ export class PermissionService {
   >([]);
   public projectPermissions$ = this.projectPermissionsSubject.asObservable();
 
-  constructor(
-    private permissionsService: SystemPermissionsService,
-    private projectPermissionsService: ProjectPermissionsService
-  ) {}
+  private groupPermissionsSubject = new BehaviorSubject<
+    GroupPermissionsClaim[]
+  >([]);
+  public groupPermissions$ = this.groupPermissionsSubject.asObservable();
+
+  // Cached in-flight/last request so the several components that each declare a
+  // dependency on group permissions (topbar, admin-container, admin-groups) share
+  // a single GET /api/permissions/group/mine instead of firing one apiece.
+  private groupPermissionsCache: Observable<GroupPermissionsClaim[]> | null =
+    null;
+
+  private readonly permissionsService = inject(SystemPermissionsService);
+  private readonly projectPermissionsService = inject(ProjectPermissionsService);
+  private readonly groupPermissionsService = inject(GroupPermissionsService);
 
   load(): Observable<SystemPermission[]> {
     return this.permissionsService
@@ -36,9 +54,22 @@ export class PermissionService {
   }
 
   canViewAdiminstration() {
-    return this.permissions$.pipe(
-      map((x) => x.filter((y) => y.startsWith('View'))),
-      map((x) => x.length > 0)
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(
+        ([permissions, groupPermissionClaims]) =>
+          permissions.filter((y) => y.startsWith('View')).length > 0 ||
+          this.hasManageMembershipClaim(groupPermissionClaims)
+      )
+    );
+  }
+
+  canViewGroupsAdmin() {
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(
+        ([permissions, groupPermissionClaims]) =>
+          permissions.includes(SystemPermission.ViewGroups) ||
+          this.hasManageMembershipClaim(groupPermissionClaims)
+      )
     );
   }
 
@@ -93,6 +124,83 @@ export class PermissionService {
           if (
             projectPermissionClaim != null &&
             projectPermissionClaim.permissions.includes(projectPermission)
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      })
+    );
+  }
+
+  // Loads the full current-user group claims set. Callers keep calling this
+  // wherever they depend on group permissions; the cache dedups the redundant
+  // network round-trip. Pass forceReload = true to rebuild after the current
+  // user's own claims may have changed (e.g. a self-demotion or self-removal
+  // from a group).
+  loadGroupPermissions(
+    forceReload = false
+  ): Observable<GroupPermissionsClaim[]> {
+    if (this.groupPermissionsCache && !forceReload) {
+      return this.groupPermissionsCache;
+    }
+
+    this.groupPermissionsCache = this.groupPermissionsService
+      .getMyGroupPermissions()
+      .pipe(
+        tap((x) => this.groupPermissionsSubject.next(x)),
+        catchError((err) => {
+          this.groupPermissionsCache = null; // allow retry after failure
+          return throwError(() => err);
+        }),
+        shareReplay(1)
+      );
+
+    return this.groupPermissionsCache;
+  }
+
+  private hasManageMembershipClaim(
+    groupPermissionClaims: GroupPermissionsClaim[]
+  ): boolean {
+    return groupPermissionClaims.some((x) =>
+      x.permissions.includes(GroupPermission.ManageMembership)
+    );
+  }
+
+  canManageGroup(groupId: string): Observable<boolean> {
+    return this.canGroup(
+      SystemPermission.ManageGroups,
+      groupId,
+      GroupPermission.ManageMembership
+    );
+  }
+
+  canEditGroup(groupId: string): Observable<boolean> {
+    return this.canGroup(
+      SystemPermission.ManageGroups,
+      groupId,
+      GroupPermission.EditGroup
+    );
+  }
+
+  private canGroup(
+    permission: SystemPermission,
+    groupId?: string,
+    groupPermission?: GroupPermission
+  ) {
+    return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
+      map(([permissions, groupPermissionClaims]) => {
+        if (permissions.includes(permission)) {
+          return true;
+        } else if (groupId != null && groupPermission != null) {
+          const groupPermissionClaim = groupPermissionClaims.find(
+            (x) => x.groupId == groupId
+          );
+
+          if (
+            groupPermissionClaim != null &&
+            groupPermissionClaim.permissions.includes(groupPermission)
           ) {
             return true;
           }

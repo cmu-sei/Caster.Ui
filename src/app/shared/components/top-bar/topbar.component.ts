@@ -61,6 +61,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit() {
     this.permissionService.load().subscribe();
+    this.permissionService.loadGroupPermissions().subscribe();
 
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),

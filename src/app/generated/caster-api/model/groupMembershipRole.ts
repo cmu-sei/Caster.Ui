@@ -14,19 +14,12 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { GroupMembershipRole } from './groupMembershipRole';
 
 
-export interface GroupMembership { 
-    id?: string;
-    /**
-     * ID of the group.
-     */
-    groupId?: string;
-    /**
-     * Id of the User.
-     */
-    userId?: string;
-    role?: GroupMembershipRole;
-}
+export type GroupMembershipRole = 'Member' | 'Manager';
+
+export const GroupMembershipRole = {
+    Member: 'Member' as GroupMembershipRole,
+    Manager: 'Manager' as GroupMembershipRole
+};
 

@@ -7,6 +7,7 @@ api/designs.service.ts
 api/designsModules.service.ts
 api/directories.service.ts
 api/files.service.ts
+api/groupPermissions.service.ts
 api/groups.service.ts
 api/health.service.ts
 api/hosts.service.ts
@@ -64,6 +65,7 @@ model/editDesignModuleCommand.ts
 model/editDirectoryCommand.ts
 model/editFileCommand.ts
 model/editGroupCommand.ts
+model/editGroupMembershipCommand.ts
 model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
@@ -76,6 +78,9 @@ model/editWorkspaceCommand.ts
 model/fileVersion.ts
 model/group.ts
 model/groupMembership.ts
+model/groupMembershipRole.ts
+model/groupPermission.ts
+model/groupPermissionsClaim.ts
 model/healthStatus.ts
 model/host.ts
 model/importDirectoryResult.ts

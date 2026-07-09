@@ -30,18 +30,21 @@ import { CrucibleDialogService } from '@cmusei/crucible-common';
 const NAME_VALUE = 'nameValue';
 
 @Component({
-    selector: 'cas-admin-groups',
-    templateUrl: './admin-groups.component.html',
-    styleUrls: ['./admin-groups.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    animations: [
-        trigger('detailExpand', [
-            state('collapsed', style({ height: '0px', minHeight: '0' })),
-            state('expanded', style({ height: '*' })),
-            transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-        ]),
-    ],
-    standalone: false
+  selector: 'cas-admin-groups',
+  templateUrl: './admin-groups.component.html',
+  styleUrls: ['./admin-groups.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
+  standalone: false,
 })
 export class AdminGroupsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
@@ -70,8 +73,33 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     SystemPermission.ManageGroups
   );
 
+  private canManageGroupCache = new Map<string, Observable<boolean>>();
+  private canEditGroupCache = new Map<string, Observable<boolean>>();
+
   ngOnInit() {
-    forkJoin([this.groupsService.load(), this.usersService.load()]).subscribe();
+    forkJoin([
+      this.groupsService.load(),
+      this.usersService.load(),
+      this.permissionService.loadGroupPermissions(),
+    ]).subscribe();
+  }
+
+  canManageGroup$(groupId: string): Observable<boolean> {
+    let obs = this.canManageGroupCache.get(groupId);
+    if (!obs) {
+      obs = this.permissionService.canManageGroup(groupId);
+      this.canManageGroupCache.set(groupId, obs);
+    }
+    return obs;
+  }
+
+  canEditGroup$(groupId: string): Observable<boolean> {
+    let obs = this.canEditGroupCache.get(groupId);
+    if (!obs) {
+      obs = this.permissionService.canEditGroup(groupId);
+      this.canEditGroupCache.set(groupId, obs);
+    }
+    return obs;
   }
 
   ngAfterViewInit(): void {
@@ -130,7 +158,11 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
