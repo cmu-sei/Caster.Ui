@@ -60,6 +60,7 @@ import { AdminProjectsComponent } from './component/admin-projects/admin-project
 import { ProjectModule } from '../project';
 import { SystemRolesComponent } from './component/admin-roles/system-roles/system-roles.component';
 import { ProjectRolesComponent } from './component/admin-roles/project-roles/project-roles/project-roles.component';
+import { CurrentUserBadgeComponent } from '../shared/components/current-user-badge/current-user-badge.component';
 
 @NgModule({
   declarations: [
@@ -98,6 +99,7 @@ import { ProjectRolesComponent } from './component/admin-roles/project-roles/pro
     WorkspaceModule,
     ScrollingModule,
     AdminAppRoutingModule,
+    CurrentUserBadgeComponent,
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
