@@ -636,7 +636,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.exportId = obj.object.id;
       this.exportName = obj.object.name;
       this.exportObjectType = obj.type as ProjectObjectType;
-      this.exportDialogRef = this.dialog.open(this.exportDialog, { minWidth: '400px', maxWidth: '90vw' });
+      this.exportDialogRef = this.dialog.open(this.exportDialog, { width: '480px', maxWidth: '90vw' });
     }
   }
 
@@ -644,7 +644,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.exportId = obj.object.id;
     this.exportName = obj.object.name;
     this.exportObjectType = obj.type as ProjectObjectType;
-    this.importDialogRef = this.dialog.open(this.importDialog);
+    this.importDialogRef = this.dialog.open(this.importDialog, { width: '480px', maxWidth: '90vw' });
   }
 
   onExportComplete() {

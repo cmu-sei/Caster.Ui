@@ -149,11 +149,11 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   exportProject() {
-    this.exportDialogRef = this.dialog.open(this.exportDialog, { minWidth: '400px', maxWidth: '90vw' });
+    this.exportDialogRef = this.dialog.open(this.exportDialog, { width: '480px', maxWidth: '90vw' });
   }
 
   importProject() {
-    this.importDialogRef = this.dialog.open(this.importDialog);
+    this.importDialogRef = this.dialog.open(this.importDialog, { width: '480px', maxWidth: '90vw' });
   }
 
   onExportComplete() {
