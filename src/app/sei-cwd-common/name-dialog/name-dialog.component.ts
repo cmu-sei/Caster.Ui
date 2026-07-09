@@ -23,8 +23,6 @@ export class NameDialogComponent {
     public dialogRef: MatDialogRef<NameDialogComponent>,
     private formBuilder: FormBuilder
   ) {
-    this.dialogRef.disableClose = true;
-
     this.form = this.formBuilder.group({
       name: [data.nameValue, [Validators.required]],
     });

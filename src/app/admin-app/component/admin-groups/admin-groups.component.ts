@@ -23,11 +23,10 @@ import { map } from 'rxjs/operators';
 import { Group, SystemPermission } from 'src/app/generated/caster-api';
 import { GroupService } from 'src/app/groups/group.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
-import { ConfirmDialogComponent } from 'src/app/sei-cwd-common/confirm-dialog/components/confirm-dialog.component';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { UserService } from 'src/app/users/state';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 
-const WAS_CANCELLED = 'wasCancelled';
 const NAME_VALUE = 'nameValue';
 
 @Component({
@@ -59,7 +58,8 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     private groupsService: GroupService,
     private usersService: UserService,
     private dialog: MatDialog,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private confirmService: CrucibleDialogService
   ) {}
 
   dataSource$ = this.groupsService.groups$.pipe(
@@ -122,7 +122,7 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
   createGroup() {
     this.nameDialog('Create New Group?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result[WAS_CANCELLED]) {
+        if (!result.wasCancelled) {
           this.groupsService.create({ name: result[NAME_VALUE] }).subscribe();
         }
       }
@@ -133,7 +133,7 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     this.nameDialog('Rename ' + group.name, '', {
       nameValue: group.name,
     }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
+      if (!result.wasCancelled) {
         this.groupsService
           .edit({ id: group.id, name: result[NAME_VALUE] })
           .subscribe();
@@ -142,29 +142,21 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
   }
 
   deleteGroup(group: Group) {
-    this.confirmDialog('Delete Group?', 'Delete Group ' + group.name + '?', {
-      buttonTrueText: 'Delete',
-    }).subscribe((result) => {
-      if (!result[WAS_CANCELLED]) {
-        this.groupsService.delete(group.id).subscribe();
-      }
-    });
+    this.confirmService
+      .confirm({
+        title: 'Delete Group?',
+        message: 'Delete Group ' + group.name + '?',
+        confirmText: 'Delete',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.groupsService.delete(group.id).subscribe();
+        }
+      });
   }
 
-  confirmDialog(
-    title: string,
-    message: string,
-    data?: any
-  ): Observable<boolean> {
-    let dialogRef: MatDialogRef<ConfirmDialogComponent>;
-    dialogRef = this.dialog.open(ConfirmDialogComponent, { data: data || {} });
-    dialogRef.componentInstance.title = title;
-    dialogRef.componentInstance.message = message;
-
-    return dialogRef.afterClosed();
-  }
-
-  nameDialog(title: string, message: string, data?: any): Observable<boolean> {
+  nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
     dialogRef = this.dialog.open(NameDialogComponent, {
       data: data || {},
@@ -174,6 +166,6 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed();
+    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
   }
 }

@@ -14,7 +14,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 
 @Component({
@@ -35,7 +35,7 @@ export class PoolListItemComponent implements OnInit {
   editing: boolean;
 
   constructor(
-    private confirmService: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     private poolService: PoolService
   ) {}
 
@@ -49,23 +49,25 @@ export class PoolListItemComponent implements OnInit {
 
   deletePool(pool: Pool) {
     this.confirmService
-      .confirmDialog(
-        'Delete Pool',
-        `Are you sure you want to delete ${pool.name}?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+      .confirm({
+        title: 'Delete Pool',
+        message: `Are you sure you want to delete ${pool.name}?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.poolService.delete(pool.id, false).subscribe(
             () => {},
             (error) => {
               if (error?.status == 409) {
                 this.confirmService
-                  .confirmDialog(
-                    'Delete Failed',
-                    `${pool.name} has VLANs that are in use. Do you want to force delete it?`
-                  )
-                  .subscribe((x) => {
-                    if (!x.wasCancelled) {
+                  .confirm({
+                    title: 'Delete Failed',
+                    message: `${pool.name} has VLANs that are in use. Do you want to force delete it?`,
+                  })
+                  .afterClosed()
+                  .subscribe((forceConfirmed) => {
+                    if (forceConfirmed) {
                       this.poolService.delete(pool.id, true).subscribe();
                     }
                   });

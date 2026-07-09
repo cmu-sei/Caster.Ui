@@ -42,7 +42,6 @@ import { AppComponent } from './app.component';
 import { DesignModule } from './designs/design.module';
 import { ApiModule, BASE_PATH } from './generated/caster-api';
 import { ProjectModule } from './project/project.module';
-import { CwdDialogsModule } from './sei-cwd-common/confirm-dialog/cwd-dialogs.module';
 import { ErrorService } from './sei-cwd-common/cwd-error/error.service';
 import { SystemMessageComponent } from './sei-cwd-common/cwd-system-message/components/system-message.component';
 import { SystemMessageService } from './sei-cwd-common/cwd-system-message/services/system-message.service';
@@ -96,7 +95,6 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     MonacoEditorModule.forRoot(),
     DesignModule,
     MatCheckboxModule,
-    CwdDialogsModule,
     ComnHeaderBarModule,
   ],
   providers: [

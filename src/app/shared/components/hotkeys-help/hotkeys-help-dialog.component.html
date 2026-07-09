@@ -1,35 +1,37 @@
 <!--
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2 mat-dialog-title>Keyboard Shortcuts</h2>
-
-<mat-dialog-content>
-  @for (group of hotkeys; track group.group) {
-    @if (group.group) {
-      <h3 class="group-title">{{ group.group }}</h3>
-    }
-    <table class="shortcuts-table">
-      <tbody>
-        @for (hotkey of group.hotkeys; track hotkey.keys) {
-          <tr>
-            <td class="shortcut-description">{{ hotkey.description }}</td>
-            <td class="shortcut-keys">
-              @for (key of hotkey.keys.split('.'); track key; let last = $last) {
-                <kbd>{{ key | titlecase }}</kbd>
-                @if (!last) {
-                  <span class="separator">+</span>
+<crucible-dialog dialogTitle="Keyboard Shortcuts" [hideDefaultActions]="true">
+  <div crucibleDialogContent>
+    @for (group of hotkeys; track group.group) {
+      @if (group.group) {
+        <h3 class="group-title">{{ group.group }}</h3>
+      }
+      <table class="shortcuts-table">
+        <tbody>
+          @for (hotkey of group.hotkeys; track hotkey.keys) {
+            <tr>
+              <td class="shortcut-description">{{ hotkey.description }}</td>
+              <td class="shortcut-keys">
+                @for (key of hotkey.keys.split('.'); track key; let last = $last) {
+                  <kbd>{{ key | titlecase }}</kbd>
+                  @if (!last) {
+                    <span class="separator">+</span>
+                  }
                 }
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  }
-</mat-dialog-content>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
 
-<mat-dialog-actions align="end">
-  <button mat-flat-button color="primary" (click)="close()">Close</button>
-</mat-dialog-actions>
+  <ng-container crucibleDialogActions>
+    <button mat-flat-button color="primary" type="button" cdkFocusInitial (click)="close()">
+      Close
+    </button>
+  </ng-container>
+</crucible-dialog>

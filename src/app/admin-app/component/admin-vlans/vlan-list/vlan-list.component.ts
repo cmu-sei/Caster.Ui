@@ -17,7 +17,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable, Subject } from 'rxjs';
 import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
-import { ConfirmDialogService } from 'src/app/sei-cwd-common/confirm-dialog/service/confirm-dialog.service';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { FormControl } from '@angular/forms';
@@ -75,7 +75,7 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   constructor(
     private changeDetector: ChangeDetectorRef,
-    private confirmService: ConfirmDialogService,
+    private confirmService: CrucibleDialogService,
     private vlanService: VlanService
   ) {}
 
@@ -147,14 +147,15 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   toggleInUse(vlan: Vlan) {
     this.confirmService
-      .confirmDialog(
-        'Confirm VLAN',
-        `Are you sure you want to set VLAN ${vlan.vlanId} to ${
+      .confirm({
+        title: 'Confirm VLAN',
+        message: `Are you sure you want to set VLAN ${vlan.vlanId} to ${
           vlan.inUse ? 'Not In Use' : 'In Use'
-        }?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+        }?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           if (vlan.inUse) {
             this.execute(vlan, this.vlanService.release(vlan));
           } else {
@@ -174,12 +175,13 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   removeFromPartition(vlan: Vlan) {
     this.confirmService
-      .confirmDialog(
-        'Confirm Remove',
-        `Are you sure you want to remove VLAN ${vlan.vlanId} from this Partition?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+      .confirm({
+        title: 'Confirm Remove',
+        message: `Are you sure you want to remove VLAN ${vlan.vlanId} from this Partition?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.execute(
             vlan,
             this.vlanService.reassign(
@@ -194,12 +196,13 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   reassignSelected(toPartitionId: string) {
     this.confirmService
-      .confirmDialog(
-        'Confirm Reassign',
-        `Are you sure you want to reassign ${this.selection.selected.length} selected VLANs?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+      .confirm({
+        title: 'Confirm Reassign',
+        message: `Are you sure you want to reassign ${this.selection.selected.length} selected VLANs?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.vlanService
             .reassign(
               this.selection.selected,
@@ -220,32 +223,32 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   reserveSelected(reserve: boolean) {
     this.confirmService
-      .confirmDialog(
-        `Confirm ${reserve ? 'Reserve' : 'Unreserve'}`,
-        `Are you sure you want to ${reserve ? 'reserve' : 'unreserve'} ${
+      .confirm({
+        title: `Confirm ${reserve ? 'Reserve' : 'Unreserve'}`,
+        message: `Are you sure you want to ${reserve ? 'reserve' : 'unreserve'} ${
           this.selection.selected.length
-        } selected VLAN${this.selection.selected.length == 1 ? '' : 's'}?`
-      )
-      .subscribe((x) => {
-        if (!x.wasCancelled) {
+        } selected VLAN${this.selection.selected.length == 1 ? '' : 's'}?`,
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
           this.vlanService
             .bulkReserve(reserve, this.selection.selected)
             .pipe(
               tap((x) => {
                 if (!x.success) {
                   this.confirmService
-                    .confirmDialog(
-                      'Failure',
-                      `The following ${
+                    .confirm({
+                      title: 'Failure',
+                      message: `The following ${
                         x.notUpdated.length
                       } Vlans were not successfully updated: ${this.vlans
                         .filter((y) => x.notUpdated.includes(y.id))
                         .map((x) => x.vlanId)}`,
-                      {
-                        buttonTrueText: '',
-                        buttonFalseText: 'OK',
-                      }
-                    )
+                      confirmText: '',
+                      cancelText: 'OK',
+                    })
+                    .afterClosed()
                     .subscribe();
                 }
               })

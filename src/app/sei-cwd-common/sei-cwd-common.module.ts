@@ -16,6 +16,8 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { SharedModule } from '../shared/shared.module';
 import { NameDialogComponent } from './name-dialog/name-dialog.component';
 
@@ -39,6 +41,8 @@ export const CWD_SETTINGS_TOKEN = new InjectionToken('CwdSettings');
     MatDialogModule,
     MatCheckboxModule,
     ReactiveFormsModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
   ],
   exports: [NameDialogComponent],
 })

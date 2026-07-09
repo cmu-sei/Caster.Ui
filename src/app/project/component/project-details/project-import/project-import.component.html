@@ -3,68 +3,73 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h2>Import {{ typeString | titlecase }}: {{ name }}</h2>
-
 @if (!(complete$ | async)) {
-<form [formGroup]="form" (ngSubmit)="import()">
-  <div class="d-flex flex-column gap-2">
-    <div class="d-flex align-items-center gap-2">
-      <button
-        type="button"
-        color="primary"
-        mat-raised-button
-        (click)="fileInput.click()"
-      >
-        Choose File
-      </button>
-      <input
-        hidden
-        (change)="onFileSelected($event)"
-        #fileInput
-        type="file"
-        accept=".zip, .tar.gz, .tgz"
-      />
-      <span class="file-name">{{ this.form.value.archive?.name }}</span>
+  <crucible-dialog
+    [dialogTitle]="'Import ' + (typeString | titlecase) + ': ' + name"
+    [form]="form"
+    submitLabel="Import"
+    [submitDisabled]="!form.valid"
+    (cancel)="cancel()"
+    (submit)="import()"
+  >
+    <div crucibleDialogContent [formGroup]="form">
+      <div class="import-fields">
+        <div class="file-row">
+          <button
+            type="button"
+            mat-stroked-button
+            cdkFocusInitial
+            (click)="fileInput.click()"
+          >
+            Choose File
+          </button>
+          <input
+            hidden
+            (change)="onFileSelected($event)"
+            #fileInput
+            type="file"
+            accept=".zip, .tar.gz, .tgz"
+          />
+          <span class="file-name">{{ this.form.value.archive?.name }}</span>
+        </div>
+
+        <div class="toggle-row">
+          <mat-label>Preserve Ids</mat-label>
+          <mat-slide-toggle
+            formControlName="preserveIds"
+            matTooltip="Optionally use the same Ids on import, if the archive included Ids on export. Otherwise, generate new Ids"
+          ></mat-slide-toggle>
+        </div>
+      </div>
+    </div>
+  </crucible-dialog>
+} @else {
+  <crucible-dialog [dialogTitle]="'Import ' + (typeString | titlecase) + ': ' + name" [hideDefaultActions]="true">
+    <div crucibleDialogContent>
+      @if (lockedFiles.length > 0) {
+        <p role="alert" class="import-error">
+          Error: The following files are locked and were unable to be updated:
+        </p>
+        <ul>
+          @for (file of lockedFiles; track file) {
+            <li>{{ file }}</li>
+          }
+        </ul>
+      } @else {
+        <p>Import Successful</p>
+      }
     </div>
 
-    <mat-label>Preserve Ids </mat-label>
-    <mat-slide-toggle
-      formControlName="preserveIds"
-      matTooltip="Optionally use the same Ids on import, if the archive included Ids on export. Otherwise, generate new Ids"
-    ></mat-slide-toggle>
-  </div>
-  <div class="d-flex justify-content-around">
-    <button
-      type="submit"
-      color="primary"
-      mat-raised-button
-      [disabled]="!form.valid"
-    >
-      Import
-    </button>
-    <button type="reset" color="primary" mat-raised-button (click)="cancel()">
-      Cancel
-    </button>
-  </div>
-</form>
-} @if (complete$ | async) {
-<div>
-  @if (lockedFiles.length > 0) {
-  <h3 class="text-danger">
-    Error: The following files are locked and were unable to be updated:
-  </h3>
-  <ul>
-    @for (file of lockedFiles; track file) {
-    <li>
-      {{ file }}
-    </li>
-    }
-  </ul>
-  } @if (lockedFiles.length == 0) {
-  <h3 class="text-success">Import Successful</h3>
-  }
-  <div class="d-flex justify-content-around">
-    <button mat-raised-button color="primary" (click)="cancel()">OK</button>
-  </div>
-</div>
+    <ng-container crucibleDialogActions>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        cdkFocusInitial
+        (click)="cancel()"
+      >
+        OK
+      </button>
+    </ng-container>
+  </crucible-dialog>
 }
