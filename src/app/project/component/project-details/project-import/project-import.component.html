@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (!(complete$ | async)) {
   <crucible-dialog
-    [title]="'Import ' + (typeString | titlecase) + ': ' + name"
+    [dialogTitle]="'Import ' + (typeString | titlecase) + ': ' + name"
     [form]="form"
     submitLabel="Import"
     [submitDisabled]="!form.valid"
@@ -44,7 +44,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </crucible-dialog>
 } @else {
-  <crucible-dialog [title]="'Import ' + (typeString | titlecase) + ': ' + name" [hideDefaultActions]="true">
+  <crucible-dialog [dialogTitle]="'Import ' + (typeString | titlecase) + ': ' + name" [hideDefaultActions]="true">
     <div crucibleDialogContent>
       @if (lockedFiles.length > 0) {
         <p role="alert" class="import-error">
