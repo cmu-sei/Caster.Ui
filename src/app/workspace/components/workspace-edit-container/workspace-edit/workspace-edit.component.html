@@ -4,7 +4,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <crucible-dialog
-  title="Edit Workspace"
+  [title]="'Edit Workspace'"
   [form]="form"
   submitLabel="Save"
   [submitDisabled]="!form.valid || !form.dirty"
@@ -40,18 +40,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-form-field>
 
     <mat-form-field>
-      <mat-label
-        >Parallelism
-        <mat-icon
-          class="pointer"
-          fontIcon="mdi-information"
-          matTooltip="Limit the number of concurrent Terraform operations. Defaults to 10 if not set. Only use for troubleshooting provider errors."
-          matTooltipShowDelay="0"
-          matTooltipHideDelay="0"
-          color="primary"
-        >
-        </mat-icon>
-      </mat-label>
+      <mat-label>Parallelism</mat-label>
       <input
         formControlName="parallelism"
         type="number"
@@ -60,6 +49,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [min]="1"
         autocomplete="off"
       />
+      <button
+        mat-icon-button
+        matIconSuffix
+        type="button"
+        class="pointer"
+        aria-label="Parallelism help"
+        matTooltip="Limit the number of concurrent Terraform operations. Defaults to 10 if not set. Only use for troubleshooting provider errors."
+        matTooltipShowDelay="0"
+        matTooltipHideDelay="0"
+      >
+        <mat-icon color="primary" fontIcon="mdi-information"></mat-icon>
+      </button>
       @if (parallelism.invalid && (parallelism.dirty || parallelism.touched)) {
         <mat-error>
           @if (parallelism.hasError('min') || parallelism.hasError('max')) {
@@ -70,18 +71,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-form-field>
 
     <mat-form-field>
-      <mat-label
-        >Azure Threshold
-        <mat-icon
-          class="pointer"
-          fontIcon="mdi-information"
-          matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
-          matTooltipShowDelay="0"
-          matTooltipHideDelay="0"
-          color="primary"
-        >
-        </mat-icon>
-      </mat-label>
+      <mat-label>Azure Threshold</mat-label>
       <input
         formControlName="azureDestroyFailureThreshold"
         type="number"
@@ -90,6 +80,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [min]="1"
         autocomplete="off"
       />
+      <button
+        mat-icon-button
+        matIconSuffix
+        type="button"
+        class="pointer"
+        aria-label="Azure threshold help"
+        matTooltip="If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state."
+        matTooltipShowDelay="0"
+        matTooltipHideDelay="0"
+      >
+        <mat-icon color="primary" fontIcon="mdi-information"></mat-icon>
+      </button>
       @if (
         azureDestroyFailureThreshold.invalid &&
         (azureDestroyFailureThreshold.dirty ||
