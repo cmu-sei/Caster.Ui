@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -29,10 +29,10 @@ import { filter, tap } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 
 @Component({
-    selector: 'cas-admin-groups-member-list',
-    templateUrl: './admin-groups-member-list.component.html',
-    styleUrls: ['./admin-groups-member-list.component.scss'],
-    standalone: false
+  selector: 'cas-admin-groups-member-list',
+  templateUrl: './admin-groups-member-list.component.html',
+  styleUrls: ['./admin-groups-member-list.component.scss'],
+  standalone: false,
 })
 export class AdminGroupsMemberListComponent
   implements OnInit, OnChanges, AfterViewInit
@@ -151,7 +151,7 @@ export class AdminGroupsMemberListComponent
         .confirm({
           title: 'Change your own role?',
           message:
-            'Changing your role from Manager means you will no longer be able to manage this group.',
+            'Changing your role from Manager means you may no longer be able to manage this group.',
           confirmText: 'Change Role',
         })
         .afterClosed()
