@@ -130,7 +130,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
+    return dialogRef.afterClosed();
   }
 
   createNewDirectory(dirId?: string) {
@@ -138,7 +138,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     this.nameDialog('Create New Directory?', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           this.directoryService.add({
             name: result[NAME_VALUE],
             projectId: this.projectId,
