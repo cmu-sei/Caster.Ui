@@ -158,7 +158,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
+    return dialogRef.afterClosed();
   }
 
   deleteDirectory(dir: Directory) {
@@ -246,7 +246,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createNewDirectory(dirId?: string) {
     this.nameDialog('Create New Directory?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           const newDir = {
             name: result[NAME_VALUE],
             projectId: this.parentDirectory.projectId,
@@ -262,7 +262,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + this.parentDirectory.name, '', {
       nameValue: this.parentDirectory.name,
     }).subscribe((result) => {
-      if (!result.wasCancelled) {
+      if (result) {
         const updatedDirectory = {
           ...this.parentDirectory,
           name: result[NAME_VALUE],
@@ -275,7 +275,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createFile(dirId: string, workspaceId?: string) {
     this.nameDialog('Create New File?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           const newFile = {
             workspaceId: workspaceId ? workspaceId : null,
             directoryId: dirId,
@@ -292,7 +292,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + file.name, '', {
       nameValue: file.name,
     }).subscribe((result) => {
-      if (!result.wasCancelled) {
+      if (result) {
         this.fileService.renameFile(file.id, result[NAME_VALUE]);
       }
     });
@@ -317,7 +317,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + workspace.name, '', {
       nameValue: workspace.name,
     }).subscribe((result) => {
-      if (!result.wasCancelled) {
+      if (result) {
         const newWorkspace = { ...workspace, name: result[NAME_VALUE] };
         this.workspaceService.update(newWorkspace);
       }
@@ -340,7 +340,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         },
       ],
     }).subscribe((result) => {
-      if (!result.wasCancelled) {
+      if (result) {
         const newWorkspace = {
           directoryId: this.parentDirectory.id,
           name: result[NAME_VALUE],
@@ -446,7 +446,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   createDesign(dirId: string) {
     this.nameDialog('Create New Design?', '', { nameValue: '' }).subscribe(
       (result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           const newDesign = {
             directoryId: dirId,
             name: result[NAME_VALUE],
@@ -461,7 +461,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename ' + design.name, '', {
       nameValue: design.name,
     }).subscribe((result) => {
-      if (!result.wasCancelled) {
+      if (result) {
         const newDesign = { ...design, name: result[NAME_VALUE] };
         this.designService.edit(design.id, newDesign);
       }

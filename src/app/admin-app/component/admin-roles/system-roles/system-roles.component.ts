@@ -118,7 +118,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Create New Role?', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           this.roleService.createRole({ name: result[NAME_VALUE] }).subscribe();
         }
       });
@@ -128,7 +128,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     this.nameDialog('Rename Role?', '', { nameValue: role.name })
       .pipe(take(1))
       .subscribe((result) => {
-        if (!result.wasCancelled) {
+        if (result) {
           role.name = result[NAME_VALUE];
           this.roleService.editRole(role).subscribe();
         }
@@ -157,6 +157,6 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
-    return dialogRef.afterClosed().pipe(map(result => result ?? { wasCancelled: true }));
+    return dialogRef.afterClosed();
   }
 }
