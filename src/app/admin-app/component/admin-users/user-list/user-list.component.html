@@ -31,51 +31,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 </div>
 
 <div class="table-container">
-@if (addingNewUser) {
-  <div class="new-user-row">
-    <div class="new-user-cell">
-      <mat-form-field>
-        <input
-          matInput
-          placeholder="User ID"
-          [(ngModel)]="newUser.id"
-          matTooltip="Must be a valid Guid"
-          />
-      </mat-form-field>
-    </div>
-    <div class="new-user-cell">
-      <mat-form-field>
-        <input
-          matInput
-          placeholder="User Name"
-          [(ngModel)]="newUser.name"
-          matTooltip="Must have a minimum of 4 characters"
-          />
-      </mat-form-field>
-    </div>
-    <div class="new-user-cell">
-      <button
-        mat-icon-button
-        (click)="addNewUser(true)"
-        [disabled]="!newUser.id || !newUser.name || newUser.name.length < 4"
-        >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-account-plus"
-          matTooltip="Add this user"
-        ></mat-icon>
-      </button>
-      <button mat-icon-button (click)="addNewUser(false)" matTooltip="Cancel">
-        <mat-icon class="mdi-24px" fontIcon="mdi-account-remove"></mat-icon>
-      </button>
-    </div>
-  </div>
-}
-
 <table mat-table matSort [dataSource]="dataSource">
   <ng-container matColumnDef="id">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <button mat-icon-button (click)="addingNewUser = true; $event.stopPropagation()" title="Add User" [disabled]="!canEdit">
+      <button mat-icon-button (click)="addNewUser(); $event.stopPropagation()" title="Add User" [disabled]="!canEdit">
         <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
       </button>
       ID

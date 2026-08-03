@@ -3,4 +3,6 @@
 
 export class ValidatorPatterns {
   public static WorkspaceName = '^[a-zA-Z0-9-_.]+$';
+  public static Guid =
+    '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$';
 }
