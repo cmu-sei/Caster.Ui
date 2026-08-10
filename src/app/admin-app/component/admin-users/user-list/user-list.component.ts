@@ -11,6 +11,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -19,6 +20,8 @@ import { RoleService } from 'src/app/roles/roles.service.service';
 import { MatSelectChange } from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { take } from 'rxjs/operators';
+import { AddUserDialogComponent } from '../add-user-dialog/add-user-dialog.component';
 
 export interface Action {
   Value: string;
@@ -34,11 +37,7 @@ export interface Action {
 export class UserListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = ['id', 'name', 'roleId'];
   public filterString = '';
-  public savedFilterString = '';
   public dataSource = new MatTableDataSource<User>(new Array<User>());
-  public newUser: User = {};
-
-  public addingNewUser: boolean;
   roles$ = this.roleService.roles$;
 
   @Input() users: User[];
@@ -51,6 +50,7 @@ export class UserListComponent implements OnInit, OnChanges {
 
   constructor(
     private confirmService: CrucibleDialogService,
+    private dialog: MatDialog,
     private roleService: RoleService,
     private userService: UserService
   ) {}
@@ -84,17 +84,16 @@ export class UserListComponent implements OnInit, OnChanges {
     this.applyFilter('');
   }
 
-  addNewUser(addUser: boolean) {
-    if (addUser) {
-      const user = {
-        id: this.newUser.id,
-        name: this.newUser.name,
-      };
-      this.savedFilterString = this.filterString;
-      this.create.emit(user);
-    }
-    this.newUser = {};
-    this.addingNewUser = false;
+  addNewUser() {
+    this.dialog
+      .open(AddUserDialogComponent, { minWidth: '400px', maxWidth: '90vw' })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((user: User) => {
+        if (user) {
+          this.create.emit(user);
+        }
+      });
   }
 
   deleteUser(user: User) {

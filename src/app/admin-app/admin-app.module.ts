@@ -61,6 +61,9 @@ import { ProjectModule } from '../project';
 import { SystemRolesComponent } from './component/admin-roles/system-roles/system-roles.component';
 import { ProjectRolesComponent } from './component/admin-roles/project-roles/project-roles/project-roles.component';
 import { CurrentUserBadgeComponent } from '../shared/components/current-user-badge/current-user-badge.component';
+import { AddUserDialogComponent } from './component/admin-users/add-user-dialog/add-user-dialog.component';
+import { A11yModule } from '@angular/cdk/a11y';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
   declarations: [
@@ -88,6 +91,7 @@ import { CurrentUserBadgeComponent } from '../shared/components/current-user-bad
     AdminProjectsComponent,
     SystemRolesComponent,
     ProjectRolesComponent,
+    AddUserDialogComponent,
   ],
   imports: [
     ClipboardModule,
@@ -126,6 +130,8 @@ import { CurrentUserBadgeComponent } from '../shared/components/current-user-bad
     MatDialogModule,
     ProjectModule,
     ReactiveFormsModule,
+    A11yModule,
+    ...CRUCIBLE_DIALOG_IMPORTS,
   ],
   exports: [AdminContainerComponent, UsersComponent, UserListComponent],
 })

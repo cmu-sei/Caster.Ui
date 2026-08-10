@@ -1,0 +1,67 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  dialogTitle="Add User"
+  [form]="form"
+  submitLabel="Create"
+  [submitDisabled]="!form.valid || !form.dirty"
+  [guardUnsavedWork]="true"
+  (submit)="onSubmit()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    <mat-form-field class="form-full-width">
+      <mat-label>User ID</mat-label>
+      <input
+        formControlName="id"
+        matInput
+        placeholder="User ID"
+        autocomplete="off"
+        cdkFocusInitial
+      />
+
+      @if (id.invalid && (id.dirty || id.touched)) {
+        <mat-error>
+          @if (id.hasError('required')) {
+            User ID is required.
+          } @else if (id.hasError('pattern')) {
+            User ID must be a valid GUID, for example
+            00000000-0000-0000-0000-000000000000.
+          }
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>Name</mat-label>
+      <input
+        formControlName="name"
+        matInput
+        placeholder="Name"
+        autocomplete="off"
+      />
+
+      @if (name.invalid && (name.dirty || name.touched)) {
+        <mat-error>
+          @if (name.hasError('required')) {
+            Name is required.
+          } @else if (name.hasError('minlength')) {
+            Name must have a minimum of 4 characters.
+          }
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>Role</mat-label>
+      <mat-select formControlName="roleId">
+        <mat-option value="">None Locally</mat-option>
+        @for (role of roles$ | async; track role.id) {
+          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</crucible-dialog>
