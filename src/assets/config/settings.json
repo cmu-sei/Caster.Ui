@@ -12,12 +12,12 @@
     "silent_redirect_uri": "http://localhost:4310/auth-callback-silent.html"
   },
   "UseLocalAuthStorage": false,
-  "AppTopBarHexColor": "#AB650F",
+  "AppTopBarHexColor": "#E9831C",
   "AppTopBarHexTextColor": "#FFFFFF",
-  "AppLightModePrimaryHexColor": "#A4610E",
+  "AppLightModePrimaryHexColor": "#E9831C",
   "AppLightModePrimaryHexTextColor": "#FFFFFF",
-  "AppDarkModePrimaryHexColor": "#E08414",
-  "AppDarkModePrimaryHexTextColor": "#000000",
+  "AppDarkModePrimaryHexColor": "#E9831C",
+  "AppDarkModePrimaryHexTextColor": "#FFFFFF",
   "AppTopBarText": "Caster",
   "Hotkeys": {
     "PROJECT_NEW": {

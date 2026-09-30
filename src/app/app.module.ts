@@ -112,7 +112,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
       useValue: myCustomSnackBarDefaults,
     },
     provideHttpClient(withInterceptorsFromDi()),
-    provideCrucibleTheme({ brand: { color: '#AB650F', text: '#FFFFFF' } }),
+    provideCrucibleTheme({ brand: { color: '#E9831C', text: '#FFFFFF' } }),
   ],
 })
 export class AppModule {}
