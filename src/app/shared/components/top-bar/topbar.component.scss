@@ -20,6 +20,13 @@
   margin-left: 50px;
   margin-right: 40px;
 }
+// The logo is drawn in currentColor on a disc of the top-bar text colour, so it
+// reads as a cut-out of the top bar in both themes.
+.home-logo {
+  outline: none;
+  background-color: var(--crucible-topbar-text);
+  --mat-icon-button-icon-color: var(--crucible-topbar-background);
+}
 .menu-trigger {
   color: var(--crucible-topbar-text) !important;
 }

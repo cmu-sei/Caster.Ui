@@ -9,7 +9,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
   <mat-toolbar-row>
     <span class="margin-auto">
-      <a mat-icon-button style="outline: none; background-color: var(--crucible-topbar-text);" [routerLink]="['/']">
+      <a mat-icon-button class="home-logo" aria-label="Caster home" [routerLink]="['/']">
         <mat-icon svgIcon="ic_crucible_caster"></mat-icon>
       </a>
     </span>
@@ -21,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
         <button mat-button class="menu-trigger" [matMenuTriggerFor]="menu" style="outline: none">
           <strong>{{ currentUser.name }}</strong>
-          <mat-icon aria-hidden="false" class="menu-trigger" fontIcon="mdi-chevron-down"></mat-icon>
+          <mat-icon class="menu-trigger" fontIcon="mdi-chevron-down"></mat-icon>
         </button>
         <mat-menu #menu="matMenu" [overlapTrigger]="false">
           @if (projectId && (canManageProject$ | async)) {

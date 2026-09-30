@@ -26,6 +26,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (promptForReload) {
       <button
         mat-icon-button
+        aria-label="Reload module"
         matTooltip="Reload this module to view changes. Unsaved changes will be lost."
         matTooltipShowDelay="0"
         (click)="reload()"
@@ -124,6 +125,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   (click)="
                     trigger.panelOpen ? trigger.closePanel() : trigger.openPanel()
                   "
+                  aria-label="View variables and outputs"
                   matTooltip="View variables and outputs"
                   matSuffix
                 >

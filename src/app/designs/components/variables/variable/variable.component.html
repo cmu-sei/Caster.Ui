@@ -10,6 +10,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       color="primary"
       mat-icon-button
       (click)="edit()"
+      aria-label="Edit"
       matTooltip="Edit"
       [disabled]="isEditing"
       >
@@ -22,6 +23,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [cbContent]="variable.terraform"
       (click)="$event.stopPropagation()"
       (cbOnSuccess)="onClipboardSuccess()"
+      aria-label="Copy Terraform"
       matTooltip="Copy Terraform"
       >
       <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
@@ -31,6 +33,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       mat-icon-button
       (click)="delete()"
       [disabled]="!canEdit"
+      aria-label="Delete"
       matTooltip="Delete"
       >
       <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline"> </mat-icon>

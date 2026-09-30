@@ -58,6 +58,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (cbOnSuccess)="snackBar.open('Copied to clipboard', 'Dismiss')"
             (click)="$event.stopPropagation()"
             title="Copy:  {{ model.id }}"
+            [attr.aria-label]="'Copy ID of ' + model.name"
             >
             <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
           </button>
@@ -78,6 +79,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <td mat-cell *matCellDef="let model">
         <button
           mat-icon-button
+          [attr.aria-label]="'Add ' + model.name"
           matTooltip="Add {{ model.name }}"
           (click)="add(model.id, model.type)"
           [disabled]="!canEdit"

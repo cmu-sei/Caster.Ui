@@ -44,6 +44,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <button
         mat-icon-button
         (click)="updateModuleFromRepository()"
+        aria-label="Add/Update this module from the repository"
         [disabled]="!externalModuleId || isLoading"
         >
         <mat-icon
@@ -57,6 +58,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <button
         mat-icon-button
         (click)="updateAllModules()"
+        aria-label="Add/Update ALL from the repository"
         [disabled]="isLoading"
         >
         <mat-icon
@@ -80,6 +82,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [cbContent]="item.id"
         (click)="$event.stopPropagation()"
         title="Copy:  {{ item.id }}"
+        [attr.aria-label]="'Copy ID of ' + item.name"
         >
         <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
       </button>
@@ -119,6 +122,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-icon-button
           (click)="deleteModule(item); $event.stopPropagation()"
           title="Delete Module"
+          aria-label="Delete Module"
           >
           <mat-icon
             class="mdi-24px"

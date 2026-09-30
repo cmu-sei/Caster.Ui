@@ -34,7 +34,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <table mat-table matSort [dataSource]="dataSource">
   <ng-container matColumnDef="id">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <button mat-icon-button (click)="addNewUser(); $event.stopPropagation()" title="Add User" [disabled]="!canEdit">
+      <button mat-icon-button (click)="addNewUser(); $event.stopPropagation()" title="Add User" aria-label="Add User" [disabled]="!canEdit">
         <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
       </button>
       ID
@@ -46,6 +46,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [cbContent]="item.id"
         (click)="$event.stopPropagation()"
         title="Copy:  {{ item.id }}"
+        [attr.aria-label]="'Copy ID of ' + item.name"
         >
         <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
       </button>
@@ -83,6 +84,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             mat-icon-button
             (click)="deleteUser(item); $event.stopPropagation()"
             title="Delete User"
+            [attr.aria-label]="'Delete user ' + item.name"
             >
             <mat-icon
               class="mdi-24px"

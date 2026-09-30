@@ -11,6 +11,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     [cbContent]="toTerraform()"
     (click)="$event.stopPropagation()"
     (cbOnSuccess)="onClipboardSuccess()"
+    aria-label="Copy Terraform"
     matTooltip="Copy Terraform"
   >
     <mat-icon class="mdi-18px" fontIcon="mdi-content-copy"></mat-icon>

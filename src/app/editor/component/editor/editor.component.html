@@ -26,6 +26,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           (click)="resetSidebar()"
+          aria-label="Close Side Bar"
           matTooltip="Close Side Bar"
         >
           <mat-icon
@@ -79,6 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             class="align-self-center"
             [disabled]="!canAdminLock"
             (click)="adminLockFile()"
+            aria-label="Administratively Lock File"
           >
             <mat-icon
               class="mdi-24px"
@@ -93,6 +95,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             class="align-self-center"
             [disabled]="!canAdminLock"
             (click)="adminUnlockFile()"
+            aria-label="Remove Administrative Lock"
           >
             <mat-icon
               class="mdi-24px"
@@ -108,6 +111,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             class="align-self-center"
             [disabled]="!canEdit || (isSaved$ | async)"
             (click)="saveFile()"
+            aria-label="Save Changes"
           >
             <mat-icon
               class="mdi-24px"
@@ -124,6 +128,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               !canEdit || (file && file.editorContent === file.content)
             "
             (click)="discardFileChanges()"
+            aria-label="Discard Changes"
           >
             <mat-icon
               class="mdi-24px"
@@ -133,6 +138,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           @if (file && file.lockedById && file.lockedById !== currentUserId) {
           <button mat-icon-button class="align-self-center" color="warn" (click)="canManage && forceUnlockFile()"
+            [attr.aria-label]="
+              canManage
+                ? 'Force release the file from ' + file.lockedByName
+                : 'This file is being edited by ' + file.lockedByName
+            "
             [matTooltip]="
               canManage
                 ? 'Force release the file from ' + file.lockedByName
@@ -148,6 +158,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             color="primary"
             (click)="lockFile()"
             [disabled]="!canEdit"
+            aria-label="Edit this file"
             [matTooltip]="
               canEdit
                 ? 'Edit this file. Only one person can edit a file at a time'
@@ -164,6 +175,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [disabled]="file.editorContent !== file.content"
             color="warn"
             (click)="unlockFile()"
+            aria-label="Finish editing"
             matTooltip="Finish editing and allow someone else to edit this file"
           >
             <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"></mat-icon>
@@ -181,6 +193,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 sidebarView = 'modules'; sidebarChangedFn('modules', true)
               "
               [disabled]="sidebarView === 'modules'"
+              aria-label="Show the module list"
               matTooltip="Show the module list"
             >
               <mat-icon class="mdi-24px" fontIcon="mdi-code-tags"></mat-icon>
@@ -194,6 +207,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 sidebarView = 'versions'; sidebarChangedFn('versions', true)
               "
               [disabled]="sidebarView === 'versions'"
+              aria-label="Show the file versions"
               matTooltip="Show the file versions"
             >
               <mat-icon class="mdi-24px" fontIcon="mdi-history"></mat-icon>

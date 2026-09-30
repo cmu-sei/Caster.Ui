@@ -6,7 +6,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 @if (project$ | async; as project) {
 <div class="d-flex justify-content-center align-items-center">
   @if (embedded) {
-  <button mat-icon-button (click)="goBack.emit()" matTooltip="Return">
+  <button mat-icon-button (click)="goBack.emit()" aria-label="Return" matTooltip="Return">
     <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"></mat-icon>
   </button>
   }
