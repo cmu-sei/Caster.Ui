@@ -10,6 +10,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (canCreate$ | async) {
     <button
       mat-icon-button
+      aria-label="Add New Project"
       matTooltip="Add New Project"
       hotkeyAction="PROJECT_NEW"
       (click)="create()"
@@ -99,6 +100,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           @if (manageMode) {
           <a
             mat-icon-button
+            [attr.aria-label]="'Open ' + element.name"
             matTooltip="Open {{ element.name }}"
             [routerLink]="['/projects', element.id]"
             target="_blank"
@@ -110,7 +112,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </a>
           } @if ( (canManageAll$ | async) || (canManageProjects$ |
           async).includes(element.id) ) {
-          <button mat-icon-button matTooltip="Rename" (click)="update(element)">
+          <button mat-icon-button aria-label="Rename" matTooltip="Rename" (click)="update(element)">
             <mat-icon
               color="primary"
               fontIcon="mdi-square-edit-outline"
@@ -118,6 +120,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </button>
           <button
             mat-icon-button
+            [attr.aria-label]="'Delete ' + element.name"
             matTooltip="Delete {{ element.name }}"
             (click)="delete(element)"
           >

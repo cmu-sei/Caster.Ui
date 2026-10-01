@@ -23,10 +23,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>
         <div class="button-cell">
-          <button mat-icon-button matTooltip="Add New Group" (click)="createGroup()" [disabled]="!(canEdit$ | async)">
+          <button mat-icon-button aria-label="Add New Group" matTooltip="Add New Group" (click)="createGroup()" [disabled]="!(canEdit$ | async)">
             <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
           </button>
-          <button mat-icon-button class="primary-color" disabled
+          <button mat-icon-button class="primary-color" disabled aria-label="About groups"
               matTooltip="Users can be added to Groups here or, if enabled in your environment, can be matched to Group Names from the token of the Identity Provider in use."
               matTooltipShowDelay="0">
             <mat-icon class="mdi-24px" fontIcon="mdi-information"></mat-icon>
@@ -34,11 +34,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
       </th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button matTooltip="Delete {{ element.name }}"
+        <button mat-icon-button [attr.aria-label]="'Delete ' + element.name" matTooltip="Delete {{ element.name }}"
           (click)="$event.stopPropagation(); deleteGroup(element)" [disabled]="!(canEdit$ | async)">
           <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-trash-can-outline"></mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Rename"
+        <button mat-icon-button aria-label="Rename" matTooltip="Rename"
           (click)="$event.stopPropagation(); updateGroup(element)" [disabled]="!(canEditGroup$(element.id) | async)">
           <mat-icon class="mdi-24px" color="primary" fontIcon="mdi-square-edit-outline"></mat-icon>
         </button>

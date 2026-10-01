@@ -14,6 +14,10 @@
   "UseLocalAuthStorage": false,
   "AppTopBarHexColor": "#E9831C",
   "AppTopBarHexTextColor": "#FFFFFF",
+  "AppLightModePrimaryHexColor": "#E9831C",
+  "AppLightModePrimaryHexTextColor": "#FFFFFF",
+  "AppDarkModePrimaryHexColor": "#E9831C",
+  "AppDarkModePrimaryHexTextColor": "#FFFFFF",
   "AppTopBarText": "Caster",
   "Hotkeys": {
     "PROJECT_NEW": {

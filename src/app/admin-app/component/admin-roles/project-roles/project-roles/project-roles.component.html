@@ -12,6 +12,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          [attr.aria-label]="'About ' + permission"
           [matTooltip]="permissionMap.get(permission)"
           [matTooltipShowDelay]="0"
           >

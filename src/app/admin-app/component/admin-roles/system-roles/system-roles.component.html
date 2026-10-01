@@ -13,6 +13,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           color="primary"
           (click)="addRole()"
           [disabled]="!(canEdit$ | async)"
+          aria-label="Add New Role"
           matTooltip="Add New Role"
           >
           <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
@@ -20,6 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          aria-label="About roles"
           matTooltip="Roles can be set on Users or, if enabled in your environment, can be matched to Role Names from the token of the Identity Provider in use."
           matTooltipShowDelay="0"
           >
@@ -31,6 +33,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          [attr.aria-label]="'About ' + permission"
           [matTooltip]="permissionMap.get(permission)"
           [matTooltipShowDelay]="0"
           >
@@ -54,6 +57,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   color="primary"
                   (click)="renameRole(role)"
                   title="Rename Role"
+                  [attr.aria-label]="'Rename role ' + role.name"
                   >
                   <mat-icon
                     class="mdi-24px"
@@ -67,6 +71,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   color="primary"
                   (click)="deleteRole(role)"
                   title="Delete Role"
+                  [attr.aria-label]="'Delete role ' + role.name"
                   >
                   <mat-icon
                     class="mdi-24px"

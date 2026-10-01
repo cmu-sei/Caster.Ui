@@ -14,7 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 @if (selectedPool$ | async; as selectedPool) {
   <div>
     <div class="header">
-      <button mat-icon-button color="primary" (click)="deselectPool()">
+      <button mat-icon-button color="primary" aria-label="Back to pools" (click)="deselectPool()">
         <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"> </mat-icon>
       </button>
       <h1>Pool - {{ selectedPool.name }}</h1>

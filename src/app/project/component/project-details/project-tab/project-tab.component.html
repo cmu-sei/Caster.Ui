@@ -14,7 +14,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       @for (tab of projectUI.openTabs; track tab) {
         <mat-tab [label]="tab.id">
           <ng-template mat-tab-label>
-            <button mat-icon-button (click)="closeTabClickHandler(tab)">
+            <button
+              mat-icon-button
+              [attr.aria-label]="'Close ' + (projectObjectNames[tab.id] ?? 'tab')"
+              (click)="closeTabClickHandler(tab)"
+              >
               <mat-icon class="mdi-18px" fontIcon="mdi-close"></mat-icon>
             </button>
             {{ projectObjectNames[tab.id] }}

@@ -6,7 +6,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { ComnAuthQuery, ComnAuthService, ComnSettingsService, Theme } from '@cmusei/crucible-common';
+import {
+  ComnAuthQuery,
+  ComnAuthService,
+  ComnSettingsService,
+  CrucibleThemeService,
+  Theme,
+} from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
 import { HotkeysHelpDialogComponent } from './shared/components/hotkeys-help/hotkeys-help-dialog.component';
 import { Subject } from 'rxjs';
@@ -38,7 +44,8 @@ export class AppComponent implements OnDestroy {
     private dialog: MatDialog,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private currentUserStore: CurrentUserStore
+    private currentUserStore: CurrentUserStore,
+    private themeService: CrucibleThemeService
   ) {
     this.authQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
@@ -98,41 +105,7 @@ export class AppComponent implements OnDestroy {
   }
 
   setTheme(theme: Theme) {
-    document.body.classList.toggle('darkMode', theme === Theme.DARK);
-    const topBarColor =
-      this.settingsService.settings?.AppTopBarHexColor || '#C41230';
-    const topBarTextColor =
-      this.settingsService.settings?.AppTopBarHexTextColor || '#FFFFFF';
-    if (topBarColor) {
-      document.documentElement.style.setProperty(
-        '--mat-sys-primary',
-        topBarColor
-      );
-      document.body.style.setProperty('--mat-sys-primary', topBarColor);
-      this.updateFavicon(topBarColor);
-    }
-    if (topBarTextColor) {
-      document.documentElement.style.setProperty(
-        '--mat-sys-on-primary',
-        topBarTextColor
-      );
-      document.body.style.setProperty('--mat-sys-on-primary', topBarTextColor);
-    }
-  }
-
-  private updateFavicon(color: string) {
-    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (!link) return;
-    fetch(link.href)
-      .then((res) => res.text())
-      .then((svg) => {
-        const colored = svg.replace(
-          /\.cls-1\{[^}]*\}/,
-          `.cls-1{fill:${color};}`
-        );
-        const blob = new Blob([colored], { type: 'image/svg+xml' });
-        link.href = URL.createObjectURL(blob);
-      });
+    this.themeService.applyTheme(theme);
   }
 
   updateLastRoute(route: string) {

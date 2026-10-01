@@ -166,6 +166,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
+            aria-label="Edit Tag"
             matTooltip="Edit Tag"
             (click)="editingId = element.id"
           >
@@ -185,6 +186,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
+            aria-label="Confirm Edit"
             matTooltip="Confirm Edit"
             (click)="editTag(element.id, tagInput)"
           >
@@ -193,6 +195,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
+            aria-label="Cancel Edit"
             matTooltip="Cancel Edit"
             (click)="editingId = null"
           >
@@ -215,6 +218,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-icon-button
           color="primary"
           (click)="removeFromPartition(element)"
+          aria-label="Remove VLAN from this Partition"
           matTooltip="Remove VLAN from this Partition"
           [disabled]="element.inUse"
         >

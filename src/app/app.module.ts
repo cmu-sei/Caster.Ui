@@ -31,6 +31,7 @@ import {
   ComnSettingsModule,
   ComnSettingsService,
   ComnHeaderBarModule,
+  provideCrucibleTheme,
 } from '@cmusei/crucible-common';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
@@ -111,6 +112,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
       useValue: myCustomSnackBarDefaults,
     },
     provideHttpClient(withInterceptorsFromDi()),
+    provideCrucibleTheme({ brand: { color: '#E9831C', text: '#FFFFFF' } }),
   ],
 })
 export class AppModule {}

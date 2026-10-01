@@ -84,6 +84,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-icon-button
           (click)="delete(model)"
           title="Remove {{ model.name }}"
+          [attr.aria-label]="'Remove ' + model.name"
           [disabled]="!canEdit"
           >
           <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle-outline"></mat-icon>

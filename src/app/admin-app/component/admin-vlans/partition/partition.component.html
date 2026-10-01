@@ -7,14 +7,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <mat-expansion-panel-header>
     <mat-panel-title class="title">
       @if (partition) {
-        <button mat-icon-button>
+        <button
+          mat-icon-button
+          [attr.aria-label]="partition?.isDefault ? 'Unset Default' : 'Set Default'"
+          [matTooltip]="partition?.isDefault ? 'Unset Default' : 'Set Default'"
+          (click)="
+            partition?.isDefault
+              ? unsetDefault($event, partition.id)
+              : setDefault($event, partition.id)
+          "
+          >
           @if (partition?.isDefault) {
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-check-circle"
               color="primary"
-              matTooltip="Unset Default"
-              (click)="unsetDefault($event, partition.id)"
               >
             </mat-icon>
           }
@@ -23,8 +30,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               class="mdi-24px"
               fontIcon="mdi-check-circle-outline"
               color="primary"
-              matTooltip="Set Default"
-              (click)="setDefault($event, partition.id)"
               >
             </mat-icon>
           }
@@ -36,6 +41,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (cbOnSuccess)="onClipboardSuccess()"
           (click)="$event.stopPropagation()"
           title="Copy:  {{ partition.id }}"
+          [attr.aria-label]="'Copy ID of ' + partition.name"
           >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
         </button>
@@ -45,6 +51,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               color="primary"
+              aria-label="Edit Name"
               matTooltip="Edit Name"
               (click)="editing = true"
               (click)="$event.stopPropagation()"
@@ -67,6 +74,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
+            aria-label="Rename"
             matTooltip="Rename"
             (click)="rename($event, nameInput)"
             >
@@ -75,6 +83,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             mat-icon-button
             color="primary"
+            aria-label="Cancel"
             matTooltip="Cancel"
             (click)="editing = false"
             (click)="$event.stopPropagation()"
@@ -111,6 +120,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          aria-label="Remove VLANs"
           matTooltip="Remove VLANs"
           (click)="removeVlans($event, vlanAmount.value)"
           >
@@ -119,6 +129,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          aria-label="Add VLANs"
           matTooltip="Add VLANs"
           (click)="addVlans($event, vlanAmount.value)"
           >
@@ -127,6 +138,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
+          aria-label="Delete"
           matTooltip="Delete"
           (click)="delete($event)"
           >

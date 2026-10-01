@@ -16,6 +16,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       mat-icon-button
       (click)="edit()"
       [disabled]="!module || isEditing"
+      aria-label="Edit"
       matTooltip="Edit"
       >
       <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"> </mat-icon>
@@ -25,6 +26,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       mat-icon-button
       (click)="toggleOutputs()"
       [disabled]="!module || isEditing"
+      aria-label="View Module Outputs"
       matTooltip="View Module Outputs"
       >
       <mat-icon class="mdi-24px" fontIcon="mdi-export"> </mat-icon>
@@ -33,6 +35,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       color="primary"
       mat-icon-button
       (click)="delete()"
+      aria-label="Delete"
       matTooltip="Delete"
       [disabled]="!canEdit"
       >
@@ -43,6 +46,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       mat-icon-button
       (click)="toggleEnabled()"
       [disabled]="!canEdit"
+      [attr.aria-label]="designModule.enabled ? 'Disable' : 'Enable'"
       >
       @if (designModule.enabled) {
         <mat-icon

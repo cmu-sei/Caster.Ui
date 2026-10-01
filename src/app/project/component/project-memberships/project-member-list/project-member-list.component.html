@@ -85,6 +85,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <td mat-cell *matCellDef="let model">
           <button
             mat-icon-button
+            [attr.aria-label]="'Remove ' + model.name"
             matTooltip="Remove {{ model.name }}"
             (click)="delete(model.membership.id)"
             [disabled]="!canEdit"
