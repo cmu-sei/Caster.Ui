@@ -4,4 +4,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 -->
 
 <cas-topbar></cas-topbar>
-<cas-project-memberships [projectId]="projectId"></cas-project-memberships>
+<cas-project-memberships
+  [projectId]="projectId"
+  [showReturnButton]="true"
+  returnLabel="Return to Project"
+  (goBack)="returnToProject()"
+></cas-project-memberships>
