@@ -4,7 +4,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
@@ -18,9 +18,14 @@ export class ProjectMembershipsPageComponent implements OnInit {
 
   activatedRoute = inject(ActivatedRoute);
   permissionService = inject(PermissionService);
+  router = inject(Router);
 
   ngOnInit(): void {
     this.projectId = this.activatedRoute.snapshot.paramMap.get('id');
     this.permissionService.loadProjectPermissions(this.projectId).subscribe();
+  }
+
+  returnToProject(): void {
+    this.router.navigate(['/projects', this.projectId]);
   }
 }

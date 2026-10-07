@@ -39,6 +39,14 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   @Input()
   embedded = false;
 
+  // Shows the return affordance when this view is not embedded in a parent
+  // view, e.g. the standalone /projects/:id/memberships page.
+  @Input()
+  showReturnButton = false;
+
+  @Input()
+  returnLabel = 'Return';
+
   @Output()
   goBack = new EventEmitter();
 
