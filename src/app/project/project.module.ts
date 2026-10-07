@@ -30,6 +30,7 @@ import { ResizableModule } from 'angular-resizable-element';
 import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { DesignModule } from '../designs/design.module';
 import { DirectoriesModule } from '../directories';
+import { InventoryModule } from '../inventory/inventory.module';
 import { EditorModule } from '../editor/editor.module';
 import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
 import { SeiCwdCommonModule } from '../sei-cwd-common/sei-cwd-common.module';
@@ -125,6 +126,7 @@ const projectRoutes: Routes = [
     ClipboardModule,
     MatSnackBarModule,
     MatPaginatorModule,
+    InventoryModule,
   ],
   exports: [
     ProjectComponent,

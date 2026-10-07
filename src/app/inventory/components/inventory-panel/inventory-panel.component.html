@@ -1,0 +1,67 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<mat-accordion>
+  <mat-expansion-panel
+    class="mat-elevation-z0"
+    [expanded]="expanded"
+    (opened)="onExpanded()"
+    (closed)="onCollapsed()"
+    >
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="d-flex flex-row justify-content-start align-items-center">
+          <mat-icon class="mdi-18px" fontIcon="mdi-server-network"></mat-icon>
+          <strong>INFRASTRUCTURE</strong>
+        </div>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <div class="inventory-toolbar d-flex flex-row align-items-center w-100">
+      <mat-form-field class="search-field" subscriptSizing="dynamic">
+        <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+        <input
+          matInput
+          [(ngModel)]="filterString"
+          (keyup)="applyFilter(filterString)"
+          placeholder="Search inventory"
+          aria-label="Search infrastructure inventory"
+          />
+        @if (!!filterString) {
+          <button
+            matSuffix
+            mat-icon-button
+            aria-label="Clear search"
+            (click)="clearFilter()"
+            >
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-close-circle-outline"
+            ></mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <button
+        mat-icon-button
+        class="refresh-button"
+        [disabled]="refreshing$ | async"
+        (click)="refresh()"
+        matTooltip="Refresh inventory"
+        aria-label="Refresh inventory"
+        >
+        @if (refreshing$ | async) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon class="mdi-18px" fontIcon="mdi-refresh"></mat-icon>
+        }
+      </button>
+    </div>
+
+    @for (descriptor of categories; track descriptor.category) {
+      <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
+    }
+  </mat-expansion-panel>
+</mat-accordion>
