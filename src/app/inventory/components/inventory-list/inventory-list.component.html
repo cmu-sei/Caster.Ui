@@ -1,0 +1,115 @@
+<!--
+Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (state$ | async; as state) {
+  <mat-accordion>
+    <mat-expansion-panel
+      class="mat-elevation-z0"
+      [expanded]="expanded"
+      (opened)="expanded = true"
+      (closed)="expanded = false"
+      >
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="d-flex flex-row justify-content-start align-items-center">
+            <mat-icon class="mdi-18px" [fontIcon]="descriptor.icon"></mat-icon>
+            <span class="panel-header"
+              ><strong>{{ descriptor.label }}</strong></span
+              >
+              @if (state.loaded && state.available) {
+                <span class="item-count">{{ (items$ | async)?.length }}</span>
+              }
+              @if (state.loaded && !state.available) {
+                <mat-icon
+                  class="mdi-18px unavailable-icon"
+                  fontIcon="mdi-information-outline"
+                  [matTooltip]="state.error || descriptor.fallbackUnavailableMessage"
+                ></mat-icon>
+              }
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="category-body">
+          @if (!state.loaded || state.loading) {
+            <div class="state-row">
+              <mat-spinner diameter="16"></mat-spinner>
+              <span class="state-text">Loading&hellip;</span>
+            </div>
+          } @else if (!state.available) {
+            <!--
+            `available: false` is the expected case for most deployments: the
+            feature is off unless vCenter credentials are configured. Render a
+            calm, informational note using the API's own message. No error
+            toast, no endless spinner.
+            -->
+            <div class="state-row unavailable">
+              <mat-icon
+                class="mdi-18px"
+                fontIcon="mdi-information-outline"
+              ></mat-icon>
+              <span class="state-text">{{
+                state.error || descriptor.fallbackUnavailableMessage
+              }}</span>
+            </div>
+            @if (state.loadFailed) {
+              <a class="retry-link" (click)="retry()">Try again</a>
+            }
+          } @else if (state.items.length === 0) {
+            <div class="state-row">
+              <span class="state-text">Nothing found in vCenter.</span>
+            </div>
+          } @else if ((items$ | async)?.length === 0) {
+            <div class="state-row">
+              <span class="state-text"
+                >No matches for &ldquo;{{ filter$ | async }}&rdquo;.</span
+                >
+              </div>
+            } @else {
+              <mat-list>
+                @for (item of items$ | async; track item.id) {
+                  <mat-list-item>
+                    <div
+                      class="d-flex flex-row justify-content-between align-items-start w-100 item-row"
+                      >
+                      <div
+                        class="item-text"
+                        [matTooltip]="propertiesTooltip(item)"
+                        >
+                        <div class="item-name">{{ item.name }}</div>
+                        @if (item.path && item.path !== item.name) {
+                          <div class="item-path">{{ item.path }}</div>
+                        }
+                      </div>
+                      <button
+                        mat-icon-button
+                        class="copy-button"
+                        ngxClipboard
+                        [cbContent]="item.name"
+                        (cbOnSuccess)="onClipboardSuccess()"
+                        (click)="$event.stopPropagation()"
+                        matTooltip="Copy name: {{ item.name }}"
+                        [attr.aria-label]="'Copy name of ' + item.name"
+                        >
+                        <mat-icon
+                          class="mdi-18px"
+                          fontIcon="mdi-content-copy"
+                        ></mat-icon>
+                      </button>
+                    </div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            }
+
+            @if (state.loaded && state.available && state.lastUpdated) {
+              <div class="last-updated">
+                Updated {{ state.lastUpdated | date: 'short' }}
+              </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+    }
