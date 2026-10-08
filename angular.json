@@ -124,7 +124,10 @@
           "options": {
             "runnerConfig": "vitest.config.ts",
             "tsConfig": "tsconfig.spec.json",
-            "setupFiles": ["src/test-setup.ts"],
+            "setupFiles": [
+              "src/test-setup.ts",
+              "src/app/test-utils/jsdom-canvas.ts"
+            ],
             "coverageInclude": ["src/app/**/*.ts"],
             "coverageExclude": [
               "**/generated/**",
@@ -133,10 +136,10 @@
             ],
             "coverageReporters": ["text", "json", "html"],
             "coverageThresholds": {
-              "statements": 36,
-              "branches": 40,
-              "functions": 45,
-              "lines": 35
+              "statements": 77,
+              "branches": 69,
+              "functions": 75,
+              "lines": 75
             }
           },
           "configurations": {

@@ -298,13 +298,7 @@ describe('SignalRService', () => {
         ...crud('ProjectMembership'),
       ]);
       expect(hub.start).toHaveBeenCalledTimes(1);
-      // NOTE: caster.api has a 'RunDeleted' handler
-      // (Features/Runs/EventHandlers/SignalREventHandler.cs:46, payload a bare
-      // run id) that this service doesn't listen to. It likely never fires:
-      // runs are only removed by the database cascade when a workspace is
-      // deleted (Features/Workspaces/Requests/Delete.cs:56), which raises no
-      // EntityDeleted<Run>, and WorkspaceDeleted already removes the
-      // workspace entity that holds the runs. Not a defect today.
+      // RunDeleted is not listened to; see agent-docs/ui-test-bugs/caster.ui.md, API gaps noticed.
     });
 
     /**
@@ -1054,10 +1048,7 @@ describe('SignalRService', () => {
       const query = TestBed.inject(WorkspaceQuery);
       hub.trigger('WorkspaceCreated', apiWorkspace(), []);
 
-      // runUpdated throws for a workspace without a runs array (see 'throws
-      // for a workspace stored without a runs array' in
-      // workspace.service.spec.ts). The real HubConnection logs callback
-      // errors and moves on, so the run never reaches the store.
+      // Same case as 'throws for a workspace stored without a runs array' in workspace.service.spec.ts.
       expect(() => hub.trigger('RunCreated', run(), null)).toThrow(TypeError);
       expect(query.getEntity('w1').runs).toBeUndefined();
     });

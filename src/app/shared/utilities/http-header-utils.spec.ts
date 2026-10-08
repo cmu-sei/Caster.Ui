@@ -44,10 +44,6 @@ describe('HttpHeaderUtils.getFilename', () => {
    * Data: a file named naïve.tf, sent as `filename=na_ve.tf; filename*=UTF-8''na%C3%AFve.tf`.
    */
   it('returns the ASCII fallback instead of the UTF-8 filename*', () => {
-    // NOTE: this holds with the escaped regex too: match() finds the first
-    // `filename=` and nothing decodes an RFC 5987 value. Returning 'naïve.tf'
-    // would mean preferring `filename*` and decoding it, a product choice
-    // rather than a defect.
     expect(
       filenameFrom(
         "attachment; filename=na_ve.tf; filename*=UTF-8''na%C3%AFve.tf",

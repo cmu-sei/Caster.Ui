@@ -332,7 +332,7 @@ describe('WorkspaceQuery', () => {
 
     /**
      * Verifies: an unknown workspace id makes the stream error with a
-     *   TypeError instead of emitting undefined.
+     *   TypeError (current behavior).
      * Interacts with: selectEntity(missing, 'runs') -> runs.find.
      * Data: an empty store.
      */

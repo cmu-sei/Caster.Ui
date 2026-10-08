@@ -20,7 +20,11 @@ Run a subset with `npx ng test caster-ui --watch=false --include='src/app/worksp
 
 Shared helpers (rendering, default providers, typed API stubs, permission
 grants, SignalR fakes) live in `src/app/test-utils/`. `vitest.config.ts` applies
-the Akita patch in `patches/` with `patch-package` when the tests start.
+the Akita patch in `patches/` with `patch-package` when the tests start. Two
+caster-specific helpers fake browser APIs jsdom lacks for the xterm terminal:
+`jsdom-canvas.ts` (listed after `src/test-setup.ts` in the test target's
+`setupFiles`, because xterm probes a canvas when its module loads) and
+`match-media.ts` (`mockMatchMedia()`, for specs that open a terminal).
 
 ## Reporting bugs and requesting features
 
