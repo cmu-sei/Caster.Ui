@@ -72,6 +72,19 @@ describe('TopbarComponent', () => {
   });
 
   /**
+   * Verifies: ViewHosts alone, a View* system permission no admin section reads, still shows the Administration link.
+   * Interacts with: PermissionService.canViewAdiminstration (real, startsWith('View')), SystemPermissionsService (stub).
+   * Data: exactly one system permission, ViewHosts; no group or project claims; home view.
+   */
+  it('shows Administration with only the ViewHosts system permission', async () => {
+    await renderTopbar({ system: [SystemPermission.ViewHosts] });
+
+    expect(
+      screen.getByRole('menuitem', { name: 'Administration' }),
+    ).toBeInTheDocument();
+  });
+
+  /**
    * Verifies: a user with no View* system permission and no ManageMembership group claim does not see the Administration link.
    * Interacts with: PermissionService.canViewAdiminstration (real), SystemPermissionsService and GroupPermissionsService (stubs).
    * Data: near miss: system permission CreateProjects, and an EditGroup (not ManageMembership) claim on g1.
