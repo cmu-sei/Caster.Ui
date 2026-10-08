@@ -22,14 +22,6 @@ export interface EditFileCommand {
      */
     name?: string | null;
     /**
-     * ID of the directory this file is under.
-     */
-    directoryId?: string;
-    /**
-     * An optional Workspace to assign this File to
-     */
-    workspaceId?: string | null;
-    /**
      * The full contents of the file.
      */
     content?: string | null;

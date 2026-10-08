@@ -17,15 +17,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 
 export interface EditWorkspaceCommand { 
-    id?: string;
     /**
      * The Name of the Workspace
      */
     name?: string | null;
-    /**
-     * The Id of the Directory of the Workspace
-     */
-    directoryId?: string;
     /**
      * True if this Workspace will be dynamically assigned a Host on first Run
      */
@@ -35,12 +30,13 @@ export interface EditWorkspaceCommand {
      */
     terraformVersion?: string | null;
     /**
-     * Limit the number of concurrent operations as Terraform walks the graph.  If null, the Terraform default will be used.
+     * Limit the number of concurrent operations as Terraform walks the graph. If null, the Terraform default will be used.
      */
     parallelism?: number | null;
     /**
-     * If set, the number of consecutive failed destroys in an Azure Workspace before  Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
+     * If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
      */
     azureDestroyFailureThreshold?: number | null;
+    id?: string;
 }
 

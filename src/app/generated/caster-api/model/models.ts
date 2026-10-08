@@ -71,7 +71,6 @@ export * from './partialEditDirectoryCommandAzureDestroyFailureThreshold';
 export * from './partialEditDirectoryCommandParallelism';
 export * from './partialEditDirectoryCommandParentId';
 export * from './partialEditFileCommand';
-export * from './partialEditFileCommandWorkspaceId';
 export * from './partialEditPartitionCommand';
 export * from './partialEditPoolCommand';
 export * from './partialEditVlanCommand';
