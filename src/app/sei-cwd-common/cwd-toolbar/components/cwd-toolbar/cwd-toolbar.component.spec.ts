@@ -1,29 +1,25 @@
-// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
+import { describe, it, expect } from 'vitest';
+import { screen } from '@testing-library/angular';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { renderComponent } from '../../../../test-utils/render-component';
 import { CwdToolbarComponent } from './cwd-toolbar.component';
 
 describe('CwdToolbarComponent', () => {
-  let component: CwdToolbarComponent;
-  let fixture: ComponentFixture<CwdToolbarComponent>;
+  /**
+   * Verifies: the toolbar renders its title and the navigation and action outlets the toolbar items portal into.
+   * Interacts with: getDefaultProviders (placeholders and stubs only).
+   * Data: none.
+   */
+  it('renders the title and the item outlets', async () => {
+    const { container } = await renderComponent(CwdToolbarComponent, {
+      imports: [MatToolbarModule],
+    });
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [CwdToolbarComponent],
-      }).compileComponents();
-    })
-  );
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(CwdToolbarComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(screen.getByText('Caster')).toBeInTheDocument();
+    expect(container.querySelector('#toolbar-navigation')).not.toBeNull();
+    expect(container.querySelector('#toolbar-action')).not.toBeNull();
   });
 });
