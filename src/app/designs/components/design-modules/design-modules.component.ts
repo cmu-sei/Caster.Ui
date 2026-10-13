@@ -8,13 +8,18 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { DesignModule } from 'src/app/generated/caster-api';
+import { finalize, take } from 'rxjs/operators';
+import { ModuleVariablesResult } from 'src/app/editor/component/module-variables/module-variables.models';
+import { DesignModule, Module, Variable } from 'src/app/generated/caster-api';
 import { ModuleQuery, ModuleService } from 'src/app/modules/state';
 import { DesignModuleQuery } from '../../state/design-modules/design-module.query';
 import { DesignModuleService } from '../../state/design-modules/design-module.service';
-import { toTerraformName } from 'src/app/shared/models/validator-patterns';
+import { VariablesQuery } from '../../state/variables/variables.query';
 
 @Component({
     selector: 'cas-design-modules',
@@ -43,14 +48,28 @@ export class DesignModulesComponent implements OnInit {
   }
   // #endregion
 
+  private savingSubject = new BehaviorSubject(false);
+  public saving$ = this.savingSubject.asObservable();
+
   public modules$ = this.moduleQuery.selectAll();
   public designModules$: Observable<DesignModule[]>;
+  public variables$: Observable<Variable[]>;
+  public outputs$: Observable<any[]>;
+
+  // the module being added, shown in addDialog until it is saved or cancelled
+  public newModule: Module;
+  private addDialogRef: MatDialogRef<unknown>;
+
+  @ViewChild('addDialog')
+  addDialogTemplate: TemplateRef<unknown>;
 
   constructor(
     private moduleService: ModuleService,
     public moduleQuery: ModuleQuery,
     private designModulesService: DesignModuleService,
-    private designModuleQuery: DesignModuleQuery
+    private designModuleQuery: DesignModuleQuery,
+    private variablesQuery: VariablesQuery,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -59,21 +78,54 @@ export class DesignModulesComponent implements OnInit {
 
     this.designModules$ = this.designModuleQuery.getByDesignId(this.designId);
     this.designModulesService.loadByDesignId(this.designId).subscribe();
+
+    this.variables$ = this.variablesQuery.selectByDesignId(this.designId);
+    this.outputs$ = this.designModuleQuery.getOutputsByDesignId(this.designId);
   }
 
   trackByFn(_index, item) {
     return item.id;
   }
 
-  getModuleFn(moduleId: string, moduleName: string) {
+  // Open the module's variables before creating it, so it is saved with a version
+  // and its required values rather than as an empty module that can't be planned.
+  getModuleFn(moduleId: string) {
+    this.moduleService
+      .loadModuleById(moduleId)
+      .pipe(take(1))
+      .subscribe((module) => {
+        if (!module.versions?.length) {
+          return;
+        }
+
+        this.newModule = module;
+        this.addDialogRef = this.dialog.open(this.addDialogTemplate, {
+          minWidth: '400px',
+          maxWidth: '90vw',
+        });
+      });
+  }
+
+  onAddComplete(event: ModuleVariablesResult) {
+    if (!event) {
+      this.addDialogRef?.close();
+      return;
+    }
+
+    this.savingSubject.next(true);
     this.designModulesService
       .create({
         designId: this.designId,
-        moduleId: moduleId,
-        name: toTerraformName(moduleName),
-        values: [],
+        moduleId: this.newModule.id,
+        name: event.moduleName,
+        moduleVersion: event.versionName,
+        values: event.variableValues.filter(
+          (x) => event.changedVariables.includes(x.name) && !!x.value
+        ),
       })
+      .pipe(finalize(() => this.savingSubject.next(false)))
       .subscribe(() => {
+        this.addDialogRef?.close();
         this.showModuleList = false;
       });
   }

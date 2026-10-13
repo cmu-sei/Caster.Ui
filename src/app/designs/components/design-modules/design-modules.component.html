@@ -22,9 +22,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <cas-module-list
     [modules]="modules$ | async"
     [isEditing]="true"
-    (getModule)="getModuleFn($event.id, $event.name)"
+    (getModule)="getModuleFn($event.id)"
   ></cas-module-list>
 }
+
+<ng-template #addDialog>
+  <cas-module-variables
+    [selectedModule]="newModule"
+    [readOnly]="!canEdit"
+    [variables]="variables$ | async"
+    [outputs]="outputs$ | async"
+    [isSaving]="saving$ | async"
+    [requireChanges]="false"
+    [requireValues]="true"
+    submitButtonText="Add"
+    (variablesSelected)="onAddComplete($event)"
+  ></cas-module-variables>
+</ng-template>
 
 @if (!showModuleList) {
   <div class="d-flex flex-row flex-wrap gap-3">
