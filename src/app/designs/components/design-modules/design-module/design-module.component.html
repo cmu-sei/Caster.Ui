@@ -80,6 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [variables]="variables$ | async"
           [outputs]="designOutputs$ | async"
           [isSaving]="saving$ | async"
+          [requireValues]="true"
           (variablesSelected)="onEditComplete($event)"
           >
         </cas-module-variables>

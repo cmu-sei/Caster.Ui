@@ -47,6 +47,9 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() isSaving = false;
   // Save needs a change to submit; Insert can submit the module as it is.
   @Input() requireChanges = true;
+  // The Designer saves straight into a Workspace, so it can't leave a required value
+  // blank; Insert only warns, since the user can still fill it in the file.
+  @Input() requireValues = false;
 
   // autocomplete sources
   @Input() variables: Variable[] = [];
@@ -122,7 +125,10 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     const controls = {};
 
     this.moduleFields.forEach((x) => {
-      controls[x.name] = [{ value: x.value, disabled: this.readOnly }];
+      controls[x.name] = [
+        { value: x.value, disabled: this.readOnly },
+        this.requireValues && !x.isOptional ? Validators.required : null,
+      ];
     });
 
     return this.formBuilder.group(controls);
