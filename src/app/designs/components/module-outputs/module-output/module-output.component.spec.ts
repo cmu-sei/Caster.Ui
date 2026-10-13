@@ -13,7 +13,7 @@ import { ModuleOutputComponent } from './module-output.component';
 
 describe('ModuleOutputComponent', () => {
   /**
-   * Verifies: the output shows its name, and Copy Terraform copies the module output reference and confirms it.
+   * Verifies: the output shows its name, and Copy Terraform copies the module output reference and confirms it, naming the reference.
    * Interacts with: ngx-clipboard's ClipboardService (stub; jsdom has no clipboard), MatSnackBar (real).
    * Data: module web, output ip.
    */
@@ -50,6 +50,8 @@ describe('ModuleOutputComponent', () => {
       .click(screen.getByRole('button', { name: 'Copy Terraform' }));
 
     expect(clipboard.copyFromContent.mock.calls[0][0]).toBe('${module.web.ip}');
-    expect(await screen.findByText('Copied to clipboard')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Copied ${module.web.ip} to clipboard'),
+    ).toBeInTheDocument();
   });
 });

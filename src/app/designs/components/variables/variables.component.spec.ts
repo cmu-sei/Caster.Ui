@@ -47,7 +47,7 @@ async function renderVariables(canEdit: boolean) {
 
 describe('VariablesComponent', () => {
   /**
-   * Verifies: with canEdit the design's variables are listed editable, and Add creates a new variable for the design.
+   * Verifies: with canEdit the design's variables are listed editable, and Add Variable creates a new variable for the design.
    * Interacts with: VariablesService.createVariable (stub), real VariablesQuery, the variable stubs' canEdit inputs.
    * Data: design d1 with variable region, plus variable other of design d9; canEdit true.
    */
@@ -57,7 +57,7 @@ describe('VariablesComponent', () => {
     expect(variables().map((v) => [v.variable.name, v.canEdit])).toEqual([
       ['region', true],
     ]);
-    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await user.click(screen.getByRole('button', { name: 'Add Variable' }));
 
     expect(variablesApi.createVariable).toHaveBeenCalledWith({
       designId: 'd1',
@@ -66,14 +66,14 @@ describe('VariablesComponent', () => {
   });
 
   /**
-   * Verifies: without canEdit Add is disabled and every variable gets canEdit false.
+   * Verifies: without canEdit Add Variable is disabled and every variable gets canEdit false.
    * Interacts with: the [disabled]="!canEdit" binding, the variable stubs' canEdit inputs.
    * Data: design d1 with variable region; canEdit false.
    */
   it('disables Add when canEdit is false', async () => {
     const { variables } = await renderVariables(false);
 
-    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add Variable' })).toBeDisabled();
     expect(variables().map((v) => v.canEdit)).toEqual([false]);
   });
 });

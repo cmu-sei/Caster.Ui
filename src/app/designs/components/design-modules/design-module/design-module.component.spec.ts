@@ -6,7 +6,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,6 +22,10 @@ import {
   Variable,
 } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import {
+  captureUnhandledRxErrors,
+  flush,
+} from 'src/app/test-utils/unhandled-rx-errors';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignModuleComponent } from './design-module.component';
 
@@ -39,6 +43,7 @@ class ModuleVariablesStub {
   @Input() variables: Variable[];
   @Input() outputs: unknown[];
   @Input() isSaving: boolean;
+  @Input() requireValues: boolean;
   @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
 }
 
@@ -63,7 +68,10 @@ const module: Module = {
   versions: [{ name: 'v1', outputs: [] }],
 };
 
-async function renderDesignModule(canEdit: boolean) {
+async function renderDesignModule(
+  canEdit: boolean,
+  saveValues: () => Subject<DesignModule> = () => new Subject<DesignModule>(),
+) {
   const designModulesApi = {
     getDesignModule: vi.fn((_id: string) =>
       of<DesignModule>(structuredClone(designModule)),
@@ -71,6 +79,7 @@ async function renderDesignModule(canEdit: boolean) {
     disableDesignModule: vi.fn((_id: string) =>
       of<DesignModule>({ ...designModule, enabled: false }),
     ),
+    addOrUpdateValuesDesignModule: vi.fn(saveValues),
   } satisfies ApiStub<DesignsModulesService>;
   const modulesApi = {
     getModule: vi.fn((_id: string) => of<Module>(structuredClone(module))),
@@ -111,6 +120,7 @@ describe('DesignModuleComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Edit' }));
     expect(variablesEditor()?.readOnly).toBe(false);
+    expect(variablesEditor()?.requireValues).toBe(true);
   });
 
   /**
@@ -145,5 +155,44 @@ describe('DesignModuleComponent', () => {
     ).componentInstance;
     expect(outputs.moduleName).toBe('web');
     expect(outputs.outputs).toEqual([]);
+  });
+
+  /**
+   * Verifies: saving changed values shows saving on the variables editor until the request ends, and a failed save clears it while the error escapes to the app's ErrorHandler.
+   * Interacts with: DesignsModulesService.addOrUpdateValuesDesignModule (stub; a Subject the test fails), the module-variables stub's isSaving input and variablesSelected output, captureUnhandledRxErrors.
+   * Data: design module web, name and version unchanged, variable size changed; canEdit true.
+   */
+  it('clears saving when saving the values fails', async () => {
+    const errors = captureUnhandledRxErrors();
+    const request = new Subject<DesignModule>();
+    const { fixture, designModulesApi, variablesEditor, user } =
+      await renderDesignModule(true, () => request);
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    variablesEditor()?.variablesSelected.emit({
+      versionId: 'ver1',
+      moduleName: 'web',
+      versionName: 'v1',
+      variableValues: [
+        { name: 'size', value: 'large' },
+        { name: 'zone', value: 'east' },
+      ],
+      changedVariables: ['size'],
+    });
+    fixture.detectChanges();
+
+    expect(
+      designModulesApi.addOrUpdateValuesDesignModule,
+    ).toHaveBeenCalledWith('dm1', { values: [{ name: 'size', value: 'large' }] });
+    expect(variablesEditor()?.isSaving).toBe(true);
+
+    const failure = new Error('500');
+    request.error(failure);
+    await flush();
+    fixture.detectChanges();
+
+    expect(variablesEditor()?.isSaving).toBe(false);
+    // Escapes to the app's ErrorHandler (ErrorService), which shows it.
+    expect(errors).toEqual([failure]);
   });
 });

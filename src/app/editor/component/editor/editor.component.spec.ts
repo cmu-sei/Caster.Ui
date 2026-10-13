@@ -10,6 +10,7 @@ import {
   Output,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -89,7 +90,16 @@ interface Gates {
   canManage?: boolean;
 }
 
-async function renderEditor(gates: Gates, file: Partial<ModelFile> = {}) {
+interface Sidebar {
+  sidebarOpen?: boolean;
+  sidebarView?: string;
+}
+
+async function renderEditor(
+  gates: Gates,
+  file: Partial<ModelFile> = {},
+  sidebar: Sidebar = {},
+) {
   const filesApi = {
     getFileVersions: vi.fn((_fileId: string) => of<FileVersion[]>([])),
     lockFile: vi.fn((id: string) => of<ModelFile>({ id, lockedById: 'u1' })),
@@ -134,6 +144,7 @@ async function renderEditor(gates: Gates, file: Partial<ModelFile> = {}) {
       canAdminLock: false,
       canManage: false,
       ...gates,
+      ...sidebar,
     },
   });
   TestBed.inject(CurrentUserStore).update({ id: 'u1', name: 'Ada' });
@@ -258,4 +269,28 @@ describe('EditorComponent', () => {
     expect(confirm).not.toHaveBeenCalled();
     expect(filesApi.forceUnlockFile).not.toHaveBeenCalled();
   });
+
+  /**
+   * Verifies: the modules sidebar tells the module list whether the current user is editing the file, so Insert follows the file's lock.
+   * Interacts with: real FileQuery.isEditing and CurrentUserQuery, the module-list stub's isEditing input.
+   * Data: one render per row: main.tf locked by the current user u1, or unlocked; modules sidebar open; canEdit true.
+   */
+  it.each([
+    { lockedBy: 'u1', isEditing: true },
+    { lockedBy: null, isEditing: false },
+  ])(
+    'passes isEditing $isEditing to the module list for a file locked by $lockedBy',
+    async ({ lockedBy, isEditing }) => {
+      const { fixture } = await renderEditor(
+        { canEdit: true },
+        { lockedById: lockedBy },
+        { sidebarOpen: true, sidebarView: 'modules' },
+      );
+
+      const moduleList: ModuleListStub = fixture.debugElement.query(
+        By.directive(ModuleListStub),
+      ).componentInstance;
+      expect(moduleList.isEditing).toBe(isEditing);
+    },
+  );
 });

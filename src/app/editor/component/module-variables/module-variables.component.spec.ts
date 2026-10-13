@@ -41,9 +41,35 @@ const module: Module = {
   ],
 };
 
+// One required variable with no default, beside the optional one.
+const requiredModule: Module = {
+  ...module,
+  versions: [
+    {
+      ...module.versions[0],
+      variables: [
+        ...module.versions[0].variables,
+        { name: 'image', variableType: 'string', isOptional: false },
+      ],
+    },
+  ],
+};
+
+type Inputs = Partial<
+  Pick<
+    ModuleVariablesComponent,
+    | 'selectedModule'
+    | 'name'
+    | 'submitButtonText'
+    | 'requireChanges'
+    | 'requireValues'
+  >
+>;
+
 async function renderModuleVariables(
   readOnly: boolean,
   values: ModuleValue[] = [],
+  inputs: Inputs = {},
 ) {
   const variablesSelected = vi.fn<(r: ModuleVariablesResult | null) => void>();
   const { dialogRef } = dialogRefStub<ModuleVariablesComponent>();
@@ -61,7 +87,13 @@ async function renderModuleVariables(
       MatTooltipModule,
     ],
     providers: [{ provide: MatDialogRef, useValue: dialogRef }],
-    inputs: { selectedModule: module, name: 'web1', readOnly, values },
+    inputs: {
+      selectedModule: module,
+      name: 'web1',
+      readOnly,
+      values,
+      ...inputs,
+    },
     on: { variablesSelected },
   });
   return { ...view, variablesSelected, user: userEvent.setup() };
@@ -109,5 +141,150 @@ describe('ModuleVariablesComponent', () => {
     ).toBeDisabled();
     expect(screen.getByPlaceholderText('size')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: by default the submit button stays disabled until a field changes, and with requireChanges false it is enabled on an untouched form.
+   * Interacts with: the submit button's (requireChanges && !form.dirty) binding.
+   * Data: module web v1 with optional variable size; not read-only; requireChanges true, then false.
+   */
+  it.each([
+    { requireChanges: true, disabled: true },
+    { requireChanges: false, disabled: false },
+  ])(
+    'sets an untouched form\'s Save disabled to $disabled when requireChanges is $requireChanges',
+    async ({ requireChanges, disabled }) => {
+      await renderModuleVariables(false, [], { requireChanges });
+
+      expect(
+        (screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(disabled);
+    },
+  );
+
+  /**
+   * Verifies: Insert with requireChanges false submits the module as it is, with no changed variables.
+   * Interacts with: the variablesSelected output.
+   * Data: module web v1 with optional variable size (default small); submitButtonText Insert; requireChanges false; nothing edited.
+   */
+  it('inserts an unchanged module when requireChanges is false', async () => {
+    const { variablesSelected, user } = await renderModuleVariables(false, [], {
+      submitButtonText: 'Insert',
+      requireChanges: false,
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Insert' }));
+
+    expect(variablesSelected).toHaveBeenCalledWith({
+      versionId: 'ver1',
+      moduleName: 'web1',
+      variableValues: [{ name: 'size', value: 'small' }],
+      versionName: 'v1',
+      changedVariables: [],
+    });
+  });
+
+  /**
+   * Verifies: in read-only mode Insert stays disabled even when no change is required, the case of the file editor outside edit mode.
+   * Interacts with: the submit button's readOnly term.
+   * Data: module web v1 with optional variable size (default small); submitButtonText Insert; requireChanges false; readOnly true.
+   */
+  it('disables Insert in read-only mode when no change is required', async () => {
+    await renderModuleVariables(true, [], {
+      submitButtonText: 'Insert',
+      requireChanges: false,
+    });
+
+    expect(screen.getByRole('button', { name: 'Insert' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: with requireValues a blank required variable keeps the submit button disabled and shows Required once left; without it the button is enabled.
+   * Interacts with: the required validator createValuesForm adds, the submit button binding, mat-error.
+   * Data: module web v1 with optional size and required image (no default); requireChanges false; requireValues true, then false.
+   */
+  it.each([
+    { requireValues: true, disabled: true },
+    { requireValues: false, disabled: false },
+  ])(
+    'sets Save disabled to $disabled for a blank required value when requireValues is $requireValues',
+    async ({ requireValues, disabled }) => {
+      const { user } = await renderModuleVariables(false, [], {
+        selectedModule: requiredModule,
+        requireChanges: false,
+        requireValues,
+      });
+
+      await user.click(screen.getByPlaceholderText('image'));
+      await user.tab();
+
+      expect(
+        (screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(disabled);
+      const errors = Array.from(document.querySelectorAll('mat-error')).map(
+        (e) => e.textContent?.trim(),
+      );
+      expect(errors).toEqual(requireValues ? ['Required'] : []);
+    },
+  );
+
+  /**
+   * Verifies: a saved instance name that Terraform rejects shows its error at once and disables the submit button.
+   * Interacts with: the TerraformName pattern validator on newName, markAsTouched in createForm, mat-error.
+   * Data: module web v1; name "web server"; requireChanges false.
+   */
+  it('flags an instance name Terraform rejects', async () => {
+    await renderModuleVariables(false, [], {
+      name: 'web server',
+      requireChanges: false,
+    });
+
+    expect(
+      screen.getByText(
+        'Must start with a letter or _, then letters, numbers, - and _ only',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: without a name input the instance name defaults to the module name made Terraform-safe.
+   * Interacts with: toTerraformName in ngOnInit, the newName control.
+   * Data: module "Router / Gateway"; no name input.
+   */
+  it('defaults the instance name to a Terraform-safe module name', async () => {
+    await renderModuleVariables(false, [], {
+      selectedModule: { ...module, name: 'Router / Gateway' },
+      name: undefined,
+    });
+
+    expect(
+      screen.getByPlaceholderText('Name of this module instance'),
+    ).toHaveValue('Router_Gateway');
+    expect(
+      screen.queryByText(
+        'Must start with a letter or _, then letters, numbers, - and _ only',
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: when the name input is cleared on an untouched form, the instance name falls back to the module name made Terraform-safe.
+   * Interacts with: ngOnChanges and onNameChanged, toTerraformName, the newName control.
+   * Data: module "Router / Gateway" named r1; the name input then set to null.
+   */
+  it('falls back to a Terraform-safe module name when the name input is cleared', async () => {
+    const { fixture } = await renderModuleVariables(false, [], {
+      selectedModule: { ...module, name: 'Router / Gateway' },
+    });
+    const name = screen.getByPlaceholderText('Name of this module instance');
+    expect(name).toHaveValue('web1');
+
+    fixture.componentRef.setInput('name', null);
+    fixture.detectChanges();
+
+    expect(name).toHaveValue('Router_Gateway');
   });
 });

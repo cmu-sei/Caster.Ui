@@ -99,4 +99,23 @@ describe('DesignComponent', () => {
     await user.click(screen.getByRole('button', { name: /Variables/ }));
     expect(stub(VariablesStub).canEdit).toBe(false);
   });
+
+  /**
+   * Verifies: the design modules sit in a Modules panel that starts expanded, beside a collapsed Variables panel.
+   * Interacts with: the two mat-expansion-panel headers, the design-modules stub's designId input.
+   * Data: design d1; canEdit true.
+   */
+  it('shows the design modules in an expanded Modules panel', async () => {
+    const { stub } = await renderDesign(true);
+
+    expect(screen.getByRole('button', { name: /Modules/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: /Variables/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(stub(DesignModulesStub).designId).toBe('d1');
+  });
 });

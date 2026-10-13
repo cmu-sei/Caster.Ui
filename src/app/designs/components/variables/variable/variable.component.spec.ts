@@ -4,6 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+import { Provider } from '@angular/core';
 import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
-import { ClipboardModule } from 'ngx-clipboard';
+import { ClipboardModule, ClipboardService } from 'ngx-clipboard';
 import {
   Variable,
   VariablesService,
@@ -32,7 +33,12 @@ const variable: Variable = {
   defaultValue: 'east',
 };
 
-async function renderVariable(canEdit: boolean, confirmAnswer?: boolean) {
+async function renderVariable(
+  canEdit: boolean,
+  confirmAnswer?: boolean,
+  shown: Variable = variable,
+  providers: Provider[] = [],
+) {
   const variablesApi = {
     editVariable: vi.fn((id: string) => of<Variable>({ ...variable, id })),
     deleteVariable: vi.fn((_id: string) => of<unknown>(null)),
@@ -56,8 +62,9 @@ async function renderVariable(canEdit: boolean, confirmAnswer?: boolean) {
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
       },
+      ...providers,
     ],
-    inputs: { variable, canEdit },
+    inputs: { variable: shown, canEdit },
   });
   return { ...view, variablesApi, user: userEvent.setup() };
 }
@@ -110,5 +117,41 @@ describe('VariableComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Edit' }));
     expect(screen.getByRole('textbox', { name: 'Name' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: Copy Terraform copies the variable's Terraform reference and confirms it, naming the reference.
+   * Interacts with: ngx-clipboard's ClipboardService (stub; jsdom has no clipboard), MatSnackBar (real).
+   * Data: variable region with Terraform reference var.region; canEdit false.
+   */
+  it('copies the Terraform reference of the variable', async () => {
+    // The browser clipboard is an edge; the directive only reads these members.
+    const clipboard = {
+      isSupported: true,
+      isTargetValid: vi.fn(() => false),
+      copyFromContent: vi.fn((_content: string) => true),
+      pushCopyResponse: vi.fn(),
+      destroy: vi.fn(),
+    } satisfies Pick<
+      ClipboardService,
+      | 'isSupported'
+      | 'isTargetValid'
+      | 'copyFromContent'
+      | 'pushCopyResponse'
+      | 'destroy'
+    >;
+    const { user } = await renderVariable(
+      false,
+      undefined,
+      { ...variable, terraform: 'var.region' },
+      [{ provide: ClipboardService, useValue: clipboard }],
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Copy Terraform' }));
+
+    expect(clipboard.copyFromContent.mock.calls[0][0]).toBe('var.region');
+    expect(
+      await screen.findByText('Copied var.region to clipboard'),
+    ).toBeInTheDocument();
   });
 });
