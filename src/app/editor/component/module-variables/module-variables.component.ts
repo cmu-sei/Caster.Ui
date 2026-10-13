@@ -37,6 +37,8 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() selectedModule: Module;
   @Input() values: ModuleValue[] = [];
   @Input() isSaving = false;
+  // Save needs a change to submit; Insert can submit the module as it is.
+  @Input() requireChanges = true;
 
   // autocomplete sources
   @Input() variables: Variable[] = [];

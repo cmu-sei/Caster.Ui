@@ -178,7 +178,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <button
       matButton="filled"
       type="submit"
-      [disabled]="readOnly || !form.valid || !form.dirty || isSaving"
+      [disabled]="readOnly || !form.valid || (requireChanges && !form.dirty) || isSaving"
     >
       <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
         {{ isSaving ? 'Saving…' : submitButtonText }}
