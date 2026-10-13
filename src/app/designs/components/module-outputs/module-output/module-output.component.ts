@@ -35,6 +35,6 @@ export class ModuleOutputComponent implements OnInit {
   }
 
   onClipboardSuccess() {
-    this.snackBar.open('Copied to clipboard', 'Dismiss');
+    this.snackBar.open(`Copied ${this.toTerraform()} to clipboard`, 'Dismiss');
   }
 }
