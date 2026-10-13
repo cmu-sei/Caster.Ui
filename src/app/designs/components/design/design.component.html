@@ -28,8 +28,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-template>
   </mat-expansion-panel>
 
-  <cas-design-modules
-    [designId]="designId"
-    [canEdit]="canEdit"
-  ></cas-design-modules>
+  <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title> Modules </mat-panel-title>
+      <mat-panel-description>
+        Add Terraform modules and set their inputs
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <cas-design-modules
+      [designId]="designId"
+      [canEdit]="canEdit"
+    ></cas-design-modules>
+  </mat-expansion-panel>
 </div>
