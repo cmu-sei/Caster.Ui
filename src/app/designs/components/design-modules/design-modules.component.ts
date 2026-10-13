@@ -20,6 +20,7 @@ import { ModuleQuery, ModuleService } from 'src/app/modules/state';
 import { DesignModuleQuery } from '../../state/design-modules/design-module.query';
 import { DesignModuleService } from '../../state/design-modules/design-module.service';
 import { VariablesQuery } from '../../state/variables/variables.query';
+import { toTerraformName } from 'src/app/shared/models/validator-patterns';
 
 @Component({
     selector: 'cas-design-modules',
@@ -58,6 +59,7 @@ export class DesignModulesComponent implements OnInit {
 
   // the module being added, shown in addDialog until it is saved or cancelled
   public newModule: Module;
+  public newModuleName: string;
   private addDialogRef: MatDialogRef<unknown>;
 
   @ViewChild('addDialog')
@@ -99,11 +101,30 @@ export class DesignModulesComponent implements OnInit {
         }
 
         this.newModule = module;
+        this.newModuleName = this.uniqueName(toTerraformName(module.name));
         this.addDialogRef = this.dialog.open(this.addDialogTemplate, {
           minWidth: '400px',
           maxWidth: '90vw',
         });
       });
+  }
+
+  // Each module is a block in the same generated file, so a repeated name is a
+  // duplicate module error; number the default when the name is taken.
+  private uniqueName(name: string): string {
+    const taken = new Set(
+      this.designModuleQuery
+        .getAll()
+        .filter((x) => x.designId == this.designId)
+        .map((x) => x.name)
+    );
+
+    let unique = name;
+    for (let i = 2; taken.has(unique); i++) {
+      unique = `${name}_${i}`;
+    }
+
+    return unique;
   }
 
   onAddComplete(event: ModuleVariablesResult) {

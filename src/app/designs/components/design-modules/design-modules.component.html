@@ -29,6 +29,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <ng-template #addDialog>
   <cas-module-variables
     [selectedModule]="newModule"
+    [name]="newModuleName"
     [readOnly]="!canEdit"
     [variables]="variables$ | async"
     [outputs]="outputs$ | async"
