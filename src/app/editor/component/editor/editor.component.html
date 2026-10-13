@@ -40,7 +40,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <cas-module-list
             [modules]="modules"
             [selectedModule]="selectedModule$ | async"
-            [isEditing]="isEditing$ | async"
+            [isEditing]="isEditing"
             (getModule)="getModuleFn($event)"
             (insertModule)="insertModuleFn($event)"
           ></cas-module-list>
