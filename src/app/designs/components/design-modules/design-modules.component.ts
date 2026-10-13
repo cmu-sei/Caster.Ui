@@ -14,6 +14,7 @@ import { DesignModule } from 'src/app/generated/caster-api';
 import { ModuleQuery, ModuleService } from 'src/app/modules/state';
 import { DesignModuleQuery } from '../../state/design-modules/design-module.query';
 import { DesignModuleService } from '../../state/design-modules/design-module.service';
+import { toTerraformName } from 'src/app/shared/models/validator-patterns';
 
 @Component({
     selector: 'cas-design-modules',
@@ -69,7 +70,7 @@ export class DesignModulesComponent implements OnInit {
       .create({
         designId: this.designId,
         moduleId: moduleId,
-        name: moduleName.replace(/ /g, '_'),
+        name: toTerraformName(moduleName),
         values: [],
       })
       .subscribe(() => {

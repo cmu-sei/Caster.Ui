@@ -17,7 +17,15 @@ import {
   ModuleValue,
   Variable,
 } from '../../../generated/caster-api';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+} from '@angular/forms';
+import {
+  toTerraformName,
+  ValidatorPatterns,
+} from 'src/app/shared/models/validator-patterns';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -59,7 +67,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.newName = this.name ?? this.selectedModule.name;
+    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
     this.setVersion();
     this.createModuleFields();
     this.createForm();
@@ -97,9 +105,17 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   createForm(): void {
     this.form = this.formBuilder.group({
       selectedVersion: [this.selectedVersion],
-      newName: [{ value: this.newName, disabled: this.readOnly }],
+      newName: [
+        { value: this.newName, disabled: this.readOnly },
+        [
+          Validators.required,
+          Validators.pattern(ValidatorPatterns.TerraformName),
+        ],
+      ],
       values: this.createValuesForm(),
     });
+    // Show a saved name that Terraform rejects straight away; mat-error waits for touched.
+    this.form.get('newName').markAsTouched();
   }
 
   createValuesForm(): UntypedFormGroup {
@@ -172,7 +188,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   onNameChanged() {
-    this.newName = this.name ?? this.selectedModule.name;
+    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
     const formControl = this.form?.get('newName');
 
     if (formControl != null) {

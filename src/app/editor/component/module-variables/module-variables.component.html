@@ -67,6 +67,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             placeholder="Name of this module instance"
             formControlName="newName"
           />
+          @if (form.get('newName').invalid) {
+            <mat-error>
+              Must start with a letter or _, then letters, numbers, - and _ only
+            </mat-error>
+          }
           @if (nameChanged) {
             <mat-hint
               align="end"
