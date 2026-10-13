@@ -31,6 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         appearance="outlined"
         class="clickable highlight module-card flex-fill w-100 h-100"
         (click)="selectModuleFn(module)"
+        [matTooltip]="isEditing ? null : 'Edit this file to insert the module'"
         >
         <mat-card-header>
           <mat-card-title class="d-flex flex-column">
