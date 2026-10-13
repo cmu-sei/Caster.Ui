@@ -32,16 +32,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         class="clickable highlight module-card flex-fill w-100 h-100"
         (click)="selectModuleFn(module)"
         >
-        <mat-card-title class="d-flex flex-column">
-          <div>
-            <span class="module-name"
-              ><strong>{{ module.name }}</strong></span
-              >
-            </div>
+        <mat-card-header>
+          <mat-card-title class="d-flex flex-column">
             <div>
-              <span class="module-path">{{ module.path }}</span>
-            </div>
-          </mat-card-title>
+              <span class="module-name"
+                ><strong>{{ module.name }}</strong></span
+                >
+              </div>
+              <div>
+                <span class="module-path">{{ module.path }}</span>
+              </div>
+            </mat-card-title>
+          </mat-card-header>
           <mat-card-content>
             {{ module.description }}
           </mat-card-content>
