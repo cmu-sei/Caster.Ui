@@ -31,6 +31,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matTooltip="State View"
           ></mat-icon>
         </mat-button-toggle>
+        <mat-button-toggle value="topology" aria-label="topology">
+          <mat-icon
+            class="mdi-24px icon"
+            fontIcon="mdi-lan"
+            matTooltip="Topology View"
+          ></mat-icon>
+        </mat-button-toggle>
       </mat-button-toggle-group>
     </mat-toolbar-row>
   </mat-toolbar>
@@ -290,6 +297,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
     </div>
   </cwd-table>
+  }
+  <!-- Topology -->
+  @case ('topology') {
+  <cas-workspace-topology [workspaceId]="workspaceId"></cas-workspace-topology>
   } }
 </div>
 
