@@ -71,7 +71,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   public selectedModule$: Observable<Module>;
   public filename = '';
   public currentUserId: string;
-  public isEditing$: Observable<boolean>;
   public isEditing = false;
   public isSaved$: Observable<boolean>;
 
@@ -137,7 +136,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         switchMap((f) => this.fileQuery.isEditing(f.id, this.currentUserId)),
         takeUntil(this.unsubscribe$)
       )
-      .subscribe((isEditing) => (this.isEditing = isEditing));
+      .subscribe((isEditing) => {
+        this.isEditing = isEditing;
+        this.changeDetectorRef.markForCheck();
+      });
 
     this.fileVersionService.load(this.fileId).pipe(take(1)).subscribe();
 

@@ -3,8 +3,6 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<h3>Modules</h3>
-
 <div class="header d-flex flex-row gap-3">
   <button
     mat-raised-button
@@ -24,9 +22,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <cas-module-list
     [modules]="modules$ | async"
     [isEditing]="true"
-    (getModule)="getModuleFn($event.id, $event.name)"
+    (getModule)="getModuleFn($event.id)"
   ></cas-module-list>
 }
+
+<ng-template #addDialog>
+  <cas-module-variables
+    [selectedModule]="newModule"
+    [name]="newModuleName"
+    [readOnly]="!canEdit"
+    [variables]="variables$ | async"
+    [outputs]="outputs$ | async"
+    [isSaving]="saving$ | async"
+    [requireChanges]="false"
+    [requireValues]="true"
+    submitButtonText="Add"
+    (variablesSelected)="onAddComplete($event)"
+  ></cas-module-variables>
+</ng-template>
 
 @if (!showModuleList) {
   <div class="d-flex flex-row flex-wrap gap-3">
