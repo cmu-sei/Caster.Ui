@@ -9,18 +9,30 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <span>
       {{ topology.isDestroy ? 'Destroy plan' : 'Plan' }} from
       {{ topology.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+      @if (!showsChanges) {
+      · {{ planStatus }}
+      }
     </span>
     }
     <div class="spacer"></div>
     @if (!isEmpty) {
     <div class="legend">
+      @if (showsChanges) {
       @for (entry of actionColors | keyvalue; track entry.key) {
-      <span class="legend-item">
+      <span
+        class="legend-item"
+        tabindex="0"
+        [matTooltip]="actionDescriptions[entry.key]"
+      >
         <span class="swatch" [style.border-color]="entry.value"></span>
         {{ entry.key }}
       </span>
-      }
-      <span class="legend-item">
+      } }
+      <span
+        class="legend-item"
+        tabindex="0"
+        matTooltip="A network this workspace connects machines to but does not create"
+      >
         <span class="swatch external"></span>
         external
       </span>
@@ -88,7 +100,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <th>Type</th>
           <td>{{ selected.type }}</td>
         </tr>
-        } @if (selected.action) {
+        } @if (showsChanges && selected.action) {
         <tr>
           <th>Action</th>
           <td>{{ selected.action }}</td>

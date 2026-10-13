@@ -25,6 +25,8 @@ import {
   takeUntil,
 } from 'rxjs/operators';
 import {
+  Run,
+  RunStatus,
   TopologyNode,
   TopologyNodeKind,
   WorkspaceTopology,
@@ -39,6 +41,21 @@ const ACTION_COLORS: Record<string, string> = {
   replace: '#fb8c00',
   delete: '#e53935',
 };
+
+/** What each outline means, for the legend. */
+const ACTION_DESCRIPTIONS: Record<string, string> = {
+  create: 'Applying this plan creates it',
+  update: 'Applying this plan changes it in place',
+  replace: 'Applying this plan destroys it and builds it again',
+  delete: 'Applying this plan destroys it',
+};
+
+/** Runs whose plan has not yet been applied, rejected or failed: its changes are still to come. */
+const PENDING: RunStatus[] = [
+  RunStatus.Planned,
+  RunStatus.ApplyQueued,
+  RunStatus.Applying,
+];
 
 @Component({
   selector: 'cas-workspace-topology',
@@ -57,9 +74,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   loading = true;
   error: string;
   readonly actionColors = ACTION_COLORS;
+  readonly actionDescriptions = ACTION_DESCRIPTIONS;
 
   private cy: Core;
   private nodesById = new Map<string, TopologyNode>();
+  private runs: Run[] = [];
   private unsubscribe$ = new Subject<void>();
 
   constructor(
@@ -73,13 +92,16 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // A run that finishes planning has a new topology. Refetch whenever a
-    // run's status changes rather than on every output line.
+    // A run that finishes planning has a new topology, and one that is
+    // applied or rejected changes what its outlines mean. Refetch whenever a
+    // run's status changes rather than on every output line. Unfiltered, so
+    // hiding statuses in the Runs view cannot hide the plan's run.
     const runsChanged$ = this.workspaceQuery
-      .workspaceRuns$(this.workspaceId)
+      .selectEntity(this.workspaceId, (w) => w.runs)
       .pipe(
         // undefined until the workspace's runs have loaded
-        map((runs) => (runs ?? []).map((r) => `${r.id}:${r.status}`).join(',')),
+        map((runs) => (this.runs = runs ?? [])),
+        map((runs) => runs.map((r) => `${r.id}:${r.status}`).join(',')),
         distinctUntilChanged(),
         skip(1),
         debounceTime(500)
@@ -111,6 +133,20 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   get isEmpty(): boolean {
     return !this.topology?.nodes?.length;
+  }
+
+  /** Status of the run the topology's plan belongs to, once the runs have loaded. */
+  get planStatus(): RunStatus {
+    return this.runs.find((r) => r.id === this.topology?.runId)?.status;
+  }
+
+  /**
+   * Whether the plan's changes are still to come. Once it is applied,
+   * rejected or failed, "create" no longer describes anything, so the
+   * outlines go.
+   */
+  get showsChanges(): boolean {
+    return !this.planStatus || PENDING.includes(this.planStatus);
   }
 
   fit() {
@@ -315,7 +351,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           id: n.id,
           label: n.label,
           kind: n.kind,
-          action: n.action ?? '',
+          action: this.showsChanges ? (n.action ?? '') : '',
           parent: boxed.includes(n.module) ? `module:${n.module}` : undefined,
         },
         classes: [
