@@ -11,7 +11,7 @@ import {
   OnChanges,
 } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { finalize, take } from 'rxjs/operators';
 import { DesignModuleQuery } from 'src/app/designs/state/design-modules/design-module.query';
 import { DesignModuleService } from 'src/app/designs/state/design-modules/design-module.service';
 import { VariablesQuery } from 'src/app/designs/state/variables/variables.query';
@@ -191,7 +191,7 @@ export class DesignModuleComponent implements OnInit, OnChanges {
 
     if (apiCall) {
       this.saving = true;
-      apiCall.subscribe(() => (this.saving = false));
+      apiCall.pipe(finalize(() => (this.saving = false))).subscribe();
     }
   }
 }

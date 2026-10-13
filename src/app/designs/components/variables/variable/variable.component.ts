@@ -168,6 +168,6 @@ export class VariableComponent implements OnInit, OnChanges {
   }
 
   onClipboardSuccess() {
-    this.snackBar.open('Copied to clipboard', 'Dismiss');
+    this.snackBar.open(`Copied ${this.variable.terraform} to clipboard`, 'Dismiss');
   }
 }

@@ -8,7 +8,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="mat-elevation-z4"
   [ngClass]="designModule.enabled ? 'enabled' : 'disabled'"
   >
-  <mat-card-title>{{ designModule.name }}</mat-card-title>
+  <mat-card-header>
+    <mat-card-title>{{ designModule.name }}</mat-card-title>
+  </mat-card-header>
 
   <mat-card-actions class="d-flex flex-row justify-content-start align-items-center">
     <button
@@ -78,6 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [variables]="variables$ | async"
           [outputs]="designOutputs$ | async"
           [isSaving]="saving$ | async"
+          [requireValues]="true"
           (variablesSelected)="onEditComplete($event)"
           >
         </cas-module-variables>

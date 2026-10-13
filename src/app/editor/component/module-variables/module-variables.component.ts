@@ -17,7 +17,15 @@ import {
   ModuleValue,
   Variable,
 } from '../../../generated/caster-api';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+} from '@angular/forms';
+import {
+  toTerraformName,
+  ValidatorPatterns,
+} from 'src/app/shared/models/validator-patterns';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -37,6 +45,11 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() selectedModule: Module;
   @Input() values: ModuleValue[] = [];
   @Input() isSaving = false;
+  // Save needs a change to submit; Insert can submit the module as it is.
+  @Input() requireChanges = true;
+  // The Designer saves straight into a Workspace, so it can't leave a required value
+  // blank; Insert only warns, since the user can still fill it in the file.
+  @Input() requireValues = false;
 
   // autocomplete sources
   @Input() variables: Variable[] = [];
@@ -57,7 +70,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.newName = this.name ?? this.selectedModule.name;
+    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
     this.setVersion();
     this.createModuleFields();
     this.createForm();
@@ -95,16 +108,27 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   createForm(): void {
     this.form = this.formBuilder.group({
       selectedVersion: [this.selectedVersion],
-      newName: [{ value: this.newName, disabled: this.readOnly }],
+      newName: [
+        { value: this.newName, disabled: this.readOnly },
+        [
+          Validators.required,
+          Validators.pattern(ValidatorPatterns.TerraformName),
+        ],
+      ],
       values: this.createValuesForm(),
     });
+    // Show a saved name that Terraform rejects straight away; mat-error waits for touched.
+    this.form.get('newName').markAsTouched();
   }
 
   createValuesForm(): UntypedFormGroup {
     const controls = {};
 
     this.moduleFields.forEach((x) => {
-      controls[x.name] = [{ value: x.value, disabled: this.readOnly }];
+      controls[x.name] = [
+        { value: x.value, disabled: this.readOnly },
+        this.requireValues && !x.isOptional ? Validators.required : null,
+      ];
     });
 
     return this.formBuilder.group(controls);
@@ -170,7 +194,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   onNameChanged() {
-    this.newName = this.name ?? this.selectedModule.name;
+    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
     const formControl = this.form?.get('newName');
 
     if (formControl != null) {
