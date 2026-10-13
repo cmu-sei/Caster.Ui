@@ -6,7 +6,7 @@
 // first, then the matching project or group claim) instead of a
 // re-implementation that can drift from them.
 
-import { inject, Provider } from '@angular/core';
+import { Provider } from '@angular/core';
 import { vi } from 'vitest';
 import { of } from 'rxjs';
 import {
