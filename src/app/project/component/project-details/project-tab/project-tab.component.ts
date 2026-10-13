@@ -44,6 +44,7 @@ import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/
 import { CurrentUserQuery } from 'src/app/users/state';
 import { DesignQuery } from 'src/app/designs/state/design.query';
 import {
+  Design,
   Directory,
   ModelFile,
   Module,
@@ -75,7 +76,7 @@ export class ProjectTabComponent
   public modules$: Observable<Module[]>;
   public showTabs: boolean;
   public projectObjectNames = new Map<string, string>();
-  private nonactiveTabSubscriptions = new Map<string, Subscription>();
+  private tabSubscriptions = new Map<string, Subscription>();
   private tabChangeRequested$ = new Subject();
   private unsubscribe$ = new Subject();
   public sidebarOpen$: Observable<boolean>;
@@ -226,17 +227,23 @@ export class ProjectTabComponent
     this.setProjectObjectNames();
   }
 
-  ngOnChanges(changes: SimpleChanges) {}
+  ngOnChanges(changes: SimpleChanges) {
+    // The openTabs subscription in ngOnInit fires before this input catches up,
+    // so watchForChanges sees the previous tabs there; watch again once it has.
+    if (changes.projectUI && !changes.projectUI.firstChange) {
+      this.watchForChanges();
+    }
+  }
 
   watchForChanges() {
     // unsubscribe from closed tab changes
-    this.nonactiveTabSubscriptions.forEach((sub, tabId) => {
+    this.tabSubscriptions.forEach((sub, tabId) => {
       const isClosed =
         !this.showTabs ||
         !this.projectUI.openTabs.some((t) => t.id === tabId);
       if (isClosed) {
         sub.unsubscribe();
-        this.nonactiveTabSubscriptions.delete(tabId);
+        this.tabSubscriptions.delete(tabId);
       }
     });
     // subscribe to open tab changes
@@ -257,7 +264,7 @@ export class ProjectTabComponent
                     });
                   break;
                 case ProjectObjectType.DIRECTORY:
-                  this.fileQuery
+                  this.directoryQuery
                     .selectEntity(bc.id)
                     .pipe(takeUntil(this.tabChangeRequested$))
                     .subscribe((d) => {
@@ -277,29 +284,37 @@ export class ProjectTabComponent
               }
             });
           }
-        } else {
-          // subscribe to the file or workspace name for other open tabs
-          const tab = this.projectUI.openTabs[i];
-          const alreadyWatching = this.nonactiveTabSubscriptions.has(tab.id);
-          if (!alreadyWatching) {
-            switch (tab.type) {
-              case ProjectObjectType.FILE:
-                this.nonactiveTabSubscriptions.set(tab.id, this.fileQuery
-                  .selectEntity(tab.id)
-                  .subscribe((f) => {
-                    this.fileChangeHandler(f);
-                  }));
-                break;
-              case ProjectObjectType.WORKSPACE:
-                this.nonactiveTabSubscriptions.set(tab.id, this.workspaceQuery
-                  .selectEntity(tab.id)
-                  .subscribe((f) => {
-                    this.workspaceChangeHandler(f);
-                  }));
-                break;
-              default:
-                break;
-            }
+        }
+        // Every open tab, selected or not, watches its own entity so a rename reaches
+        // its label. These are kept off tabChangeRequested$: mat-tab-group emits
+        // selectedTabChange when a tab opens, which would drop the watch at once.
+        const tab = this.projectUI.openTabs[i];
+        const alreadyWatching = this.tabSubscriptions.has(tab.id);
+        if (!alreadyWatching) {
+          switch (tab.type) {
+            case ProjectObjectType.FILE:
+              this.tabSubscriptions.set(tab.id, this.fileQuery
+                .selectEntity(tab.id)
+                .subscribe((f) => {
+                  this.fileChangeHandler(f);
+                }));
+              break;
+            case ProjectObjectType.WORKSPACE:
+              this.tabSubscriptions.set(tab.id, this.workspaceQuery
+                .selectEntity(tab.id)
+                .subscribe((f) => {
+                  this.workspaceChangeHandler(f);
+                }));
+              break;
+            case ProjectObjectType.DESIGN:
+              this.tabSubscriptions.set(tab.id, this.designQuery
+                .selectEntity(tab.id)
+                .subscribe((d) => {
+                  this.designChangeHandler(d);
+                }));
+              break;
+            default:
+              break;
           }
         }
       }
@@ -340,6 +355,13 @@ export class ProjectTabComponent
     if (ws && ws.name !== this.projectObjectNames[ws.id]) {
       this.projectObjectNames[ws.id] = ws.name;
       // this.updateBreadcrumb();
+      this.changeDetectorRef.markForCheck();
+    }
+  }
+
+  designChangeHandler(d: Design) {
+    if (d && d.name !== this.projectObjectNames[d.id]) {
+      this.projectObjectNames[d.id] = d.name;
       this.changeDetectorRef.markForCheck();
     }
   }
@@ -496,7 +518,7 @@ export class ProjectTabComponent
     this.tabChangeRequested$.next(null);
     this.tabChangeRequested$.complete();
 
-    this.nonactiveTabSubscriptions.forEach((sub) => sub.unsubscribe());
-    this.nonactiveTabSubscriptions.clear();
+    this.tabSubscriptions.forEach((sub) => sub.unsubscribe());
+    this.tabSubscriptions.clear();
   }
 }
