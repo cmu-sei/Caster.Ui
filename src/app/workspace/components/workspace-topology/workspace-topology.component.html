@@ -3,7 +3,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="topology">
+<div #root class="topology">
   <div class="topology-bar">
     @if (topology?.runId) {
     <span>
@@ -69,6 +69,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       (click)="downloadImage()"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-download"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      [matTooltip]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      [attr.aria-label]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      (click)="toggleFullscreen()"
+    >
+      <mat-icon
+        class="mdi-24px"
+        [fontIcon]="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+      ></mat-icon>
     </button>
     <button
       mat-icon-button

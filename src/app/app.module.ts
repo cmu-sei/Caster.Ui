@@ -1,7 +1,11 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { OverlayModule } from '@angular/cdk/overlay';
+import {
+  FullscreenOverlayContainer,
+  OverlayContainer,
+  OverlayModule,
+} from '@angular/cdk/overlay';
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -105,6 +109,8 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
       deps: [ComnSettingsService],
     },
     { provide: ErrorHandler, useClass: ErrorService },
+    // Tooltips, menus and snack bars stay visible over a full-screen element.
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     SystemMessageService,
     { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
     {

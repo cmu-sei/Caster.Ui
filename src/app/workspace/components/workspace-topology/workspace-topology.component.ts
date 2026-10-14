@@ -6,6 +6,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  HostListener,
   Input,
   NgZone,
   OnDestroy,
@@ -69,10 +70,12 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   @Input() workspaceId: string;
 
   @ViewChild('graph', { static: true }) graph: ElementRef<HTMLElement>;
+  @ViewChild('root', { static: true }) root: ElementRef<HTMLElement>;
 
   topology: WorkspaceTopology;
   selected: TopologyNode;
   loading = true;
+  isFullscreen = false;
   error: string;
   readonly actionColors = ACTION_COLORS;
   readonly actionDescriptions = ACTION_DESCRIPTIONS;
@@ -162,6 +165,30 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   fit() {
     this.cy?.fit(undefined, 30);
+  }
+
+  toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+    this.root.nativeElement
+      .requestFullscreen()
+      .catch((err) =>
+        this.snackBar.open(`Could not go full screen: ${err?.message ?? err}`, 'Dismiss')
+      );
+  }
+
+  /** Esc leaves full screen without the button, so follow the document rather than the toggle. */
+  @HostListener('document:fullscreenchange')
+  onFullscreenChange() {
+    this.isFullscreen = document.fullscreenElement === this.root.nativeElement;
+    this.changeDetector.markForCheck();
+    // Cytoscape only notices the window resizing, not its container.
+    requestAnimationFrame(() => {
+      this.cy?.resize();
+      this.fit();
+    });
   }
 
   copyImage() {
