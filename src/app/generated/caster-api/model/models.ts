@@ -63,6 +63,7 @@ export * from './importResourceCommand';
 export * from './modelFile';
 export * from './module';
 export * from './moduleOutput';
+export * from './moduleSource';
 export * from './moduleValue';
 export * from './moduleVariable';
 export * from './moduleVersion';

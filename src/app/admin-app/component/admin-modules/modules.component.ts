@@ -5,9 +5,14 @@ import { Component, OnInit, NgZone } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ModuleService, ModuleQuery } from '../../../modules/state';
-import { Module, SystemPermission } from '../../../generated/caster-api';
+import {
+  Module,
+  ModuleSource,
+  ModulesService,
+  SystemPermission,
+} from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { finalize, map, take } from 'rxjs/operators';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
@@ -21,6 +26,8 @@ export class AdminModulesComponent implements OnInit {
   public isLoading$: Observable<boolean>;
   public matcher = new ModuleErrorStateMatcher();
   public isLinear = false;
+  public failedSources: ModuleSource[] = [];
+  public noSources = false;
 
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageWorkspaces
@@ -30,6 +37,7 @@ export class AdminModulesComponent implements OnInit {
     public zone: NgZone,
     private moduleService: ModuleService,
     private moduleQuery: ModuleQuery,
+    private modulesService: ModulesService,
     private permissionService: PermissionService
   ) {}
 
@@ -38,19 +46,52 @@ export class AdminModulesComponent implements OnInit {
    */
   ngOnInit() {
     this.modules$ = this.moduleQuery.selectAll();
-    this.moduleService
-      .load(false, true)
-      .pipe(
-        take(1)
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      )
-      .subscribe();
     this.isLoading$ = this.moduleQuery.selectLoading();
+    this.load();
   }
 
   load() {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.load(false, true).pipe(take(1)).subscribe();
+    // Listing the Modules is what syncs the sources, so ask how that went
+    // once it is done.
+    this.moduleService
+      .load(false, true)
+      .pipe(
+        take(1),
+        finalize(() => this.loadSources())
+      )
+      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
+      .subscribe();
+  }
+
+  /** When an API instance last synced a source, in the viewer's time zone. */
+  syncTime(value: string): string {
+    return new Date(value).toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  }
+
+  private loadSources() {
+    this.modulesService
+      .getModuleSources()
+      .pipe(take(1))
+      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
+      .subscribe({
+        next: (sources) => {
+          this.failedSources = sources.filter((s) => s.error);
+          this.noSources = !sources.length;
+        },
+        // An API that does not report its sources yet: show no warning
+        // rather than an error.
+        error: () => {
+          this.failedSources = [];
+          this.noSources = false;
+        },
+      });
   }
 
   loadById(id: string) {
