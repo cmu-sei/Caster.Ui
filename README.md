@@ -2,7 +2,7 @@
 
 Caster is the primary deployment component of the Crucible framework. Caster is built upon Terraform, an open source "Infrastructure as Code" tool. Caster provides a web interface that gives exercise developers a way to create, share, and manage topology configurations.
 
-For more information on native Terraform constructs used in Caster, please refer to the [Terraform documentation](https://www.terraform.io/docs/index.html).
+For more information on native Terraform constructs used in Caster, please refer to the [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
 
 ## Running unit tests
 
@@ -13,7 +13,7 @@ follows the shared Crucible UI test standard.
 ```bash
 npm test                 # run every spec once
 npm run test:watch       # re-run on change
-npm run test:coverage    # run once with coverage (text, json and html in coverage/); enforces the thresholds in angular.json
+npm run test:coverage    # run once with coverage (text, json and html in coverage/caster-ui/); enforces the thresholds in angular.json
 ```
 
 Run a subset with `npx ng test caster-ui --watch=false --include='src/app/workspace/**/*.spec.ts'`.
