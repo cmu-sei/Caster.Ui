@@ -171,7 +171,6 @@ export class DesignModuleComponent implements OnInit, OnChanges {
       event.versionName != this.designModule.moduleVersion
     ) {
       const command = {
-        designId: this.designModule.designId,
         moduleId: this.module.id,
         moduleVersion: event.versionName,
         name: event.moduleName,

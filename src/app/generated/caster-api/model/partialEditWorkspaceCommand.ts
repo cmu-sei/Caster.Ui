@@ -24,10 +24,6 @@ export interface PartialEditWorkspaceCommand {
      */
     name?: string | null;
     /**
-     * The Id of the Directory of the Workspace
-     */
-    directoryId?: string | null;
-    /**
      * True if this Workspace will be dynamically assigned a Host on first Run
      */
     dynamicHost?: boolean | null;

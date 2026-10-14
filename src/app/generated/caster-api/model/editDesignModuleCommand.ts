@@ -19,10 +19,6 @@ import { ModuleValue } from './moduleValue';
 
 export interface EditDesignModuleCommand { 
     /**
-     * The Id of the Design to add this DesignModule
-     */
-    designId?: string;
-    /**
      * The Id of the selected Module for this DesignModule
      */
     moduleId?: string;
