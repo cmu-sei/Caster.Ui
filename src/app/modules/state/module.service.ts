@@ -3,7 +3,7 @@
 
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
 import { ModuleUi } from '.';
 import {
   CreateModuleRepositoryCommand,
@@ -86,20 +86,16 @@ export class ModuleService {
     );
   }
 
-  createOrUpdateModuleById(id: string): Observable<Module> {
+  /**
+   * Syncs one module source, or one module in it. The API answers with no
+   * body, so reload the Modules afterwards to see what it synced.
+   */
+  createOrUpdateModuleById(id: string): Observable<unknown> {
     this.moduleStore.setLoading(true);
     const command: CreateModuleRepositoryCommand = { id };
     return this.modulesService
       .createTerrraformModuleFromRepository(command)
-      .pipe(
-        tap((_module: Module) => {
-          this.moduleStore.upsert(_module.id, { ..._module });
-          this.setSaved(_module.id, true);
-        }),
-        tap(() => {
-          this.moduleStore.setLoading(false);
-        })
-      );
+      .pipe(finalize(() => this.moduleStore.setLoading(false)));
   }
 
   delete(id: string): Observable<string> {
