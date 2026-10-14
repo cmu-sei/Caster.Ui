@@ -11,8 +11,9 @@ import {
   ModulesService,
   SystemPermission,
 } from '../../../generated/caster-api';
-import { Observable } from 'rxjs';
-import { finalize, map, take } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { catchError, finalize, map, take } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
 
 @Component({
@@ -38,7 +39,8 @@ export class AdminModulesComponent implements OnInit {
     private moduleService: ModuleService,
     private moduleQuery: ModuleQuery,
     private modulesService: ModulesService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar
   ) {}
 
   /**
@@ -101,7 +103,22 @@ export class AdminModulesComponent implements OnInit {
 
   createOrUpdateById(id: string) {
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.createOrUpdateModuleById(id).pipe(take(1)).subscribe();
+    this.moduleService
+      .createOrUpdateModuleById(id)
+      .pipe(
+        take(1),
+        catchError((error) => {
+          const message =
+            error.error?.title || error.message || 'Failed to update the Modules';
+          this.snackBar.open(message, 'Dismiss', {
+            duration: 5000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+          });
+          return EMPTY;
+        })
+      )
+      .subscribe(() => this.load());
   }
 
   deleteModule(id: string) {
