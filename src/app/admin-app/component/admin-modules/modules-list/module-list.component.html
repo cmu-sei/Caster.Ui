@@ -38,19 +38,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matInput
           placeholder="External Module ID"
           [(ngModel)]="externalModuleId"
-          matTooltip="Must be a valid ID from the module repository."
+          matTooltip="A module source name, or name/subdirectory for one module in it. For a GitLab source, its project ID."
           />
       </mat-form-field>
       <button
         mat-icon-button
         (click)="updateModuleFromRepository()"
-        aria-label="Add/Update this module from the repository"
+        aria-label="Add/Update the Modules from this source"
         [disabled]="!externalModuleId || isLoading"
         >
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-note-plus"
-          matTooltip="Add/Update this module from the repository"
+          matTooltip="Add/Update the Modules from this source"
         ></mat-icon>
       </button>
     </div>
@@ -58,13 +58,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <button
         mat-icon-button
         (click)="updateAllModules()"
-        aria-label="Add/Update ALL from the repository"
+        aria-label="Add/Update the Modules from every source"
         [disabled]="isLoading"
         >
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-cloud-download"
-          matTooltip="Add/Update ALL from the repository"
+          matTooltip="Add/Update the Modules from every source"
         ></mat-icon>
       </button>
     </div>
