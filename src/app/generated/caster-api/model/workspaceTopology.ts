@@ -16,20 +16,22 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  */
 import { TopologyNode } from './topologyNode';
 import { TopologyEdge } from './topologyEdge';
+import { TopologySource } from './topologySource';
 
 
 /**
- * The machines and networks of a Workspace\'s most recent plan that has a topology, and which network each NIC is attached to.
+ * A Workspace\'s machines and networks, and which network each NIC is attached to: from its latest plan while that plan is still to be applied, otherwise from its state.
  */
 export interface WorkspaceTopology { 
     workspaceId?: string;
+    source?: TopologySource;
     /**
-     * The Run whose plan this was read from. Null when no plan has a topology yet.
+     * The Run of the latest plan with a topology. Null when there is none yet.
      */
     runId?: string | null;
     createdAt?: string | null;
     /**
-     * True when that plan was a destroy, so every node\'s Action is delete.
+     * True when that plan was a destroy.
      */
     isDestroy?: boolean;
     nodes?: Array<TopologyNode> | null;

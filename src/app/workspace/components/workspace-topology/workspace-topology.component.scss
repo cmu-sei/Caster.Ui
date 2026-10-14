@@ -42,6 +42,10 @@
   &.external {
     border: 2px dashed var(--mat-sys-on-surface-variant);
   }
+
+  &.not-created {
+    border: 2px dashed var(--mat-sys-error);
+  }
 }
 
 .topology-body {

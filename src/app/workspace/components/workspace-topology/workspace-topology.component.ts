@@ -29,6 +29,7 @@ import {
   RunStatus,
   TopologyNode,
   TopologyNodeKind,
+  TopologySource,
   WorkspaceTopology,
   WorkspacesService,
 } from '../../../generated/caster-api';
@@ -142,11 +143,21 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   /**
    * Whether the plan's changes are still to come. Once it is applied,
-   * rejected or failed, "create" no longer describes anything, so the
-   * outlines go.
+   * rejected or failed, the API draws the state instead, and "create" no
+   * longer describes anything, so the outlines go. The run's status is
+   * checked too: it can change before the topology is refetched, and after
+   * a state error the API still draws the plan.
    */
   get showsChanges(): boolean {
-    return !this.planStatus || PENDING.includes(this.planStatus);
+    return (
+      this.topology?.source !== TopologySource.State &&
+      (!this.planStatus || PENDING.includes(this.planStatus))
+    );
+  }
+
+  /** Whether the apply failed before creating something the plan creates. */
+  get hasNotCreated(): boolean {
+    return !!this.topology?.nodes?.some((n) => n.notCreated);
   }
 
   fit() {
@@ -352,6 +363,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           label: n.label,
           kind: n.kind,
           action: this.showsChanges ? (n.action ?? '') : '',
+          notCreated: !!n.notCreated,
           parent: boxed.includes(n.module) ? `module:${n.module}` : undefined,
         },
         classes: [
@@ -382,6 +394,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     const outline = color('--mat-sys-outline', '#777680');
     const primary = color('--mat-sys-primary', '#3f51b5');
     const selected = color('--mat-sys-tertiary', '#ff4081');
+    const error = color('--mat-sys-error', '#ba1a1a');
 
     return [
       {
@@ -430,6 +443,15 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       {
         selector: 'node[action = "delete"]',
         style: { opacity: 0.6, 'border-style': 'dashed' },
+      },
+      {
+        selector: 'node[?notCreated]',
+        style: {
+          opacity: 0.6,
+          'background-opacity': 0,
+          'border-style': 'dashed',
+          'border-color': error,
+        },
       },
       {
         selector: 'node.module',

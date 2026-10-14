@@ -107,6 +107,7 @@ export * from './terraformVersionsResult';
 export * from './topologyEdge';
 export * from './topologyNode';
 export * from './topologyNodeKind';
+export * from './topologySource';
 export * from './unassignPartitionCommand';
 export * from './user';
 export * from './validationProblemDetails';

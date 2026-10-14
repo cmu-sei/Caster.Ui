@@ -36,13 +36,17 @@ export interface TopologyNode {
      */
     module?: string | null;
     /**
-     * What the plan does to it: create, update, replace, delete, read or no-op. Null for an external network.
+     * What the plan does to it: create, update, replace, delete, read or no-op. Null for an external network, and for anything read from the state.
      */
     action?: string | null;
     /**
      * True for a network that is referenced by value but not managed in this workspace.
      */
     external?: boolean;
+    /**
+     * True when the plan creates it but the apply failed before it did: it is in the plan and not in the state.
+     */
+    notCreated?: boolean;
     /**
      * A few display values, such as cpus and memory_mb, when the plan knows them.
      */
