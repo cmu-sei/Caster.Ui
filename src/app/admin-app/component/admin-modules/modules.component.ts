@@ -52,14 +52,17 @@ export class AdminModulesComponent implements OnInit {
     this.load();
   }
 
-  load() {
-    // Listing the Modules is what syncs the sources, so ask how that went
-    // once it is done.
+  /**
+   * Load the Modules. Listing them is what syncs the sources, so ask how that
+   * went once it is done. When the user asked for the sync, also say in a snack
+   * bar which sources failed.
+   */
+  load(userRequested = false) {
     this.moduleService
       .load(false, true)
       .pipe(
         take(1),
-        finalize(() => this.loadSources())
+        finalize(() => this.loadSources(userRequested))
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
@@ -77,7 +80,7 @@ export class AdminModulesComponent implements OnInit {
     });
   }
 
-  private loadSources() {
+  private loadSources(userRequested = false) {
     this.modulesService
       .getModuleSources()
       .pipe(take(1))
@@ -86,6 +89,9 @@ export class AdminModulesComponent implements OnInit {
         next: (sources) => {
           this.failedSources = sources.filter((s) => s.error);
           this.noSources = !sources.length;
+          if (userRequested && this.failedSources.length) {
+            this.showSyncFailures(this.failedSources);
+          }
         },
         // An API that does not report its sources yet: show no warning
         // rather than an error.
@@ -94,6 +100,20 @@ export class AdminModulesComponent implements OnInit {
           this.noSources = false;
         },
       });
+  }
+
+  /** One snack bar for every failed source; the warnings above the list have the details. */
+  private showSyncFailures(sources: ModuleSource[]) {
+    const names = sources.map((s) => s.name);
+    const message =
+      names.length === 1
+        ? `Module source ${names[0]} failed to sync`
+        : `Module sources ${names.join(', ')} failed to sync`;
+    this.snackBar.open(message, 'Dismiss', {
+      duration: 5000,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+    });
   }
 
   loadById(id: string) {
