@@ -86,16 +86,18 @@ export class WorkspaceService {
   }
 
   update(workspace: Workspace) {
+    const { directoryId: _directoryId, ...command } = workspace;
     this.workspacesService
-      .partialEditWorkspace(workspace.id, { ...workspace } as Workspace)
+      .partialEditWorkspace(workspace.id, command)
       .subscribe((w) => {
         this.workspaceStore.update(w.id, w);
       });
   }
 
   partialUpdate(id: string, workspace: Partial<Workspace>) {
+    const { directoryId: _directoryId, ...command } = workspace;
     this.workspacesService
-      .partialEditWorkspace(id, { ...workspace } as Workspace)
+      .partialEditWorkspace(id, command)
       .subscribe((w) => {
         this.workspaceStore.update(w.id, w);
       });

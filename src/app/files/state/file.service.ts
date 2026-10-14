@@ -53,7 +53,8 @@ export class FileService {
   }
 
   updateFile(file: ModelFile) {
-    this.filesService.editFile(file.id, file).subscribe((f) => {
+    const command = { name: file.name, content: file.content };
+    this.filesService.editFile(file.id, command).subscribe((f) => {
       this.fileUpdated(f);
     });
   }
