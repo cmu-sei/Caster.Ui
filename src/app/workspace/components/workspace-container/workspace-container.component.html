@@ -3,7 +3,10 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="d-flex flex-column justify-content-center align-content-between">
+<div
+  class="d-flex flex-column justify-content-center align-content-between"
+  [class.fills-tab]="(workspaceView$ | async) === 'topology'"
+>
   <mat-toolbar class="editor-toolbar">
     <mat-toolbar-row
       class="d-flex flex-row justify-content-start align-items-center gap-1"
@@ -29,6 +32,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             class="mdi-24px icon"
             fontIcon="mdi-monitor-multiple"
             matTooltip="State View"
+          ></mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="topology" aria-label="topology">
+          <mat-icon
+            class="mdi-24px icon"
+            fontIcon="mdi-lan"
+            matTooltip="Topology View"
           ></mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
@@ -290,6 +300,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
     </div>
   </cwd-table>
+  }
+  <!-- Topology -->
+  @case ('topology') {
+  <cas-workspace-topology [workspaceId]="workspaceId"></cas-workspace-topology>
   } }
 </div>
 

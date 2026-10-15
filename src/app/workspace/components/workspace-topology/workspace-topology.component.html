@@ -1,0 +1,162 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div #root class="topology">
+  <div class="topology-bar">
+    @if (topology?.runId) {
+    <span>
+      {{ topology.isDestroy ? 'Destroy plan' : 'Plan' }} from
+      {{ topology.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+      @if (!showsChanges) {
+      · {{ planStatus }}
+      }
+    </span>
+    }
+    <div class="spacer"></div>
+    @if (!isEmpty) {
+    <div class="legend">
+      @if (showsChanges) {
+      @for (entry of actionColors | keyvalue; track entry.key) {
+      <span
+        class="legend-item"
+        tabindex="0"
+        [matTooltip]="actionDescriptions[entry.key]"
+      >
+        <span class="swatch" [style.border-color]="entry.value"></span>
+        {{ entry.key }}
+      </span>
+      } } @if (!showsChanges && hasNotCreated) {
+      <span
+        class="legend-item"
+        tabindex="0"
+        matTooltip="The plan creates it, but the apply failed before it did"
+      >
+        <span class="swatch not-created"></span>
+        not created
+      </span>
+      }
+      <span
+        class="legend-item"
+        tabindex="0"
+        matTooltip="A network this workspace connects machines to but does not create"
+      >
+        <span class="swatch external"></span>
+        external
+      </span>
+    </div>
+    <button
+      mat-icon-button
+      matTooltip="Fit to view"
+      aria-label="Fit to view"
+      (click)="fit()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      matTooltip="Copy image"
+      aria-label="Copy image"
+      (click)="copyImage()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      matTooltip="Download image"
+      aria-label="Download image"
+      (click)="downloadImage()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-download"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      [matTooltip]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      [attr.aria-label]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      (click)="toggleFullscreen()"
+    >
+      <mat-icon
+        class="mdi-24px"
+        [fontIcon]="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+      ></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      matTooltip="Print"
+      aria-label="Print"
+      (click)="print()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-printer"></mat-icon>
+    </button>
+    }
+  </div>
+
+  <div class="topology-body">
+    <div #graph class="graph" [class.d-none]="isEmpty"></div>
+
+    @if (loading) {
+    <div class="message">
+      <mat-progress-spinner diameter="40" mode="indeterminate">
+      </mat-progress-spinner>
+    </div>
+    } @else if (error) {
+    <div class="message">Topology unavailable: {{ error }}</div>
+    } @else if (isEmpty) {
+    <div class="message">
+      @if (!topology?.runId) {
+      Run a plan to see the topology.
+      } @else if (!showsChanges) {
+      The workspace's state has no machines or networks Caster knows how to
+      draw.
+      } @else {
+      The latest plan has no machines or networks Caster knows how to draw.
+      }
+    </div>
+    } @if (selected) {
+    <div class="details">
+      <div class="details-title">{{ selected.label }}</div>
+      <div class="details-address">{{ selected.id }}</div>
+      <table>
+        @if (selected.type) {
+        <tr>
+          <th>Type</th>
+          <td>{{ selected.type }}</td>
+        </tr>
+        } @if (showsChanges && selected.action) {
+        <tr>
+          <th>Action</th>
+          <td>{{ selected.action }}</td>
+        </tr>
+        } @if (selected.notCreated) {
+        <tr>
+          <th>Status</th>
+          <td>Not created: the apply failed before it got to it</td>
+        </tr>
+        } @if (selected.external) {
+        <tr>
+          <th>External</th>
+          <td>Not managed by this workspace</td>
+        </tr>
+        } @for (p of propertiesOf(selected); track p.key) {
+        <tr>
+          <th>{{ p.key }}</th>
+          <td>{{ p.value }}</td>
+        </tr>
+        } @if (selected.kind === 'Machine') { @for (n of networksOf(selected);
+        track n.iface) {
+        <tr>
+          <th>nic{{ n.iface }}</th>
+          <td>{{ n.label }}</td>
+        </tr>
+        } } @else { @if (machinesOn(selected).length) {
+        <tr>
+          <th>Machines</th>
+          <td>{{ machinesOn(selected).join(', ') }}</td>
+        </tr>
+        } }
+      </table>
+    </div>
+    }
+  </div>
+</div>
