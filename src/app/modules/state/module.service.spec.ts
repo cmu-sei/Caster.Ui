@@ -146,11 +146,6 @@ describe('ModuleService', () => {
         api: () => ({ getModule: vi.fn(boom) }),
         call: (s) => s.loadModuleById('m1'),
       },
-      {
-        method: 'createOrUpdateModuleById',
-        api: () => ({ createTerrraformModuleFromRepository: vi.fn(boom) }),
-        call: (s) => s.createOrUpdateModuleById('42'),
-      },
     ];
 
     /**
@@ -174,6 +169,28 @@ describe('ModuleService', () => {
         expect(query.getValue().loading).toBe(true);
       },
     );
+
+    /**
+     * Verifies: createOrUpdateModuleById passes the error on and clears the
+     *   loading flag.
+     * Interacts with: ModulesService.createTerrraformModuleFromRepository
+     *   (throwError stub); ModuleStore.setLoading.
+     * Data: stored m1 (loading false); the API errors with 'boom'.
+     */
+    it('createOrUpdateModuleById clears loading when the API fails', async () => {
+      const { service, query } = setup(
+        { createTerrraformModuleFromRepository: vi.fn(boom) },
+        [mod()],
+      );
+
+      const error = await firstValueFrom(
+        service.createOrUpdateModuleById('42'),
+      ).catch((e: unknown) => e);
+
+      expect(error).toEqual(new Error('boom'));
+      expect(query.getValue().loading).toBe(false);
+      expect(query.getAll()).toEqual([mod()]);
+    });
   });
 
   describe('single modules', () => {
@@ -198,27 +215,37 @@ describe('ModuleService', () => {
     });
 
     /**
-     * Verifies: createOrUpdateModuleById sends the repository id, upserts the
-     *   resulting module and marks it saved.
-     * Interacts with: ModulesService.createTerrraformModuleFromRepository (stub).
-     * Data: stored m1 (unsaved); repository id '42' maps to m1 with a new
-     *   version.
+     * Verifies: createOrUpdateModuleById sends the source or module id, keeps
+     *   loading on until the API answers (with no body) and then clears it,
+     *   and leaves the stored modules and their UI state as they were (the
+     *   caller reloads them).
+     * Interacts with: ModulesService.createTerrraformModuleFromRepository
+     *   (Subject stub).
+     * Data: stored m1 with its initial UI state; id '42'.
      */
-    it('createOrUpdateModuleById() imports the repository module', async () => {
+    it('createOrUpdateModuleById() imports the repository module', () => {
+      const response$ = new Subject<unknown>();
       const api = {
-        createTerrraformModuleFromRepository: vi.fn(() =>
-          of(mod({ versions: [{ id: 'v1' }, { id: 'v2' }] })),
-        ),
+        createTerrraformModuleFromRepository: vi.fn(() => response$),
       } satisfies ApiStub<ModulesService>;
       const { service, query } = setup(api, [mod()]);
+      const uiBefore = structuredClone(query.ui.getEntity('m1'));
 
-      await firstValueFrom(service.createOrUpdateModuleById('42'));
+      const seen = recordEmissions(service.createOrUpdateModuleById('42'));
 
-      expect(api.createTerrraformModuleFromRepository).toHaveBeenCalledWith({
-        id: '42',
-      });
-      expect(query.getEntity('m1').versions).toHaveLength(2);
-      expect(query.ui.getEntity('m1').isSaved).toBe(true);
+      expect(api.createTerrraformModuleFromRepository).toHaveBeenCalledTimes(1);
+      expect(
+        api.createTerrraformModuleFromRepository.mock.calls[0],
+      ).toStrictEqual([{ id: '42' }]);
+      expect(query.getValue().loading).toBe(true);
+
+      response$.next(null);
+      response$.complete();
+
+      expect(seen).toEqual([null]);
+      expect(query.getValue().loading).toBe(false);
+      expect(query.getAll()).toEqual([mod()]);
+      expect(query.ui.getEntity('m1')).toEqual(uiBefore);
     });
 
     /**

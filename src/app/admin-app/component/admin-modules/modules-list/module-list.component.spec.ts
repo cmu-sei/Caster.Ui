@@ -65,17 +65,23 @@ async function renderModuleList(canEdit: boolean, confirmAnswer?: boolean) {
 
 describe('AdminModuleListComponent', () => {
   /**
-   * Verifies: with canEdit the repository controls render, and an entered module id is emitted for add/update.
-   * Interacts with: the loadModuleById output.
+   * Verifies: with canEdit the repository controls render, the id field explains it takes a module source name (or name/subdirectory, or a GitLab project ID), and an entered id is emitted for add/update.
+   * Interacts with: the id field's matTooltip, the loadModuleById output.
    * Data: canEdit true; external module id 42 typed in.
    */
   it('adds a module from the repository when canEdit is true', async () => {
-    const { loadModuleById, user } = await renderModuleList(true);
+    const { fixture, loadModuleById, user } = await renderModuleList(true);
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    await user.type(screen.getByPlaceholderText('External Module ID'), '42');
+    const id = screen.getByPlaceholderText('External Module ID');
+    expect(id).toHaveAccessibleDescription(
+      'A module source name, or name/subdirectory for one module in it. For a GitLab source, its project ID.',
+    );
+    await user.type(id, '42');
     await user.click(
       screen.getByRole('button', {
-        name: 'Add/Update this module from the repository',
+        name: 'Add/Update the Modules from this source',
       }),
     );
 
@@ -83,7 +89,7 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit the Update ALL button emits load.
+   * Verifies: with canEdit the every-source update button emits load(true).
    * Interacts with: the load output.
    * Data: canEdit true.
    */
@@ -92,7 +98,7 @@ describe('AdminModuleListComponent', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Add/Update ALL from the repository',
+        name: 'Add/Update the Modules from every source',
       }),
     );
 
@@ -132,7 +138,7 @@ describe('AdminModuleListComponent', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
-        name: 'Add/Update ALL from the repository',
+        name: 'Add/Update the Modules from every source',
       }),
     ).not.toBeInTheDocument();
     expect(

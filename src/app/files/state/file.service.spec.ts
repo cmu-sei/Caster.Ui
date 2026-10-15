@@ -4,7 +4,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
-import { FilesService, ModelFile } from '../../generated/caster-api';
+import {
+  EditFileCommand,
+  FilesService,
+  ModelFile,
+} from '../../generated/caster-api';
 import { ApiStub, endpointStub } from '../../test-utils/api-stub';
 import { getDefaultProviders } from '../../test-utils/default-test-providers';
 import { downloadResponse } from '../../test-utils/download-response';
@@ -212,21 +216,33 @@ describe('FileService', () => {
 
   describe('edits', () => {
     /**
-     * Verifies: updateFile sends the whole file to editFile and stores the
-     *   response as saved.
+     * Verifies: updateFile sends editFile only the file's name and content
+     *   (not its directory, workspace or lock fields) and stores the response
+     *   as saved.
      * Interacts with: FilesService.editFile (stub); fileUpdated.
-     * Data: stored f1; edit with a new name.
+     * Data: stored f1; edit with a new name and content, in directory d1 and
+     *   workspace w1.
      */
     it('updateFile() edits the file and stores the response', () => {
-      const edited = file({ name: 'edited.tf' });
+      const edited = file({
+        name: 'edited.tf',
+        content: 'edited content',
+        workspaceId: 'w1',
+      });
       const filesApi = {
-        editFile: vi.fn(() => of(edited)),
+        editFile: vi.fn((_id: string, _command?: EditFileCommand) =>
+          of(edited),
+        ),
       } satisfies ApiStub<FilesService>;
       const { service, query } = setup(filesApi, [file()]);
 
       service.updateFile(edited);
 
-      expect(filesApi.editFile).toHaveBeenCalledWith('f1', edited);
+      expect(filesApi.editFile).toHaveBeenCalledTimes(1);
+      expect(filesApi.editFile.mock.calls[0]).toStrictEqual([
+        'f1',
+        { name: 'edited.tf', content: 'edited content' },
+      ]);
       expect(query.getEntity('f1').name).toBe('edited.tf');
       expect(query.isSaved('f1')).toBe(true);
     });

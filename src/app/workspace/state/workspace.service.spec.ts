@@ -272,11 +272,12 @@ describe('WorkspaceService', () => {
 
   describe('update and partialUpdate', () => {
     /**
-     * Verifies: update() sends a copy of the whole workspace to
-     *   partialEditWorkspace and merges the response into the stored entity,
-     *   keeping fields the API does not return (runs).
+     * Verifies: update() sends partialEditWorkspace a copy of the workspace
+     *   without its directoryId and merges the response into the stored
+     *   entity, keeping fields the API does not return (runs).
      * Interacts with: WorkspacesService.partialEditWorkspace (stub).
-     * Data: stored w1 with one run; update with name 'Renamed'.
+     * Data: stored w1 in directory d1 with one run; update with name
+     *   'Renamed'.
      */
     it('update() sends the workspace and merges the response', () => {
       const workspacesApi = {
@@ -292,13 +293,15 @@ describe('WorkspaceService', () => {
 
       service.update(edited);
 
-      expect(workspacesApi.partialEditWorkspace).toHaveBeenCalledWith(
+      expect(workspacesApi.partialEditWorkspace).toHaveBeenCalledTimes(1);
+      expect(workspacesApi.partialEditWorkspace.mock.calls[0]).toStrictEqual([
         'w1',
-        edited,
-      );
+        { id: 'w1', name: 'Renamed', runs: [run()] },
+      ]);
       expect(workspacesApi.partialEditWorkspace.mock.calls[0][1]).not.toBe(
         edited,
       );
+      expect(edited.directoryId).toBe('d1');
       expect(query.getEntity('w1')).toEqual(
         ws({ name: 'Renamed', runs: [run()] }),
       );
@@ -325,6 +328,32 @@ describe('WorkspaceService', () => {
       });
       expect(query.getEntity('w1').dynamicHost).toBe(true);
       expect(query.getEntity('w1').runs).toEqual([]);
+    });
+
+    /**
+     * Verifies: partialUpdate() leaves a directoryId it is given out of the
+     *   command and sends the other fields as given.
+     * Interacts with: WorkspacesService.partialEditWorkspace (stub).
+     * Data: stored w1 in d1; partialUpdate('w1', { name: 'Moved',
+     *   directoryId: 'd2' }).
+     */
+    it('partialUpdate() leaves the directory out of the command', () => {
+      const workspacesApi = {
+        partialEditWorkspace: vi.fn(
+          (_id: string, _command?: PartialEditWorkspaceCommand) =>
+            of(apiWorkspace({ name: 'Moved' })),
+        ),
+      } satisfies ApiStub<WorkspacesService>;
+      const { service, query } = setup({ workspaces: workspacesApi }, [ws()]);
+
+      service.partialUpdate('w1', { name: 'Moved', directoryId: 'd2' });
+
+      expect(workspacesApi.partialEditWorkspace).toHaveBeenCalledTimes(1);
+      expect(workspacesApi.partialEditWorkspace.mock.calls[0]).toStrictEqual([
+        'w1',
+        { name: 'Moved' },
+      ]);
+      expect(query.getEntity('w1')).toEqual(ws({ name: 'Moved' }));
     });
   });
 

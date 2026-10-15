@@ -15,6 +15,7 @@ import { ModuleVariablesResult } from 'src/app/editor/component/module-variables
 import {
   DesignModule,
   DesignsModulesService,
+  EditDesignModuleCommand,
   Module,
   ModuleOutput,
   ModulesService,
@@ -71,6 +72,7 @@ const module: Module = {
 async function renderDesignModule(
   canEdit: boolean,
   saveValues: () => Subject<DesignModule> = () => new Subject<DesignModule>(),
+  saveEdit: () => Subject<DesignModule> = () => new Subject<DesignModule>(),
 ) {
   const designModulesApi = {
     getDesignModule: vi.fn((_id: string) =>
@@ -80,6 +82,9 @@ async function renderDesignModule(
       of<DesignModule>({ ...designModule, enabled: false }),
     ),
     addOrUpdateValuesDesignModule: vi.fn(saveValues),
+    editDesignModule: vi.fn(
+      (_id: string, _command?: EditDesignModuleCommand) => saveEdit(),
+    ),
   } satisfies ApiStub<DesignsModulesService>;
   const modulesApi = {
     getModule: vi.fn((_id: string) => of<Module>(structuredClone(module))),
@@ -195,4 +200,55 @@ describe('DesignModuleComponent', () => {
     // Escapes to the app's ErrorHandler (ErrorService), which shows it.
     expect(errors).toEqual([failure]);
   });
+
+  /**
+   * Verifies: when the name or the version changed, saving sends editDesignModule exactly the module id, the version, the name and only the changed values (no design id), not addOrUpdateValues, and shows saving on the variables editor until the request completes.
+   * Interacts with: DesignsModulesService.editDesignModule and addOrUpdateValuesDesignModule (stubs; edit is a Subject the test completes), the module-variables stub's isSaving input and variablesSelected output.
+   * Data: design module web (design d1, module mod1, version v1); renamed to web_renamed at v1, or kept as web at v2; size changed, zone unchanged; canEdit true.
+   */
+  it.each([
+    { label: 'a new name', moduleName: 'web_renamed', versionName: 'v1' },
+    { label: 'a new version', moduleName: 'web', versionName: 'v2' },
+  ])(
+    'edits the design module with $label',
+    async ({ moduleName, versionName }) => {
+      const request = new Subject<DesignModule>();
+      const { fixture, designModulesApi, variablesEditor, user } =
+        await renderDesignModule(true, undefined, () => request);
+
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      variablesEditor()?.variablesSelected.emit({
+        versionId: 'ver1',
+        moduleName,
+        versionName,
+        variableValues: [
+          { name: 'size', value: 'large' },
+          { name: 'zone', value: 'east' },
+        ],
+        changedVariables: ['size'],
+      });
+      fixture.detectChanges();
+
+      expect(designModulesApi.editDesignModule).toHaveBeenCalledTimes(1);
+      expect(designModulesApi.editDesignModule.mock.calls[0]).toStrictEqual([
+        'dm1',
+        {
+          moduleId: 'mod1',
+          moduleVersion: versionName,
+          name: moduleName,
+          values: [{ name: 'size', value: 'large' }],
+        },
+      ]);
+      expect(
+        designModulesApi.addOrUpdateValuesDesignModule,
+      ).not.toHaveBeenCalled();
+      expect(variablesEditor()?.isSaving).toBe(true);
+
+      request.next({ ...designModule, name: moduleName });
+      request.complete();
+      fixture.detectChanges();
+
+      expect(variablesEditor()?.isSaving).toBe(false);
+    },
+  );
 });
