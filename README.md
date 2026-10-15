@@ -2,7 +2,29 @@
 
 Caster is the primary deployment component of the Crucible framework. Caster is built upon Terraform, an open source "Infrastructure as Code" tool. Caster provides a web interface that gives exercise developers a way to create, share, and manage topology configurations.
 
-For more information on native Terraform constructs used in Caster, please refer to the [Terraform documentation](https://www.terraform.io/docs/index.html).
+For more information on native Terraform constructs used in Caster, please refer to the [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
+
+## Running unit tests
+
+Unit tests run on Angular's `@angular/build:unit-test` builder with Vitest, jsdom
+and Angular Testing Library, under zone change detection like the app. The setup
+follows the shared Crucible UI test standard.
+
+```bash
+npm test                 # run every spec once
+npm run test:watch       # re-run on change
+npm run test:coverage    # run once with coverage (text, json and html in coverage/caster-ui/); enforces the thresholds in angular.json
+```
+
+Run a subset with `npx ng test caster-ui --watch=false --include='src/app/workspace/**/*.spec.ts'`.
+
+Shared helpers (rendering, default providers, typed API stubs, permission
+grants, SignalR fakes) live in `src/app/test-utils/`. `vitest.config.ts` applies
+the Akita patch in `patches/` with `patch-package` when the tests start. Two
+caster-specific helpers fake browser APIs jsdom lacks for the xterm terminal:
+`jsdom-canvas.ts` (listed after `src/test-setup.ts` in the test target's
+`setupFiles`, because xterm probes a canvas when its module loads) and
+`match-media.ts` (`mockMatchMedia()`, for specs that open a terminal).
 
 ## Reporting bugs and requesting features
 

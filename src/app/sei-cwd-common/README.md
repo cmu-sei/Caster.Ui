@@ -2,41 +2,39 @@
 
 #### Description
 
-SEI CWD Common modules are a set of angular modules that are common between CWD apps. These modules  
-are interdependent on each other, however they can be overridden with your own modules.
+SEI CWD Common modules are a set of angular modules, components and services that are shared across the
+Caster UI. Settings and authentication are not part of this folder; they come from `@cmusei/crucible-common`
+(`ComnSettingsModule`, `ComnAuthModule`).
 
 #### Modules
 
-- [Settings Module](cwd-settings/README.md)
-- [Auth Module](cwd-auth/README.md)
-- [Toolbar Module](cwd-toolbar/README.md)
+- [Toolbar Module](cwd-toolbar/README.md) (`CwdToolbarModule`)
+- [Table Module](cwd-table/README.md) (`CwdTableModule`)
+- `SeiCwdCommonModule`: declares and exports the `name-dialog` component (`NameDialogComponent`)
+
+#### Services
+
+- `ErrorService` (`cwd-error/`): an `ErrorHandler` that shows API and client errors through the `SystemMessageService`
+- `SystemMessageService` and `SystemMessageComponent` (`cwd-system-message/`): display a message in a bottom sheet
+- `CanDeactivateGuard` (`cwd-route-guards/`): asks for confirmation before leaving a component that reports unsaved changes
 
 #### Replacing Services
 
-If you would like to replace or extend any of these modules. Angular makes this process very simple.
+If you would like to replace or extend any of these services. Angular makes this process very simple.
 
 ```typescript
-// Example of replacing the settings service from the CWD settings module.
-import {CwdSettingsService} from './sei-cwd-common'
+// Example of replacing the global error handler, which app.module.ts sets to ErrorService.
+import { ErrorHandler, NgModule } from '@angular/core';
 
-
-NgModule({
- declarations: [ AppComponent ],
- imports: [
-   BrowserModule,
-   AppRoutingModule,
-   CwdSettingsModule.forRoot(settings),
-   CwdAuthModule,
-   ],
-      // Replace the CwdSettingsService in the providers array
-
-   providers: [
-    {provide: CwdSettingsService, useClass: <YOUR_CUSTOM_CLASS>},
-  ],
-  bootstrap: [AppComponent]
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, AppRoutingModule, CwdToolbarModule],
+  // Replace ErrorService in the providers array
+  providers: [{ provide: ErrorHandler, useClass: <YOUR_CUSTOM_CLASS> }],
+  bootstrap: [AppComponent],
 })
+export class AppModule {}
 ```
 
-Cwd Modules will expect a certain format for dependent modules, services and components. As such you  
-should extend existing classes when possible. In the future SEI CWD Common will provide `abstract`  
-classes to assist in the implementation of your own modules, services and components.
+Cwd Modules will expect a certain format for dependent modules, services and components. As such you
+should extend existing classes when possible.
