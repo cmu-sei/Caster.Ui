@@ -25,29 +25,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-form-field>
     }
 
-    <div class="toggles">
-      <div class="toggle-row">
-        <mat-label>Include Ids</mat-label>
-        <mat-slide-toggle
-          formControlName="includeIds"
-          matTooltip="Append Ids to Directory names to be optionally preserved on import"
-        ></mat-slide-toggle>
-      </div>
-
-      @if (isArchiveable && (canIncludeDiskManifest$ | async)) {
-        <div class="toggle-row">
-          <mat-label>Include Disk Manifest</mat-label>
-          <mat-slide-toggle
-            formControlName="includeDiskManifest"
-            aria-label="Include Disk Manifest"
-            matTooltip="List the VM templates and ISOs this Terraform uses, so they can be copied to the target hypervisor"
-            (change)="onIncludeDiskManifestChange($event.checked)"
-          ></mat-slide-toggle>
-        </div>
-      }
+    <div class="toggle-row">
+      <mat-slide-toggle
+        formControlName="includeIds"
+        matTooltip="Append Ids to Directory names to be optionally preserved on import"
+        >Include Ids</mat-slide-toggle
+      >
     </div>
 
     @if (isArchiveable && (canIncludeDiskManifest$ | async)) {
+      <div class="toggle-row">
+        <mat-slide-toggle
+          formControlName="includeDiskManifest"
+          matTooltip="List the VM templates and ISOs this Terraform uses, so they can be copied to the target hypervisor"
+          (change)="onIncludeDiskManifestChange($event.checked)"
+          >Include Disk Manifest</mat-slide-toggle
+        >
+      </div>
+
       @if (form.value.includeDiskManifest) {
         @if (diskManifest$ | async; as preview) {
           <div class="disk-manifest" aria-live="polite">
