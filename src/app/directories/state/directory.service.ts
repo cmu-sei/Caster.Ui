@@ -14,6 +14,7 @@ import {
   Design,
   DirectoriesService,
   Directory,
+  DiskManifest,
   ModelFile,
   Workspace,
 } from '../../generated/caster-api';
@@ -144,10 +145,18 @@ export class DirectoryService {
   export(
     id: string,
     archiveType: ArchiveType,
-    includeIds: boolean
+    includeIds: boolean,
+    includeDiskManifest = false,
   ): Observable<FileDownload> {
     return this.directoriesService
-      .exportDirectory(id, archiveType, includeIds, 'response')
+      .exportDirectory(
+        id,
+        archiveType,
+        includeIds,
+        undefined,
+        includeDiskManifest,
+        'response',
+      )
       .pipe(
         map((response) => {
           return {
@@ -156,6 +165,11 @@ export class DirectoryService {
           };
         })
       );
+  }
+
+  /** The VM templates and ISOs an export would list in its disk manifest. */
+  getDiskManifest(id: string): Observable<DiskManifest> {
+    return this.directoriesService.getDirectoryDiskManifest(id);
   }
 
   import(id: string, preserveIds: boolean, archive: Blob) {

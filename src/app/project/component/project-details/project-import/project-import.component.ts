@@ -13,9 +13,13 @@ import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
 import {
   ArchiveType,
+  DiskKind,
+  DiskStatus,
   ImportDirectoryResult,
+  ImportedDisk,
   ImportProjectResult,
 } from 'src/app/generated/caster-api';
+import { diskKindLabel } from '../project-export/project-export.component';
 import { tap } from 'rxjs/operators';
 import {
   UntypedFormGroup,
@@ -46,6 +50,11 @@ export class ProjectImportComponent implements OnInit {
   archiveTypes = Object.keys(ArchiveType);
   typeString: string;
   lockedFiles = new Array<string>();
+  skippedSettings = new Array<string>();
+  warnings = new Array<string>();
+  /** The archive's VM templates and ISOs, missing ones first. */
+  disks = new Array<ImportedDisk>();
+  missingDisks = 0;
   complete = new BehaviorSubject<boolean>(false);
   complete$ = this.complete.asObservable();
 
@@ -81,6 +90,21 @@ export class ProjectImportComponent implements OnInit {
     this.importComplete.emit(false);
   }
 
+  diskKindLabel(kind: DiskKind): string {
+    return diskKindLabel(kind);
+  }
+
+  diskStatusLabel(status: DiskStatus): string {
+    switch (status) {
+      case DiskStatus.Present:
+        return 'Found';
+      case DiskStatus.Missing:
+        return 'Missing';
+      default:
+        return 'Not checked';
+    }
+  }
+
   private onImport(
     id: string,
     type: ProjectObjectType,
@@ -103,7 +127,15 @@ export class ProjectImportComponent implements OnInit {
     if (obs != null) {
       obs = obs.pipe(
         tap((x) => {
-          this.lockedFiles = x.lockedFiles;
+          this.lockedFiles = x.lockedFiles ?? [];
+          this.skippedSettings = x.skippedSettings ?? [];
+          this.warnings = x.warnings ?? [];
+          this.disks = [...(x.disks ?? [])].sort(
+            (a, b) => statusOrder(a.status) - statusOrder(b.status),
+          );
+          this.missingDisks = this.disks.filter(
+            (d) => d.status === DiskStatus.Missing,
+          ).length;
           this.complete.next(true);
         })
       );
@@ -111,4 +143,10 @@ export class ProjectImportComponent implements OnInit {
       obs.subscribe();
     }
   }
+}
+
+function statusOrder(status: DiskStatus): number {
+  return [DiskStatus.Missing, DiskStatus.Unknown, DiskStatus.Present].indexOf(
+    status,
+  );
 }

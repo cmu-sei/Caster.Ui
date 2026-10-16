@@ -15,6 +15,7 @@ import {
   ArchiveType,
   Design,
   VlansService,
+  DiskManifest,
 } from 'src/app/generated/caster-api';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
@@ -299,10 +300,18 @@ export class ProjectService {
   export(
     id: string,
     archiveType: ArchiveType,
-    includeIds: boolean
+    includeIds: boolean,
+    includeDiskManifest = false,
   ): Observable<FileDownload> {
     return this.projectsService
-      .exportProject(id, archiveType, includeIds, 'response')
+      .exportProject(
+        id,
+        archiveType,
+        includeIds,
+        undefined,
+        includeDiskManifest,
+        'response',
+      )
       .pipe(
         map((response) => {
           return {
@@ -311,6 +320,11 @@ export class ProjectService {
           };
         })
       );
+  }
+
+  /** The VM templates and ISOs an export would list in its disk manifest. */
+  getDiskManifest(id: string): Observable<DiskManifest> {
+    return this.projectsService.getProjectDiskManifest(id);
   }
 
   import(id: string, preserveIds: boolean, archive: Blob) {
