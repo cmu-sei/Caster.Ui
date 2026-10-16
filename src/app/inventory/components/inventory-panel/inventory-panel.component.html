@@ -63,5 +63,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @for (descriptor of categories; track descriptor.category) {
       <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
     }
+
+    @if (lastUpdated$ | async; as lastUpdated) {
+      <div class="last-updated">Updated {{ lastUpdated | date: 'short' }}</div>
+    }
   </mat-expansion-panel>
 </mat-accordion>

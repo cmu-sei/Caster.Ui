@@ -77,12 +77,6 @@
   flex-shrink: 0;
 }
 
-.last-updated {
-  font-size: x-small;
-  opacity: 0.6;
-  padding: 4px 0 0;
-}
-
 :host ::ng-deep .mat-expansion-panel-header {
   height: auto !important;
   margin-top: 2px !important;

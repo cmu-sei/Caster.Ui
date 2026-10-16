@@ -38,6 +38,7 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
     INVENTORY_CATEGORIES;
 
   public refreshing$: Observable<boolean>;
+  public lastUpdated$: Observable<string | null>;
 
   public expanded = false;
   public filterString = '';
@@ -55,6 +56,7 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   // OnPush until something else triggers change detection.
   ngOnInit() {
     this.refreshing$ = this.inventoryQuery.refreshing$;
+    this.lastUpdated$ = this.inventoryQuery.lastUpdated$;
 
     this.inventoryQuery.filter$
       .pipe(takeUntil(this.unsubscribe$))

@@ -103,12 +103,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 }
               </mat-list>
             }
-
-            @if (state.loaded && state.available && state.lastUpdated) {
-              <div class="last-updated">
-                Updated {{ state.lastUpdated | date: 'short' }}
-              </div>
-            }
           </div>
         </mat-expansion-panel>
       </mat-accordion>
