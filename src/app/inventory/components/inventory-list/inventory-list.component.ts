@@ -65,8 +65,8 @@ export class InventoryListComponent implements OnInit {
       .subscribe();
   }
 
-  onClipboardSuccess() {
-    this.snackBar.open('Copied to clipboard', 'Dismiss');
+  onClipboardSuccess(name: string) {
+    this.snackBar.open(`Copied ${name} to clipboard`, 'Dismiss');
   }
 
   itemLabel(item: InventoryItem): string | null {

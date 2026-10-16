@@ -93,7 +93,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         class="copy-button"
                         ngxClipboard
                         [cbContent]="item.name"
-                        (cbOnSuccess)="onClipboardSuccess()"
+                        (cbOnSuccess)="onClipboardSuccess(item.name)"
                         (click)="$event.stopPropagation()"
                         matTooltip="Copy name: {{ item.name }}"
                         [attr.aria-label]="'Copy name of ' + item.name"

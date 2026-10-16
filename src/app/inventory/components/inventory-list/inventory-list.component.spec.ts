@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ComponentFixture } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -218,4 +218,17 @@ describe('InventoryListComponent', () => {
     );
   });
 
+  /**
+   * Verifies: the copy confirmation names what was copied.
+   * Interacts with: MatSnackBar.open (stub).
+   * Data: vmbr1.
+   */
+  it('says which name it copied', () => {
+    component.onClipboardSuccess('vmbr1');
+
+    expect(TestBed.inject(MatSnackBar).open).toHaveBeenCalledWith(
+      'Copied vmbr1 to clipboard',
+      'Dismiss',
+    );
+  });
 });
