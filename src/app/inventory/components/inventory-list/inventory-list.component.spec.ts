@@ -1,9 +1,20 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ComponentFixture } from '@angular/core/testing';
+import { MatButtonModule } from '@angular/material/button';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ClipboardModule } from 'ngx-clipboard';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, of } from 'rxjs';
+import { renderComponent } from 'src/app/test-utils/render-component';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
@@ -15,7 +26,7 @@ import {
 import { InventoryListComponent } from './inventory-list.component';
 
 function categoryState(
-  overrides: Partial<InventoryCategoryState> = {}
+  overrides: Partial<InventoryCategoryState> = {},
 ): InventoryCategoryState {
   return {
     items: [],
@@ -36,26 +47,37 @@ describe('InventoryListComponent', () => {
   let state$: BehaviorSubject<InventoryCategoryState>;
   let items$: BehaviorSubject<InventoryItem[]>;
   let filter$: BehaviorSubject<string>;
-  let inventoryServiceSpy: jasmine.SpyObj<InventoryService>;
+  let inventoryServiceSpy: {
+    load: ReturnType<typeof vi.fn<InventoryService['load']>>;
+  };
 
   const isosDescriptor = INVENTORY_CATEGORIES.find(
-    (d) => d.category === InventoryCategory.Isos
+    (d) => d.category === InventoryCategory.Isos,
   );
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     state$ = new BehaviorSubject<InventoryCategoryState>(categoryState());
     items$ = new BehaviorSubject<InventoryItem[]>([]);
     filter$ = new BehaviorSubject<string>('');
 
     // No live API in specs: the query is stubbed with plain subjects.
-    inventoryServiceSpy = jasmine.createSpyObj<InventoryService>(
-      'InventoryService',
-      ['load']
-    );
-    inventoryServiceSpy.load.and.returnValue(of(null));
+    inventoryServiceSpy = {
+      load: vi.fn<InventoryService['load']>(() => of(null)),
+    } satisfies Partial<InventoryService>;
 
-    TestBed.configureTestingModule({
-      declarations: [InventoryListComponent],
+    const view = await renderComponent(InventoryListComponent, {
+      imports: [
+        MatButtonModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatListModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule,
+        ClipboardModule,
+      ],
+      inputs: { descriptor: isosDescriptor },
       providers: [
         {
           provide: InventoryQuery,
@@ -68,26 +90,31 @@ describe('InventoryListComponent', () => {
         { provide: InventoryService, useValue: inventoryServiceSpy },
         {
           provide: MatSnackBar,
-          useValue: jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']),
+          useValue: { open: vi.fn() },
         },
       ],
-    }).compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(InventoryListComponent);
+    });
+    fixture = view.fixture;
     component = fixture.componentInstance;
-    component.descriptor = isosDescriptor;
-    fixture.detectChanges();
   });
 
+  /**
+   * Verifies: the list renders for the ISOs category.
+   * Interacts with: InventoryQuery (selectCategory, selectFilteredItems subjects); InventoryService (stub).
+   * Data: ISOs, loaded with no items.
+   */
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
+  /**
+   * Verifies: an unavailable category shows the API's message and offers no retry.
+   * Interacts with: the .state-row.unavailable row and .retry-link.
+   * Data: ISOs, available false, 'Inventory is not configured'.
+   */
   it('renders the API message when available is false', () => {
     state$.next(
-      categoryState({ available: false, error: 'Inventory is not configured' })
+      categoryState({ available: false, error: 'Inventory is not configured' }),
     );
     fixture.detectChanges();
 
@@ -97,15 +124,25 @@ describe('InventoryListComponent', () => {
     expect(fixture.nativeElement.querySelector('.retry-link')).toBeNull();
   });
 
+  /**
+   * Verifies: an unavailable category with no message shows the category's fallback message.
+   * Interacts with: InventoryCategoryDescriptor.fallbackUnavailableMessage.
+   * Data: ISOs, available false, error null.
+   */
   it('falls back to a category message when error is null', () => {
     state$.next(categoryState({ available: false, error: null }));
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      isosDescriptor.fallbackUnavailableMessage
+      isosDescriptor.fallbackUnavailableMessage,
     );
   });
 
+  /**
+   * Verifies: a failed HTTP call offers a retry, and retrying reloads that category.
+   * Interacts with: the .retry-link; InventoryService.load (stub).
+   * Data: ISOs, loadFailed true.
+   */
   it('offers a retry only when the HTTP call itself failed', () => {
     state$.next(categoryState({ available: false, loadFailed: true }));
     fixture.detectChanges();
@@ -114,10 +151,15 @@ describe('InventoryListComponent', () => {
 
     component.retry();
     expect(inventoryServiceSpy.load).toHaveBeenCalledWith(
-      InventoryCategory.Isos
+      InventoryCategory.Isos,
     );
   });
 
+  /**
+   * Verifies: a readable category with no items says 'Nothing found' instead of unavailable.
+   * Interacts with: the list's empty state.
+   * Data: ISOs, available, no items.
+   */
   it('distinguishes an empty result from an unavailable category', () => {
     state$.next(categoryState({ items: [] }));
     fixture.detectChanges();
@@ -125,6 +167,11 @@ describe('InventoryListComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Nothing found');
   });
 
+  /**
+   * Verifies: the tooltip lists the path, then the properties sorted by key.
+   * Interacts with: InventoryListComponent.propertiesTooltip.
+   * Data: a VM template with guestOs and cpuCount.
+   */
   it('builds a properties tooltip from path and properties', () => {
     const tooltip = component.propertiesTooltip({
       id: 'vm-1',
@@ -134,7 +181,7 @@ describe('InventoryListComponent', () => {
     });
 
     expect(tooltip).toBe(
-      '/dc/vm/win2019-template · cpuCount: 4 · guestOs: windows2019srv_64Guest'
+      '/dc/vm/win2019-template · cpuCount: 4 · guestOs: windows2019srv_64Guest',
     );
   });
 });

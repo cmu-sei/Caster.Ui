@@ -52,6 +52,9 @@ class ProjectStub {
   @Output() tabChanged = new EventEmitter<unknown>();
 }
 
+@Component({ selector: 'cas-inventory-panel', template: '', standalone: false })
+class InventoryPanelStub {}
+
 describe('ProjectCollapseContainerComponent', () => {
   /**
    * Verifies: once a project is active the page joins its hub group, loads its permission claims, and shows the project in the top bar and the project view.
@@ -84,7 +87,12 @@ describe('ProjectCollapseContainerComponent', () => {
     const { fixture } = await renderComponent(
       ProjectCollapseContainerComponent,
       {
-        declarations: [ProjectNavigationStub, TopbarStub, ProjectStub],
+        declarations: [
+          ProjectNavigationStub,
+          TopbarStub,
+          ProjectStub,
+          InventoryPanelStub,
+        ],
         imports: [
           MatSidenavModule,
           MatToolbarModule,

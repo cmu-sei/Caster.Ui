@@ -1,16 +1,18 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { ApiStub } from '../../test-utils/api-stub';
 import { InventoryApiService } from '../api/inventory-api.service';
 import { InventoryCategory, InventoryResponse } from './inventory.model';
 import { InventoryService } from './inventory.service';
 import { createInitialInventoryState, InventoryStore } from './inventory.store';
 
 function response(
-  overrides: Partial<InventoryResponse> = {}
+  overrides: Partial<InventoryResponse> = {},
 ): InventoryResponse {
   return {
     items: [],
@@ -24,15 +26,17 @@ function response(
 describe('InventoryService', () => {
   let service: InventoryService;
   let store: InventoryStore;
-  let apiSpy: jasmine.SpyObj<InventoryApiService>;
+  let apiSpy: {
+    getCategory: ReturnType<typeof vi.fn<InventoryApiService['getCategory']>>;
+    refresh: ReturnType<typeof vi.fn<InventoryApiService['refresh']>>;
+  };
 
   beforeEach(() => {
     // There is no live API, so the hand-written client is stubbed wholesale.
-    apiSpy = jasmine.createSpyObj<InventoryApiService>('InventoryApiService', [
-      'getCategory',
-      'refresh',
-    ]);
-    apiSpy.refresh.and.returnValue(of(null));
+    apiSpy = {
+      getCategory: vi.fn<InventoryApiService['getCategory']>(),
+      refresh: vi.fn<InventoryApiService['refresh']>(() => of(null)),
+    } satisfies ApiStub<InventoryApiService>;
 
     TestBed.configureTestingModule({
       providers: [{ provide: InventoryApiService, useValue: apiSpy }],
@@ -43,8 +47,13 @@ describe('InventoryService', () => {
     service = TestBed.inject(InventoryService);
   });
 
+  /**
+   * Verifies: load stores the returned items and clears loading for that category.
+   * Interacts with: InventoryApiService.getCategory (stub); real InventoryStore.
+   * Data: one VM template, lastUpdated 2026-10-07T12:00:00Z.
+   */
   it('stores items on a successful load', () => {
-    apiSpy.getCategory.and.returnValue(
+    apiSpy.getCategory.mockReturnValue(
       of(
         response({
           items: [
@@ -56,8 +65,8 @@ describe('InventoryService', () => {
             },
           ],
           lastUpdated: '2026-10-07T12:00:00Z',
-        })
-      )
+        }),
+      ),
     );
 
     service.load(InventoryCategory.VmTemplates).subscribe();
@@ -68,9 +77,14 @@ describe('InventoryService', () => {
     expect(state.items.length).toBe(1);
   });
 
+  /**
+   * Verifies: an available: false response is stored as a loaded, non-failed category with its message.
+   * Interacts with: InventoryApiService.getCategory (stub); real InventoryStore.
+   * Data: networks, available false, 'Inventory is not configured'.
+   */
   it('treats available: false as a normal outcome and clears loading', () => {
-    apiSpy.getCategory.and.returnValue(
-      of(response({ available: false, error: 'Inventory is not configured' }))
+    apiSpy.getCategory.mockReturnValue(
+      of(response({ available: false, error: 'Inventory is not configured' })),
     );
 
     service.load(InventoryCategory.Networks).subscribe();
@@ -83,8 +97,13 @@ describe('InventoryService', () => {
     expect(state.loadFailed).toBe(false);
   });
 
+  /**
+   * Verifies: loadAll stores each category separately, so one unavailable category does not hide the others.
+   * Interacts with: InventoryApiService.getCategory (stub per category); real InventoryStore.
+   * Data: ISOs unavailable; every other category returns one item.
+   */
   it('keeps each category independent when only ISOs are unavailable', () => {
-    apiSpy.getCategory.and.callFake((category: InventoryCategory) =>
+    apiSpy.getCategory.mockImplementation((category: InventoryCategory) =>
       category === InventoryCategory.Isos
         ? of(response({ available: false, error: 'Known API limitation.' }))
         : of(
@@ -97,8 +116,8 @@ describe('InventoryService', () => {
                   properties: {},
                 },
               ],
-            })
-          )
+            }),
+          ),
     );
 
     service.loadAll().subscribe();
@@ -110,9 +129,14 @@ describe('InventoryService', () => {
     expect(value[InventoryCategory.Datastores].items.length).toBe(1);
   });
 
+  /**
+   * Verifies: an HTTP error marks the category loadFailed and clears loading without erroring the stream.
+   * Interacts with: InventoryApiService.getCategory (throws); real InventoryStore.
+   * Data: datastores, HTTP 404.
+   */
   it('clears loading on a transport failure without erroring the stream', () => {
-    apiSpy.getCategory.and.returnValue(
-      throwError(() => new HttpErrorResponse({ status: 404 }))
+    apiSpy.getCategory.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 404 })),
     );
 
     let errored = false;
@@ -128,11 +152,16 @@ describe('InventoryService', () => {
     expect(state.loadFailed).toBe(true);
   });
 
+  /**
+   * Verifies: a failed refresh still clears refreshing and reloads all four categories.
+   * Interacts with: InventoryApiService.refresh (throws), getCategory (stub); real InventoryStore.
+   * Data: refresh HTTP 500; every category unavailable.
+   */
   it('clears refreshing even when the refresh call fails', () => {
-    apiSpy.refresh.and.returnValue(
-      throwError(() => new HttpErrorResponse({ status: 500 }))
+    apiSpy.refresh.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500 })),
     );
-    apiSpy.getCategory.and.returnValue(of(response({ available: false })));
+    apiSpy.getCategory.mockReturnValue(of(response({ available: false })));
 
     service.refresh().subscribe();
 
@@ -140,6 +169,11 @@ describe('InventoryService', () => {
     expect(apiSpy.getCategory).toHaveBeenCalledTimes(4);
   });
 
+  /**
+   * Verifies: setFilter stores the search term.
+   * Interacts with: real InventoryStore.
+   * Data: 'ubuntu'.
+   */
   it('stores the search term', () => {
     service.setFilter('ubuntu');
     expect(store.getValue().filter).toBe('ubuntu');
