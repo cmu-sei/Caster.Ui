@@ -22,7 +22,14 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminModuleListComponent } from './module-list.component';
 
 const modules: Module[] = [
-  { id: 'mod1', name: 'vm', path: 'group/vm', versionsCount: 2 },
+  {
+    id: 'mod1',
+    name: 'vm',
+    path: 'group/vm',
+    description: 'A virtual machine',
+    versionsCount: 2,
+    latestVersion: 'v1.2.0',
+  },
 ];
 
 async function renderModuleList(canEdit: boolean, confirmAnswer?: boolean) {
@@ -144,5 +151,24 @@ describe('AdminModuleListComponent', () => {
     expect(
       screen.queryByRole('button', { name: 'Delete Module' }),
     ).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: each module's description and latest version are listed, so an administrator can see what an import brought in.
+   * Interacts with: the description and latestVersion columns.
+   * Data: module vm, description "A virtual machine", latest version v1.2.0.
+   */
+  it('lists the description and latest version', async () => {
+    await renderModuleList(false);
+
+    const table = within(screen.getByRole('table'));
+    expect(
+      table.getByRole('columnheader', { name: 'Description' }),
+    ).toBeInTheDocument();
+    expect(
+      table.getByRole('columnheader', { name: 'Latest Version' }),
+    ).toBeInTheDocument();
+    expect(table.getByText('A virtual machine')).toBeInTheDocument();
+    expect(table.getByText('v1.2.0')).toBeInTheDocument();
   });
 });

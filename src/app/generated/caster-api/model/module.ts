@@ -25,5 +25,9 @@ export interface Module {
     versions?: Array<ModuleVersion> | null;
     dateModified?: string | null;
     versionsCount?: number | null;
+    /**
+     * The name of the highest version, the one Designer offers first. Null unless requested, or if the Module has no versions.
+     */
+    latestVersion?: string | null;
 }
 

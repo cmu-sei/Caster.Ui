@@ -25,14 +25,23 @@ export class ModuleService {
 
   load(
     includeVersions: boolean,
-    includeVerionsCount: boolean
+    includeVerionsCount: boolean,
+    includeLatestVersion = false
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
-    return this.modulesService
-      .getAllModules(includeVersions, includeVerionsCount)
+    const request = includeLatestVersion
+      ? this.modulesService.getAllModules(
+          includeVersions,
+          includeVerionsCount,
+          false,
+          undefined,
+          true
+        )
+      : this.modulesService.getAllModules(includeVersions, includeVerionsCount);
+    return request
       .pipe(
         tap((modules: Module[]) => {
-          this.upsertMany(modules, includeVersions);
+          this.upsertMany(modules, includeVersions, includeLatestVersion);
         }),
         tap(() => {
           this.moduleStore.setLoading(false);
@@ -58,7 +67,11 @@ export class ModuleService {
       );
   }
 
-  private upsertMany(modules: Module[], includeVersions: boolean) {
+  private upsertMany(
+    modules: Module[],
+    includeVersions: boolean,
+    includeLatestVersion = false
+  ) {
     let objs = modules;
 
     if (!includeVersions) {
@@ -66,6 +79,14 @@ export class ModuleService {
       // overwrite any we already have
       objs = modules.map((x) => {
         delete x.versions;
+        return x;
+      });
+    }
+
+    if (!includeLatestVersion) {
+      // likewise for the latest version
+      objs = objs.map((x) => {
+        delete x.latestVersion;
         return x;
       });
     }

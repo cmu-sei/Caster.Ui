@@ -29,7 +29,14 @@ export interface Action {
     standalone: false
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
-  public displayedColumns: string[] = ['name', 'path', 'versionsCount', 'dateModified'];
+  public displayedColumns: string[] = [
+    'name',
+    'path',
+    'description',
+    'versionsCount',
+    'latestVersion',
+    'dateModified',
+  ];
   public filterString = '';
   public savedFilterString = '';
   public dataSource = new MatTableDataSource<Module>(new Array<Module>());

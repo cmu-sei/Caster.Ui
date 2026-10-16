@@ -59,7 +59,7 @@ export class AdminModulesComponent implements OnInit {
    */
   load(userRequested = false) {
     this.moduleService
-      .load(false, true)
+      .load(false, true, true)
       .pipe(
         take(1),
         finalize(() => this.loadSources(userRequested))

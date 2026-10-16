@@ -106,6 +106,48 @@ describe('ModuleService', () => {
     });
 
     /**
+     * Verifies: load(..., true) asks for the latest version as the fifth
+     *   argument and stores it.
+     * Interacts with: ModulesService.getAllModules (stub).
+     * Data: the API returns m1 with latest version 1.0.0.
+     */
+    it('load() with the latest version stores it', async () => {
+      const api = {
+        getAllModules: vi.fn(() => of([mod({ latestVersion: '1.0.0' })])),
+      } satisfies ApiStub<ModulesService>;
+      const { service, query } = setup(api);
+
+      await firstValueFrom(service.load(false, true, true));
+
+      expect(api.getAllModules).toHaveBeenCalledWith(
+        false,
+        true,
+        false,
+        undefined,
+        true,
+      );
+      expect(query.getEntity('m1').latestVersion).toBe('1.0.0');
+    });
+
+    /**
+     * Verifies: a load without the latest version keeps the one already
+     *   stored, as it does for versions.
+     * Interacts with: ModulesService.getAllModules (stub); upsertMany merge.
+     * Data: stored m1 with latest version 1.0.0; the API returns m1 with
+     *   latestVersion null.
+     */
+    it('load() without the latest version keeps the stored one', async () => {
+      const api = {
+        getAllModules: vi.fn(() => of([mod({ latestVersion: null })])),
+      } satisfies ApiStub<ModulesService>;
+      const { service, query } = setup(api, [mod({ latestVersion: '1.0.0' })]);
+
+      await firstValueFrom(service.load(true, true));
+
+      expect(query.getEntity('m1').latestVersion).toBe('1.0.0');
+    });
+
+    /**
      * Verifies: loadByDesignId passes the design id as the fourth argument,
      *   with forceUpdate false.
      * Interacts with: ModulesService.getAllModules (stub).
