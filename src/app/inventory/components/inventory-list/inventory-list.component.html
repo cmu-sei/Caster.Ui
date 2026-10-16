@@ -78,7 +78,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         class="item-text"
                         [matTooltip]="propertiesTooltip(item)"
                         >
-                        <div class="item-name">{{ item.name }}</div>
+                        <div class="item-name">
+                          {{ item.name }}
+                          @if (itemLabel(item); as label) {
+                            <span class="item-label">{{ label }}</span>
+                          }
+                        </div>
                         @if (item.path && item.path !== item.name) {
                           <div class="item-path">{{ item.path }}</div>
                         }

@@ -14,6 +14,7 @@ import {
   InventoryCategoryDescriptor,
   InventoryCategoryState,
   InventoryItem,
+  inventoryItemLabel,
   InventoryQuery,
   InventoryService,
 } from '../../state';
@@ -66,6 +67,10 @@ export class InventoryListComponent implements OnInit {
 
   onClipboardSuccess() {
     this.snackBar.open('Copied to clipboard', 'Dismiss');
+  }
+
+  itemLabel(item: InventoryItem): string | null {
+    return inventoryItemLabel(item);
   }
 
   /**

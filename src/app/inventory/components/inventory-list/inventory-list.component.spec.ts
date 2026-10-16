@@ -156,6 +156,39 @@ describe('InventoryListComponent', () => {
   });
 
   /**
+   * Verifies: an item whose name is an id shows its alias, or failing that its
+   *   comment, under the name; an item with neither shows only its name.
+   * Interacts with: the .item-label line.
+   * Data: vnet01 with alias Red Team LAN; vmbr1 with comment Blue Team LAN;
+   *   vmbr0 with no label.
+   */
+  it('shows a readable name under an id-only name', () => {
+    const items: InventoryItem[] = [
+      {
+        id: 'vnet01',
+        name: 'vnet01',
+        path: 'vnet01',
+        properties: { alias: 'Red Team LAN', comment: 'ignored' },
+      },
+      {
+        id: 'vmbr1',
+        name: 'vmbr1',
+        path: 'vmbr1',
+        properties: { comment: 'Blue Team LAN' },
+      },
+      { id: 'vmbr0', name: 'vmbr0', path: 'vmbr0', properties: {} },
+    ];
+    state$.next(categoryState({ items }));
+    items$.next(items);
+    fixture.detectChanges();
+
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll('.item-label'),
+    ).map((el: HTMLElement) => el.textContent.trim());
+    expect(labels).toEqual(['Red Team LAN', 'Blue Team LAN']);
+  });
+
+  /**
    * Verifies: a readable category with no items says 'Nothing found' instead of unavailable.
    * Interacts with: the list's empty state.
    * Data: ISOs, available, no items.
@@ -184,4 +217,5 @@ describe('InventoryListComponent', () => {
       '/dc/vm/win2019-template · cpuCount: 4 · guestOs: windows2019srv_64Guest',
     );
   });
+
 });

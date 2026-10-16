@@ -65,6 +65,16 @@
   white-space: normal;
 }
 
+// Follows the id on the same line, muted so the id still reads first.
+.item-label {
+  opacity: 0.65;
+
+  &::before {
+    content: '\2014';
+    margin: 0 4px;
+  }
+}
+
 .item-path {
   font-size: x-small;
   opacity: 0.65;

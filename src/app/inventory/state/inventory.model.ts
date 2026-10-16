@@ -92,6 +92,15 @@ export const INVENTORY_CATEGORIES: InventoryCategoryDescriptor[] = [
 ];
 
 /**
+ * A readable name for an item whose name is an id, e.g. a Proxmox vnet's alias
+ * or a bridge's comment. Null when there is none, or it only repeats the name.
+ */
+export function inventoryItemLabel(item: InventoryItem): string | null {
+  const label = item.properties?.['alias'] || item.properties?.['comment'];
+  return label && label !== item.name ? label : null;
+}
+
+/**
  * Case-insensitive match of a search term against an item's name, path and
  * property values.
  */
