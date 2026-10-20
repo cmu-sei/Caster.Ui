@@ -11,6 +11,7 @@ import { EMPTY, of } from 'rxjs';
 import {
   ComnAuthQuery,
   ComnAuthService,
+  ComnHeaderBarModule,
   CrucibleThemeService,
   Theme,
 } from '@cmusei/crucible-common';
@@ -41,7 +42,7 @@ async function renderApp(queryParams: Record<string, string> = {}) {
     userTheme$: of(Theme.DARK),
   } satisfies Pick<ComnAuthQuery, 'userTheme$'>;
   const view = await renderComponent(AppComponent, {
-    imports: [HeaderBarStub],
+    childStubs: [{ replace: ComnHeaderBarModule, with: HeaderBarStub }],
     providers: [
       { provide: HotkeysService, useValue: hotkeys },
       { provide: CrucibleThemeService, useValue: theme },

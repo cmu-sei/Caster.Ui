@@ -62,7 +62,6 @@ import { MatIcon } from '@angular/material/icon';
 import { EditorComponent } from '../../../../editor/component/editor/editor.component';
 import { WorkspaceContainerComponent } from '../../../../workspace/components/workspace-container/workspace-container.component';
 import { DesignComponent } from '../../../../designs/components/design/design.component';
-import { ProjectComponent } from '../project/project.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -79,7 +78,6 @@ import { AsyncPipe } from '@angular/common';
     EditorComponent,
     WorkspaceContainerComponent,
     DesignComponent,
-    ProjectComponent,
     AsyncPipe,
   ],
 })

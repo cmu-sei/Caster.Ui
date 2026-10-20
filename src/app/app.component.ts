@@ -5,13 +5,19 @@ import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import {
   ComnAuthQuery,
   ComnAuthService,
   ComnSettingsService,
   CrucibleThemeService,
   Theme,
+  ComnHeaderBarModule,
 } from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
 import { HotkeysHelpDialogComponent } from './shared/components/hotkeys-help/hotkeys-help-dialog.component';
@@ -23,7 +29,7 @@ import { CurrentUserQuery, CurrentUserStore } from './users/state';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  standalone: false,
+  imports: [ComnHeaderBarModule, RouterOutlet],
 })
 export class AppComponent implements OnDestroy {
   @HostBinding('class') componentCssClass: string;
@@ -45,7 +51,7 @@ export class AppComponent implements OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private currentUserStore: CurrentUserStore,
-    private themeService: CrucibleThemeService
+    private themeService: CrucibleThemeService,
   ) {
     this.authQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
@@ -97,7 +103,7 @@ export class AppComponent implements OnDestroy {
     router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((event: NavigationEnd) => {
         this.updateLastRoute(event.url);
@@ -125,86 +131,86 @@ export class AppComponent implements OnDestroy {
     this.matIconRegistry.addSvgIcon(
       'ic_apps_white_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_apps_white_24px.svg'
-      )
+        'assets/svg-icons/ic_apps_white_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_chevron_left_white_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_left_white_24px.svg'
-      )
+        'assets/svg-icons/ic_chevron_left_white_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_chevron_right_black_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_right_black_24px.svg'
-      )
+        'assets/svg-icons/ic_chevron_right_black_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_chevron_right_white_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_chevron_right_white_24px.svg'
-      )
+        'assets/svg-icons/ic_chevron_right_white_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_expand_more_white_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_expand_more_white_24px.svg'
-      )
+        'assets/svg-icons/ic_expand_more_white_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_clear_black_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_clear_black_24px.svg'
-      )
+        'assets/svg-icons/ic_clear_black_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_expand_more_black_24px',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_expand_more_black_24px.svg'
-      )
+        'assets/svg-icons/ic_expand_more_black_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_cancel_circle',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_cancel_circle.svg'
-      )
+        'assets/svg-icons/ic_cancel_circle.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_back_arrow',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_back_arrow_24px.svg'
-      )
+        'assets/svg-icons/ic_back_arrow_24px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_magnify_search',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_magnify_glass_48px.svg'
-      )
+        'assets/svg-icons/ic_magnify_glass_48px.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_clipboard_copy',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_clipboard_copy.svg'
-      )
+        'assets/svg-icons/ic_clipboard_copy.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_trash_can',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_trash_can.svg'
-      )
+        'assets/svg-icons/ic_trash_can.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_pencil',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_pencil.svg'
-      )
+        'assets/svg-icons/ic_pencil.svg',
+      ),
     );
     this.matIconRegistry.addSvgIcon(
       'ic_crucible_caster',
       this.sanitizer.bypassSecurityTrustResourceUrl(
-        'assets/svg-icons/ic_crucible_caster.svg'
-      )
+        'assets/svg-icons/ic_crucible_caster.svg',
+      ),
     );
   }
 }
