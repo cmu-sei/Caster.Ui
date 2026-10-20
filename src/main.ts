@@ -39,7 +39,6 @@ import {
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import {
@@ -51,6 +50,7 @@ import {
 import { routes } from './app/app.routes';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { AppComponent } from './app/app.component';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 // since the generated api code is a separate module we will set the BASE_PATH here at bootstrap.
 export function getBasePath(settings: ComnSettingsService) {
@@ -118,7 +118,6 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection(),
     importProvidersFrom(
-      BrowserAnimationsModule,
       environment.production ? [] : AkitaNgDevtools.forRoot(),
       AkitaNgRouterStoreModule,
       ComnSettingsModule.forRoot(),
@@ -145,6 +144,7 @@ bootstrapApplication(AppComponent, {
       }),
       withPreloading(PreloadAllModules),
     ),
+    provideAnimationsAsync(),
     provideHttpClient(withInterceptorsFromDi()),
     provideCrucibleTheme({ brand: { color: '#E9831C', text: '#FFFFFF' } }),
   ],
