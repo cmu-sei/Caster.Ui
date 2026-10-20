@@ -11,7 +11,7 @@ export const routes: Routes = [
     path: 'admin',
     pathMatch: 'full',
     loadChildren: () =>
-      import('./admin-app/admin-app.module').then((m) => m.AdminAppModule),
+      import('./admin-app/admin.routes').then((m) => m.ADMIN_ROUTES),
     canActivate: [ComnAuthGuardService],
   },
   {
