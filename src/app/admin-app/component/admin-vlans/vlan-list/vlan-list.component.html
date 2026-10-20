@@ -17,15 +17,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       autocomplete="off"
     />
     @if (input.value) {
-    <button
-      color="primary"
-      matSuffix
-      mat-icon-button
-      aria-label="Clear"
-      (click)="clearFilter()"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
-    </button>
+      <button
+        color="primary"
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearFilter()"
+      >
+        <mat-icon
+          class="mdi-24px"
+          fontIcon="mdi-close-circle-outline"
+        ></mat-icon>
+      </button>
     }
   </mat-form-field>
   <button
@@ -62,11 +65,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-menu>
   <mat-menu #partitionSelectMenu="matMenu">
     @if (showUnassigned) {
-    <button (click)="reassignSelected(null)" mat-menu-item>Unassigned</button>
-    } @for (partition of partitions; track partition) {
-    <button (click)="reassignSelected(partition.id)" mat-menu-item>
-      {{ partition.name }}
-    </button>
+      <button (click)="reassignSelected(null)" mat-menu-item>Unassigned</button>
+    }
+    @for (partition of partitions; track partition) {
+      <button (click)="reassignSelected(partition.id)" mat-menu-item>
+        {{ partition.name }}
+      </button>
     }
   </mat-menu>
 </div>
@@ -78,7 +82,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [minBufferPx]="800"
   [maxBufferPx]="2400"
   class="vlan-table-viewport"
-  [ngStyle]="{ height: tableHeight }"
+  [style.height]="tableHeight"
 >
   <table
     mat-table
@@ -161,50 +165,51 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <td mat-cell *matCellDef="let element">
         <div class="tag">
           @if (editingId != element.id) {
-          <p>{{ element.tag }}</p>
-          @if (canEdit) {
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Edit Tag"
-            matTooltip="Edit Tag"
-            (click)="editingId = element.id"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline">
-            </mat-icon>
-          </button>
-          } } @if (editingId == element.id) {
-          <mat-form-field>
-            <input
-              #tagInput
-              matInput
-              [value]="element.tag"
-              (keydown.enter)="editTag(element.id, $event.target)"
-              (keydown.esc)="editingId = null"
-            />
-          </mat-form-field>
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Confirm Edit"
-            matTooltip="Confirm Edit"
-            (click)="editTag(element.id, tagInput)"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Cancel Edit"
-            matTooltip="Cancel Edit"
-            (click)="editingId = null"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
-          </button>
+            <p>{{ element.tag }}</p>
+            @if (canEdit) {
+              <button
+                mat-icon-button
+                color="primary"
+                aria-label="Edit Tag"
+                matTooltip="Edit Tag"
+                (click)="editingId = element.id"
+              >
+                <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline">
+                </mat-icon>
+              </button>
+            }
           }
-        </div>
-      </td></ng-container
-    >
+          @if (editingId == element.id) {
+            <mat-form-field>
+              <input
+                #tagInput
+                matInput
+                [value]="element.tag"
+                (keydown.enter)="editTag(element.id, $event.target)"
+                (keydown.esc)="editingId = null"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              color="primary"
+              aria-label="Confirm Edit"
+              matTooltip="Confirm Edit"
+              (click)="editTag(element.id, tagInput)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="primary"
+              aria-label="Cancel Edit"
+              matTooltip="Cancel Edit"
+              (click)="editingId = null"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+            </button>
+          }
+        </div></td
+    ></ng-container>
 
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -214,16 +219,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [matTooltip]="element.inUse ? 'Cannot remove VLANs in use' : ''"
       >
         @if (element.partitionId) {
-        <button
-          mat-icon-button
-          color="primary"
-          (click)="removeFromPartition(element)"
-          aria-label="Remove VLAN from this Partition"
-          matTooltip="Remove VLAN from this Partition"
-          [disabled]="element.inUse"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
-        </button>
+          <button
+            mat-icon-button
+            color="primary"
+            (click)="removeFromPartition(element)"
+            aria-label="Remove VLAN from this Partition"
+            matTooltip="Remove VLAN from this Partition"
+            [disabled]="element.inUse"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
+          </button>
         }
       </td>
     </ng-container>

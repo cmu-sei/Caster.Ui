@@ -49,7 +49,7 @@ import {
   CdkVirtualScrollViewport,
   CdkFixedSizeVirtualScroll,
 } from '@angular/cdk/scrolling';
-import { NgStyle } from '@angular/common';
+
 import { MatCheckbox } from '@angular/material/checkbox';
 
 @Component({
@@ -74,7 +74,6 @@ import { MatCheckbox } from '@angular/material/checkbox';
     MatMenuItem,
     CdkVirtualScrollViewport,
     CdkFixedSizeVirtualScroll,
-    NgStyle,
     MatTable,
     MatSort,
     MatColumnDef,
