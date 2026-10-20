@@ -34,7 +34,7 @@ import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-
 import { DesignModule } from '../designs/design.module';
 import { DirectoriesModule } from '../directories';
 import { EditorModule } from '../editor/editor.module';
-import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
+
 import { SeiCwdCommonModule } from '../sei-cwd-common/sei-cwd-common.module';
 import { SharedModule } from '../shared/shared.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
@@ -89,7 +89,6 @@ const projectRoutes: Routes = [
     MatTabsModule,
     RouterModule,
     ResizableModule,
-    CwdToolbarModule,
     DirectoriesModule,
     WorkspaceModule,
     MatButtonToggleModule,

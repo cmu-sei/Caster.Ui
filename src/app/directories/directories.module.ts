@@ -10,8 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
-import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
-import { FilesModule } from '../files/files.module';
+
 import { DirectoryEditComponent } from './components/directory-edit-container/directory-edit/directory-edit.component';
 import { DirectoryEditContainerComponent } from './components/directory-edit-container/directory-edit-container.component';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,8 +34,6 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    CwdToolbarModule,
-    FilesModule,
     MatSelectModule,
     MatOptionModule,
     MatCheckboxModule,

@@ -46,7 +46,6 @@ import { ProjectModule } from './project/project.module';
 import { ErrorService } from './sei-cwd-common/cwd-error/error.service';
 import { SystemMessageComponent } from './sei-cwd-common/cwd-system-message/components/system-message.component';
 import { SystemMessageService } from './sei-cwd-common/cwd-system-message/services/system-message.service';
-import { CwdToolbarModule } from './sei-cwd-common/cwd-toolbar/cwd-toolbar.module';
 
 export const settings: ComnSettingsConfig = {
   url: `assets/config/settings.json`,
@@ -82,7 +81,6 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     ComnSettingsModule.forRoot(),
     ComnAuthModule.forRoot(),
     ApiModule,
-    CwdToolbarModule,
     MatMenuModule,
     MatButtonModule,
     MatIconModule,

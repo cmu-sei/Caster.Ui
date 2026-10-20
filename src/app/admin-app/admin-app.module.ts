@@ -32,7 +32,7 @@ import { MatTreeModule } from '@angular/material/tree';
 import { AdminWorkspacesComponent } from './component/admin-workspaces/admin-workspaces.component';
 import { LockingStatusComponent } from './component/admin-workspaces/locking-status/locking-status.component';
 import { ActiveRunsComponent } from './component/admin-workspaces/active-runs/active-runs.component';
-import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
+
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { VlansComponent } from './component/admin-vlans/vlans.component';
 import { PoolListComponent } from './component/admin-vlans/pool-list/pool-list.component';
@@ -72,7 +72,6 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     SharedModule,
     RouterModule,
     FormsModule,
-    CwdTableModule,
     WorkspaceModule,
     ScrollingModule,
     AdminAppRoutingModule,

@@ -5,7 +5,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { WorkspaceContainerComponent } from './components/workspace-container/workspace-container.component';
-import { CwdToolbarModule } from '../sei-cwd-common/cwd-toolbar';
+
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -24,7 +24,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { OutputComponent } from './components/output/output.component';
 import { ClipboardModule } from 'ngx-clipboard';
-import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
+
 import { RunComponent } from './components/run/run.component';
 import { WorkspaceEditContainerComponent } from './components/workspace-edit-container/workspace-edit-container.component';
 import { WorkspaceEditComponent } from './components/workspace-edit-container/workspace-edit/workspace-edit.component';
@@ -44,7 +44,6 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     ReactiveFormsModule,
     A11yModule,
     ...CRUCIBLE_DIALOG_IMPORTS,
-    CwdToolbarModule,
     MatButtonModule,
     MatTableModule,
     MatSortModule,
@@ -62,7 +61,6 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     MatTooltipModule,
     MatButtonToggleModule,
     ClipboardModule,
-    CwdTableModule,
     MatOptionModule,
     MatSelectModule,
     DragDropModule,
