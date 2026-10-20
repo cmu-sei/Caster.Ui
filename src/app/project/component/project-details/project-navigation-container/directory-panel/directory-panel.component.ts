@@ -8,6 +8,7 @@ import {
   OnInit,
   TemplateRef,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import {
@@ -103,6 +104,20 @@ const TERMINAL_RUN_STATUSES: RunStatus[] = [
   ],
 })
 export class DirectoryPanelComponent implements OnInit, OnDestroy {
+  private directoryService = inject(DirectoryService);
+  private directoryQuery = inject(DirectoryQuery);
+  private fileService = inject(FileService);
+  private fileQuery = inject(FileQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private workspaceService = inject(WorkspaceService);
+  private projectService = inject(ProjectService);
+  private dialog = inject(MatDialog);
+  private confirmService = inject(CrucibleDialogService);
+  private designQuery = inject(DesignQuery);
+  private designService = inject(DesignService);
+  private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
+
   @Input() parentDirectory: Directory;
   public parentDirectoryUI$: Observable<DirectoryUI>;
   public panelOpenState = false;
@@ -141,22 +156,6 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   private directoryEditDialogRef: MatDialogRef<DirectoryEditContainerComponent>;
 
   contextMenuPosition = { x: '0px', y: '0px' };
-
-  constructor(
-    private directoryService: DirectoryService,
-    private directoryQuery: DirectoryQuery,
-    private fileService: FileService,
-    private fileQuery: FileQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService,
-    private projectService: ProjectService,
-    private dialog: MatDialog,
-    private confirmService: CrucibleDialogService,
-    private designQuery: DesignQuery,
-    private designService: DesignService,
-    private permissionService: PermissionService,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit() {
     this.canEdit$ = this.permissionService.canEditProject(

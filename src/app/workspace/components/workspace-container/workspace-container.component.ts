@@ -11,6 +11,7 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
@@ -86,6 +87,14 @@ import { AsyncPipe, JsonPipe } from '@angular/common';
 export class WorkspaceContainerComponent
   implements OnInit, OnDestroy, OnChanges
 {
+  private workspaceService = inject(WorkspaceService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private signalrService = inject(SignalRService);
+  private confirmService = inject(CrucibleDialogService);
+  currentUserQuery = inject(CurrentUserQuery);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+
   @Input() workspaceId: string;
   @Input() breadcrumb: Breadcrumb[];
   @Input() canEdit: boolean;
@@ -119,16 +128,6 @@ export class WorkspaceContainerComponent
   errorDialog: TemplateRef<OutputComponent>;
   private errorDialogRef: MatDialogRef<OutputComponent>;
   public errorMessage: string;
-
-  constructor(
-    private workspaceService: WorkspaceService,
-    private workspaceQuery: WorkspaceQuery,
-    private signalrService: SignalRService,
-    private confirmService: CrucibleDialogService,
-    public currentUserQuery: CurrentUserQuery,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-  ) {}
 
   ngOnInit() {
     this.loading$ = this.workspaceQuery.selectLoading().pipe(

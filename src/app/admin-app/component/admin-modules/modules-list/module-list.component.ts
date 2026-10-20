@@ -10,6 +10,7 @@ import {
   Output,
   OnChanges,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -77,6 +78,8 @@ export interface Action {
   ],
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
+  private confirmService = inject(CrucibleDialogService);
+
   public displayedColumns: string[] = [
     'name',
     'path',
@@ -96,8 +99,6 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-
-  constructor(private confirmService: CrucibleDialogService) {}
 
   ngOnInit() {
     if (this.paginator) {

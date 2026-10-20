@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import {
   MatTableDataSource,
@@ -73,6 +74,12 @@ import { AsyncPipe, KeyValuePipe } from '@angular/common';
   ],
 })
 export class ProjectVlansComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private poolService = inject(PoolService);
+  private partitionService = inject(PartitionService);
+  private poolQuery = inject(PoolQuery);
+  private partitionQuery = inject(PartitionQuery);
+
   @Input() set projects(projects: Project[]) {
     this.dataSource.data = projects;
   }
@@ -97,14 +104,6 @@ export class ProjectVlansComponent implements OnInit {
   // #endregion
 
   displayedColumns: string[] = ['name', 'partition'];
-
-  constructor(
-    private projectService: ProjectService,
-    private poolService: PoolService,
-    private partitionService: PartitionService,
-    private poolQuery: PoolQuery,
-    private partitionQuery: PartitionQuery,
-  ) {}
 
   ngOnInit(): void {
     forkJoin([

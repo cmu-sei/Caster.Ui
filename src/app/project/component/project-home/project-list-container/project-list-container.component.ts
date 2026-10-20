@@ -1,6 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
@@ -20,21 +20,19 @@ import { AsyncPipe } from '@angular/common';
   imports: [TopbarComponent, ProjectListComponent, AsyncPipe],
 })
 export class ProjectListContainerComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private projectQuery = inject(ProjectQuery);
+  private authService = inject(ComnAuthService);
+  private settingsService = inject(ComnSettingsService);
+  private dialog = inject(MatDialog);
+  private userService = inject(UserService);
+  private currentUserQuery = inject(CurrentUserQuery);
+
   public username: string;
   public titleText: string;
   public projects: Observable<Project[]>;
   public isLoading$: Observable<boolean>;
   TopbarView = TopbarView;
-
-  constructor(
-    private projectService: ProjectService,
-    private projectQuery: ProjectQuery,
-    private authService: ComnAuthService,
-    private settingsService: ComnSettingsService,
-    private dialog: MatDialog,
-    private userService: UserService,
-    private currentUserQuery: CurrentUserQuery,
-  ) {}
 
   ngOnInit() {
     this.projects = this.projectQuery.selectAll();

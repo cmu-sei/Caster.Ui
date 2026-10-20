@@ -6,6 +6,7 @@ import {
   HostListener,
   OnDestroy,
   OnInit,
+  inject,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -75,6 +76,17 @@ const LEFT_SIDEBAR_MIN_WIDTH = 250;
 export class ProjectCollapseContainerComponent
   implements OnInit, OnDestroy, CanComponentDeactivate
 {
+  private projectQuery = inject(ProjectQuery);
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
+  private authQuery = inject(ComnAuthQuery);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private settingsService = inject(ComnSettingsService);
+  private fileQuery = inject(FileQuery);
+  private signalRService = inject(SignalRService);
+  private permissionService = inject(PermissionService);
+  private router = inject(Router);
+
   public project$: Observable<Project>;
   public project: Project;
   public projectUI$: Observable<ProjectUI>;
@@ -90,18 +102,7 @@ export class ProjectCollapseContainerComponent
 
   private unsubscribe$ = new Subject();
 
-  constructor(
-    private projectQuery: ProjectQuery,
-    private projectService: ProjectService,
-    private userService: UserService,
-    private authQuery: ComnAuthQuery,
-    private currentUserQuery: CurrentUserQuery,
-    private settingsService: ComnSettingsService,
-    private fileQuery: FileQuery,
-    private signalRService: SignalRService,
-    private permissionService: PermissionService,
-    private router: Router,
-  ) {
+  constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
 

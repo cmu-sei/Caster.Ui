@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Partition } from 'src/app/generated/caster-api';
@@ -36,6 +37,10 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class PartitionListComponent implements OnInit {
+  private vlanService = inject(VlanService);
+  private partitionService = inject(PartitionService);
+  private partitionQuery = inject(PartitionQuery);
+
   @Input()
   set poolId(id: string) {
     this._poolId = id;
@@ -51,12 +56,6 @@ export class PartitionListComponent implements OnInit {
   @Input() canEdit: boolean;
 
   partitions$: Observable<Partition[]>;
-
-  constructor(
-    private vlanService: VlanService,
-    private partitionService: PartitionService,
-    private partitionQuery: PartitionQuery,
-  ) {}
 
   ngOnInit(): void {}
 

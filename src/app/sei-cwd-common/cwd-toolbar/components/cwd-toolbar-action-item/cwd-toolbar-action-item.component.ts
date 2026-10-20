@@ -12,6 +12,7 @@ import {
   OnInit,
   ViewChild,
   ViewContainerRef,
+  inject,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -27,17 +28,15 @@ import {
 export class CwdToolbarActionItemComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  private componentFactoryResolver = inject(ComponentFactoryResolver);
+  private injector = inject(Injector);
+  private appRef = inject(ApplicationRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
   @Input() selector: string;
   @ViewChild('cwdToolbarAction', { static: true }) cwdActionTmplRef;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private injector: Injector,
-    private appRef: ApplicationRef,
-    private viewContainerRef: ViewContainerRef,
-  ) {}
 
   ngOnInit() {}
 

@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Variable } from 'src/app/generated/caster-api';
@@ -25,6 +26,9 @@ import { AsyncPipe } from '@angular/common';
   imports: [MatButton, VariableComponent, AsyncPipe],
 })
 export class VariablesComponent implements OnInit {
+  private variableService = inject(VariableService);
+  private variablesQuery = inject(VariablesQuery);
+
   @Input()
   public designId: string;
 
@@ -32,11 +36,6 @@ export class VariablesComponent implements OnInit {
   canEdit: boolean;
 
   public variables$: Observable<Variable[]>;
-
-  constructor(
-    private variableService: VariableService,
-    private variablesQuery: VariablesQuery,
-  ) {}
 
   ngOnInit(): void {
     this.variables$ = this.variablesQuery.selectByDesignId(this.designId);

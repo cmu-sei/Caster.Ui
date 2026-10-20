@@ -12,6 +12,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import {
   Breadcrumb,
@@ -84,6 +85,20 @@ import { AsyncPipe } from '@angular/common';
 export class ProjectTabComponent
   implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate
 {
+  private projectService = inject(ProjectService);
+  private projectQuery = inject(ProjectQuery);
+  private moduleService = inject(ModuleService);
+  private moduleQuery = inject(ModuleQuery);
+  private directoryQuery = inject(DirectoryQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private fileQuery = inject(FileQuery);
+  private fileService = inject(FileService);
+  private confirmService = inject(CrucibleDialogService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+  private designQuery = inject(DesignQuery);
+  private permissionService = inject(PermissionService);
+
   @Input() project: Project;
   @Input() projectUI: ProjectUI;
   @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
@@ -108,22 +123,6 @@ export class ProjectTabComponent
   public canEdit$: Observable<boolean>;
   public canAdminLock$: Observable<boolean>;
   public canManage$: Observable<boolean>;
-
-  constructor(
-    private projectService: ProjectService,
-    private projectQuery: ProjectQuery,
-    private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery,
-    private directoryQuery: DirectoryQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private fileQuery: FileQuery,
-    private fileService: FileService,
-    private confirmService: CrucibleDialogService,
-    private currentUserQuery: CurrentUserQuery,
-    private changeDetectorRef: ChangeDetectorRef,
-    private designQuery: DesignQuery,
-    private permissionService: PermissionService,
-  ) {}
 
   /**
    * ngOninit handles initialization required for all open tabs

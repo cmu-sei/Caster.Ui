@@ -10,6 +10,7 @@ import {
   Input,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
@@ -26,14 +27,14 @@ import { PoolListItemComponent } from '../pool-list-item/pool-list-item.componen
   imports: [MatIconButton, MatTooltip, MatIcon, PoolListItemComponent],
 })
 export class PoolListComponent implements OnInit {
+  private poolService = inject(PoolService);
+
   @Input() pools: Pool[];
   @Input() canEdit: boolean;
 
   @Output() poolSelected = new EventEmitter<Pool>();
 
   showDocumentation = false;
-
-  constructor(private poolService: PoolService) {}
 
   ngOnInit(): void {}
 

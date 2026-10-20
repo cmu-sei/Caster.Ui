@@ -8,6 +8,7 @@ import {
   Input,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -27,18 +28,16 @@ import { AsyncPipe } from '@angular/common';
   imports: [DirectoryEditComponent, AsyncPipe],
 })
 export class DirectoryEditContainerComponent implements OnInit {
+  private directoryService = inject(DirectoryService);
+  private directoryQuery = inject(DirectoryQuery);
+  private terraformService = inject(TerraformService);
+
   @Input() id: string;
   @Output() editDirectoryComplete = new EventEmitter<boolean>();
 
   public directory$: Observable<Directory>;
   public versionResult$: Observable<TerraformVersionsResult>;
   public maxParallelism$: Observable<number>;
-
-  constructor(
-    private directoryService: DirectoryService,
-    private directoryQuery: DirectoryQuery,
-    private terraformService: TerraformService,
-  ) {}
 
   ngOnInit(): void {
     this.directory$ = this.directoryQuery.selectEntity(this.id);

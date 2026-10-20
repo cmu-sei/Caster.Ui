@@ -11,6 +11,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
 import {
   Project,
@@ -95,6 +96,16 @@ const DESCRIPTION_VALUE = 'descriptionValue';
   ],
 })
 export class ProjectListComponent implements OnInit, OnChanges {
+  private projectService = inject(ProjectService);
+  private confirmService = inject(CrucibleDialogService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
+  private directoryQuery = inject(DirectoryQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private workspaceService = inject(WorkspaceService);
+  private router = inject(Router);
+
   @Input() projects: Project[];
   @Input() isLoading: boolean;
   @Input() manageMode = false;
@@ -123,17 +134,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   canManageProjects$: Observable<string[]>;
   canCreate$: Observable<boolean>;
 
-  constructor(
-    private projectService: ProjectService,
-    private confirmService: CrucibleDialogService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private snackBar: MatSnackBar,
-    private directoryQuery: DirectoryQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService,
-    private router: Router,
-  ) {
+  constructor() {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
       map((x) => x.includes(SystemPermission.ManageProjects)),
     );

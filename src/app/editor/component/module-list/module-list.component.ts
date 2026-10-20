@@ -11,6 +11,7 @@ import {
   TemplateRef,
   ViewChild,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
@@ -56,6 +57,8 @@ import { MatTooltip } from '@angular/material/tooltip';
   ],
 })
 export class ModuleListComponent implements OnInit {
+  dialog = inject(MatDialog);
+
   @Input() set modules(val: Module[]) {
     this._modules = val.filter((x) =>
       x.versionsCount != null ? x.versionsCount > 0 : true,
@@ -85,8 +88,6 @@ export class ModuleListComponent implements OnInit {
 
   @ViewChild('variablesDialog')
   variablesTemplate: TemplateRef<ModuleVariablesComponent>;
-
-  constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.dataSource.data = this._modules;

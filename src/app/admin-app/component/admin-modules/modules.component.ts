@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, inject } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ModuleService, ModuleQuery } from '../../../modules/state';
@@ -26,6 +26,13 @@ import { AsyncPipe } from '@angular/common';
   imports: [MatIcon, AdminModuleListComponent, AsyncPipe],
 })
 export class AdminModulesComponent implements OnInit {
+  zone = inject(NgZone);
+  private moduleService = inject(ModuleService);
+  private moduleQuery = inject(ModuleQuery);
+  private modulesService = inject(ModulesService);
+  private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
+
   public modules$: Observable<Module[]>;
   public isLoading$: Observable<boolean>;
   public matcher = new ModuleErrorStateMatcher();
@@ -36,15 +43,6 @@ export class AdminModulesComponent implements OnInit {
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageWorkspaces,
   );
-
-  constructor(
-    public zone: NgZone,
-    private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery,
-    private modulesService: ModulesService,
-    private permissionService: PermissionService,
-    private snackBar: MatSnackBar,
-  ) {}
 
   /**
    * Initialize component

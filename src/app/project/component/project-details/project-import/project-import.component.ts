@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
@@ -56,6 +57,9 @@ import { AsyncPipe, TitleCasePipe } from '@angular/common';
   ],
 })
 export class ProjectImportComponent implements OnInit {
+  private directoryService = inject(DirectoryService);
+  private projectService = inject(ProjectService);
+
   @Input() id: string;
   @Input() name: string;
   @Input()
@@ -79,11 +83,9 @@ export class ProjectImportComponent implements OnInit {
 
   private _type: ProjectObjectType;
 
-  constructor(
-    private directoryService: DirectoryService,
-    private projectService: ProjectService,
-    formBuilder: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const formBuilder = inject(UntypedFormBuilder);
+
     this.form = formBuilder.group({
       archive: [null, Validators.required],
       preserveIds: [false, Validators.required],

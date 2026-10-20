@@ -11,6 +11,7 @@ import {
   OnInit,
   Output,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
 import { FileVersion } from '../../../generated/caster-api';
 import { MatTableDataSource } from '@angular/material/table';
@@ -50,6 +51,9 @@ import { DatePipe } from '@angular/common';
   ],
 })
 export class VersionListComponent implements OnInit, OnDestroy {
+  private fileVersionQuery = inject(FileVersionQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+
   @Input() fileId: string;
   @Input() selectedVersionId: string;
   @Output() getVersion: EventEmitter<{ id: string }> = new EventEmitter();
@@ -60,11 +64,6 @@ export class VersionListComponent implements OnInit, OnDestroy {
   public dataSource = new MatTableDataSource();
   public filterString = '';
   private unsubscribe$ = new Subject();
-
-  constructor(
-    private fileVersionQuery: FileVersionQuery,
-    private changeDetectorRef: ChangeDetectorRef,
-  ) {}
 
   ngOnInit(): void {
     this.fileVersionQuery

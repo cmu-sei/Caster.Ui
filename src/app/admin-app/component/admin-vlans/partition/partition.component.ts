@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
@@ -55,6 +56,13 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class PartitionComponent implements OnInit {
+  private partitionService = inject(PartitionService);
+  private partitionQuery = inject(PartitionQuery);
+  private vlanService = inject(VlanService);
+  private vlanQuery = inject(VlanQuery);
+  private confirmService = inject(CrucibleDialogService);
+  private snackBar = inject(MatSnackBar);
+
   @Input() set poolId(poolId: string) {
     this.vlans$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
     this.otherPartitions$ = this.partitionQuery.selectByPoolId(
@@ -84,15 +92,6 @@ export class PartitionComponent implements OnInit {
 
   vlans$: Observable<Vlan[]>;
   otherPartitions$: Observable<Partition[]>;
-
-  constructor(
-    private partitionService: PartitionService,
-    private partitionQuery: PartitionQuery,
-    private vlanService: VlanService,
-    private vlanQuery: VlanQuery,
-    private confirmService: CrucibleDialogService,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {}
 

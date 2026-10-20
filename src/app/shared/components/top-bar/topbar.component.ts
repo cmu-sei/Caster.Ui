@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  inject,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
@@ -47,6 +48,13 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
+  private authService = inject(ComnAuthService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private userService = inject(UserService);
+  private authQuery = inject(ComnAuthQuery);
+  private router = inject(Router);
+  private permissionService = inject(PermissionService);
+
   @Input() title?: string = 'Caster';
   @Input() sidenav?;
   @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
@@ -59,15 +67,6 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   theme$: Observable<Theme>;
   unsubscribe$: Subject<null> = new Subject<null>();
   TopbarView = TopbarView;
-
-  constructor(
-    private authService: ComnAuthService,
-    private currentUserQuery: CurrentUserQuery,
-    private userService: UserService,
-    private authQuery: ComnAuthQuery,
-    private router: Router,
-    private permissionService: PermissionService,
-  ) {}
 
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
 

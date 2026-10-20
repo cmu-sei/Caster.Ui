@@ -12,6 +12,7 @@ import {
   ViewChild,
   ChangeDetectorRef,
   OnChanges,
+  inject,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -91,6 +92,10 @@ import { MatCheckbox } from '@angular/material/checkbox';
   ],
 })
 export class VlanListComponent implements OnInit, OnChanges {
+  private changeDetector = inject(ChangeDetectorRef);
+  private confirmService = inject(CrucibleDialogService);
+  private vlanService = inject(VlanService);
+
   @Input() showUnassigned = true;
   @Input() partitions: Partition[];
   @Input() canEdit: boolean;
@@ -133,12 +138,6 @@ export class VlanListComponent implements OnInit, OnChanges {
   private unsubscribe$ = new Subject<void>();
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-
-  constructor(
-    private changeDetector: ChangeDetectorRef,
-    private confirmService: CrucibleDialogService,
-    private vlanService: VlanService,
-  ) {}
 
   ngOnInit(): void {
     this.dataSource.sort = this.sort;

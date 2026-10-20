@@ -6,6 +6,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   OnDestroy,
+  inject,
 } from '@angular/core';
 import { WorkspaceService, WorkspaceQuery } from 'src/app/workspace/state';
 import { Observable } from 'rxjs';
@@ -24,15 +25,13 @@ import { AsyncPipe } from '@angular/common';
   imports: [MatCard, LockingStatusComponent, ActiveRunsComponent, AsyncPipe],
 })
 export class AdminWorkspacesComponent implements OnInit, OnDestroy {
+  private workspaceService = inject(WorkspaceService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private signalRService = inject(SignalRService);
+
   public lockingEnabled$: Observable<boolean>;
   public activeRuns$: Observable<Run[]>;
   public expandedRuns$: Observable<string[]>;
-
-  constructor(
-    private workspaceService: WorkspaceService,
-    private workspaceQuery: WorkspaceQuery,
-    private signalRService: SignalRService,
-  ) {}
 
   ngOnInit() {
     this.signalRService

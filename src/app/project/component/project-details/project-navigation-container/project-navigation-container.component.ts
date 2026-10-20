@@ -7,6 +7,7 @@ import {
   OnInit,
   TemplateRef,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import {
@@ -50,6 +51,17 @@ const NAME_VALUE = 'nameValue';
   ],
 })
 export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
+  private routerQuery = inject(RouterQuery);
+  private projectQuery = inject(ProjectQuery);
+  private projectService = inject(ProjectService);
+  private projectStore = inject(ProjectStore);
+  private directoryQuery = inject(DirectoryQuery);
+  private directoryService = inject(DirectoryService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+
   public project$: Observable<Project>;
   public projectDirectories$: Observable<Directory[]>;
   public projectId: string;
@@ -64,19 +76,6 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
-
-  constructor(
-    private routerQuery: RouterQuery,
-    private projectQuery: ProjectQuery,
-    private projectService: ProjectService,
-    private projectStore: ProjectStore,
-    private directoryQuery: DirectoryQuery,
-    private directoryService: DirectoryService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit() {
     this.routerQuery

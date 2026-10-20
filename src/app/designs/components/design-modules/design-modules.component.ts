@@ -10,6 +10,7 @@ import {
   Input,
   TemplateRef,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -41,6 +42,13 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class DesignModulesComponent implements OnInit {
+  private moduleService = inject(ModuleService);
+  moduleQuery = inject(ModuleQuery);
+  private designModulesService = inject(DesignModuleService);
+  private designModuleQuery = inject(DesignModuleQuery);
+  private variablesQuery = inject(VariablesQuery);
+  private dialog = inject(MatDialog);
+
   @Input()
   designId: string;
 
@@ -75,15 +83,6 @@ export class DesignModulesComponent implements OnInit {
 
   @ViewChild('addDialog')
   addDialogTemplate: TemplateRef<unknown>;
-
-  constructor(
-    private moduleService: ModuleService,
-    public moduleQuery: ModuleQuery,
-    private designModulesService: DesignModuleService,
-    private designModuleQuery: DesignModuleQuery,
-    private variablesQuery: VariablesQuery,
-    private dialog: MatDialog,
-  ) {}
 
   ngOnInit(): void {
     this.moduleService.load(false, true).subscribe();

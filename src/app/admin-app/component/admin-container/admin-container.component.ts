@@ -1,6 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   ComnAuthService,
@@ -60,6 +60,14 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class AdminContainerComponent implements OnInit, OnDestroy {
+  private authService = inject(ComnAuthService);
+  private settingsService = inject(ComnSettingsService);
+  private userService = inject(UserService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private routerQuery = inject(RouterQuery);
+  private router = inject(Router);
+  private permissionService = inject(PermissionService);
+
   public username: string;
   public titleText: string;
   public definitionId = '';
@@ -81,15 +89,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject();
 
-  constructor(
-    private authService: ComnAuthService,
-    private settingsService: ComnSettingsService,
-    private userService: UserService,
-    private currentUserQuery: CurrentUserQuery,
-    private routerQuery: RouterQuery,
-    private router: Router,
-    private permissionService: PermissionService,
-  ) {
+  constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
 

@@ -8,6 +8,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import { WorkspaceService, WorkspaceQuery } from '../../state';
 import {
@@ -27,18 +28,16 @@ import { AsyncPipe } from '@angular/common';
   imports: [WorkspaceEditComponent, AsyncPipe],
 })
 export class WorkspaceEditContainerComponent implements OnInit {
+  private workspaceService = inject(WorkspaceService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private terraformService = inject(TerraformService);
+
   @Input() id: string;
   @Output() editWorkspaceComplete = new EventEmitter<boolean>();
 
   public workspace$: Observable<Workspace>;
   public versionResult$: Observable<TerraformVersionsResult>;
   public maxParallelism$: Observable<number>;
-
-  constructor(
-    private workspaceService: WorkspaceService,
-    private workspaceQuery: WorkspaceQuery,
-    private terraformService: TerraformService,
-  ) {}
 
   ngOnInit(): void {
     this.workspace$ = this.workspaceQuery.selectEntity(this.id);

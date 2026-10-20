@@ -14,6 +14,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
@@ -84,6 +85,17 @@ const SIDEBAR_MIN_WIDTH = 300;
   ],
 })
 export class EditorComponent implements OnInit, OnChanges, OnDestroy {
+  private moduleService = inject(ModuleService);
+  private moduleQuery = inject(ModuleQuery);
+  private fileQuery = inject(FileQuery);
+  private fileService = inject(FileService);
+  private fileVersionService = inject(FileVersionService);
+  private fileVersionQuery = inject(FileVersionQuery);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+  private confirmService = inject(CrucibleDialogService);
+  private settingsService = inject(ComnSettingsService);
+
   @Input() fileId: string;
   @Input() modules: Module[];
   @Input() sidebarOpen: boolean;
@@ -122,19 +134,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private captureKeydownListener: ((e: KeyboardEvent) => void) | null = null;
   private editorDomNode: HTMLElement | null = null;
   public breadcrumbString = '';
-
-  constructor(
-    private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery,
-    private fileQuery: FileQuery,
-    private fileService: FileService,
-    private fileVersionService: FileVersionService,
-    private fileVersionQuery: FileVersionQuery,
-    private currentUserQuery: CurrentUserQuery,
-    private changeDetectorRef: ChangeDetectorRef,
-    private confirmService: CrucibleDialogService,
-    private settingsService: ComnSettingsService,
-  ) {}
 
   ngOnInit(): void {
     this.selectedVersionForDiff = undefined;

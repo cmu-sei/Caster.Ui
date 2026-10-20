@@ -14,6 +14,7 @@ import {
   Component,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -89,20 +90,18 @@ const NAME_VALUE = 'nameValue';
   ],
 })
 export class AdminGroupsComponent implements OnInit, AfterViewInit {
+  private groupsService = inject(GroupService);
+  private usersService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private confirmService = inject(CrucibleDialogService);
+
   @ViewChild(MatSort) sort: MatSort;
 
   filterString = '';
   displayedColumns: string[] = ['actions', 'name'];
   dataSource: MatTableDataSource<Group> = new MatTableDataSource();
   expandedGroupId: string | null = null;
-
-  constructor(
-    private groupsService: GroupService,
-    private usersService: UserService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private confirmService: CrucibleDialogService,
-  ) {}
 
   dataSource$ = this.groupsService.groups$.pipe(
     map((x) => {

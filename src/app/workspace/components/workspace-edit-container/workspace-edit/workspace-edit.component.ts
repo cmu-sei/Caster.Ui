@@ -8,6 +8,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import {
   Workspace,
@@ -60,6 +61,8 @@ import { MatIcon } from '@angular/material/icon';
   ],
 })
 export class WorkspaceEditComponent implements OnInit {
+  private formBuilder = inject(FormBuilder);
+
   @Input() workspace: Workspace;
   @Input() terraformVersions: TerraformVersionsResult;
   @Input() maxParallelism: number;
@@ -91,7 +94,7 @@ export class WorkspaceEditComponent implements OnInit {
     }
   }
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor() {
     this.form = this.formBuilder.group({
       name: [
         '',

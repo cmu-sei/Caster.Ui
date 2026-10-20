@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 import { OverlayContainer } from '@angular/cdk/overlay';
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { Component, HostBinding, OnDestroy, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer, Title } from '@angular/platform-browser';
@@ -32,27 +32,31 @@ import { CurrentUserQuery, CurrentUserStore } from './users/state';
   imports: [ComnHeaderBarModule, RouterOutlet],
 })
 export class AppComponent implements OnDestroy {
+  matIconRegistry = inject(MatIconRegistry);
+  overlayContainer = inject(OverlayContainer);
+  private authQuery = inject(ComnAuthQuery);
+  private authService = inject(ComnAuthService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  sanitizer = inject(DomSanitizer);
+  titleService = inject(Title);
+  settingsService = inject(ComnSettingsService);
+  private HotkeysService = inject(HotkeysService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private currentUserStore = inject(CurrentUserStore);
+  private themeService = inject(CrucibleThemeService);
+
   @HostBinding('class') componentCssClass: string;
   title = 'Caster';
   private paramTheme;
   private helpDialogOpen = false;
   unsubscribe$: Subject<null> = new Subject<null>();
-  constructor(
-    public matIconRegistry: MatIconRegistry,
-    public overlayContainer: OverlayContainer,
-    private authQuery: ComnAuthQuery,
-    private authService: ComnAuthService,
-    private currentUserQuery: CurrentUserQuery,
-    public sanitizer: DomSanitizer,
-    public titleService: Title,
-    public settingsService: ComnSettingsService,
-    private HotkeysService: HotkeysService,
-    private dialog: MatDialog,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private currentUserStore: CurrentUserStore,
-    private themeService: CrucibleThemeService,
-  ) {
+  constructor() {
+    const titleService = this.titleService;
+    const settingsService = this.settingsService;
+    const router = this.router;
+
     this.authQuery.userTheme$
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((theme) => {

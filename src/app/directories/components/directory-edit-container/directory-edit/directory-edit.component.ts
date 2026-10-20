@@ -8,6 +8,7 @@ import {
   Input,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import {
   Directory,
@@ -61,6 +62,8 @@ import { MatIcon } from '@angular/material/icon';
   ],
 })
 export class DirectoryEditComponent implements OnInit {
+  private formBuilder = inject(FormBuilder);
+
   @Input() directory: Directory;
   @Input() terraformVersions: TerraformVersionsResult;
   @Input() maxParallelism: number;
@@ -86,7 +89,7 @@ export class DirectoryEditComponent implements OnInit {
     }
   }
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor() {
     this.form = this.formBuilder.group({
       name: [],
       terraformVersion: [],

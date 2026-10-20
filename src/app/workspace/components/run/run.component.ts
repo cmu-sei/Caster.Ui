@@ -14,6 +14,7 @@ import {
   OnDestroy,
   Output,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -40,6 +41,9 @@ import { WorkspaceContainerComponent } from '../workspace-container/workspace-co
   ],
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private signalRService = inject(SignalRService);
+  private ngZone = inject(NgZone);
+
   @Input() run: Run;
   @Input() loading: boolean;
   @Output() planOutput = new EventEmitter<string>();
@@ -66,10 +70,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   xterm: Terminal = new Terminal(this.xtermOptions);
   fitAddon: FitAddon = new FitAddon();
 
-  constructor(
-    private signalRService: SignalRService,
-    private ngZone: NgZone,
-  ) {
+  constructor() {
     window.addEventListener('wheel', this.scroll, { passive: false });
   }
 

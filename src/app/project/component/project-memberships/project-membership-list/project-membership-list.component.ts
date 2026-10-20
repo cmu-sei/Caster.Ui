@@ -13,6 +13,7 @@ import {
   OnInit,
   Output,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -87,6 +88,8 @@ import { MatTooltip } from '@angular/material/tooltip';
 export class ProjectMembershipListComponent
   implements OnInit, OnChanges, AfterViewInit
 {
+  snackBar = inject(MatSnackBar);
+
   @Input()
   users: User[];
 
@@ -106,8 +109,6 @@ export class ProjectMembershipListComponent
   dataSource = new MatTableDataSource<ProjectMemberModel>();
 
   filterString = '';
-
-  constructor(public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {}
 

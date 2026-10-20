@@ -11,6 +11,7 @@ import {
   OnChanges,
   SimpleChanges,
   Renderer2,
+  inject,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -73,6 +74,11 @@ import { CdkTextareaAutosize } from '@angular/cdk/text-field';
   ],
 })
 export class VariableComponent implements OnInit, OnChanges {
+  private variableService = inject(VariableService);
+  private confirmDialogService = inject(CrucibleDialogService);
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+
   @Input()
   public variable: Variable;
 
@@ -94,13 +100,6 @@ export class VariableComponent implements OnInit, OnChanges {
     type: false,
     defaultValue: false,
   };
-
-  constructor(
-    private variableService: VariableService,
-    private confirmDialogService: CrucibleDialogService,
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({

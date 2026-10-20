@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Design } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -38,6 +38,10 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class DesignComponent implements OnInit, OnDestroy {
+  private designQuery = inject(DesignQuery);
+  private variableService = inject(VariableService);
+  private signalRService = inject(SignalRService);
+
   @Input()
   designId: string;
 
@@ -45,12 +49,6 @@ export class DesignComponent implements OnInit, OnDestroy {
   canEdit: boolean;
 
   design$: Observable<Design>;
-
-  constructor(
-    private designQuery: DesignQuery,
-    private variableService: VariableService,
-    private signalRService: SignalRService,
-  ) {}
 
   ngOnInit(): void {
     this.design$ = this.designQuery.selectEntity(this.designId);

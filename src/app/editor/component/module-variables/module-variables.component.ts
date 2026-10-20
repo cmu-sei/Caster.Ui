@@ -10,6 +10,7 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import {
   Module,
@@ -90,6 +91,9 @@ import { CdkTextareaAutosize } from '@angular/cdk/text-field';
   ],
 })
 export class ModuleVariablesComponent implements OnInit, OnChanges {
+  private confirmDialogService = inject(CrucibleDialogService);
+  private formBuilder = inject(UntypedFormBuilder);
+
   @Input() name: string;
   @Input() submitButtonText = 'Save';
   @Input() readOnly: boolean;
@@ -115,11 +119,6 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   form: UntypedFormGroup;
   promptForReload = false;
   nameChanged = false;
-
-  constructor(
-    private confirmDialogService: CrucibleDialogService,
-    private formBuilder: UntypedFormBuilder,
-  ) {}
 
   ngOnInit() {
     this.newName = this.name ?? toTerraformName(this.selectedModule.name);

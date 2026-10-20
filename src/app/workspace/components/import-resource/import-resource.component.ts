@@ -8,6 +8,7 @@ import {
   Input,
   EventEmitter,
   Output,
+  inject,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -46,6 +47,9 @@ import { OutputComponent } from '../output/output.component';
   ],
 })
 export class ImportResourceComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private workspaceService = inject(WorkspaceService);
+
   @Input() workspaceId: string;
   @Input() loading: boolean;
 
@@ -54,10 +58,9 @@ export class ImportResourceComponent implements OnInit {
   form: UntypedFormGroup;
   message: string = '';
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private workspaceService: WorkspaceService,
-  ) {
+  constructor() {
+    const formBuilder = this.formBuilder;
+
     this.form = formBuilder.group({
       address: ['', Validators.required],
       id: ['', Validators.required],

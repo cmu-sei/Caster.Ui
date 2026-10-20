@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Pool } from 'src/app/generated/caster-api';
@@ -33,6 +34,9 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class PoolsComponent implements OnInit {
+  private poolService = inject(PoolService);
+  private poolQuery = inject(PoolQuery);
+
   @Input()
   canEdit: boolean;
 
@@ -40,11 +44,6 @@ export class PoolsComponent implements OnInit {
 
   public showPools = true;
   public selectedPool$: Observable<Pool>;
-
-  constructor(
-    private poolService: PoolService,
-    private poolQuery: PoolQuery,
-  ) {}
 
   ngOnInit(): void {
     this.poolService.load().subscribe();

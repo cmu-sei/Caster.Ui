@@ -8,6 +8,7 @@ import {
   EventEmitter,
   Input,
   Output,
+  inject,
 } from '@angular/core';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
@@ -15,11 +16,10 @@ import { Subscription } from 'rxjs';
 
 @Directive({ selector: '[hotkeyAction]' })
 export class CrucibleHotkeyDirective implements AfterViewInit {
-  constructor(
-    private settingsService: ComnSettingsService,
-    private hotkeysService: HotkeysService,
-    private el: ElementRef,
-  ) {}
+  private settingsService = inject(ComnSettingsService);
+  private hotkeysService = inject(HotkeysService);
+  private el = inject(ElementRef);
+
   private subscription: Subscription;
   @Input() hotkeyAction: string;
   @Output()

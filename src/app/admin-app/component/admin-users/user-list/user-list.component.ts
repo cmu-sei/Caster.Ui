@@ -10,6 +10,7 @@ import {
   Output,
   OnChanges,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -86,6 +87,11 @@ export interface Action {
   ],
 })
 export class UserListComponent implements OnInit, OnChanges {
+  private confirmService = inject(CrucibleDialogService);
+  private dialog = inject(MatDialog);
+  private roleService = inject(RoleService);
+  private userService = inject(UserService);
+
   public displayedColumns: string[] = ['id', 'name', 'roleId'];
   public filterString = '';
   public dataSource = new MatTableDataSource<User>(new Array<User>());
@@ -98,13 +104,6 @@ export class UserListComponent implements OnInit, OnChanges {
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-
-  constructor(
-    private confirmService: CrucibleDialogService,
-    private dialog: MatDialog,
-    private roleService: RoleService,
-    private userService: UserService,
-  ) {}
 
   ngOnInit() {
     if (this.paginator) {

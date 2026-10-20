@@ -12,6 +12,7 @@ import {
   Output,
   ViewChild,
   ElementRef,
+  inject,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
@@ -40,6 +41,9 @@ import { MatIconButton } from '@angular/material/button';
   ],
 })
 export class PoolListItemComponent implements OnInit {
+  private confirmService = inject(CrucibleDialogService);
+  private poolService = inject(PoolService);
+
   @Input() pool: Pool;
   @Input() canEdit: boolean;
 
@@ -48,11 +52,6 @@ export class PoolListItemComponent implements OnInit {
   @ViewChild('nameInput') nameInput: ElementRef<Input>;
 
   editing: boolean;
-
-  constructor(
-    private confirmService: CrucibleDialogService,
-    private poolService: PoolService,
-  ) {}
 
   ngOnInit(): void {}
 

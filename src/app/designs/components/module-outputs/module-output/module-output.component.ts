@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModuleOutput } from 'src/app/generated/caster-api';
@@ -24,13 +25,13 @@ import { MatIcon } from '@angular/material/icon';
   imports: [MatIconButton, ClipboardModule, MatTooltip, MatIcon],
 })
 export class ModuleOutputComponent implements OnInit {
+  private snackBar = inject(MatSnackBar);
+
   @Input()
   moduleName: string;
 
   @Input()
   output: ModuleOutput;
-
-  constructor(private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {}
 

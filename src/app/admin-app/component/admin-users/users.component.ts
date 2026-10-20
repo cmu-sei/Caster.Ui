@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { UserService, UserQuery } from '../../../users/state';
@@ -19,6 +19,10 @@ import { AsyncPipe } from '@angular/common';
   imports: [UserListComponent, AsyncPipe],
 })
 export class UsersComponent implements OnInit {
+  private userService = inject(UserService);
+  private userQuery = inject(UserQuery);
+  private permissionService = inject(PermissionService);
+
   public matcher = new UserErrorStateMatcher();
   public isLinear = false;
   public users$: Observable<User[]>;
@@ -26,12 +30,6 @@ export class UsersComponent implements OnInit {
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageUsers,
   );
-
-  constructor(
-    private userService: UserService,
-    private userQuery: UserQuery,
-    private permissionService: PermissionService,
-  ) {}
 
   /**
    * Initialize component

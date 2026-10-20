@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Input,
   OnChanges,
+  inject,
 } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
@@ -60,6 +61,12 @@ import { ModuleOutputsComponent } from '../../module-outputs/module-outputs.comp
   ],
 })
 export class DesignModuleComponent implements OnInit, OnChanges {
+  private confirmationService = inject(CrucibleDialogService);
+  private designModuleService = inject(DesignModuleService);
+  private moduleService = inject(ModuleService);
+  private variableQuery = inject(VariablesQuery);
+  private designModuleQuery = inject(DesignModuleQuery);
+
   @Input()
   public designModule: DesignModule;
 
@@ -92,14 +99,6 @@ export class DesignModuleComponent implements OnInit, OnChanges {
   private set saving(val: boolean) {
     this.savingSubject.next(val);
   }
-
-  constructor(
-    private confirmationService: CrucibleDialogService,
-    private designModuleService: DesignModuleService,
-    private moduleService: ModuleService,
-    private variableQuery: VariablesQuery,
-    private designModuleQuery: DesignModuleQuery,
-  ) {}
 
   ngOnInit(): void {
     this.variables$ = this.variableQuery.selectByDesignId(

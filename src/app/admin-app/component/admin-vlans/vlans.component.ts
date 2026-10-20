@@ -8,6 +8,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   OnDestroy,
+  inject,
 } from '@angular/core';
 import { SystemPermission } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
@@ -33,16 +34,14 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class VlansComponent implements OnInit, OnDestroy {
+  private projectQuery = inject(ProjectQuery);
+  private signalRService = inject(SignalRService);
+  private permissionService = inject(PermissionService);
+
   public projects$ = this.projectQuery.selectAll();
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageVlans,
   );
-
-  constructor(
-    private projectQuery: ProjectQuery,
-    private signalRService: SignalRService,
-    private permissionService: PermissionService,
-  ) {}
 
   ngOnInit(): void {
     this.signalRService
