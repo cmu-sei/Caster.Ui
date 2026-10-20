@@ -112,6 +112,12 @@ export class FileService {
 
   fileUpdated(file: ModelFile) {
     const prev = this.fileQuery.getEntity(file.id);
+    // Updates that don't change the content (lock, unlock, rename) arrive with
+    // content null. Keep the loaded content: a null makes the open tab reload
+    // the file, and that reload overwrites unsaved edits.
+    if (file.content == null && prev?.content != null) {
+      file = { ...file, content: prev.content };
+    }
     if (prev?.lockedById && prev.lockedById !== file.lockedById) {
       file = { ...file, editorContent: file.content };
     }
