@@ -19,6 +19,7 @@
   "AppDarkModePrimaryHexColor": "#E9831C",
   "AppDarkModePrimaryHexTextColor": "#FFFFFF",
   "AppTopBarText": "Caster",
+  "EditorLineEnding": "LF",
   "Hotkeys": {
     "PROJECT_NEW": {
       "keys": "control.p",

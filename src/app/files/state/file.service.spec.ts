@@ -457,6 +457,101 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: an update without content (lock, unlock, rename) keeps the
+     *   loaded content, so the open tab does not reload the file over the
+     *   user's unsaved edits.
+     * Interacts with: fileUpdated null-content guard; upsertFile (update branch).
+     * Data: stored f1 locked by u1 with editor content 'draft'; event still
+     *   locked by u1 with content null, as the hub sends for a lock change.
+     */
+    it('keeps the loaded content when the update carries none', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u1', editorContent: 'draft' }),
+      ]);
+
+      service.fileUpdated(file({ lockedById: 'u1', content: null }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'server content',
+        editorContent: 'draft',
+      });
+    });
+
+    /**
+     * Verifies: when another user's lock is released with no content in the
+     *   event, the editor buffer resets to the loaded content, not to null.
+     * Interacts with: fileUpdated null-content guard, then the lock comparison.
+     * Data: stored f1 locked by u2 with stale editor content; unlock event with
+     *   content null.
+     */
+    it('resets the editor buffer to the loaded content on a contentless unlock', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u2', editorContent: 'stale' }),
+      ]);
+
+      service.fileUpdated(file({ lockedById: null, content: null }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        lockedById: null,
+        content: 'server content',
+        editorContent: 'server content',
+      });
+    });
+
+    /**
+     * Verifies: a file whose content was never loaded stays without content,
+     *   so opening its tab still loads it.
+     * Interacts with: fileUpdated null-content guard (no loaded content).
+     * Data: stored f1 listed without content; near miss of the test above:
+     *   event with content null.
+     */
+    it('leaves content unloaded when none was loaded', () => {
+      const { service, query } = setup({}, [file({ content: null })]);
+
+      service.fileUpdated(file({ lockedById: 'u1', content: null }));
+
+      expect(query.getEntity('f1').content).toBeNull();
+    });
+
+    /**
+     * Verifies: an update that leaves the user's edits in the buffer keeps the
+     *   file unsaved, so Save stays enabled.
+     * Interacts with: fileUpdated setSave from isFileContentChanged.
+     * Data: stored f1 locked by u1 with editor content 'draft', marked
+     *   unsaved; rename event still locked by u1 with content null.
+     */
+    it('keeps a file with unsaved edits unsaved', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u1', editorContent: 'draft' }),
+      ]);
+      service.setSave('f1', false);
+
+      service.fileUpdated(
+        file({ name: 'renamed.tf', lockedById: 'u1', content: null }),
+      );
+
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: an update whose content matches the editor buffer (the save
+     *   response) marks the file saved.
+     * Interacts with: fileUpdated setSave from isFileContentChanged.
+     * Data: near miss of the test above: stored f1 with editor content
+     *   'saved v2', marked unsaved; event with content 'saved v2'.
+     */
+    it('marks the file saved when the update matches the buffer', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u1', editorContent: 'saved v2' }),
+      ]);
+      service.setSave('f1', false);
+
+      service.fileUpdated(file({ lockedById: 'u1', content: 'saved v2' }));
+
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
      * Verifies: filesUpdated upserts every file and marks each saved.
      * Interacts with: upsertFile; setSave.
      * Data: stored f1 marked unsaved; event list [f1, f2].
