@@ -7,8 +7,8 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   inject,
+  input,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Variable } from 'src/app/generated/caster-api';
@@ -29,22 +29,20 @@ export class VariablesComponent implements OnInit {
   private variableService = inject(VariableService);
   private variablesQuery = inject(VariablesQuery);
 
-  @Input()
-  public designId: string;
+  public readonly designId = input<string>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   public variables$: Observable<Variable[]>;
 
   ngOnInit(): void {
-    this.variables$ = this.variablesQuery.selectByDesignId(this.designId);
+    this.variables$ = this.variablesQuery.selectByDesignId(this.designId());
   }
 
   addVariable() {
     this.variableService
       .create({
-        designId: this.designId,
+        designId: this.designId(),
         name: 'New Variable',
       })
       .subscribe();

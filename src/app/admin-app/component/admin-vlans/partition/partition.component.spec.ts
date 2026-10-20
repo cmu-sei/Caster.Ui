@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
@@ -24,10 +24,10 @@ import { VlanListComponent } from 'src/app/admin-app/component/admin-vlans/vlan-
 
 @Component({ selector: 'cas-vlan-list', template: '' })
 class VlanListStub {
-  @Input() showUnassigned: boolean;
-  @Input() vlans: Vlan[];
-  @Input() partitions: Partition[];
-  @Input() canEdit: boolean;
+  readonly showUnassigned = input<boolean>(undefined);
+  readonly vlans = input<Vlan[]>(undefined);
+  readonly partitions = input<Partition[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 const partition: Partition = {
@@ -136,8 +136,8 @@ describe('PartitionComponent', () => {
       const list: VlanListStub = fixture.debugElement.query(
         By.directive(VlanListStub),
       ).componentInstance;
-      expect(list.vlans.map((v) => v.vlanId)).toEqual([100]);
-      expect(list.canEdit).toBe(canEdit);
+      expect(list.vlans().map((v) => v.vlanId)).toEqual([100]);
+      expect(list.canEdit()).toBe(canEdit);
     },
   );
 });

@@ -5,10 +5,10 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   Output,
   EventEmitter,
   inject,
+  input,
 } from '@angular/core';
 import {
   Directory,
@@ -64,9 +64,9 @@ import { MatIcon } from '@angular/material/icon';
 export class DirectoryEditComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
 
-  @Input() directory: Directory;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
+  readonly directory = input<Directory>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
 
   @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
 
@@ -93,28 +93,29 @@ export class DirectoryEditComponent implements OnInit {
     this.form = this.formBuilder.group({
       name: [],
       terraformVersion: [],
-      parallelism: [Validators.min(1), Validators.max(this.maxParallelism)],
+      parallelism: [Validators.min(1), Validators.max(this.maxParallelism())],
       azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
       azureDestroyFailureThresholdEnabled: [],
     });
   }
 
   ngOnInit(): void {
+    const directory = this.directory();
     this.form.patchValue({
-      name: this.directory.name,
-      terraformVersion: this.directory.terraformVersion,
-      parallelism: this.directory.parallelism,
-      azureDestroyFailureThreshold: this.directory.azureDestroyFailureThreshold,
+      name: directory.name,
+      terraformVersion: directory.terraformVersion,
+      parallelism: directory.parallelism,
+      azureDestroyFailureThreshold: directory.azureDestroyFailureThreshold,
       azureDestroyFailureThresholdEnabled:
-        this.directory.azureDestroyFailureThresholdEnabled,
+        directory.azureDestroyFailureThresholdEnabled,
     });
 
-    if (!this.directory.azureDestroyFailureThresholdEnabled) {
+    if (!directory.azureDestroyFailureThresholdEnabled) {
       this.azureDestroyFailureThreshold.disable();
     }
 
-    this.sortedVersions = this.terraformVersions?.versions
-      ?.sort(this.collator.compare)
+    this.sortedVersions = this.terraformVersions()
+      ?.versions?.sort(this.collator.compare)
       .reverse();
   }
 

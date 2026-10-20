@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, inject, OnChanges, OnInit, input } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import {
@@ -29,11 +29,9 @@ import { AsyncPipe } from '@angular/common';
   ],
 })
 export class AdminGroupsDetailComponent implements OnInit, OnChanges {
-  @Input()
-  groupId: string;
+  readonly groupId = input<string>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   private readonly userQuery = inject(UserQuery);
   private readonly groupMembershipService = inject(GroupMembershipService);
@@ -47,11 +45,11 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   members$ = this.selectUsers(true);
 
   ngOnInit(): void {
-    this.groupMembershipService.loadMemberships(this.groupId).subscribe();
+    this.groupMembershipService.loadMemberships(this.groupId()).subscribe();
     this.signalRService
       .startConnection()
       .then(() => {
-        this.signalRService.joinGroup(this.groupId);
+        this.signalRService.joinGroup(this.groupId());
       })
       .catch((err) => {
         console.log(err);
@@ -59,12 +57,12 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   }
 
   ngOnDestroy() {
-    this.signalRService.leaveGroup(this.groupId);
+    this.signalRService.leaveGroup(this.groupId());
   }
 
   ngOnChanges() {
     this.memberships$ = this.groupMembershipService.selectMemberships(
-      this.groupId,
+      this.groupId(),
     );
 
     this.nonMembers$ = this.selectUsers(false);
@@ -93,7 +91,7 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
 
   createMembership(command: CreateGroupMembershipCommand) {
     this.groupMembershipService
-      .createMembership(this.groupId, command)
+      .createMembership(this.groupId(), command)
       .subscribe();
   }
 

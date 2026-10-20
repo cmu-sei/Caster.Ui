@@ -6,11 +6,11 @@ import {
   EventEmitter,
   OnInit,
   ViewChild,
-  Input,
   Output,
   OnChanges,
   SimpleChanges,
   inject,
+  input,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -97,9 +97,9 @@ export class UserListComponent implements OnInit, OnChanges {
   public dataSource = new MatTableDataSource<User>(new Array<User>());
   roles$ = this.roleService.roles$;
 
-  @Input() users: User[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
+  readonly users = input<User[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() create: EventEmitter<User> = new EventEmitter<User>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;

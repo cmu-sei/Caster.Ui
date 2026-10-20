@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -23,7 +23,7 @@ import { RunComponent } from 'src/app/workspace/components/run/run.component';
 
 @Component({ selector: 'cas-run', template: '' })
 class RunStub {
-  @Input() run: Run;
+  readonly run = input<Run>(undefined);
   @Output() planOutput = new EventEmitter<string>();
   @Output() applyOutput = new EventEmitter<string>();
 }
@@ -70,6 +70,6 @@ describe('ActiveRunsComponent', () => {
     const run: RunStub = fixture.debugElement.query(
       By.directive(RunStub),
     ).componentInstance;
-    expect(run.run.id).toBe('run1');
+    expect(run.run().id).toBe('run1');
   });
 });

@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Design } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -42,21 +42,19 @@ export class DesignComponent implements OnInit, OnDestroy {
   private variableService = inject(VariableService);
   private signalRService = inject(SignalRService);
 
-  @Input()
-  designId: string;
+  readonly designId = input<string>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   design$: Observable<Design>;
 
   ngOnInit(): void {
-    this.design$ = this.designQuery.selectEntity(this.designId);
+    this.design$ = this.designQuery.selectEntity(this.designId());
 
     this.signalRService
       .startConnection()
       .then(() => {
-        this.signalRService.joinDesign(this.designId);
+        this.signalRService.joinDesign(this.designId());
       })
       .catch((err) => {
         console.log(err);
@@ -66,10 +64,10 @@ export class DesignComponent implements OnInit, OnDestroy {
   }
 
   loadVariables() {
-    this.variableService.loadByDesignId(this.designId);
+    this.variableService.loadByDesignId(this.designId());
   }
 
   ngOnDestroy(): void {
-    this.signalRService.leaveDesign(this.designId);
+    this.signalRService.leaveDesign(this.designId());
   }
 }

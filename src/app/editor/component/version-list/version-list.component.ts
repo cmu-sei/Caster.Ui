@@ -6,12 +6,12 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
   OnDestroy,
   OnInit,
   Output,
   ViewEncapsulation,
   inject,
+  input,
 } from '@angular/core';
 import { FileVersion } from '../../../generated/caster-api';
 import { MatTableDataSource } from '@angular/material/table';
@@ -54,8 +54,8 @@ export class VersionListComponent implements OnInit, OnDestroy {
   private fileVersionQuery = inject(FileVersionQuery);
   private changeDetectorRef = inject(ChangeDetectorRef);
 
-  @Input() fileId: string;
-  @Input() selectedVersionId: string;
+  readonly fileId = input<string>(undefined);
+  readonly selectedVersionId = input<string>(undefined);
   @Output() getVersion: EventEmitter<{ id: string }> = new EventEmitter();
   @Output() revertToVersion: EventEmitter<{
     fileVersion: FileVersion;
@@ -70,9 +70,9 @@ export class VersionListComponent implements OnInit, OnDestroy {
       .selectAll()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((versions) => {
-        if (this.fileId) {
+        if (this.fileId()) {
           const fileVersions = versions.filter((v) => {
-            return v.fileId === this.fileId;
+            return v.fileId === this.fileId();
           });
           this.dataSource.data = fileVersions;
           this.dataSource.data.sort((a: any, b: any) => {

@@ -6,8 +6,8 @@ import {
   Component,
   EventEmitter,
   getDebugNode,
-  Input,
   Output,
+  input,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -38,16 +38,16 @@ import { ModuleVariablesComponent } from 'src/app/editor/component/module-variab
 
 @Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
-  @Input() modules: Module[];
-  @Input() isEditing: boolean;
+  readonly modules = input<Module[]>(undefined);
+  readonly isEditing = input<boolean>(undefined);
   @Output() getModule = new EventEmitter<{ id: string; name: string }>();
 }
 
 @Component({ selector: 'cas-design-module', template: '' })
 class DesignModuleStub {
-  @Input() designModule: DesignModule;
-  @Input() module: Module;
-  @Input() canEdit: boolean;
+  readonly designModule = input<DesignModule>(undefined);
+  readonly module = input<Module>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 @Component({
@@ -55,15 +55,15 @@ class DesignModuleStub {
   template: '',
 })
 class ModuleVariablesStub {
-  @Input() selectedModule: Module;
-  @Input() name: string;
-  @Input() readOnly: boolean;
-  @Input() variables: Variable[];
-  @Input() outputs: unknown[];
-  @Input() isSaving: boolean;
-  @Input() requireChanges: boolean;
-  @Input() requireValues: boolean;
-  @Input() submitButtonText: string;
+  readonly selectedModule = input<Module>(undefined);
+  readonly name = input<string>(undefined);
+  readonly readOnly = input<boolean>(undefined);
+  readonly variables = input<Variable[]>(undefined);
+  readonly outputs = input<unknown[]>(undefined);
+  readonly isSaving = input<boolean>(undefined);
+  readonly requireChanges = input<boolean>(undefined);
+  readonly requireValues = input<boolean>(undefined);
+  readonly submitButtonText = input<string>(undefined);
   @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
 }
 
@@ -195,19 +195,19 @@ describe('DesignModulesComponent', () => {
       pickModule,
     } = await renderDesignModules({ canEdit: true });
 
-    expect(designModules().map((d) => d.canEdit)).toEqual([true]);
+    expect(designModules().map((d) => d.canEdit())).toEqual([true]);
     await pickModule();
 
     expect(modulesApi.getModule).toHaveBeenCalledWith('mod1');
     expect(designModulesApi.createDesignModule).not.toHaveBeenCalled();
     const dialog = addDialog();
     expect({
-      selectedModule: dialog?.selectedModule,
-      name: dialog?.name,
-      readOnly: dialog?.readOnly,
-      requireChanges: dialog?.requireChanges,
-      requireValues: dialog?.requireValues,
-      submitButtonText: dialog?.submitButtonText,
+      selectedModule: dialog?.selectedModule(),
+      name: dialog?.name(),
+      readOnly: dialog?.readOnly(),
+      requireChanges: dialog?.requireChanges(),
+      requireValues: dialog?.requireValues(),
+      submitButtonText: dialog?.submitButtonText(),
     }).toEqual({
       selectedModule: pickedModule,
       name: 'web_server',
@@ -216,10 +216,10 @@ describe('DesignModulesComponent', () => {
       requireValues: true,
       submitButtonText: 'Add',
     });
-    expect(dialog?.variables).toEqual([
+    expect(dialog?.variables()).toEqual([
       { id: 'v1', designId: 'd1', name: 'region', terraform: 'var.region' },
     ]);
-    expect(dialog?.outputs).toEqual([
+    expect(dialog?.outputs()).toEqual([
       {
         designModuleName: 'web',
         name: 'ip',
@@ -271,7 +271,7 @@ describe('DesignModulesComponent', () => {
 
     await pickModule();
 
-    expect(addDialog()?.name).toBe('web_server_2');
+    expect(addDialog()?.name()).toBe('web_server_2');
   });
 
   /**
@@ -330,14 +330,14 @@ describe('DesignModulesComponent', () => {
     await pickModule();
     addDialog()?.variablesSelected.emit(addResult);
     await fixture.whenStable();
-    expect(addDialog()?.isSaving).toBe(true);
+    expect(addDialog()?.isSaving()).toBe(true);
 
     const failure = new Error('500');
     request.error(failure);
     await flush();
     await fixture.whenStable();
 
-    expect(addDialog()?.isSaving).toBe(false);
+    expect(addDialog()?.isSaving()).toBe(false);
     // Escapes to the app's ErrorHandler (ErrorService), which shows it.
     expect(errors).toEqual([failure]);
   });
@@ -360,7 +360,7 @@ describe('DesignModulesComponent', () => {
     await fixture.whenStable();
 
     expect(addDialog()).toBeDefined();
-    expect(addDialog()?.readOnly).toBe(true);
+    expect(addDialog()?.readOnly()).toBe(true);
   });
 
   /**
@@ -372,6 +372,6 @@ describe('DesignModulesComponent', () => {
     const { designModules } = await renderDesignModules({ canEdit: false });
 
     expect(screen.getByRole('button', { name: 'Add Module' })).toBeDisabled();
-    expect(designModules().map((d) => d.canEdit)).toEqual([false]);
+    expect(designModules().map((d) => d.canEdit())).toEqual([false]);
   });
 });

@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -20,9 +20,9 @@ import { DirectoryEditComponent } from 'src/app/directories/components/directory
 
 @Component({ selector: 'cas-directory-edit', template: '' })
 class DirectoryEditStub {
-  @Input() directory: Directory;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
+  readonly directory = input<Directory>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
   @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
 }
 
@@ -70,9 +70,9 @@ describe('DirectoryEditContainerComponent', () => {
   it('feeds the edit form', async () => {
     const { edit } = await renderContainer();
 
-    expect(edit.directory.name).toBe('network');
-    expect(edit.terraformVersions.versions).toEqual(['1.5.7']);
-    expect(edit.maxParallelism).toBe(10);
+    expect(edit.directory().name).toBe('network');
+    expect(edit.terraformVersions().versions).toEqual(['1.5.7']);
+    expect(edit.maxParallelism()).toBe(10);
   });
 
   /**

@@ -8,8 +8,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     mat-raised-button
     color="primary"
     (click)="addVariable()"
-    [disabled]="!canEdit"
-    >
+    [disabled]="!canEdit()"
+  >
     Add Variable
   </button>
 </div>
@@ -19,10 +19,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (variables.length) {
       <div class="d-flex flex-row flex-wrap gap-3">
         @for (item of variables; track trackByFn($index, item)) {
-          <cas-variable
-            [variable]="item"
-            [canEdit]="canEdit"
-          ></cas-variable>
+          <cas-variable [variable]="item" [canEdit]="canEdit()"></cas-variable>
         }
       </div>
     } @else {

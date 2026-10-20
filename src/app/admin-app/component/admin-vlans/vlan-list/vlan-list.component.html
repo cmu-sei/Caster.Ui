@@ -36,7 +36,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     mat-raised-button
     color="primary"
     [matMenuTriggerFor]="selectionMenu"
-    [disabled]="!canEdit"
+    [disabled]="!canEdit()"
   >
     {{ selection.selected.length }} Selected
   </button>
@@ -64,10 +64,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </button>
   </mat-menu>
   <mat-menu #partitionSelectMenu="matMenu">
-    @if (showUnassigned) {
+    @if (showUnassigned()) {
       <button (click)="reassignSelected(null)" mat-menu-item>Unassigned</button>
     }
-    @for (partition of partitions; track partition) {
+    @for (partition of partitions(); track partition) {
       <button (click)="reassignSelected(partition.id)" mat-menu-item>
         {{ partition.name }}
       </button>
@@ -131,7 +131,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [color]="element.inUse ? 'warn' : 'basic'"
           (click)="toggleInUse(element)"
           [disabled]="
-            !element.partitionId || loading.get(element.id) || !canEdit
+            !element.partitionId || loading.get(element.id) || !canEdit()
           "
         >
           {{ element.inUse }}
@@ -147,7 +147,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [color]="element.reserved ? 'warn' : 'basic'"
           (click)="toggleReserved(element)"
           [disabled]="
-            loading.get(element.id) || !canEdit || !element.reservedEditable
+            loading.get(element.id) || !canEdit() || !element.reservedEditable
           "
           [matTooltip]="
             !element.reservedEditable
@@ -166,7 +166,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div class="tag">
           @if (editingId != element.id) {
             <p>{{ element.tag }}</p>
-            @if (canEdit) {
+            @if (canEdit()) {
               <button
                 mat-icon-button
                 color="primary"

@@ -12,6 +12,7 @@ import {
   ViewChild,
   ViewEncapsulation,
   inject,
+  input,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
@@ -70,7 +71,7 @@ export class ModuleListComponent implements OnInit {
     this._selectedModule = val;
     this.updateSelected();
   }
-  @Input() isEditing: boolean;
+  readonly isEditing = input<boolean>(undefined);
 
   @Output()
   insertModule: EventEmitter<CreateSnippetCommand> =

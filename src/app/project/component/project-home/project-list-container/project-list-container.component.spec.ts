@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -19,15 +19,15 @@ import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.compon
 
 @Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
 }
 
 @Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
-  @Input() projects: Project[];
-  @Input() isLoading: boolean;
+  readonly projects = input<Project[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
 }
 
 describe('ProjectListContainerComponent', () => {
@@ -67,7 +67,7 @@ describe('ProjectListContainerComponent', () => {
     const list: ProjectListStub = fixture.debugElement.query(
       By.directive(ProjectListStub),
     ).componentInstance;
-    expect(list.projects.map((p) => p.id)).toEqual(['p1']);
+    expect(list.projects().map((p) => p.id)).toEqual(['p1']);
     expect(TestBed.inject(CurrentUserQuery).getValue()).toMatchObject({
       id: 'u1',
       name: 'Ada',

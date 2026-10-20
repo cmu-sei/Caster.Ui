@@ -4,11 +4,11 @@
 import {
   Component,
   OnInit,
-  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
   inject,
+  input,
 } from '@angular/core';
 import { WorkspaceService, WorkspaceQuery } from '../../state';
 import {
@@ -32,7 +32,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
   private workspaceQuery = inject(WorkspaceQuery);
   private terraformService = inject(TerraformService);
 
-  @Input() id: string;
+  readonly id = input<string>(undefined);
   @Output() editWorkspaceComplete = new EventEmitter<boolean>();
 
   public workspace$: Observable<Workspace>;
@@ -40,14 +40,14 @@ export class WorkspaceEditContainerComponent implements OnInit {
   public maxParallelism$: Observable<number>;
 
   ngOnInit(): void {
-    this.workspace$ = this.workspaceQuery.selectEntity(this.id);
+    this.workspace$ = this.workspaceQuery.selectEntity(this.id());
     this.versionResult$ = this.terraformService.getTerraformVersions();
     this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
   }
 
   onUpdateWorkspace(workspace: Partial<Workspace>) {
     if (workspace != null) {
-      this.workspaceService.partialUpdate(this.id, workspace);
+      this.workspaceService.partialUpdate(this.id(), workspace);
     }
     this.editWorkspaceComplete.emit(true);
   }

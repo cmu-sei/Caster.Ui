@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Input,
   inject,
+  input,
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
@@ -80,7 +81,7 @@ export class PartitionComponent implements OnInit {
     );
   }
 
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   get partition() {
     return this._partition;
@@ -131,14 +132,14 @@ export class PartitionComponent implements OnInit {
 
   unsetDefault($event, id: string) {
     $event.stopPropagation();
-    if (this.canEdit) {
+    if (this.canEdit()) {
       this.partitionService.unsetDefault(id).subscribe();
     }
   }
 
   setDefault($event, id: string) {
     $event.stopPropagation();
-    if (this.canEdit) {
+    if (this.canEdit()) {
       this.partitionService.setDefault(id).subscribe();
     }
   }

@@ -6,8 +6,8 @@ import {
   Component,
   EventEmitter,
   forwardRef,
-  Input,
   Output,
+  input,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -54,7 +54,7 @@ import {
   ],
 })
 class MonacoEditorStub implements ControlValueAccessor {
-  @Input() options: unknown;
+  readonly options = input<unknown>(undefined);
   @Output() onInit = new EventEmitter<unknown>();
   writeValue(): void {}
   registerOnChange(): void {}
@@ -66,24 +66,24 @@ class MonacoEditorStub implements ControlValueAccessor {
   template: '',
 })
 class MonacoDiffEditorStub {
-  @Input() options: unknown;
-  @Input() originalModel: unknown;
-  @Input() modifiedModel: unknown;
+  readonly options = input<unknown>(undefined);
+  readonly originalModel = input<unknown>(undefined);
+  readonly modifiedModel = input<unknown>(undefined);
 }
 
 @Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
-  @Input() modules: Module[];
-  @Input() selectedModule: Module;
-  @Input() isEditing: boolean;
+  readonly modules = input<Module[]>(undefined);
+  readonly selectedModule = input<Module>(undefined);
+  readonly isEditing = input<boolean>(undefined);
   @Output() getModule = new EventEmitter<{ id: string; name: string }>();
   @Output() insertModule = new EventEmitter<unknown>();
 }
 
 @Component({ selector: 'cas-version-list', template: '' })
 class VersionListStub {
-  @Input() fileId: string;
-  @Input() selectedVersionId: string;
+  readonly fileId = input<string>(undefined);
+  readonly selectedVersionId = input<string>(undefined);
   @Output() getVersion = new EventEmitter<FileVersion>();
   @Output() revertToVersion = new EventEmitter<unknown>();
 }
@@ -294,7 +294,7 @@ describe('EditorComponent', () => {
       const moduleList: ModuleListStub = fixture.debugElement.query(
         By.directive(ModuleListStub),
       ).componentInstance;
-      expect(moduleList.isEditing).toBe(isEditing);
+      expect(moduleList.isEditing()).toBe(isEditing);
     },
   );
 });

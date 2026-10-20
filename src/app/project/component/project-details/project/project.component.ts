@@ -5,8 +5,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
-  Input,
   Output,
+  input,
 } from '@angular/core';
 import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
@@ -21,9 +21,9 @@ import { ProjectTabComponent } from '../project-tab/project-tab.component';
   imports: [ProjectTabComponent],
 })
 export class ProjectComponent {
-  @Input() loading: boolean;
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
+  readonly loading = input<boolean>(undefined);
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
   @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
   @Output() tabChanged: EventEmitter<{
     index: number;

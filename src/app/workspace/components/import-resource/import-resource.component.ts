@@ -5,10 +5,10 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   EventEmitter,
   Output,
   inject,
+  input,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -50,8 +50,8 @@ export class ImportResourceComponent implements OnInit {
   private formBuilder = inject(UntypedFormBuilder);
   private workspaceService = inject(WorkspaceService);
 
-  @Input() workspaceId: string;
-  @Input() loading: boolean;
+  readonly workspaceId = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
 
   @Output() importComplete = new EventEmitter<boolean>();
 
@@ -72,7 +72,7 @@ export class ImportResourceComponent implements OnInit {
   import() {
     this.message = '';
     this.workspaceService
-      .import(this.workspaceId, {
+      .import(this.workspaceId(), {
         resourceAddress: this.form.value.address,
         resourceId: this.form.value.id,
       })

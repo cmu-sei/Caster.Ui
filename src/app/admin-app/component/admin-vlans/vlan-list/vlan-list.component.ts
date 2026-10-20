@@ -13,6 +13,7 @@ import {
   ChangeDetectorRef,
   OnChanges,
   inject,
+  input,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -96,9 +97,9 @@ export class VlanListComponent implements OnInit, OnChanges {
   private confirmService = inject(CrucibleDialogService);
   private vlanService = inject(VlanService);
 
-  @Input() showUnassigned = true;
-  @Input() partitions: Partition[];
-  @Input() canEdit: boolean;
+  readonly showUnassigned = input(true);
+  readonly partitions = input<Partition[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 
   @Input() set vlans(vlans: Vlan[]) {
     this._vlans = vlans;
@@ -195,9 +196,9 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   recalculateDisplayedColumns() {
     this.displayedColumns = [].concat(
-      this.canEdit ? this.preEditColumns : [],
+      this.canEdit() ? this.preEditColumns : [],
       this.viewColumns,
-      this.canEdit ? this.postEditColumns : [],
+      this.canEdit() ? this.postEditColumns : [],
     );
   }
 

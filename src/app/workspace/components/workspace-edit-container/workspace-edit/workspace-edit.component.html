@@ -14,7 +14,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 >
   <div crucibleDialogContent class="dialog-fields" [formGroup]="form">
     <mat-form-field>
-      <input formControlName="name" matInput placeholder="Name" cdkFocusInitial />
+      <input
+        formControlName="name"
+        matInput
+        placeholder="Name"
+        cdkFocusInitial
+      />
       @if (name.invalid && (name.dirty || name.touched)) {
         <mat-error>
           @if (name.hasError('maxlength')) {
@@ -33,7 +38,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         @for (version of sortedVersions; track version) {
           <mat-option [value]="version">
             {{ version
-            }}{{ version === terraformVersions.defaultVersion ? ' (Default)' : '' }}
+            }}{{
+              version === terraformVersions().defaultVersion ? ' (Default)' : ''
+            }}
           </mat-option>
         }
       </mat-select>
@@ -45,7 +52,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         formControlName="parallelism"
         type="number"
         matInput
-        [max]="maxParallelism"
+        [max]="maxParallelism()"
         [min]="1"
         autocomplete="off"
       />
@@ -64,7 +71,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       @if (parallelism.invalid && (parallelism.dirty || parallelism.touched)) {
         <mat-error>
           @if (parallelism.hasError('min') || parallelism.hasError('max')) {
-            Must be between 1 and {{ maxParallelism }}
+            Must be between 1 and {{ maxParallelism() }}
           }
         </mat-error>
       }

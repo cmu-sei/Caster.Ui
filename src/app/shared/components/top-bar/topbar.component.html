@@ -6,20 +6,30 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="toolbar"
   [style.backgroundColor]="'var(--crucible-topbar-background)'"
   [style.color]="'var(--crucible-topbar-text)'"
-  >
+>
   <mat-toolbar-row>
     <span class="margin-auto">
-      <a mat-icon-button class="home-logo" aria-label="Caster home" [routerLink]="['/']">
+      <a
+        mat-icon-button
+        class="home-logo"
+        aria-label="Caster home"
+        [routerLink]="['/']"
+      >
         <mat-icon svgIcon="ic_crucible_caster"></mat-icon>
       </a>
     </span>
-    <span class="view-text">{{ title }}</span>
+    <span class="view-text">{{ title() }}</span>
     <span class="spacer"></span>
     @if (currentUser$ | async; as currentUser) {
       <div
         class="team-text flex-grow-1 d-flex justify-content-end align-items-center"
+      >
+        <button
+          mat-button
+          class="menu-trigger"
+          [matMenuTriggerFor]="menu"
+          style="outline: none"
         >
-        <button mat-button class="menu-trigger" [matMenuTriggerFor]="menu" style="outline: none">
           <strong>{{ currentUser.name }}</strong>
           <mat-icon class="menu-trigger" fontIcon="mdi-chevron-down"></mat-icon>
         </button>
@@ -28,27 +38,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <a
               [routerLink]="['/projects', projectId, 'memberships']"
               mat-menu-item
-              >
+            >
               Manage Project
             </a>
           }
-          @if ((canViewAdmin$ | async) && topbarView === 'caster-admin') {
-            <button
-              (click)="exitAdmin()"
-              mat-menu-item
-              >
+          @if ((canViewAdmin$ | async) && topbarView() === 'caster-admin') {
+            <button (click)="exitAdmin()" mat-menu-item>
               Exit Administration
             </button>
           }
           @if (
-            (canViewAdmin$ | async) && topbarView !== TopbarView.CASTER_ADMIN
-            ) {
-            <a
-              [routerLink]="['/admin']"
-              mat-menu-item
-              >
-              Administration
-            </a>
+            (canViewAdmin$ | async) && topbarView() !== TopbarView.CASTER_ADMIN
+          ) {
+            <a [routerLink]="['/admin']" mat-menu-item> Administration </a>
           }
           <button mat-menu-item (click)="logout()">Logout</button>
           <mat-slide-toggle
@@ -57,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [checked]="(theme$ | async) === 'dark-theme' ? true : false"
             (click)="$event.stopPropagation()"
             (change)="themeFn($event)"
-            >
+          >
             Dark Theme
           </mat-slide-toggle>
         </mat-menu>

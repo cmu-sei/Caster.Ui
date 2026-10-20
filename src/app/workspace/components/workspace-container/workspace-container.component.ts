@@ -4,7 +4,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -12,6 +11,7 @@ import {
   TemplateRef,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
@@ -95,9 +95,9 @@ export class WorkspaceContainerComponent
   private dialog = inject(MatDialog);
   private permissionService = inject(PermissionService);
 
-  @Input() workspaceId: string;
-  @Input() breadcrumb: Breadcrumb[];
-  @Input() canEdit: boolean;
+  readonly workspaceId = input<string>(undefined);
+  readonly breadcrumb = input<Breadcrumb[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   workspaceRuns: Run[];
   workspaceResources: Resource[];
   output: string[];
@@ -136,19 +136,19 @@ export class WorkspaceContainerComponent
       //   connector: () => new ReplaySubject(1),
       // })
     );
-    this.workspace$ = this.workspaceQuery.selectEntity(this.workspaceId);
+    this.workspace$ = this.workspaceQuery.selectEntity(this.workspaceId());
     this.workspaceRuns$ = this.workspaceQuery
-      .workspaceRuns$(this.workspaceId)
+      .workspaceRuns$(this.workspaceId())
       .pipe(tap((runs) => (this.workspaceRuns = runs)));
     this.workspaceResources$ = this.workspaceQuery
-      .workspaceResources$(this.workspaceId)
+      .workspaceResources$(this.workspaceId())
       .pipe(
         tap((resources) => {
           this.workspaceResources = resources;
         }),
       );
     this.expandedRunIds$ = this.workspaceQuery
-      .expandedRuns$(this.workspaceId)
+      .expandedRuns$(this.workspaceId())
       .pipe(
         tap(() => console.log(`Updating expandedRunIds`)),
         shareReplay({ bufferSize: 1, refCount: true }),
@@ -161,7 +161,7 @@ export class WorkspaceContainerComponent
         // })
       );
     this.expandedResourceIds$ = this.workspaceQuery
-      .expandedResources$(this.workspaceId)
+      .expandedResources$(this.workspaceId())
       .pipe(
         shareReplay({ bufferSize: 1, refCount: true }),
         // share(
@@ -172,9 +172,11 @@ export class WorkspaceContainerComponent
         //   resetOnRefCountZero: false,
         // })
       );
-    this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(this.workspaceId);
+    this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(
+      this.workspaceId(),
+    );
     this.resourceActionIds$ = this.workspaceQuery
-      .resourceActions$(this.workspaceId)
+      .resourceActions$(this.workspaceId())
       .pipe(
         shareReplay({ bufferSize: 1, refCount: true }),
         // share(
@@ -186,7 +188,7 @@ export class WorkspaceContainerComponent
         // })
       );
     this.resourceAction$ = this.workspaceQuery
-      .resourceAction$(this.workspaceId)
+      .resourceAction$(this.workspaceId())
       .pipe(
         shareReplay({ bufferSize: 1, refCount: true }),
         // share(
@@ -197,11 +199,11 @@ export class WorkspaceContainerComponent
         //   resetOnRefCountZero: false,
         // })
       );
-    this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId);
+    this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId());
     // This value is used in multiple times in the template. So we use the shareReplay() operator to prevent multiple
     // subscriptions.
     this.workspaceView$ = this.workspaceQuery
-      .getWorkspaceView(this.workspaceId)
+      .getWorkspaceView(this.workspaceId())
       .pipe(
         shareReplay({ bufferSize: 1, refCount: true }),
         // share(
@@ -213,7 +215,7 @@ export class WorkspaceContainerComponent
         // })
       );
 
-    this.signalrService.joinWorkspace(this.workspaceId);
+    this.signalrService.joinWorkspace(this.workspaceId());
 
     this.canImport$ = this.permissionService.hasPermission(
       SystemPermission.ImportResources,
@@ -221,9 +223,10 @@ export class WorkspaceContainerComponent
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.breadcrumb && this.breadcrumb.length > 0) {
+    const breadcrumb = this.breadcrumb();
+    if (breadcrumb && breadcrumb.length > 0) {
       this.breadcrumbString = '';
-      this.breadcrumb.forEach((bc) => {
+      breadcrumb.forEach((bc) => {
         this.breadcrumbString = this.breadcrumbString + '  >  ' + bc.name;
       });
     }
@@ -237,7 +240,7 @@ export class WorkspaceContainerComponent
     }
     this.workspaceService
       .createPlanRun(
-        this.workspaceId,
+        this.workspaceId(),
         false,
         this.resourcesToReplace,
         this.resourcesToTarget,
@@ -252,7 +255,7 @@ export class WorkspaceContainerComponent
   reject(event: Event, run: Run) {
     event.stopPropagation();
     this.workspaceService
-      .rejectRun(this.workspaceId, run.id)
+      .rejectRun(this.workspaceId(), run.id)
       .pipe(
         take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -276,7 +279,7 @@ export class WorkspaceContainerComponent
       .subscribe((confirmed) => {
         if (confirmed) {
           this.workspaceService
-            .cancelRun(this.workspaceId, run.id, this.forceCancel)
+            .cancelRun(this.workspaceId(), run.id, this.forceCancel)
             .pipe(
               take(1),
               // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -289,14 +292,17 @@ export class WorkspaceContainerComponent
   apply(event: Event, run: Run) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
-    this.workspaceService.applyRun(this.workspaceId, run.id).pipe().subscribe();
+    this.workspaceService
+      .applyRun(this.workspaceId(), run.id)
+      .pipe()
+      .subscribe();
   }
 
   destroy(event: Event) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
     this.workspaceService
-      .createPlanRun(this.workspaceId, true, null, null)
+      .createPlanRun(this.workspaceId(), true, null, null)
       .subscribe();
   }
 
@@ -314,7 +320,7 @@ export class WorkspaceContainerComponent
   taint(event: Event, item: Resource) {
     event.stopPropagation();
     this.workspaceService
-      .taint(this.workspaceId, item)
+      .taint(this.workspaceId(), item)
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -324,7 +330,7 @@ export class WorkspaceContainerComponent
   untaint(event: Event, item: Resource) {
     event.stopPropagation();
     this.workspaceService
-      .untaint(this.workspaceId, item)
+      .untaint(this.workspaceId(), item)
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -343,7 +349,7 @@ export class WorkspaceContainerComponent
       .subscribe((confirmed) => {
         if (confirmed) {
           this.workspaceService
-            .remove(this.workspaceId, item)
+            .remove(this.workspaceId(), item)
             .pipe(take(1))
             .subscribe((result) => {
               this.showResult(result);
@@ -354,7 +360,7 @@ export class WorkspaceContainerComponent
 
   refreshResources() {
     this.workspaceService
-      .refreshResources(this.workspaceId)
+      .refreshResources(this.workspaceId())
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -419,8 +425,9 @@ export class WorkspaceContainerComponent
 
   expandResource(event) {
     const { expand, item } = event;
-    this.workspaceService.loadResource(this.workspaceId, item);
-    this.workspaceService.expandResource(expand, this.workspaceId, item);
+    const workspaceId = this.workspaceId();
+    this.workspaceService.loadResource(workspaceId, item);
+    this.workspaceService.expandResource(expand, workspaceId, item);
   }
 
   enablePlanApply(): boolean {
@@ -483,7 +490,7 @@ export class WorkspaceContainerComponent
   }
 
   filterRuns(filters: StatusFilter[]) {
-    this.workspaceService.setStatusFilters(this.workspaceId, filters);
+    this.workspaceService.setStatusFilters(this.workspaceId(), filters);
   }
 
   setRowStyle = (item: Run | Resource) => {
@@ -503,20 +510,20 @@ export class WorkspaceContainerComponent
       switch (event) {
         case 'runs':
           this.workspaceService
-            .loadRunsByWorkspaceId(this.workspaceId)
+            .loadRunsByWorkspaceId(this.workspaceId())
             .pipe(take(1))
             .subscribe();
           break;
         case 'state':
           this.workspaceService
-            .loadResourcesByWorkspaceId(this.workspaceId)
+            .loadResourcesByWorkspaceId(this.workspaceId())
             .pipe(take(1))
             .subscribe();
           this.resourcesToReplace = []; // reset the list when returning to the state view
           this.resourcesToTarget = []; // reset the list when returning to the state view
           break;
       }
-      this.workspaceService.setWorkspaceView(this.workspaceId, event);
+      this.workspaceService.setWorkspaceView(this.workspaceId(), event);
     }
   }
 
@@ -533,6 +540,6 @@ export class WorkspaceContainerComponent
   }
 
   ngOnDestroy() {
-    this.signalrService.leaveWorkspace(this.workspaceId);
+    this.signalrService.leaveWorkspace(this.workspaceId());
   }
 }

@@ -5,7 +5,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (!!dataSource) {
   <div class="d-flex flex-column">
-    <mat-card appearance="outlined" class="version-heading flex-fill w-100 h-100">
+    <mat-card
+      appearance="outlined"
+      class="version-heading flex-fill w-100 h-100"
+    >
       <span><strong>FILE VERSIONS</strong></span>
       <div class="version-search">
         <mat-form-field class="search-input">
@@ -15,10 +18,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             placeholder="Search"
-            />
+          />
           @if (filterString != '') {
-            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
-              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+            <button
+              matSuffix
+              mat-icon-button
+              aria-label="Clear"
+              (click)="clearFilter()"
+            >
+              <mat-icon
+                class="mdi-24px"
+                fontIcon="mdi-close-circle-outline"
+              ></mat-icon>
             </button>
           }
         </mat-form-field>
@@ -27,49 +38,50 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @for (version of dataSource.filteredData; track version) {
       <mat-card
         appearance="outlined"
-        [class.selected]="selectedVersionId == version.id"
+        [class.selected]="selectedVersionId() == version.id"
         class="clickable highlight version-card flex-fill w-100 h-100"
         (click)="selectVersionFn(version)"
-        >
+      >
         <mat-card-content>
-          <div class="d-flex flex-column justify-content-around align-items-start">
+          <div
+            class="d-flex flex-column justify-content-around align-items-start"
+          >
             <div>
               <span class="version-name"
                 >{{ version.dateSaved | date: 'yyyy-MM-dd HH:mm' }} by
                 {{ version.modifiedByName }} as {{ version.name }}</span
-                >
-              </div>
-              @if (version.tag) {
-                <span class="version-text"
-                  ><strong>{{ version.tag }}</strong> tag by
-                  {{ version.taggedByName }} on
-                  {{ version.dateTagged | date: 'yyyy-MM-dd HH:mm' }}</span
-                  >
-                }
-                <div class="d-flex flex-row w-100 h-100 justify-content-end align-items-center">
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    (click)="$event.stopPropagation(); revertFile(version)"
-                    >
-                    Revert
-                  </button>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        }
-        @if (!dataSource.data || dataSource.data.length === 0) {
-          <mat-card
-            appearance="outlined"
-            class="version-card"
+              >
+            </div>
+            @if (version.tag) {
+              <span class="version-text"
+                ><strong>{{ version.tag }}</strong> tag by
+                {{ version.taggedByName }} on
+                {{ version.dateTagged | date: 'yyyy-MM-dd HH:mm' }}</span
+              >
+            }
+            <div
+              class="d-flex flex-row w-100 h-100 justify-content-end align-items-center"
             >
-            <mat-card-content>
-              <div>
-                <span class="version-name">No saved versions ...</span>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        }
-      </div>
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="$event.stopPropagation(); revertFile(version)"
+              >
+                Revert
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     }
+    @if (!dataSource.data || dataSource.data.length === 0) {
+      <mat-card appearance="outlined" class="version-card">
+        <mat-card-content>
+          <div>
+            <span class="version-name">No saved versions ...</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

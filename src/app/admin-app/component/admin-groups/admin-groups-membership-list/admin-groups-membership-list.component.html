@@ -18,14 +18,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (keyup)="applyFilter($event)"
           #input
           autocomplete="off"
-          />
+        />
         @if (filterString) {
           <button
             matSuffix
             mat-icon-button
             aria-label="Clear"
             (click)="clearFilter()"
-            >
+          >
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-close-circle-outline"
@@ -46,7 +46,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     matSortDirection="asc"
     [dataSource]="dataSource"
     class="w-100"
-    >
+  >
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let user">
@@ -59,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="$event.stopPropagation()"
             title="Copy:  {{ user.id }}"
             [attr.aria-label]="'Copy ID of ' + user.name"
-            >
+          >
             <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
           </button>
           <span>{{ user.name }}</span>
@@ -76,9 +76,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (click)="add(user.id)"
           title="Add {{ user.name }}"
           [attr.aria-label]="'Add ' + user.name"
-          [disabled]="!canEdit"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle-outline"></mat-icon>
+          [disabled]="!canEdit()"
+        >
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-plus-circle-outline"
+          ></mat-icon>
         </button>
       </td>
     </ng-container>

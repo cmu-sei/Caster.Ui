@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Input,
   inject,
+  input,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Partition } from 'src/app/generated/caster-api';
@@ -53,7 +54,7 @@ export class PartitionListComponent implements OnInit {
 
   _poolId: string;
 
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   partitions$: Observable<Partition[]>;
 

@@ -7,11 +7,11 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   OnChanges,
   SimpleChanges,
   Renderer2,
   inject,
+  input,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -79,11 +79,9 @@ export class VariableComponent implements OnInit, OnChanges {
   private formBuilder = inject(UntypedFormBuilder);
   private snackBar = inject(MatSnackBar);
 
-  @Input()
-  public variable: Variable;
+  public readonly variable = input<Variable>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   private isSaving = new BehaviorSubject(false);
   public isSaving$ = this.isSaving.asObservable();
@@ -104,15 +102,15 @@ export class VariableComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.form = this.formBuilder.group({
       name: [
-        { value: this.variable.name, disabled: !this.canEdit },
+        { value: this.variable().name, disabled: !this.canEdit() },
         Validators.required,
       ],
       type: [
-        { value: this.variable.type, disabled: !this.canEdit },
+        { value: this.variable().type, disabled: !this.canEdit() },
         Validators.required,
       ],
       defaultValue: [
-        { value: this.variable.defaultValue, disabled: !this.canEdit },
+        { value: this.variable().defaultValue, disabled: !this.canEdit() },
       ],
     });
   }
@@ -128,9 +126,9 @@ export class VariableComponent implements OnInit, OnChanges {
   updateFormValue(propertyName: string) {
     const formControl = this.form?.get(propertyName);
 
-    this.canEdit ? formControl.enable() : formControl.disable();
+    this.canEdit() ? formControl.enable() : formControl.disable();
 
-    const val = this.variable[propertyName];
+    const val = this.variable()[propertyName];
 
     if (formControl?.pristine) {
       // if we haven't changed this field,
@@ -152,7 +150,7 @@ export class VariableComponent implements OnInit, OnChanges {
     const formControl = this.form.get(propertyName);
 
     if (formControl) {
-      formControl.setValue(this.variable[propertyName]);
+      formControl.setValue(this.variable()[propertyName]);
       formControl.markAsPristine();
       this.pendingChanges[propertyName] = false;
     }
@@ -177,7 +175,7 @@ export class VariableComponent implements OnInit, OnChanges {
   save() {
     this.isSaving.next(true);
 
-    this.variableService.edit(this.variable.id, this.form.value).subscribe(
+    this.variableService.edit(this.variable().id, this.form.value).subscribe(
       (x) => {
         this.isSaving.next(false);
         this.form.markAsPristine();
@@ -196,20 +194,20 @@ export class VariableComponent implements OnInit, OnChanges {
     this.confirmDialogService
       .confirm({
         title: 'Delete Variable',
-        message: `Are you sure you want to delete ${this.variable.name}?`,
+        message: `Are you sure you want to delete ${this.variable().name}?`,
       })
       .afterClosed()
       .pipe(take(1))
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.variableService.delete(this.variable.id);
+          this.variableService.delete(this.variable().id);
         }
       });
   }
 
   onClipboardSuccess() {
     this.snackBar.open(
-      `Copied ${this.variable.terraform} to clipboard`,
+      `Copied ${this.variable().terraform} to clipboard`,
       'Dismiss',
     );
   }

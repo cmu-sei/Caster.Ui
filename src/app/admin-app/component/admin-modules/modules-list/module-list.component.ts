@@ -6,11 +6,11 @@ import {
   EventEmitter,
   OnInit,
   ViewChild,
-  Input,
   Output,
   OnChanges,
   SimpleChanges,
   inject,
+  input,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -91,9 +91,9 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   public dataSource = new MatTableDataSource<Module>(new Array<Module>());
   public externalModuleId = '';
 
-  @Input() modules: Module[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
+  readonly modules = input<Module[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() load: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() loadModuleById: EventEmitter<string> = new EventEmitter<string>();
   @Output() delete: EventEmitter<string> = new EventEmitter<string>();

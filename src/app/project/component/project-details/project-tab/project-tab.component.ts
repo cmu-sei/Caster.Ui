@@ -6,13 +6,13 @@ import {
   Component,
   EventEmitter,
   HostListener,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
   inject,
+  input,
 } from '@angular/core';
 import {
   Breadcrumb,
@@ -99,8 +99,8 @@ export class ProjectTabComponent
   private designQuery = inject(DesignQuery);
   private permissionService = inject(PermissionService);
 
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
   @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
   @Output() tabChanged: EventEmitter<{
     index: number;
@@ -128,27 +128,33 @@ export class ProjectTabComponent
    * ngOninit handles initialization required for all open tabs
    */
   ngOnInit() {
-    this.canEdit$ = this.permissionService.canEditProject(this.project.id);
+    this.canEdit$ = this.permissionService.canEditProject(this.project().id);
     this.canAdminLock$ = this.permissionService.canAdminLockProject(
-      this.project.id,
+      this.project().id,
     );
-    this.canManage$ = this.permissionService.canManageProject(this.project.id);
+    this.canManage$ = this.permissionService.canManageProject(
+      this.project().id,
+    );
     this.moduleService.load(false, false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
-    this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
-    this.sidebarView$ = this.projectQuery.getRightSidebarView$(this.project.id);
+    this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(
+      this.project().id,
+    );
+    this.sidebarView$ = this.projectQuery.getRightSidebarView$(
+      this.project().id,
+    );
     this.sidebarWidth$ = this.projectQuery.getRightSidebarWidth(
-      this.project.id,
+      this.project().id,
     );
 
     // Subscribe when the tab changes.
     this.selectedTab$ = this.projectQuery
-      .selectSelectedTab(this.project.id)
+      .selectSelectedTab(this.project().id)
       .pipe(
         filter((selectedTab) => selectedTab >= 0),
         // since the selected tab is only an index we need to get the open tabs data from the openTabs array.
         // we use withLatestFrom() so this is only triggered the the selected tab is changed.
-        withLatestFrom(this.projectQuery.selectOpenTabs(this.project.id)),
+        withLatestFrom(this.projectQuery.selectOpenTabs(this.project().id)),
         // return the Tabs data
         map(([selectedTab, openTabs]) => {
           const tab = openTabs[selectedTab];
@@ -164,7 +170,7 @@ export class ProjectTabComponent
         // Set the breadcrumb based on the currently selected tab.
         tap((tab: Tab) => {
           this.breadcrumb$ = this.projectQuery.selectTabBreadcrumb(
-            this.project.id,
+            this.project().id,
             tab.id,
           );
           this.updateBreadcrumb(tab);
@@ -219,7 +225,7 @@ export class ProjectTabComponent
 
     // Subscribe to each open tab for changes.
     this.projectQuery
-      .selectOpenTabs(this.project.id)
+      .selectOpenTabs(this.project().id)
       .pipe(
         tap((openTabs) => {
           openTabs.forEach((tab) => this.updateBreadcrumb(tab));
@@ -227,7 +233,7 @@ export class ProjectTabComponent
         switchMap((openTabs) => {
           const subs = openTabs.map((tab) =>
             this.projectQuery
-              .selectTabBreadcrumb(this.project.id, tab.id)
+              .selectTabBreadcrumb(this.project().id, tab.id)
               .pipe(take(1)),
           );
           return merge(subs);
@@ -260,7 +266,8 @@ export class ProjectTabComponent
     // unsubscribe from closed tab changes
     this.tabSubscriptions.forEach((sub, tabId) => {
       const isClosed =
-        !this.showTabs || !this.projectUI.openTabs.some((t) => t.id === tabId);
+        !this.showTabs ||
+        !this.projectUI().openTabs.some((t) => t.id === tabId);
       if (isClosed) {
         sub.unsubscribe();
         this.tabSubscriptions.delete(tabId);
@@ -268,10 +275,11 @@ export class ProjectTabComponent
     });
     // subscribe to open tab changes
     if (this.showTabs) {
-      for (let i = 0; i < this.projectUI.openTabs.length; i++) {
-        if (i === this.projectUI.selectedTab) {
+      for (let i = 0; i < this.projectUI().openTabs.length; i++) {
+        const projectUI = this.projectUI();
+        if (i === projectUI.selectedTab) {
           // subscribe to the total path for the selected tab to get path changes for breadcrumb
-          const tabBreadcrumbs = this.projectUI.openTabs[i].breadcrumb;
+          const tabBreadcrumbs = projectUI.openTabs[i].breadcrumb;
           if (tabBreadcrumbs) {
             tabBreadcrumbs.forEach((bc) => {
               switch (bc.type) {
@@ -308,7 +316,7 @@ export class ProjectTabComponent
         // Every open tab, selected or not, watches its own entity so a rename reaches
         // its label. These are kept off tabChangeRequested$: mat-tab-group emits
         // selectedTabChange when a tab opens, which would drop the watch at once.
-        const tab = this.projectUI.openTabs[i];
+        const tab = projectUI.openTabs[i];
         const alreadyWatching = this.tabSubscriptions.has(tab.id);
         if (!alreadyWatching) {
           switch (tab.type) {
@@ -346,7 +354,7 @@ export class ProjectTabComponent
 
   setProjectObjectNames() {
     if (this.showTabs) {
-      this.projectUI.openTabs.forEach((tab) => {
+      this.projectUI().openTabs.forEach((tab) => {
         this.projectObjectNames[tab.id] = tab.name;
         if (!!tab.breadcrumb) {
           tab.breadcrumb.forEach((bc) => {
@@ -412,7 +420,7 @@ export class ProjectTabComponent
     if (obj) {
       this.projectObjectNames[tab.id] = obj.name;
       newBreadcrumb = this.projectService.createBreadcrumb(
-        this.project,
+        this.project(),
         obj,
         tab.type,
       );
@@ -507,15 +515,15 @@ export class ProjectTabComponent
   }
 
   sidebarChangedFn(event) {
-    this.projectService.setRightSidebarOpen(this.project.id, event);
+    this.projectService.setRightSidebarOpen(this.project().id, event);
   }
 
   sidebarViewChangedFn(event) {
-    this.projectService.setRightSidebarView(this.project.id, event);
+    this.projectService.setRightSidebarView(this.project().id, event);
   }
 
   sidebarWidthChangedFn(event) {
-    this.projectService.setRightSidebarWidth(this.project.id, event);
+    this.projectService.setRightSidebarWidth(this.project().id, event);
   }
 
   // @HostListener handles browser refresh, close, etc.
@@ -524,9 +532,10 @@ export class ProjectTabComponent
     // check if there are pending changes
     // returning true will navigate without confirmation
     // returning false will show a confirm dialog before navigating away
+    const projectUI = this.projectUI();
     const thereAreUnsavedChanges =
-      this.projectUI.openTabs &&
-      this.projectUI.openTabs.some((tab) => {
+      projectUI.openTabs &&
+      projectUI.openTabs.some((tab) => {
         return (
           tab.type === ProjectObjectType.FILE &&
           this.isFileContentChanged(tab.id)

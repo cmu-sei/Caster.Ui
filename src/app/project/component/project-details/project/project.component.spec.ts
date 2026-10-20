@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Project } from 'src/app/generated/caster-api';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -13,8 +13,8 @@ import { ProjectTabComponent } from 'src/app/project/component/project-details/p
 
 @Component({ selector: 'cas-project-tab', template: '' })
 class ProjectTabStub {
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
   @Output() closeTab = new EventEmitter<string>();
   @Output() tabChanged = new EventEmitter<unknown>();
 }
@@ -38,8 +38,8 @@ describe('ProjectComponent', () => {
     const tab: ProjectTabStub = fixture.debugElement.query(
       By.directive(ProjectTabStub),
     ).componentInstance;
-    expect(tab.project).toBe(project);
-    expect(tab.projectUI).toBe(projectUI);
+    expect(tab.project()).toBe(project);
+    expect(tab.projectUI()).toBe(projectUI);
     tab.closeTab.emit('t1');
     expect(closeTab).toHaveBeenCalledWith('t1');
   });

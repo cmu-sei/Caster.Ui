@@ -4,11 +4,11 @@
 import {
   Component,
   OnInit,
-  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
   inject,
+  input,
 } from '@angular/core';
 import {
   Workspace,
@@ -63,9 +63,9 @@ import { MatIcon } from '@angular/material/icon';
 export class WorkspaceEditComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
 
-  @Input() workspace: Workspace;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
+  readonly workspace = input<Workspace>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
 
   @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
 
@@ -105,21 +105,22 @@ export class WorkspaceEditComponent implements OnInit {
         ],
       ],
       terraformVersion: [],
-      parallelism: [Validators.min(1), Validators.max(this.maxParallelism)],
+      parallelism: [Validators.min(1), Validators.max(this.maxParallelism())],
       azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
     });
   }
 
   ngOnInit(): void {
     this.form.patchValue({
-      name: this.workspace.name,
-      terraformVersion: this.workspace.terraformVersion,
-      parallelism: this.workspace.parallelism,
-      azureDestroyFailureThreshold: this.workspace.azureDestroyFailureThreshold,
+      name: this.workspace().name,
+      terraformVersion: this.workspace().terraformVersion,
+      parallelism: this.workspace().parallelism,
+      azureDestroyFailureThreshold:
+        this.workspace().azureDestroyFailureThreshold,
     });
 
-    this.sortedVersions = this.terraformVersions?.versions
-      ?.sort(this.collator.compare)
+    this.sortedVersions = this.terraformVersions()
+      ?.versions?.sort(this.collator.compare)
       .reverse();
   }
 

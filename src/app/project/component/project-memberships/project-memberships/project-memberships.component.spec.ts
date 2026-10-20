@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, EventEmitter, Output, Type, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -41,9 +41,9 @@ import { ProjectMembershipListComponent } from 'src/app/project/component/projec
   template: '',
 })
 class MembershipListStub {
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() canEdit: boolean;
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() createMembership =
     new EventEmitter<CreateProjectMembershipCommand>();
 }
@@ -53,11 +53,11 @@ class MembershipListStub {
   template: '',
 })
 class MemberListStub {
-  @Input() memberships: ProjectMembership[];
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() roles: ProjectRole[];
-  @Input() canEdit: boolean;
+  readonly memberships = input<ProjectMembership[]>(undefined);
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly roles = input<ProjectRole[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() deleteMembership = new EventEmitter<string>();
   @Output() editMembership = new EventEmitter<EditProjectMembershipCommand>();
 }
@@ -146,13 +146,21 @@ describe('ProjectMembershipsComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Range' })).toBeVisible();
     expect(signalR.joinProjectAdmin).toHaveBeenCalledWith('p1');
-    expect(stub(MemberListStub).users.map((u) => u.name)).toEqual(['Ada']);
-    expect(stub(MembershipListStub).users.map((u) => u.name)).toEqual([
-      'Grace',
-    ]);
-    expect(stub(MembershipListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Ada']);
+    expect(
+      stub(MembershipListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Grace']);
+    expect(
+      stub(MembershipListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
   });
 
   /**
@@ -168,8 +176,8 @@ describe('ProjectMembershipsComponent', () => {
     });
 
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(true);
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -183,7 +191,7 @@ describe('ProjectMembershipsComponent', () => {
     });
 
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -213,8 +221,8 @@ describe('ProjectMembershipsComponent', () => {
     const { stub } = await renderMemberships(grants);
 
     // Current behavior for the Manage rows; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(false);
-    expect(stub(MemberListStub).canEdit).toBe(false);
+    expect(stub(MembershipListStub).canEdit()).toBe(false);
+    expect(stub(MemberListStub).canEdit()).toBe(false);
   });
 
   /**
@@ -234,13 +242,16 @@ describe('ProjectMembershipsComponent', () => {
     expect(projectsApi.createProjectMembership).toHaveBeenCalledWith('p1', {
       groupId: 'g1',
     });
-    expect(stub(MemberListStub).memberships.map((m) => m.id)).toEqual([
-      'm1',
-      'm2',
-    ]);
-    expect(stub(MemberListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .memberships()
+        .map((m) => m.id),
+    ).toEqual(['m1', 'm2']);
+    expect(
+      stub(MemberListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
 
     await user.click(screen.getByRole('button', { name: 'Return' }));
     expect(goBack).toHaveBeenCalled();

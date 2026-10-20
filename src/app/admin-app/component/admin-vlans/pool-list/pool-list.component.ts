@@ -7,10 +7,10 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   Output,
   EventEmitter,
   inject,
+  input,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
@@ -29,8 +29,8 @@ import { PoolListItemComponent } from '../pool-list-item/pool-list-item.componen
 export class PoolListComponent implements OnInit {
   private poolService = inject(PoolService);
 
-  @Input() pools: Pool[];
-  @Input() canEdit: boolean;
+  readonly pools = input<Pool[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 
   @Output() poolSelected = new EventEmitter<Pool>();
 

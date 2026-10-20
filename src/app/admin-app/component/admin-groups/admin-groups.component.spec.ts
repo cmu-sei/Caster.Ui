@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -39,8 +39,8 @@ import { AdminGroupsDetailComponent } from 'src/app/admin-app/component/admin-gr
   template: '',
 })
 class GroupsDetailStub {
-  @Input() groupId: string;
-  @Input() canEdit: boolean;
+  readonly groupId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 const groups: Group[] = [
@@ -168,8 +168,8 @@ describe('AdminGroupsComponent', () => {
     const detail: GroupsDetailStub = fixture.debugElement.query(
       By.directive(GroupsDetailStub),
     ).componentInstance;
-    expect(detail.groupId).toBe('g1');
-    expect(detail.canEdit).toBe(true);
+    expect(detail.groupId()).toBe('g1');
+    expect(detail.canEdit()).toBe(true);
   });
 
   /**
@@ -190,7 +190,7 @@ describe('AdminGroupsComponent', () => {
     const detail: GroupsDetailStub = fixture.debugElement.query(
       By.directive(GroupsDetailStub),
     ).componentInstance;
-    expect(detail.canEdit).toBe(false);
+    expect(detail.canEdit()).toBe(false);
   });
 
   /**

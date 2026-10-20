@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -18,8 +18,8 @@ import { PoolListItemComponent } from 'src/app/admin-app/component/admin-vlans/p
 
 @Component({ selector: 'cas-pool-list-item', template: '' })
 class PoolListItemStub {
-  @Input() pool: Pool;
-  @Input() canEdit: boolean;
+  readonly pool = input<Pool>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() poolSelected = new EventEmitter<Pool>();
 }
 
@@ -54,7 +54,7 @@ describe('PoolListComponent', () => {
   it('creates a pool when canEdit is true', async () => {
     const { vlansApi, items, user } = await renderPoolList(true);
 
-    expect(items().map((i) => i.canEdit)).toEqual([true, true]);
+    expect(items().map((i) => i.canEdit())).toEqual([true, true]);
     await user.click(screen.getByRole('button', { name: 'Create a Pool' }));
 
     expect(vlansApi.createPool).toHaveBeenCalledWith({ name: 'New Pool' });
@@ -71,7 +71,7 @@ describe('PoolListComponent', () => {
     expect(
       screen.queryByRole('button', { name: 'Create a Pool' }),
     ).not.toBeInTheDocument();
-    expect(items().map((i) => i.canEdit)).toEqual([false, false]);
+    expect(items().map((i) => i.canEdit())).toEqual([false, false]);
   });
 
   /**

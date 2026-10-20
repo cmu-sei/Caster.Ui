@@ -8,11 +8,11 @@ import {
   Component,
   EventEmitter,
   inject,
-  Input,
   OnChanges,
   OnInit,
   Output,
   ViewChild,
+  input,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatPaginator } from '@angular/material/paginator';
@@ -94,14 +94,11 @@ import { CurrentUserBadgeComponent } from '../../../../shared/components/current
 export class AdminGroupsMemberListComponent
   implements OnInit, OnChanges, AfterViewInit
 {
-  @Input()
-  memberships: GroupMembership[];
+  readonly memberships = input<GroupMembership[]>(undefined);
 
-  @Input()
-  users: User[];
+  readonly users = input<User[]>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   @Output()
   deleteMembership = new EventEmitter<{ id: string; isCurrentUser: boolean }>();
@@ -149,14 +146,14 @@ export class AdminGroupsMemberListComponent
   ngOnChanges() {
     this.buildModel();
     this.displayedColumns = this.viewColumns.concat(
-      this.canEdit ? this.editColumns : [],
+      this.canEdit() ? this.editColumns : [],
     );
   }
 
   buildModel() {
-    this.dataSource.data = this.memberships
+    this.dataSource.data = this.memberships()
       .map((x) => {
-        const user = this.users.find((u) => u.id == x.userId);
+        const user = this.users().find((u) => u.id == x.userId);
 
         return {
           membership: x,

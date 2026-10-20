@@ -4,8 +4,8 @@
 import {
   Component,
   OnInit,
-  Input,
   ChangeDetectionStrategy,
+  input,
 } from '@angular/core';
 import { Workspace } from 'src/app/generated/caster-api';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -18,7 +18,7 @@ import { MatTooltip } from '@angular/material/tooltip';
   imports: [MatTooltip],
 })
 export class WorkspaceVersionComponent implements OnInit {
-  @Input() workspace: Workspace;
+  readonly workspace = input<Workspace>(undefined);
 
   constructor() {}
 

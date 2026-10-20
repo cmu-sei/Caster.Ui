@@ -11,6 +11,7 @@ import {
   OnChanges,
   SimpleChanges,
   inject,
+  input,
 } from '@angular/core';
 import {
   Module,
@@ -94,18 +95,18 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   private confirmDialogService = inject(CrucibleDialogService);
   private formBuilder = inject(UntypedFormBuilder);
 
-  @Input() name: string;
-  @Input() submitButtonText = 'Save';
-  @Input() readOnly: boolean;
-  @Input() selectedVersionName: string;
-  @Input() selectedModule: Module;
-  @Input() values: ModuleValue[] = [];
-  @Input() isSaving = false;
+  readonly name = input<string>(undefined);
+  readonly submitButtonText = input('Save');
+  readonly readOnly = input<boolean>(undefined);
+  readonly selectedVersionName = input<string>(undefined);
+  readonly selectedModule = input<Module>(undefined);
+  readonly values = input<ModuleValue[]>([]);
+  readonly isSaving = input(false);
   // Save needs a change to submit; Insert can submit the module as it is.
-  @Input() requireChanges = true;
+  readonly requireChanges = input(true);
   // The Designer saves straight into a Workspace, so it can't leave a required value
   // blank; Insert only warns, since the user can still fill it in the file.
-  @Input() requireValues = false;
+  readonly requireValues = input(false);
 
   // autocomplete sources
   @Input() variables: Variable[] = [];
@@ -121,7 +122,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   nameChanged = false;
 
   ngOnInit() {
-    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
+    this.newName = this.name() ?? toTerraformName(this.selectedModule().name);
     this.setVersion();
     this.createModuleFields();
     this.createForm();
@@ -150,7 +151,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     ) {
       if (this.form?.pristine) {
         this.reload();
-      } else if (!this.isSaving) {
+      } else if (!this.isSaving()) {
         this.promptForReload = true;
       }
     }
@@ -160,7 +161,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     this.form = this.formBuilder.group({
       selectedVersion: [this.selectedVersion],
       newName: [
-        { value: this.newName, disabled: this.readOnly },
+        { value: this.newName, disabled: this.readOnly() },
         [
           Validators.required,
           Validators.pattern(ValidatorPatterns.TerraformName),
@@ -177,8 +178,8 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
     this.moduleFields.forEach((x) => {
       controls[x.name] = [
-        { value: x.value, disabled: this.readOnly },
-        this.requireValues && !x.isOptional ? Validators.required : null,
+        { value: x.value, disabled: this.readOnly() },
+        this.requireValues() && !x.isOptional ? Validators.required : null,
       ];
     });
 
@@ -194,8 +195,9 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
       moduleField.isOptional = variable.isOptional;
       moduleField.type = variable.variableType;
 
-      if (this.values) {
-        const val = this.values.find((x) => x.name == variable.name);
+      const values = this.values();
+      if (values) {
+        const val = values.find((x) => x.name == variable.name);
 
         if (val) {
           moduleField.value = val.value;
@@ -213,7 +215,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
   onValuesChanged(): void {
     this.moduleFields.forEach((moduleField) => {
-      const value = this.values.find((x) => x.name == moduleField.name);
+      const value = this.values().find((x) => x.name == moduleField.name);
       const formControl = this.form?.get(['values', moduleField.name]);
 
       moduleField.value = value ? value.value : moduleField.defaultValue;
@@ -221,7 +223,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
       if (formControl != null) {
         // if the update was from us or if we didn't change this formControl,
         // update to the new value
-        if (this.isSaving || !formControl.dirty) {
+        if (this.isSaving() || !formControl.dirty) {
           formControl.setValue(value ? value.value : moduleField.defaultValue);
         } else {
           // if the update is different than what we changed it to, mark it as changed
@@ -245,11 +247,11 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   onNameChanged() {
-    this.newName = this.name ?? toTerraformName(this.selectedModule.name);
+    this.newName = this.name() ?? toTerraformName(this.selectedModule().name);
     const formControl = this.form?.get('newName');
 
     if (formControl != null) {
-      if (this.isSaving || !formControl.dirty) {
+      if (this.isSaving() || !formControl.dirty) {
         formControl.setValue(this.newName);
       } else {
         this.nameChanged = true;
@@ -270,9 +272,9 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   }
 
   setVersion() {
-    if (this.selectedVersionName) {
-      const version = this.selectedModule.versions.find(
-        (x) => x.name == this.selectedVersionName,
+    if (this.selectedVersionName()) {
+      const version = this.selectedModule().versions.find(
+        (x) => x.name == this.selectedVersionName(),
       );
 
       if (version) {
@@ -281,7 +283,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     }
 
     if (!this.selectedVersion) {
-      this.selectedVersion = this.selectedModule.versions[0];
+      this.selectedVersion = this.selectedModule().versions[0];
     }
   }
 

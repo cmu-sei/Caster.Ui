@@ -8,12 +8,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
-  Input,
   OnChanges,
   OnInit,
   Output,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -90,14 +90,11 @@ export class ProjectMembershipListComponent
 {
   snackBar = inject(MatSnackBar);
 
-  @Input()
-  users: User[];
+  readonly users = input<User[]>(undefined);
 
-  @Input()
-  groups: Group[];
+  readonly groups = input<Group[]>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   @Output()
   createMembership = new EventEmitter<CreateProjectMembershipCommand>();
@@ -124,7 +121,7 @@ export class ProjectMembershipListComponent
     this.dataSource.data = this.buildModel();
 
     this.displayedColumns = this.viewColumns.concat(
-      this.canEdit ? this.editColumns : [],
+      this.canEdit() ? this.editColumns : [],
     );
   }
 
@@ -143,7 +140,7 @@ export class ProjectMembershipListComponent
   buildModel(): ProjectMemberModel[] {
     const projectMemberModels = [] as ProjectMemberModel[];
 
-    this.users.forEach((x) => {
+    this.users().forEach((x) => {
       projectMemberModels.push({
         user: x,
         group: null,
@@ -153,7 +150,7 @@ export class ProjectMembershipListComponent
       });
     });
 
-    this.groups.forEach((x) => {
+    this.groups().forEach((x) => {
       projectMemberModels.push({
         user: null,
         group: x,

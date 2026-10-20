@@ -7,10 +7,10 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   TemplateRef,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -49,11 +49,9 @@ export class DesignModulesComponent implements OnInit {
   private variablesQuery = inject(VariablesQuery);
   private dialog = inject(MatDialog);
 
-  @Input()
-  designId: string;
+  readonly designId = input<string>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   // #region showModuleListSubject
   private showModuleListSubject = new BehaviorSubject(false);
@@ -86,13 +84,15 @@ export class DesignModulesComponent implements OnInit {
 
   ngOnInit(): void {
     this.moduleService.load(false, true).subscribe();
-    this.moduleService.loadByDesignId(this.designId, true, true).subscribe();
+    this.moduleService.loadByDesignId(this.designId(), true, true).subscribe();
 
-    this.designModules$ = this.designModuleQuery.getByDesignId(this.designId);
-    this.designModulesService.loadByDesignId(this.designId).subscribe();
+    this.designModules$ = this.designModuleQuery.getByDesignId(this.designId());
+    this.designModulesService.loadByDesignId(this.designId()).subscribe();
 
-    this.variables$ = this.variablesQuery.selectByDesignId(this.designId);
-    this.outputs$ = this.designModuleQuery.getOutputsByDesignId(this.designId);
+    this.variables$ = this.variablesQuery.selectByDesignId(this.designId());
+    this.outputs$ = this.designModuleQuery.getOutputsByDesignId(
+      this.designId(),
+    );
   }
 
   trackByFn(_index, item) {
@@ -125,7 +125,7 @@ export class DesignModulesComponent implements OnInit {
     const taken = new Set(
       this.designModuleQuery
         .getAll()
-        .filter((x) => x.designId == this.designId)
+        .filter((x) => x.designId == this.designId())
         .map((x) => x.name),
     );
 
@@ -146,7 +146,7 @@ export class DesignModulesComponent implements OnInit {
     this.savingSubject.next(true);
     this.designModulesService
       .create({
-        designId: this.designId,
+        designId: this.designId(),
         moduleId: this.newModule.id,
         name: event.moduleName,
         moduleVersion: event.versionName,

@@ -12,6 +12,7 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import {
   Project,
@@ -106,9 +107,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
   private workspaceService = inject(WorkspaceService);
   private router = inject(Router);
 
-  @Input() projects: Project[];
+  readonly projects = input<Project[]>(undefined);
   @Input() isLoading: boolean;
-  @Input() manageMode = false;
+  readonly manageMode = input(false);
 
   @Output() selectedProjectId = new EventEmitter<string>();
 

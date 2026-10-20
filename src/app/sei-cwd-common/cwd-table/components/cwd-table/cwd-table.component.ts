@@ -13,6 +13,7 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
+  input,
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort, MatSortHeader } from '@angular/material/sort';
@@ -86,15 +87,17 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
 
   private isInitialized = false;
 
-  @Input() items: T[];
-  @Input() displayedColumns: (keyof T)[];
-  @Input() columnLabels: { [key: string]: string } = {};
-  @Input() loading: boolean;
-  @Input() expandedItems: string[];
-  @Input() getRowStyle: (item: T) => {};
-  @Input() excludedAttributes: string[] = [];
+  readonly items = input<T[]>(undefined);
+  readonly displayedColumns = input<(keyof T)[]>(undefined);
+  readonly columnLabels = input<{
+    [key: string]: string;
+  }>({});
+  readonly loading = input<boolean>(undefined);
+  readonly expandedItems = input<string[]>(undefined);
+  readonly getRowStyle = input<(item: T) => {}>(undefined);
+  readonly excludedAttributes = input<string[]>([]);
   @Input() trackByPropertyName: string;
-  @Input() idPropertyName = 'id';
+  readonly idPropertyName = input('id');
   @Output() expand: EventEmitter<{
     expand: boolean;
     item: T;
@@ -123,12 +126,12 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       return;
     }
 
-    this.datasource.data = this.items;
+    this.datasource.data = this.items();
 
     this.datasource.filterPredicate = (data, filter: string) => {
       const accumulator = (currentTerm, key) => {
         let ret = '';
-        if (!this.excludedAttributes.includes(key)) {
+        if (!this.excludedAttributes().includes(key)) {
           ret += this.nestedFilterCheck(currentTerm, data, key);
         } else {
           ret += currentTerm;
@@ -202,8 +205,9 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
   }
 
   isExpanded(item) {
-    return this.expandedItems
-      ? this.expandedItems.includes(item[this.idPropertyName])
+    const expandedItems = this.expandedItems();
+    return expandedItems
+      ? expandedItems.includes(item[this.idPropertyName()])
       : false;
   }
   /**

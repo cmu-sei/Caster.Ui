@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { screen, within } from '@testing-library/angular';
@@ -38,9 +38,9 @@ import { VlansComponent } from 'src/app/admin-app/component/admin-vlans/vlans.co
 
 @Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
   @Output() sidenavToggle = new EventEmitter<boolean>();
 }
 @Component({ selector: 'cas-users', template: '' })

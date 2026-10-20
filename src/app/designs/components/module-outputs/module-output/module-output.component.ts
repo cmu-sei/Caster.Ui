@@ -7,8 +7,8 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   inject,
+  input,
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModuleOutput } from 'src/app/generated/caster-api';
@@ -27,16 +27,14 @@ import { MatIcon } from '@angular/material/icon';
 export class ModuleOutputComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
-  @Input()
-  moduleName: string;
+  readonly moduleName = input<string>(undefined);
 
-  @Input()
-  output: ModuleOutput;
+  readonly output = input<ModuleOutput>(undefined);
 
   ngOnInit(): void {}
 
   toTerraform(): string {
-    return `$\{module.${this.moduleName}.${this.output.name}}`;
+    return `$\{module.${this.moduleName()}.${this.output().name}}`;
   }
 
   onClipboardSuccess() {

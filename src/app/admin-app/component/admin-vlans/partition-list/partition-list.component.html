@@ -6,27 +6,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div>
   <div class="header">
     <h1>Partitions</h1>
-    @if (canEdit) {
+    @if (canEdit()) {
       <button
         mat-icon-button
         color="primary"
         aria-label="Create a Partition"
         matTooltip="Create a Partition"
         (click)="createPartition()"
-        >
+      >
         <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
       </button>
     }
   </div>
   <div class="content">
     <mat-accordion class="accordion" multi>
-      <cas-partition [poolId]="poolId" [canEdit]="canEdit"></cas-partition>
+      <cas-partition [poolId]="poolId" [canEdit]="canEdit()"></cas-partition>
 
       @for (partition of partitions$ | async; track partition) {
         <div>
           <cas-partition
             [partition]="partition"
-            [canEdit]="canEdit"
+            [canEdit]="canEdit()"
           ></cas-partition>
         </div>
       }

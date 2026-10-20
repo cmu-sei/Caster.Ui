@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, EventEmitter, Output, Type, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -26,8 +26,8 @@ import { AdminGroupsMembershipListComponent } from 'src/app/admin-app/component/
   template: '',
 })
 class MembershipListStub {
-  @Input() users: User[];
-  @Input() canEdit: boolean;
+  readonly users = input<User[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() createMembership = new EventEmitter<CreateGroupMembershipCommand>();
 }
 
@@ -36,9 +36,9 @@ class MembershipListStub {
   template: '',
 })
 class MemberListStub {
-  @Input() memberships: GroupMembership[];
-  @Input() users: User[];
-  @Input() canEdit: boolean;
+  readonly memberships = input<GroupMembership[]>(undefined);
+  readonly users = input<User[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() deleteMembership = new EventEmitter<{
     id: string;
     isCurrentUser: boolean;
@@ -101,8 +101,8 @@ describe('AdminGroupsDetailComponent', () => {
 
     expect(groupsApi.getGroupMemberships).toHaveBeenCalledWith('g1');
     expect(signalR.joinGroup).toHaveBeenCalledWith('g1');
-    expect(stub(MemberListStub).users).toEqual([users[0]]);
-    expect(stub(MembershipListStub).users).toEqual([users[1]]);
+    expect(stub(MemberListStub).users()).toEqual([users[0]]);
+    expect(stub(MembershipListStub).users()).toEqual([users[1]]);
   });
 
   /**
@@ -113,8 +113,8 @@ describe('AdminGroupsDetailComponent', () => {
   it('passes canEdit true to both lists', async () => {
     const { stub } = await renderDetail(true);
 
-    expect(stub(MembershipListStub).canEdit).toBe(true);
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -125,7 +125,7 @@ describe('AdminGroupsDetailComponent', () => {
   it('passes canEdit false to both lists when the user cannot manage the group', async () => {
     const { stub } = await renderDetail(false);
 
-    expect(stub(MembershipListStub).canEdit).toBe(false);
-    expect(stub(MemberListStub).canEdit).toBe(false);
+    expect(stub(MembershipListStub).canEdit()).toBe(false);
+    expect(stub(MemberListStub).canEdit()).toBe(false);
   });
 });

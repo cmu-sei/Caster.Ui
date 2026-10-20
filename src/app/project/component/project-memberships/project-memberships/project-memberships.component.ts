@@ -6,11 +6,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import {
   Component,
   EventEmitter,
-  Input,
   OnChanges,
   OnInit,
   Output,
   inject,
+  input,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
@@ -57,19 +57,15 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   private permissionService = inject(PermissionService);
   private signalRService = inject(SignalRService);
 
-  @Input()
-  projectId: string;
+  readonly projectId = input<string>(undefined);
 
-  @Input()
-  embedded = false;
+  readonly embedded = input(false);
 
   // Shows the return affordance when this view is not embedded in a parent
   // view, e.g. the standalone /projects/:id/memberships page.
-  @Input()
-  showReturnButton = false;
+  readonly showReturnButton = input(false);
 
-  @Input()
-  returnLabel = 'Return';
+  readonly returnLabel = input('Return');
 
   @Output()
   goBack = new EventEmitter();
@@ -90,8 +86,8 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     forkJoin([
-      this.projectService.loadProject(this.projectId),
-      this.projectMembershipService.loadMemberships(this.projectId),
+      this.projectService.loadProject(this.projectId()),
+      this.projectMembershipService.loadMemberships(this.projectId()),
       this.userService.load(),
       this.projectRolesService.loadRoles(),
       this.groupService.load(),
@@ -100,7 +96,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
     this.signalRService
       .startConnection()
       .then(() => {
-        this.signalRService.joinProjectAdmin(this.projectId);
+        this.signalRService.joinProjectAdmin(this.projectId());
       })
       .catch((err) => {
         console.log(err);
@@ -108,11 +104,11 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   }
 
   ngOnDestroy() {
-    this.signalRService.leaveProjectAdmin(this.projectId);
+    this.signalRService.leaveProjectAdmin(this.projectId());
   }
 
   ngOnChanges() {
-    this.project$ = this.projectQuery.selectEntity(this.projectId).pipe(
+    this.project$ = this.projectQuery.selectEntity(this.projectId()).pipe(
       filter((x) => x != null),
       tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))),
     );
@@ -160,7 +156,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   createMembership(command: CreateProjectMembershipCommand) {
     this.projectMembershipService
-      .createMembership(this.projectId, command)
+      .createMembership(this.projectId(), command)
       .subscribe();
   }
 

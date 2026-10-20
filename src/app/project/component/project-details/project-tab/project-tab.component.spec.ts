@@ -6,10 +6,10 @@ import {
   Component,
   EventEmitter,
   inject,
-  Input,
   Output,
   provideEnvironmentInitializer,
   Type,
+  input,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -52,15 +52,15 @@ import { WorkspaceContainerComponent } from 'src/app/workspace/components/worksp
 
 @Component({ selector: 'cas-editor', template: '' })
 class EditorStub {
-  @Input() fileId: string;
-  @Input() modules: Module[];
-  @Input() sidebarOpen: boolean;
-  @Input() sidebarView: string;
-  @Input() sidenavWidth: number;
-  @Input() breadcrumb: unknown;
-  @Input() canEdit: boolean;
-  @Input() canAdminLock: boolean;
-  @Input() canManage: boolean;
+  readonly fileId = input<string>(undefined);
+  readonly modules = input<Module[]>(undefined);
+  readonly sidebarOpen = input<boolean>(undefined);
+  readonly sidebarView = input<string>(undefined);
+  readonly sidenavWidth = input<number>(undefined);
+  readonly breadcrumb = input<unknown>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly canAdminLock = input<boolean>(undefined);
+  readonly canManage = input<boolean>(undefined);
   @Output() sidebarChanged = new EventEmitter<boolean>();
   @Output() sidebarViewChanged = new EventEmitter<string>();
   @Output() sidenavWidthChanged = new EventEmitter<number>();
@@ -71,15 +71,15 @@ class EditorStub {
   template: '',
 })
 class WorkspaceContainerStub {
-  @Input() workspaceId: string;
-  @Input() breadcrumb: unknown;
-  @Input() canEdit: boolean;
+  readonly workspaceId = input<string>(undefined);
+  readonly breadcrumb = input<unknown>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 @Component({ selector: 'cas-design', template: '' })
 class DesignStub {
-  @Input() designId: string;
-  @Input() canEdit: boolean;
+  readonly designId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 const project: Project = { id: 'p1', name: 'Range' };
@@ -182,11 +182,11 @@ describe('ProjectTabComponent', () => {
       );
 
       const editor = stub(EditorStub);
-      expect(editor.fileId).toBe('f1');
+      expect(editor.fileId()).toBe('f1');
       expect({
-        canEdit: editor.canEdit,
-        canAdminLock: editor.canAdminLock,
-        canManage: editor.canManage,
+        canEdit: editor.canEdit(),
+        canAdminLock: editor.canAdminLock(),
+        canManage: editor.canManage(),
       }).toEqual(gates);
     },
   );
@@ -216,9 +216,9 @@ describe('ProjectTabComponent', () => {
 
       const editor = stub(EditorStub);
       expect({
-        canEdit: editor.canEdit,
-        canAdminLock: editor.canAdminLock,
-        canManage: editor.canManage,
+        canEdit: editor.canEdit(),
+        canAdminLock: editor.canAdminLock(),
+        canManage: editor.canManage(),
       }).toEqual(gates);
     },
   );
@@ -241,9 +241,9 @@ describe('ProjectTabComponent', () => {
     );
 
     const editor = stub(EditorStub);
-    expect(editor.canEdit).toBe(true);
-    expect(editor.canAdminLock).toBe(true);
-    expect(editor.canManage).toBe(true);
+    expect(editor.canEdit()).toBe(true);
+    expect(editor.canAdminLock()).toBe(true);
+    expect(editor.canManage()).toBe(true);
   });
 
   /**
@@ -270,9 +270,9 @@ describe('ProjectTabComponent', () => {
     );
 
     const editor = stub(EditorStub);
-    expect(editor.canEdit).toBe(false);
-    expect(editor.canAdminLock).toBe(false);
-    expect(editor.canManage).toBe(false);
+    expect(editor.canEdit()).toBe(false);
+    expect(editor.canAdminLock()).toBe(false);
+    expect(editor.canManage()).toBe(false);
   });
 
   /**
@@ -315,7 +315,7 @@ describe('ProjectTabComponent', () => {
 
       const child =
         kind === 'workspace' ? stub(WorkspaceContainerStub) : stub(DesignStub);
-      expect(child.canEdit).toBe(canEdit);
+      expect(child.canEdit()).toBe(canEdit);
     },
   );
 

@@ -5,12 +5,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   SimpleChanges,
   ViewChild,
+  input,
 } from '@angular/core';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
@@ -22,8 +22,8 @@ import { FitAddon } from '@xterm/addon-fit';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OutputComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() loading: boolean;
-  @Input() output: string;
+  readonly loading = input<boolean>(undefined);
+  readonly output = input<string>(undefined);
   @ViewChild('xterm', { static: true, read: ElementRef }) eleXtern: ElementRef;
   xterm: Terminal = new Terminal();
   fitAddon: FitAddon = new FitAddon();

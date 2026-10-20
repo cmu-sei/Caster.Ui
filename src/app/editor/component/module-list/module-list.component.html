@@ -4,10 +4,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 @if (!!dataSource && !!dataSource.data && dataSource.data.length > 0) {
-  <div
-    class="d-flex flex-column"
+  <div class="d-flex flex-column">
+    <mat-card
+      appearance="outlined"
+      class="module-heading flex-fill w-100 h-100"
     >
-    <mat-card appearance="outlined" class="module-heading flex-fill w-100 h-100">
       <span><strong>MODULES</strong></span>
       <div class="module-search">
         <mat-form-field class="search-input">
@@ -17,10 +18,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [(ngModel)]="filterString"
             (keyup)="applyFilter($event.target.value)"
             placeholder="Search"
-            />
+          />
           @if (filterString != '') {
-            <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
-              <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+            <button
+              matSuffix
+              mat-icon-button
+              aria-label="Clear"
+              (click)="clearFilter()"
+            >
+              <mat-icon
+                class="mdi-24px"
+                fontIcon="mdi-close-circle-outline"
+              ></mat-icon>
             </button>
           }
         </mat-form-field>
@@ -31,36 +40,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         appearance="outlined"
         class="clickable highlight module-card flex-fill w-100 h-100"
         (click)="selectModuleFn(module)"
-        [matTooltip]="isEditing ? null : 'Edit this file to insert the module'"
-        >
+        [matTooltip]="
+          isEditing() ? null : 'Edit this file to insert the module'
+        "
+      >
         <mat-card-header>
           <mat-card-title class="d-flex flex-column">
             <div>
               <span class="module-name"
                 ><strong>{{ module.name }}</strong></span
-                >
-              </div>
-              <div>
-                <span class="module-path">{{ module.path }}</span>
-              </div>
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            {{ module.description }}
-          </mat-card-content>
-        </mat-card>
-      }
-    </div>
-  }
+              >
+            </div>
+            <div>
+              <span class="module-path">{{ module.path }}</span>
+            </div>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          {{ module.description }}
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}
 
-  <!-- Variables Dialog -->
-  <ng-template #variablesDialog>
-    <cas-module-variables
-      [selectedModule]="_selectedModule"
-      [readOnly]="!isEditing"
-      submitButtonText="Insert"
-      [requireChanges]="false"
-      (variablesSelected)="variablesSelected($event)"
-      >
-    </cas-module-variables>
-  </ng-template>
+<!-- Variables Dialog -->
+<ng-template #variablesDialog>
+  <cas-module-variables
+    [selectedModule]="_selectedModule"
+    [readOnly]="!isEditing()"
+    submitButtonText="Insert"
+    [requireChanges]="false"
+    (variablesSelected)="variablesSelected($event)"
+  >
+  </cas-module-variables>
+</ng-template>

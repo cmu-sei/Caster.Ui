@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Input,
   inject,
+  input,
 } from '@angular/core';
 import {
   MatTableDataSource,
@@ -84,8 +85,7 @@ export class ProjectVlansComponent implements OnInit {
     this.dataSource.data = projects;
   }
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   dataSource = new MatTableDataSource<Project>();
   partitionOptions$: Observable<Map<Pool, Partition[]>>;

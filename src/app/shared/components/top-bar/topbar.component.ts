@@ -10,6 +10,7 @@ import {
   OnInit,
   Output,
   inject,
+  input,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
@@ -21,7 +22,7 @@ import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectPermission } from 'src/app/generated/caster-api';
-import { ProjectQuery } from 'src/app/project';
+import { ProjectQuery } from 'src/app/project/state/project-query.service';
 import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { MatIconButton, MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -55,9 +56,9 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   private router = inject(Router);
   private permissionService = inject(PermissionService);
 
-  @Input() title?: string = 'Caster';
+  readonly title = input<string>('Caster');
   @Input() sidenav?;
-  @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
+  readonly topbarView = input<TopbarView>(TopbarView.CASTER_HOME);
   @Input() projectId?: string;
 
   @Output() sidenavToggle?: EventEmitter<boolean> = new EventEmitter<boolean>();

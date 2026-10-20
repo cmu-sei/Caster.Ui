@@ -5,9 +5,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   Output,
   EventEmitter,
+  input,
 } from '@angular/core';
 import { Run } from 'src/app/generated/caster-api';
 import { CwdTableComponent } from '../../../../sei-cwd-common/cwd-table/components/cwd-table/cwd-table.component';
@@ -22,8 +22,8 @@ import { RunComponent } from '../../../../workspace/components/run/run.component
   imports: [CwdTableComponent, TableItemContentDirective, RunComponent],
 })
 export class ActiveRunsComponent implements OnInit {
-  @Input() runs: Run[];
-  @Input() expandedRuns: string[];
+  readonly runs = input<Run[]>(undefined);
+  readonly expandedRuns = input<string[]>(undefined);
 
   @Output() expandRun = new EventEmitter<{ expand: boolean; item: Run }>();
   @Output() planUpdated = new EventEmitter<{ output: string; item: Run }>();

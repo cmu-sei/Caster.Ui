@@ -19,14 +19,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (keyup)="applyFilter($event)"
           #input
           autocomplete="off"
-          />
+        />
         @if (filterString) {
           <button
             matSuffix
             mat-icon-button
             aria-label="Clear"
             (click)="clearFilter()"
-            >
+          >
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-close-circle-outline"
@@ -47,7 +47,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     matSortDirection="asc"
     [dataSource]="dataSource"
     class="w-100"
-    >
+  >
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let model">
@@ -66,46 +66,46 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
       <td mat-cell *matCellDef="let model">
         <mat-select
-          [disabled]="!canEdit"
+          [disabled]="!canEdit()"
           [value]="model.membership.roleId"
           (selectionChange)="updateRole(model.membership.id, $event)"
-          >
-          @for (role of roles; track trackById($index, role)) {
-            <mat-option
-              [value]="role.id"
-              >{{ role.name }}</mat-option
-              >
-            }
-          </mat-select>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let model">
-          <button
-            mat-icon-button
-            [attr.aria-label]="'Remove ' + model.name"
-            matTooltip="Remove {{ model.name }}"
-            (click)="delete(model.membership.id)"
-            [disabled]="!canEdit"
-            >
-            <mat-icon class="mdi-24px self-center" fontIcon="mdi-minus-circle-outline"></mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
-      <tr class="mat-mdc-row" *matNoDataRow>
-        <td class="mat-mdc-cell" colspan="4">
-          @if (input.value) {
-            No data matching the filter "{{ input.value }}"
-          } @else {
-            This Project currently has no members
+        >
+          @for (role of roles(); track trackById($index, role)) {
+            <mat-option [value]="role.id">{{ role.name }}</mat-option>
           }
-        </td>
-      </tr>
-    </table>
-  </div>
+        </mat-select>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let model">
+        <button
+          mat-icon-button
+          [attr.aria-label]="'Remove ' + model.name"
+          matTooltip="Remove {{ model.name }}"
+          (click)="delete(model.membership.id)"
+          [disabled]="!canEdit()"
+        >
+          <mat-icon
+            class="mdi-24px self-center"
+            fontIcon="mdi-minus-circle-outline"
+          ></mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <tr class="mat-mdc-row" *matNoDataRow>
+      <td class="mat-mdc-cell" colspan="4">
+        @if (input.value) {
+          No data matching the filter "{{ input.value }}"
+        } @else {
+          This Project currently has no members
+        }
+      </td>
+    </tr>
+  </table>
+</div>

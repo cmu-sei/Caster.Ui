@@ -9,6 +9,7 @@ import {
   Output,
   EventEmitter,
   inject,
+  input,
 } from '@angular/core';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
@@ -60,8 +61,8 @@ export class ProjectImportComponent implements OnInit {
   private directoryService = inject(DirectoryService);
   private projectService = inject(ProjectService);
 
-  @Input() id: string;
-  @Input() name: string;
+  readonly id = input<string>(undefined);
+  readonly name = input<string>(undefined);
   @Input()
   set type(val: ProjectObjectType) {
     this._type = val;
@@ -96,7 +97,7 @@ export class ProjectImportComponent implements OnInit {
 
   import() {
     this.onImport(
-      this.id,
+      this.id(),
       this._type,
       this.form.value.archive,
       this.form.value.preserveIds,

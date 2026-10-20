@@ -15,6 +15,7 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
@@ -96,15 +97,15 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private confirmService = inject(CrucibleDialogService);
   private settingsService = inject(ComnSettingsService);
 
-  @Input() fileId: string;
-  @Input() modules: Module[];
+  readonly fileId = input<string>(undefined);
+  readonly modules = input<Module[]>(undefined);
   @Input() sidebarOpen: boolean;
   @Input() sidebarView: string;
-  @Input() breadcrumb: Breadcrumb[];
+  readonly breadcrumb = input<Breadcrumb[]>(undefined);
   @Input() sidenavWidth: number;
-  @Input() canEdit: boolean;
-  @Input() canAdminLock: boolean;
-  @Input() canManage: boolean;
+  readonly canEdit = input<boolean>(undefined);
+  readonly canAdminLock = input<boolean>(undefined);
+  readonly canManage = input<boolean>(undefined);
   @Output() sidebarChanged = new EventEmitter<boolean>();
   @Output() sidebarViewChanged = new EventEmitter<string>();
   @Output() codeChanged = new EventEmitter<string>();
@@ -155,7 +156,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       });
 
     this.fileQuery
-      .selectEntity(this.fileId)
+      .selectEntity(this.fileId())
       .pipe(
         tap((f) => {
           if (f) {
@@ -183,10 +184,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         this.changeDetectorRef.markForCheck();
       });
 
-    this.fileVersionService.load(this.fileId).pipe(take(1)).subscribe();
+    this.fileVersionService.load(this.fileId()).pipe(take(1)).subscribe();
 
     this.fileQuery
-      .getSelectedVersionId(this.fileId)
+      .getSelectedVersionId(this.fileId())
       .pipe(
         switchMap((versionId: string) =>
           this.fileVersionQuery.selectEntity(versionId),
@@ -201,7 +202,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
 
-    this.isSaved$ = this.fileQuery.selectIsSaved(this.fileId);
+    this.isSaved$ = this.fileQuery.selectIsSaved(this.fileId());
   }
 
   editorInit(editor: any) {
@@ -338,9 +339,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       this.code = changes.file.currentValue.editorContent;
       this.changeDetectorRef.markForCheck();
     }
-    if (this.breadcrumb && this.breadcrumb.length > 0) {
+    const breadcrumb = this.breadcrumb();
+    if (breadcrumb && breadcrumb.length > 0) {
       this.breadcrumbString = '';
-      this.breadcrumb.forEach((bc) => {
+      breadcrumb.forEach((bc) => {
         this.breadcrumbString = this.breadcrumbString + '  >  ' + bc.name;
       });
     }

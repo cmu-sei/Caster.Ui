@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <crucible-dialog
   [form]="form"
-  [loading]="isSaving"
+  [loading]="isSaving()"
   [guardUnsavedWork]="form.dirty"
   [hideDefaultActions]="true"
   (submit)="submit()"
@@ -15,7 +15,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     crucibleDialogTitle
     class="d-flex flex-row justify-content-start align-items-center"
   >
-    @if (readOnly) {
+    @if (readOnly()) {
       <mat-icon
         class="mdi-24px"
         fontIcon="mdi-alert-octagon"
@@ -35,20 +35,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </button>
     }
     <span [ngClass]="promptForReload ? 'alert' : ''">
-      {{ selectedModule.name }}
+      {{ selectedModule().name }}
     </span>
   </div>
 
   <div crucibleDialogContent [formGroup]="form">
-    <p class="module-path">{{ selectedModule.path }}</p>
-    <p class="module-description">{{ selectedModule.description }}</p>
+    <p class="module-path">{{ selectedModule().path }}</p>
+    <p class="module-description">{{ selectedModule().description }}</p>
     <mat-form-field>
       <mat-label>Version</mat-label>
       <mat-select
         formControlName="selectedVersion"
         (selectionChange)="onSelectedVersionChanged($event.value)"
       >
-        @for (version of selectedModule.versions; track version) {
+        @for (version of selectedModule().versions; track version) {
           <mat-option [value]="version">
             {{ version.name }}
           </mat-option>
@@ -95,15 +95,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <mat-hint
                   align="end"
                   class="changed-hint"
-                  [matTooltip]="'Click to accept new value:\n' + moduleField.value"
+                  [matTooltip]="
+                    'Click to accept new value:\n' + moduleField.value
+                  "
                   [matTooltipShowDelay]="0"
                   (click)="acceptValue(moduleField)"
                   >Changed</mat-hint
                 >
               }
-              <mat-label [ngClass]="moduleField.changed ? 'changed-hint' : ''">{{
-                moduleField.name
-              }}</mat-label>
+              <mat-label
+                [ngClass]="moduleField.changed ? 'changed-hint' : ''"
+                >{{ moduleField.name }}</mat-label
+              >
               @if (!moduleField.isMultiLine()) {
                 <input
                   matInput
@@ -122,7 +125,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   spellcheck="false"
                 ></textarea>
               }
-              @if (form.get(['values', moduleField.name]).hasError('required')) {
+              @if (
+                form.get(['values', moduleField.name]).hasError('required')
+              ) {
                 <mat-error>Required</mat-error>
               }
               @if (variables?.length > 0 || outputs?.length > 0) {
@@ -131,7 +136,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   color="primary"
                   mat-icon-button
                   (click)="
-                    trigger.panelOpen ? trigger.closePanel() : trigger.openPanel()
+                    trigger.panelOpen
+                      ? trigger.closePanel()
+                      : trigger.openPanel()
                   "
                   aria-label="View variables and outputs"
                   matTooltip="View variables and outputs"
@@ -147,7 +154,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               />
               <mat-autocomplete
                 #autoGroup
-                (optionSelected)="autocompleteSelected(moduleField.name, $event)"
+                (optionSelected)="
+                  autocompleteSelected(moduleField.name, $event)
+                "
               >
                 @if (variables?.length > 0) {
                   <mat-optgroup label="Variables">
@@ -186,10 +195,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <button
       matButton="filled"
       type="submit"
-      [disabled]="readOnly || !form.valid || (requireChanges && !form.dirty) || isSaving"
+      [disabled]="
+        readOnly() ||
+        !form.valid ||
+        (requireChanges() && !form.dirty) ||
+        isSaving()
+      "
     >
-      <span [matTooltip]="readOnly ? 'Can only submit in edit mode' : null">
-        {{ isSaving ? 'Saving…' : submitButtonText }}
+      <span [matTooltip]="readOnly() ? 'Can only submit in edit mode' : null">
+        {{ isSaving() ? 'Saving…' : submitButtonText() }}
       </span>
     </button>
   </ng-container>

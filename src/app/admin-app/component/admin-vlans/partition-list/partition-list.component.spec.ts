@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -19,9 +19,9 @@ import { PartitionComponent } from 'src/app/admin-app/component/admin-vlans/part
 
 @Component({ selector: 'cas-partition', template: '' })
 class PartitionStub {
-  @Input() partition: Partition;
-  @Input() poolId: string;
-  @Input() canEdit: boolean;
+  readonly partition = input<Partition>(undefined);
+  readonly poolId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderPartitionList(canEdit: boolean) {
@@ -62,11 +62,11 @@ describe('PartitionListComponent', () => {
     const { vlansApi, partitions, user } = await renderPartitionList(true);
 
     expect(vlansApi.getVlansByPool).toHaveBeenCalledWith('pool1');
-    expect(partitions().map((p) => p.partition?.id ?? p.poolId)).toEqual([
+    expect(partitions().map((p) => p.partition()?.id ?? p.poolId())).toEqual([
       'pool1',
       'part1',
     ]);
-    expect(partitions().map((p) => p.canEdit)).toEqual([true, true]);
+    expect(partitions().map((p) => p.canEdit())).toEqual([true, true]);
 
     await user.click(
       screen.getByRole('button', { name: 'Create a Partition' }),
@@ -87,6 +87,6 @@ describe('PartitionListComponent', () => {
     expect(
       screen.queryByRole('button', { name: 'Create a Partition' }),
     ).not.toBeInTheDocument();
-    expect(partitions().map((p) => p.canEdit)).toEqual([false, false]);
+    expect(partitions().map((p) => p.canEdit())).toEqual([false, false]);
   });
 });

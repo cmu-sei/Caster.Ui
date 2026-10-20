@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -18,15 +18,15 @@ import { PoolListComponent } from 'src/app/admin-app/component/admin-vlans/pool-
 
 @Component({ selector: 'cas-pool-list', template: '' })
 class PoolListStub {
-  @Input() pools: Pool[];
-  @Input() canEdit: boolean;
+  readonly pools = input<Pool[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   @Output() poolSelected = new EventEmitter<Pool>();
 }
 
 @Component({ selector: 'cas-partition-list', template: '' })
 class PartitionListStub {
-  @Input() poolId: string;
-  @Input() canEdit: boolean;
+  readonly poolId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderPools(canEdit: boolean) {
@@ -62,8 +62,8 @@ describe('PoolsComponent', () => {
     const { fixture } = await renderPools(true);
 
     const list = stubOf(fixture, PoolListStub);
-    expect(list?.pools.map((p) => p.id)).toEqual(['pool1']);
-    expect(list?.canEdit).toBe(true);
+    expect(list?.pools().map((p) => p.id)).toEqual(['pool1']);
+    expect(list?.canEdit()).toBe(true);
   });
 
   /**
@@ -81,8 +81,8 @@ describe('PoolsComponent', () => {
     fixture.detectChanges();
     expect(screen.getByRole('heading', { name: 'Pool - Main' })).toBeVisible();
     const partitions = stubOf(fixture, PartitionListStub);
-    expect(partitions?.poolId).toBe('pool1');
-    expect(partitions?.canEdit).toBe(true);
+    expect(partitions?.poolId()).toBe('pool1');
+    expect(partitions?.canEdit()).toBe(true);
 
     await user.click(screen.getByRole('button', { name: 'Back to pools' }));
     expect(stubOf(fixture, PoolListStub)).toBeDefined();
@@ -97,12 +97,12 @@ describe('PoolsComponent', () => {
   it('passes canEdit false to the pool list and partitions', async () => {
     const { fixture } = await renderPools(false);
 
-    expect(stubOf(fixture, PoolListStub)?.canEdit).toBe(false);
+    expect(stubOf(fixture, PoolListStub)?.canEdit()).toBe(false);
     stubOf(fixture, PoolListStub)?.poolSelected.emit({
       id: 'pool1',
       name: 'Main',
     });
     fixture.detectChanges();
-    expect(stubOf(fixture, PartitionListStub)?.canEdit).toBe(false);
+    expect(stubOf(fixture, PartitionListStub)?.canEdit()).toBe(false);
   });
 });

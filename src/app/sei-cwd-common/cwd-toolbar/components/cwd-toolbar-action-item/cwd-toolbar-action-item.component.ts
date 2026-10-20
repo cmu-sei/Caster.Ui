@@ -7,12 +7,12 @@ import {
   Component,
   ComponentFactoryResolver,
   Injector,
-  Input,
   OnDestroy,
   OnInit,
   ViewChild,
   ViewContainerRef,
   inject,
+  input,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -35,14 +35,14 @@ export class CwdToolbarActionItemComponent
 
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
-  @Input() selector: string;
+  readonly selector = input<string>(undefined);
   @ViewChild('cwdToolbarAction', { static: true }) cwdActionTmplRef;
 
   ngOnInit() {}
 
   ngAfterViewInit(): void {
     this.portalOutlet = new DomPortalOutlet(
-      document.querySelector(this.selector),
+      document.querySelector(this.selector()),
       this.appRef,
       this.injector,
     );

@@ -13,6 +13,7 @@ import {
   ViewChild,
   ElementRef,
   inject,
+  input,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
@@ -44,8 +45,8 @@ export class PoolListItemComponent implements OnInit {
   private confirmService = inject(CrucibleDialogService);
   private poolService = inject(PoolService);
 
-  @Input() pool: Pool;
-  @Input() canEdit: boolean;
+  readonly pool = input<Pool>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 
   @Output() poolSelected = new EventEmitter<Pool>();
 
@@ -57,7 +58,7 @@ export class PoolListItemComponent implements OnInit {
 
   rename(target) {
     this.poolService
-      .partialEdit(this.pool.id, { name: target.value })
+      .partialEdit(this.pool().id, { name: target.value })
       .subscribe(() => (this.editing = false));
   }
 

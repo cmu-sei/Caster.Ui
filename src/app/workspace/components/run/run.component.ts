@@ -8,13 +8,13 @@ import {
   ElementRef,
   EventEmitter,
   HostListener,
-  Input,
   NgZone,
   OnChanges,
   OnDestroy,
   Output,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -25,7 +25,6 @@ import { CdkDrag } from '@angular/cdk/drag-drop';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIconButton } from '@angular/material/button';
-import { WorkspaceContainerComponent } from '../workspace-container/workspace-container.component';
 
 @Component({
   selector: 'cas-run',
@@ -37,15 +36,14 @@ import { WorkspaceContainerComponent } from '../workspace-container/workspace-co
     MatIcon,
     MatTooltip,
     MatIconButton,
-    WorkspaceContainerComponent,
   ],
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   private signalRService = inject(SignalRService);
   private ngZone = inject(NgZone);
 
-  @Input() run: Run;
-  @Input() loading: boolean;
+  readonly run = input<Run>(undefined);
+  readonly loading = input<boolean>(undefined);
   @Output() planOutput = new EventEmitter<string>();
   @Output() applyOutput = new EventEmitter<string>();
 
@@ -105,26 +103,29 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.disposeStream();
     this.resetOutput();
 
-    if (this.run.applyId !== null) {
+    const run = this.run();
+    if (run.applyId !== null) {
       this.isApply = true;
 
-      if (this.run.apply != null) {
-        this.addOutput(this.run.apply.output);
+      if (run.apply != null) {
+        this.addOutput(run.apply.output);
         return;
       } else {
         this.signalRService.startConnection().then(() => {
-          this.stream(this.signalRService.streamApplyOutput(this.run.applyId));
+          this.stream(
+            this.signalRService.streamApplyOutput(this.run().applyId),
+          );
         });
       }
-    } else if (this.run.planId !== null) {
+    } else if (run.planId !== null) {
       this.isPlan = true;
 
-      if (this.run.plan != null) {
-        this.addOutput(this.run.plan.output);
+      if (run.plan != null) {
+        this.addOutput(run.plan.output);
         return;
       } else {
         this.signalRService.startConnection().then(() => {
-          this.stream(this.signalRService.streamPlanOutput(this.run.planId));
+          this.stream(this.signalRService.streamPlanOutput(this.run().planId));
         });
       }
     }
@@ -164,27 +165,29 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private setStatus() {
-    this.status = this.run.status == null ? null : this.run.status;
+    const run = this.run();
+    this.status = run.status == null ? null : run.status;
   }
 
   private shouldStartStream(): boolean {
-    if (this.run == null) {
+    const run = this.run();
+    if (run == null) {
       return false;
     } else if (
       this.status == null &&
-      this.run.status !== RunStatus.Queued &&
-      this.run.status !== RunStatus.ApplyQueued
+      run.status !== RunStatus.Queued &&
+      run.status !== RunStatus.ApplyQueued
     ) {
       // if we haven't started streaming yet and there is something to stream, start stream
       this.setStatus();
       return true;
-    } else if (this.status === this.run.status) {
+    } else if (this.status === run.status) {
       // if status has not changed, don't restart stream
       this.setStatus();
       return false;
     }
 
-    switch (this.run.status) {
+    switch (run.status) {
       case RunStatus.Planning: {
         this.setStatus();
         return true;

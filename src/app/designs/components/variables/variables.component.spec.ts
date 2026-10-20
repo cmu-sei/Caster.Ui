@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
@@ -18,8 +18,8 @@ import { VariableComponent } from 'src/app/designs/components/variables/variable
 
 @Component({ selector: 'cas-variable', template: '' })
 class VariableStub {
-  @Input() variable: Variable;
-  @Input() canEdit: boolean;
+  readonly variable = input<Variable>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderVariables(canEdit: boolean) {
@@ -55,7 +55,7 @@ describe('VariablesComponent', () => {
   it('adds a variable when canEdit is true', async () => {
     const { variablesApi, variables, user } = await renderVariables(true);
 
-    expect(variables().map((v) => [v.variable.name, v.canEdit])).toEqual([
+    expect(variables().map((v) => [v.variable().name, v.canEdit()])).toEqual([
       ['region', true],
     ]);
     await user.click(screen.getByRole('button', { name: 'Add Variable' }));
@@ -75,6 +75,6 @@ describe('VariablesComponent', () => {
     const { variables } = await renderVariables(false);
 
     expect(screen.getByRole('button', { name: 'Add Variable' })).toBeDisabled();
-    expect(variables().map((v) => v.canEdit)).toEqual([false]);
+    expect(variables().map((v) => v.canEdit())).toEqual([false]);
   });
 });

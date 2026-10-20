@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { of } from 'rxjs';
@@ -37,19 +37,19 @@ class ProjectNavigationStub {}
 
 @Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
-  @Input() projectId: string;
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
+  readonly projectId = input<string>(undefined);
   @Output() sidenavToggle = new EventEmitter<boolean>();
   @Output() editMemberships = new EventEmitter<void>();
 }
 
 @Component({ selector: 'cas-project', template: '' })
 class ProjectStub {
-  @Input() loading: boolean;
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
+  readonly loading = input<boolean>(undefined);
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
   @Output() closeTab = new EventEmitter<string>();
   @Output() tabChanged = new EventEmitter<unknown>();
 }
@@ -129,12 +129,12 @@ describe('ProjectCollapseContainerComponent', () => {
     const topbar: TopbarStub = fixture.debugElement.query(
       By.directive(TopbarStub),
     ).componentInstance;
-    expect(topbar.title).toBe('Range');
-    expect(topbar.projectId).toBe('p1');
+    expect(topbar.title()).toBe('Range');
+    expect(topbar.projectId()).toBe('p1');
     const project: ProjectStub = fixture.debugElement.query(
       By.directive(ProjectStub),
     ).componentInstance;
-    expect(project.project.id).toBe('p1');
+    expect(project.project().id).toBe('p1');
     expect(screen.getByRole('heading', { name: 'Caster' })).toBeInTheDocument();
   });
 });

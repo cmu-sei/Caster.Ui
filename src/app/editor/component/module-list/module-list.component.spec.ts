@@ -6,8 +6,8 @@ import {
   Component,
   EventEmitter,
   getDebugNode,
-  Input,
   Output,
+  input,
 } from '@angular/core';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -28,10 +28,10 @@ import { ModuleVariablesComponent } from 'src/app/editor/component/module-variab
   template: '',
 })
 class ModuleVariablesStub {
-  @Input() selectedModule: Module;
-  @Input() readOnly: boolean;
-  @Input() submitButtonText: string;
-  @Input() requireChanges: boolean;
+  readonly selectedModule = input<Module>(undefined);
+  readonly readOnly = input<boolean>(undefined);
+  readonly submitButtonText = input<string>(undefined);
+  readonly requireChanges = input<boolean>(undefined);
   @Output() variablesSelected = new EventEmitter<CreateSnippetCommand>();
 }
 
@@ -140,10 +140,10 @@ describe('ModuleListComponent', () => {
     const dialog = variablesDialog();
     expect(dialog).toBeDefined();
     expect({
-      selectedModule: dialog?.selectedModule,
-      readOnly: dialog?.readOnly,
-      submitButtonText: dialog?.submitButtonText,
-      requireChanges: dialog?.requireChanges,
+      selectedModule: dialog?.selectedModule(),
+      readOnly: dialog?.readOnly(),
+      submitButtonText: dialog?.submitButtonText(),
+      requireChanges: dialog?.requireChanges(),
     }).toEqual({
       selectedModule: selected,
       readOnly: false,
@@ -175,6 +175,6 @@ describe('ModuleListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(variablesDialog()?.readOnly).toBe(true);
+    expect(variablesDialog()?.readOnly()).toBe(true);
   });
 });

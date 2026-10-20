@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, EventEmitter, Output, Type, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -21,14 +21,14 @@ import { LockingStatusComponent } from 'src/app/admin-app/component/admin-worksp
 
 @Component({ selector: 'cas-locking-status', template: '' })
 class LockingStatusStub {
-  @Input() lockingEnabled: boolean;
+  readonly lockingEnabled = input<boolean>(undefined);
   @Output() setLockingEnabled = new EventEmitter<boolean>();
 }
 
 @Component({ selector: 'cas-active-runs', template: '' })
 class ActiveRunsStub {
-  @Input() runs: Run[];
-  @Input() expandedRuns: string[];
+  readonly runs = input<Run[]>(undefined);
+  readonly expandedRuns = input<string[]>(undefined);
   @Output() expandRun = new EventEmitter<{ expand: boolean; item: Run }>();
   @Output() planUpdated = new EventEmitter<{ output: string; item: Run }>();
   @Output() applyUpdated = new EventEmitter<{ output: string; item: Run }>();
@@ -84,9 +84,13 @@ describe('AdminWorkspacesComponent', () => {
     const { signalR, stub } = await renderAdminWorkspaces();
 
     expect(signalR.joinWorkspacesAdmin).toHaveBeenCalled();
-    expect(stub(LockingStatusStub).lockingEnabled).toBe(true);
-    expect(stub(ActiveRunsStub).runs.map((r) => r.id)).toEqual(['run1']);
-    expect(stub(ActiveRunsStub).expandedRuns).toEqual([]);
+    expect(stub(LockingStatusStub).lockingEnabled()).toBe(true);
+    expect(
+      stub(ActiveRunsStub)
+        .runs()
+        .map((r) => r.id),
+    ).toEqual(['run1']);
+    expect(stub(ActiveRunsStub).expandedRuns()).toEqual([]);
   });
 
   /**
@@ -101,6 +105,6 @@ describe('AdminWorkspacesComponent', () => {
     fixture.detectChanges();
 
     expect(workspacesApi.disableWorkspaceLocking).toHaveBeenCalled();
-    expect(stub(LockingStatusStub).lockingEnabled).toBe(false);
+    expect(stub(LockingStatusStub).lockingEnabled()).toBe(false);
   });
 });

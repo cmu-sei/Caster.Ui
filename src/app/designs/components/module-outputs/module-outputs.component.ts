@@ -7,7 +7,7 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
+  input,
 } from '@angular/core';
 import { ModuleOutput } from 'src/app/generated/caster-api';
 import { ModuleOutputComponent } from './module-output/module-output.component';
@@ -20,11 +20,9 @@ import { ModuleOutputComponent } from './module-output/module-output.component';
   imports: [ModuleOutputComponent],
 })
 export class ModuleOutputsComponent implements OnInit {
-  @Input()
-  moduleName: string;
+  readonly moduleName = input<string>(undefined);
 
-  @Input()
-  outputs: ModuleOutput[];
+  readonly outputs = input<ModuleOutput[]>(undefined);
 
   constructor() {}
 

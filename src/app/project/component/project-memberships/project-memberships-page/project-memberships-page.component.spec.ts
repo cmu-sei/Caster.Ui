@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -25,8 +25,8 @@ class TopbarStub {}
   template: '',
 })
 class ProjectMembershipsStub {
-  @Input() projectId: string;
-  @Input() showReturnButton: boolean;
+  readonly projectId = input<string>(undefined);
+  readonly showReturnButton = input<boolean>(undefined);
 }
 
 describe('ProjectMembershipsPageComponent', () => {
@@ -61,7 +61,7 @@ describe('ProjectMembershipsPageComponent', () => {
     const memberships: ProjectMembershipsStub = fixture.debugElement.query(
       By.directive(ProjectMembershipsStub),
     ).componentInstance;
-    expect(memberships.projectId).toBe('p1');
-    expect(memberships.showReturnButton).toBe(true);
+    expect(memberships.projectId()).toBe('p1');
+    expect(memberships.showReturnButton()).toBe(true);
   });
 });

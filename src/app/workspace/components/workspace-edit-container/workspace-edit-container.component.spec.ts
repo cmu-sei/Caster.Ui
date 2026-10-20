@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import {
@@ -19,9 +19,9 @@ import { WorkspaceEditComponent } from 'src/app/workspace/components/workspace-e
 
 @Component({ selector: 'cas-workspace-edit', template: '' })
 class WorkspaceEditStub {
-  @Input() workspace: Workspace;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
+  readonly workspace = input<Workspace>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
   @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
 }
 
@@ -69,9 +69,9 @@ describe('WorkspaceEditContainerComponent', () => {
   it('feeds the edit form', async () => {
     const { edit } = await renderContainer();
 
-    expect(edit.workspace.name).toBe('dev');
-    expect(edit.terraformVersions.versions).toEqual(['1.5.7']);
-    expect(edit.maxParallelism).toBe(10);
+    expect(edit.workspace().name).toBe('dev');
+    expect(edit.terraformVersions().versions).toEqual(['1.5.7']);
+    expect(edit.maxParallelism()).toBe(10);
   });
 
   /**

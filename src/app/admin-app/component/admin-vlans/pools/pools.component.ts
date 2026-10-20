@@ -7,8 +7,8 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   inject,
+  input,
 } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Pool } from 'src/app/generated/caster-api';
@@ -37,8 +37,7 @@ export class PoolsComponent implements OnInit {
   private poolService = inject(PoolService);
   private poolQuery = inject(PoolQuery);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   public pools$ = this.poolQuery.selectAll();
 

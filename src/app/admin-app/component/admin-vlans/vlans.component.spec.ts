@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -20,13 +20,13 @@ import { ProjectVlansComponent } from 'src/app/admin-app/component/admin-vlans/p
 
 @Component({ selector: 'cas-pools', template: '' })
 class PoolsStub {
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 }
 
 @Component({ selector: 'cas-project-vlans', template: '' })
 class ProjectVlansStub {
-  @Input() projects: Project[];
-  @Input() canEdit: boolean;
+  readonly projects = input<Project[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderVlans(grants: PermissionGrants) {
@@ -70,7 +70,7 @@ describe('VlansComponent', () => {
     const pools: PoolsStub = fixture.debugElement.query(
       By.directive(PoolsStub),
     ).componentInstance;
-    expect(pools.canEdit).toBe(true);
+    expect(pools.canEdit()).toBe(true);
   });
 
   /**
@@ -84,7 +84,7 @@ describe('VlansComponent', () => {
     const pools: PoolsStub = fixture.debugElement.query(
       By.directive(PoolsStub),
     ).componentInstance;
-    expect(pools.canEdit).toBe(false);
+    expect(pools.canEdit()).toBe(false);
   });
 
   /**
@@ -106,7 +106,7 @@ describe('VlansComponent', () => {
       const projectVlans: ProjectVlansStub = fixture.debugElement.query(
         By.directive(ProjectVlansStub),
       ).componentInstance;
-      expect(projectVlans.canEdit).toBe(canEdit);
+      expect(projectVlans.canEdit()).toBe(canEdit);
     },
   );
 });

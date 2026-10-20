@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { of } from 'rxjs';
@@ -29,7 +29,7 @@ import { DirectoryPanelComponent } from 'src/app/project/component/project-detai
 
 @Component({ selector: 'cas-directory-panel', template: '' })
 class DirectoryPanelStub {
-  @Input() parentDirectory: Directory;
+  readonly parentDirectory = input<Directory>(undefined);
 }
 
 async function renderNavigation(grants: PermissionGrants) {
@@ -77,7 +77,7 @@ describe('ProjectNavigationContainerComponent', () => {
     const panels: DirectoryPanelStub[] = fixture.debugElement
       .queryAll(By.directive(DirectoryPanelStub))
       .map((d) => d.componentInstance);
-    expect(panels.map((p) => p.parentDirectory.id)).toEqual(['dir1']);
+    expect(panels.map((p) => p.parentDirectory().id)).toEqual(['dir1']);
     expect(screen.getByText('Export Project')).toBeInTheDocument();
   });
 

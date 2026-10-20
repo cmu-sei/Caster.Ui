@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Project, ProjectsService } from 'src/app/generated/caster-api';
@@ -14,9 +14,9 @@ import { ProjectMembershipsComponent } from 'src/app/project/component/project-m
 
 @Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
-  @Input() projects: Project[];
-  @Input() isLoading: boolean;
-  @Input() manageMode: boolean;
+  readonly projects = input<Project[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly manageMode = input<boolean>(undefined);
   @Output() selectedProjectId = new EventEmitter<string>();
 }
 
@@ -25,8 +25,8 @@ class ProjectListStub {
   template: '',
 })
 class ProjectMembershipsStub {
-  @Input() projectId: string;
-  @Input() embedded: boolean;
+  readonly projectId = input<string>(undefined);
+  readonly embedded = input<boolean>(undefined);
   @Output() goBack = new EventEmitter<void>();
 }
 
@@ -59,8 +59,8 @@ describe('AdminProjectsComponent', () => {
       By.directive(ProjectListStub),
     ).componentInstance;
     expect(projectsApi.getAllProjects).toHaveBeenCalledWith(false);
-    expect(list.manageMode).toBe(true);
-    expect(list.projects.map((p) => p.id)).toEqual(['p1']);
+    expect(list.manageMode()).toBe(true);
+    expect(list.projects().map((p) => p.id)).toEqual(['p1']);
   });
 
   /**
@@ -79,8 +79,8 @@ describe('AdminProjectsComponent', () => {
     const memberships: ProjectMembershipsStub = fixture.debugElement.query(
       By.directive(ProjectMembershipsStub),
     ).componentInstance;
-    expect(memberships.projectId).toBe('p1');
-    expect(memberships.embedded).toBe(true);
+    expect(memberships.projectId()).toBe('p1');
+    expect(memberships.embedded()).toBe(true);
     expect(
       fixture.debugElement.query(By.directive(ProjectListStub)),
     ).toBeNull();

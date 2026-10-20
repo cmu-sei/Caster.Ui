@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
@@ -51,28 +51,28 @@ import { WorkspaceVersionComponent } from 'src/app/workspace/components/workspac
   template: '',
 })
 class WorkspaceVersionStub {
-  @Input() workspace: Workspace;
+  readonly workspace = input<Workspace>(undefined);
 }
 
 @Component({ selector: 'cas-run', template: '' })
 class RunStub {
-  @Input() run: Run;
-  @Input() loading: boolean;
+  readonly run = input<Run>(undefined);
+  readonly loading = input<boolean>(undefined);
   @Output() planOutput = new EventEmitter<string>();
   @Output() applyOutput = new EventEmitter<string>();
 }
 
 @Component({ selector: 'cas-import-resource', template: '' })
 class ImportResourceStub {
-  @Input() workspaceId: string;
-  @Input() loading: boolean;
+  readonly workspaceId = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
   @Output() importComplete = new EventEmitter<boolean>();
 }
 
 @Component({ selector: 'cas-output', template: '' })
 class OutputStub {
-  @Input() output: string;
-  @Input() loading: boolean;
+  readonly output = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
 }
 
 async function renderWorkspace(

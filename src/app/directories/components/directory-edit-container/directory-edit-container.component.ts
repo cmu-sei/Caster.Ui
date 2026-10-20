@@ -5,10 +5,10 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   Output,
   EventEmitter,
   inject,
+  input,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -32,7 +32,7 @@ export class DirectoryEditContainerComponent implements OnInit {
   private directoryQuery = inject(DirectoryQuery);
   private terraformService = inject(TerraformService);
 
-  @Input() id: string;
+  readonly id = input<string>(undefined);
   @Output() editDirectoryComplete = new EventEmitter<boolean>();
 
   public directory$: Observable<Directory>;
@@ -40,14 +40,14 @@ export class DirectoryEditContainerComponent implements OnInit {
   public maxParallelism$: Observable<number>;
 
   ngOnInit(): void {
-    this.directory$ = this.directoryQuery.selectEntity(this.id);
+    this.directory$ = this.directoryQuery.selectEntity(this.id());
     this.versionResult$ = this.terraformService.getTerraformVersions();
     this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
   }
 
   onUpdateDirectory(directory: Partial<Directory>) {
     if (directory != null) {
-      this.directoryService.partialUpdate(this.id, directory);
+      this.directoryService.partialUpdate(this.id(), directory);
     }
     this.editDirectoryComplete.emit(true);
   }

@@ -18,14 +18,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (keyup)="applyFilter($event)"
           #input
           autocomplete="off"
-          />
+        />
         @if (filterString) {
           <button
             matSuffix
             mat-icon-button
             aria-label="Clear"
             (click)="clearFilter()"
-            >
+          >
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-close-circle-outline"
@@ -46,13 +46,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     matSortDirection="asc"
     [dataSource]="dataSource"
     class="w-100"
-    >
+  >
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
       <td mat-cell *matCellDef="let model">
         <span class="member-name">
           <span>{{ model.name }}</span>
-          <cas-current-user-badge [userId]="model.membership.userId"></cas-current-user-badge>
+          <cas-current-user-badge
+            [userId]="model.membership.userId"
+          ></cas-current-user-badge>
         </span>
       </td>
     </ng-container>
@@ -60,12 +62,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="role">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
       <td mat-cell *matCellDef="let model">
-        @if (canEdit) {
+        @if (canEdit()) {
           <mat-form-field class="role-field" subscriptSizing="dynamic">
             <mat-select
               [value]="model.membership.role"
               (selectionChange)="onRoleChange(model, $event)"
-              >
+            >
               @for (role of groupMembershipRoles; track role) {
                 <mat-option [value]="role">{{ role }}</mat-option>
               }
@@ -85,9 +87,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (click)="delete(model)"
           title="Remove {{ model.name }}"
           [attr.aria-label]="'Remove ' + model.name"
-          [disabled]="!canEdit"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle-outline"></mat-icon>
+          [disabled]="!canEdit()"
+        >
+          <mat-icon
+            class="mdi-24px"
+            fontIcon="mdi-minus-circle-outline"
+          ></mat-icon>
         </button>
       </td>
     </ng-container>
