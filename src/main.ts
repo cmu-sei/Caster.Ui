@@ -9,11 +9,6 @@ import {
 } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-import {
-  getBasePath,
-  myCustomTooltipDefaults,
-  myCustomSnackBarDefaults,
-} from './app/app.module';
 import { environment } from './environments/environment';
 import { enableAkitaProdMode, HashMap, persistState } from '@datorama/akita';
 import { debounceTime } from 'rxjs/operators';
@@ -49,7 +44,13 @@ import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
-import { AppRoutingModule } from './app/app-routing.module';
+import {
+  PreloadAllModules,
+  provideRouter,
+  withPreloading,
+  withRouterConfig,
+} from '@angular/router';
+import { routes } from './app/app.routes';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -63,6 +64,22 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { DesignModule } from './app/designs/design.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AppComponent } from './app/app.component';
+
+// since the generated api code is a separate module we will set the BASE_PATH here at bootstrap.
+export function getBasePath(settings: ComnSettingsService) {
+  return settings.settings.ApiUrl;
+}
+
+/** Custom options to configure the tooltip's default show/hide delays. */
+export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 1000,
+  hideDelay: 0,
+  touchendHideDelay: 1000,
+};
+
+export const myCustomSnackBarDefaults: MatSnackBarConfig = {
+  duration: 2000,
+};
 
 export const storage = persistState({
   key: 'akita-project-ui',
@@ -117,7 +134,6 @@ bootstrapApplication(AppComponent, {
       BrowserAnimationsModule,
       environment.production ? [] : AkitaNgDevtools.forRoot(),
       AkitaNgRouterStoreModule,
-      AppRoutingModule,
       ComnSettingsModule.forRoot(),
       ComnAuthModule.forRoot(),
       ApiModule,
@@ -148,6 +164,14 @@ bootstrapApplication(AppComponent, {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
       useValue: myCustomSnackBarDefaults,
     },
+    provideRouter(
+      routes,
+      withRouterConfig({
+        paramsInheritanceStrategy: 'always',
+        onSameUrlNavigation: 'reload',
+      }),
+      withPreloading(PreloadAllModules),
+    ),
     provideHttpClient(withInterceptorsFromDi()),
     provideCrucibleTheme({ brand: { color: '#E9831C', text: '#FFFFFF' } }),
   ],
