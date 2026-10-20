@@ -1,0 +1,60 @@
+.draft-content {
+  min-width: 600px;
+}
+
+.form-full-width {
+  width: 100%;
+}
+
+.review-header,
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.design-name,
+.module-name {
+  flex: 1;
+}
+
+.module-source {
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.draft-module {
+  margin-bottom: 12px;
+  padding: 8px 16px 0;
+}
+
+.module-purpose {
+  margin: 0 0 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.draft-warnings {
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border-left: 4px solid var(--mat-sys-tertiary);
+  background: var(--mat-sys-surface-container);
+
+  ul {
+    margin: 4px 0 0;
+  }
+}
+
+.field-problem,
+.review-problems {
+  color: var(--mat-sys-error);
+}
+
+.draft-snippet {
+  margin-bottom: 12px;
+
+  pre {
+    max-height: 300px;
+    overflow: auto;
+    font-size: 12px;
+  }
+}

@@ -41,6 +41,10 @@ import { WorkspaceEditContainerComponent } from 'src/app/workspace/components/wo
 import { DirectoryEditContainerComponent } from 'src/app/directories/components/directory-edit-container/directory-edit-container.component';
 import { DesignQuery } from 'src/app/designs/state/design.query';
 import { DesignService } from 'src/app/designs/state/design.service';
+import {
+  AiDesignDraftDialogComponent,
+  AiDesignDraftDialogData,
+} from 'src/app/designs/components/ai-design-draft-dialog/ai-design-draft-dialog.component';
 import { Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 import { PermissionService } from 'src/app/permissions/permission.service';
@@ -455,6 +459,27 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         }
       }
     );
+  }
+
+  draftDesignWithAi(dir: Directory) {
+    this.dialog
+      .open<AiDesignDraftDialogComponent, AiDesignDraftDialogData, Design>(
+        AiDesignDraftDialogComponent,
+        {
+          data: { directoryId: dir.id, directoryName: dir.name },
+          width: '800px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      )
+      .afterClosed()
+      .subscribe((design) => {
+        if (design) {
+          // SignalR adds it too; add() skips an id that is already there
+          this.designService.add(design);
+          this.openDesign(design);
+        }
+      });
   }
 
   renameDesign(design: Design) {

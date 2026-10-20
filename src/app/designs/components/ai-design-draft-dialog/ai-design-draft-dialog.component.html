@@ -1,0 +1,129 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="'Draft Design with AI in ' + data.directoryName"
+  [submitLabel]="submitLabel"
+  [loadingLabel]="loadingLabel"
+  [submitDisabled]="submitDisabled"
+  [loading]="loading"
+  [errorMessage]="errorMessage"
+  [guardUnsavedWork]="true"
+  (submit)="submit()"
+  (cancel)="cancel()"
+>
+  <div crucibleDialogContent class="draft-content">
+    @if (step === 'prompt') {
+      <p class="dialog-message">
+        Describe the environment. The draft uses only modules already in Caster, and
+        nothing is saved until you review it and create the Design.
+      </p>
+      <mat-form-field class="form-full-width">
+        <mat-label>Describe the environment</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="prompt"
+          rows="8"
+          maxlength="8000"
+          placeholder="A Windows domain with two workstations and a file server behind a pfSense firewall, plus a Kali box on the outside network"
+          cdkFocusInitial
+        ></textarea>
+        <mat-hint align="end">{{ prompt.length }} / 8000</mat-hint>
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Design name (optional)</mat-label>
+        <input matInput [(ngModel)]="designName" autocomplete="off" />
+      </mat-form-field>
+    } @else {
+      <div class="review-header">
+        <mat-form-field class="design-name">
+          <mat-label>Design name</mat-label>
+          <input matInput [(ngModel)]="designName" autocomplete="off" required />
+        </mat-form-field>
+        <button mat-button type="button" (click)="redraft()" [disabled]="loading">
+          <mat-icon fontIcon="mdi-arrow-left"></mat-icon>
+          Change prompt
+        </button>
+      </div>
+
+      @if (draft?.summary) {
+        <p class="dialog-message">{{ draft.summary }}</p>
+      }
+
+      @if (draft?.warnings?.length) {
+        <div class="draft-warnings" role="status">
+          <strong>Check before creating</strong>
+          <ul>
+            @for (warning of draft.warnings; track $index) {
+              <li>{{ warning }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @for (row of modules; track row) {
+        <mat-card appearance="outlined" class="draft-module">
+          <div class="module-header">
+            <mat-form-field class="module-name">
+              <mat-label>Name</mat-label>
+              <input matInput [(ngModel)]="row.name" autocomplete="off" />
+              @if (nameProblem(row)) {
+                <mat-hint class="field-problem">{{ nameProblem(row) }}</mat-hint>
+              }
+            </mat-form-field>
+            <span class="module-source" [matTooltip]="'Module version ' + row.moduleVersion">
+              {{ row.moduleName }} {{ row.moduleVersion }}
+            </span>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeModule(row)"
+              [attr.aria-label]="'Remove ' + (row.name || row.moduleName)"
+              matTooltip="Remove module"
+            >
+              <mat-icon fontIcon="mdi-delete"></mat-icon>
+            </button>
+          </div>
+          @if (row.purpose) {
+            <p class="module-purpose">{{ row.purpose }}</p>
+          }
+          @for (value of row.values; track value.name) {
+            <mat-form-field class="form-full-width value-field">
+              <mat-label>{{ value.name }}{{ isRequired(row, value) ? ' (required)' : '' }}</mat-label>
+              <input matInput [(ngModel)]="value.value" autocomplete="off" />
+              @if (isMissing(row, value)) {
+                <mat-hint class="field-problem">The draft left this out; enter a value</mat-hint>
+              }
+            </mat-form-field>
+          } @empty {
+            <p class="module-purpose">No values; the module's defaults apply.</p>
+          }
+        </mat-card>
+      } @empty {
+        <p class="field-problem">No modules left. Change the prompt to draft again.</p>
+      }
+
+      @if (draft?.snippet) {
+        <mat-expansion-panel class="draft-snippet">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Terraform as drafted</mat-panel-title>
+          </mat-expansion-panel-header>
+          <p class="module-purpose">Generated from the draft before your edits. The Design writes its own once enabled.</p>
+          <pre>{{ draft.snippet }}</pre>
+        </mat-expansion-panel>
+      }
+
+      @if (reviewProblems().length) {
+        <ul class="review-problems" aria-label="Before you can create the design">
+          @for (problem of reviewProblems(); track problem) {
+            <li>{{ problem }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="module-purpose">The Design is created disabled. Enable it to add it to Workspaces.</p>
+      }
+    }
+  </div>
+</crucible-dialog>

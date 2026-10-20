@@ -376,6 +376,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                                               </a>
                                             </div>
                                           </mat-list-item>
+                                          <mat-list-item>
+                                            <div class="d-flex flex-row justify-content-start align-items-center" style="margin-left: 2%">
+                                              <mat-icon
+                                                (click)="draftDesignWithAi(parentDirectory)"
+                                                matTooltip="Draft a Design for {{ parentDirectory.name }} from a description, using Caster's modules"
+                                                class="icon-space mdi-18px"
+                                                fontIcon="mdi-creation-outline"
+                                              ></mat-icon>
+                                              <a
+                                                class="add-link-text"
+                                                matTooltip="Draft a Design for {{ parentDirectory.name }} from a description, using Caster's modules"
+                                                (click)="draftDesignWithAi(parentDirectory)"
+                                                >
+                                                Draft Design with AI
+                                              </a>
+                                            </div>
+                                          </mat-list-item>
                                         }
                                       </mat-list>
                                     </mat-expansion-panel>

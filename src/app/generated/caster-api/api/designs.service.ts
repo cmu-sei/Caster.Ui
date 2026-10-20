@@ -24,9 +24,15 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { AiDesignDraft } from '../model/aiDesignDraft';
+// @ts-ignore
 import { CreateDesignCommand } from '../model/createDesignCommand';
 // @ts-ignore
+import { CreateDesignFromAiDraftCommand } from '../model/createDesignFromAiDraftCommand';
+// @ts-ignore
 import { Design } from '../model/design';
+// @ts-ignore
+import { DraftDesignWithAiCommand } from '../model/draftDesignWithAiCommand';
 // @ts-ignore
 import { EditDesignCommand } from '../model/editDesignCommand';
 // @ts-ignore
@@ -179,6 +185,86 @@ export class DesignsService {
     }
 
     /**
+     * Create a disabled Design from a reviewed AI draft
+     * @param directoryId ID of the Directory the Design will belong to.
+     * @param createDesignFromAiDraftCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public createDesignFromAiDraft(directoryId: string, createDesignFromAiDraftCommand?: CreateDesignFromAiDraftCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Design>;
+    public createDesignFromAiDraft(directoryId: string, createDesignFromAiDraftCommand?: CreateDesignFromAiDraftCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Design>>;
+    public createDesignFromAiDraft(directoryId: string, createDesignFromAiDraftCommand?: CreateDesignFromAiDraftCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Design>>;
+    public createDesignFromAiDraft(directoryId: string, createDesignFromAiDraftCommand?: CreateDesignFromAiDraftCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (directoryId === null || directoryId === undefined) {
+            throw new Error('Required parameter directoryId was null or undefined when calling createDesignFromAiDraft.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/directories/${this.configuration.encodeParam({name: "directoryId", value: directoryId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/designs/ai-draft/create`;
+        return this.httpClient.request<Design>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: createDesignFromAiDraftCommand,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Delete a design.
      * @param id ID of a design.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -301,6 +387,87 @@ export class DesignsService {
         return this.httpClient.request<Design>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Draft a Design with AI from the module catalog
+     * Nothing is saved. The planner reviews the draft, then creates it with CreateDesignFromAiDraft.
+     * @param directoryId ID of the Directory the Design will belong to.
+     * @param draftDesignWithAiCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public draftDesignWithAi(directoryId: string, draftDesignWithAiCommand?: DraftDesignWithAiCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<AiDesignDraft>;
+    public draftDesignWithAi(directoryId: string, draftDesignWithAiCommand?: DraftDesignWithAiCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<AiDesignDraft>>;
+    public draftDesignWithAi(directoryId: string, draftDesignWithAiCommand?: DraftDesignWithAiCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<AiDesignDraft>>;
+    public draftDesignWithAi(directoryId: string, draftDesignWithAiCommand?: DraftDesignWithAiCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (directoryId === null || directoryId === undefined) {
+            throw new Error('Required parameter directoryId was null or undefined when calling draftDesignWithAi.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/directories/${this.configuration.encodeParam({name: "directoryId", value: directoryId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/designs/ai-draft`;
+        return this.httpClient.request<AiDesignDraft>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: draftDesignWithAiCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
