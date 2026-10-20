@@ -514,6 +514,44 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: an update that leaves the user's edits in the buffer keeps the
+     *   file unsaved, so Save stays enabled.
+     * Interacts with: fileUpdated setSave from isFileContentChanged.
+     * Data: stored f1 locked by u1 with editor content 'draft', marked
+     *   unsaved; rename event still locked by u1 with content null.
+     */
+    it('keeps a file with unsaved edits unsaved', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u1', editorContent: 'draft' }),
+      ]);
+      service.setSave('f1', false);
+
+      service.fileUpdated(
+        file({ name: 'renamed.tf', lockedById: 'u1', content: null }),
+      );
+
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: an update whose content matches the editor buffer (the save
+     *   response) marks the file saved.
+     * Interacts with: fileUpdated setSave from isFileContentChanged.
+     * Data: near miss of the test above: stored f1 with editor content
+     *   'saved v2', marked unsaved; event with content 'saved v2'.
+     */
+    it('marks the file saved when the update matches the buffer', () => {
+      const { service, query } = setup({}, [
+        file({ lockedById: 'u1', editorContent: 'saved v2' }),
+      ]);
+      service.setSave('f1', false);
+
+      service.fileUpdated(file({ lockedById: 'u1', content: 'saved v2' }));
+
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
      * Verifies: filesUpdated upserts every file and marks each saved.
      * Interacts with: upsertFile; setSave.
      * Data: stored f1 marked unsaved; event list [f1, f2].

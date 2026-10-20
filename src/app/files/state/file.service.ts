@@ -7,6 +7,7 @@ import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FilesService, ModelFile } from '../../generated/caster-api';
+import { isFileContentChanged } from './file-content';
 import { FileQuery } from './file.query';
 import { FileStore } from './file.store';
 
@@ -122,7 +123,11 @@ export class FileService {
       file = { ...file, editorContent: file.content };
     }
     this.upsertFile(file);
-    this.setSave(file.id, true);
+    // Unsaved edits stay unsaved through updates that don't touch them
+    this.setSave(
+      file.id,
+      !isFileContentChanged(this.fileQuery.getEntity(file.id))
+    );
   }
 
   filesUpdated(files: ModelFile[]) {
