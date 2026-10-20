@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -46,7 +46,7 @@ class ModuleVariablesStub {
   readonly outputs = input<unknown[]>(undefined);
   readonly isSaving = input<boolean>(undefined);
   readonly requireValues = input<boolean>(undefined);
-  @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
+  readonly variablesSelected = output<ModuleVariablesResult>();
 }
 
 @Component({ selector: 'cas-module-outputs', template: '' })

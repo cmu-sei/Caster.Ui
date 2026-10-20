@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { of } from 'rxjs';
@@ -41,8 +41,8 @@ class TopbarStub {
   readonly topbarView = input<TopbarView>(undefined);
   readonly sidenav = input<unknown>(undefined);
   readonly projectId = input<string>(undefined);
-  @Output() sidenavToggle = new EventEmitter<boolean>();
-  @Output() editMemberships = new EventEmitter<void>();
+  readonly sidenavToggle = output<boolean>();
+  readonly editMemberships = output<void>();
 }
 
 @Component({ selector: 'cas-project', template: '' })
@@ -50,8 +50,8 @@ class ProjectStub {
   readonly loading = input<boolean>(undefined);
   readonly project = input<Project>(undefined);
   readonly projectUI = input<ProjectUI>(undefined);
-  @Output() closeTab = new EventEmitter<string>();
-  @Output() tabChanged = new EventEmitter<unknown>();
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<unknown>();
 }
 
 describe('ProjectCollapseContainerComponent', () => {

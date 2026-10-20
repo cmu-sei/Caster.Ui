@@ -3,14 +3,13 @@
 
 import {
   Component,
-  EventEmitter,
   OnInit,
   ViewChild,
-  Output,
   OnChanges,
   SimpleChanges,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -100,8 +99,8 @@ export class UserListComponent implements OnInit, OnChanges {
   readonly users = input<User[]>(undefined);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() create: EventEmitter<User> = new EventEmitter<User>();
-  @Output() delete: EventEmitter<string> = new EventEmitter<string>();
+  readonly create = output<User>();
+  readonly delete = output<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 

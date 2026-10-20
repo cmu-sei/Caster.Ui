@@ -4,15 +4,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   ViewChild,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   Project,
@@ -111,7 +110,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   @Input() isLoading: boolean;
   readonly manageMode = input(false);
 
-  @Output() selectedProjectId = new EventEmitter<string>();
+  readonly selectedProjectId = output<string>();
 
   @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
   @ViewChild(MatSort, { static: false }) sort: MatSort;

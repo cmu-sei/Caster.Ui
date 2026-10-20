@@ -5,12 +5,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import {
   Component,
-  EventEmitter,
   OnChanges,
   OnInit,
-  Output,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
@@ -67,8 +66,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   readonly returnLabel = input('Return');
 
-  @Output()
-  goBack = new EventEmitter();
+  readonly goBack = output();
 
   project$: Observable<Project>;
 

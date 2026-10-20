@@ -6,12 +6,11 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
-  Output,
-  EventEmitter,
   OnChanges,
   SimpleChanges,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   Module,
@@ -112,7 +111,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() variables: Variable[] = [];
   @Input() outputs = [];
 
-  @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
+  readonly variablesSelected = output<ModuleVariablesResult>();
 
   selectedVersion: ModuleVersion;
   moduleFields: ModuleField[] = [];

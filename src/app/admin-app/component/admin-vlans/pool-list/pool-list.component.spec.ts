@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -20,7 +20,7 @@ import { PoolListItemComponent } from 'src/app/admin-app/component/admin-vlans/p
 class PoolListItemStub {
   readonly pool = input<Pool>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() poolSelected = new EventEmitter<Pool>();
+  readonly poolSelected = output<Pool>();
 }
 
 const pools: Pool[] = [

@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  forwardRef,
-  Output,
-  input,
-} from '@angular/core';
+import { Component, forwardRef, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -55,7 +49,7 @@ import {
 })
 class MonacoEditorStub implements ControlValueAccessor {
   readonly options = input<unknown>(undefined);
-  @Output() onInit = new EventEmitter<unknown>();
+  readonly onInit = output<unknown>();
   writeValue(): void {}
   registerOnChange(): void {}
   registerOnTouched(): void {}
@@ -76,16 +70,19 @@ class ModuleListStub {
   readonly modules = input<Module[]>(undefined);
   readonly selectedModule = input<Module>(undefined);
   readonly isEditing = input<boolean>(undefined);
-  @Output() getModule = new EventEmitter<{ id: string; name: string }>();
-  @Output() insertModule = new EventEmitter<unknown>();
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
+  readonly insertModule = output<unknown>();
 }
 
 @Component({ selector: 'cas-version-list', template: '' })
 class VersionListStub {
   readonly fileId = input<string>(undefined);
   readonly selectedVersionId = input<string>(undefined);
-  @Output() getVersion = new EventEmitter<FileVersion>();
-  @Output() revertToVersion = new EventEmitter<unknown>();
+  readonly getVersion = output<FileVersion>();
+  readonly revertToVersion = output<unknown>();
 }
 
 interface Gates {

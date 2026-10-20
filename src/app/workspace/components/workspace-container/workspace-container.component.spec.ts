@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
@@ -58,15 +58,15 @@ class WorkspaceVersionStub {
 class RunStub {
   readonly run = input<Run>(undefined);
   readonly loading = input<boolean>(undefined);
-  @Output() planOutput = new EventEmitter<string>();
-  @Output() applyOutput = new EventEmitter<string>();
+  readonly planOutput = output<string>();
+  readonly applyOutput = output<string>();
 }
 
 @Component({ selector: 'cas-import-resource', template: '' })
 class ImportResourceStub {
   readonly workspaceId = input<string>(undefined);
   readonly loading = input<boolean>(undefined);
-  @Output() importComplete = new EventEmitter<boolean>();
+  readonly importComplete = output<boolean>();
 }
 
 @Component({ selector: 'cas-output', template: '' })

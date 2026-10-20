@@ -4,15 +4,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnInit,
-  Output,
   TemplateRef,
   ViewChild,
   ViewEncapsulation,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
@@ -73,11 +72,11 @@ export class ModuleListComponent implements OnInit {
   }
   readonly isEditing = input<boolean>(undefined);
 
-  @Output()
-  insertModule: EventEmitter<CreateSnippetCommand> =
-    new EventEmitter<CreateSnippetCommand>();
-  @Output() getModule: EventEmitter<{ id: string; name: string }> =
-    new EventEmitter();
+  readonly insertModule = output<CreateSnippetCommand>();
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
   private _modules: Module[];
   _selectedModule: Module;
   code: string;

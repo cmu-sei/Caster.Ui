@@ -4,11 +4,10 @@
 import {
   Component,
   OnInit,
-  Output,
-  EventEmitter,
   ChangeDetectionStrategy,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { WorkspaceService, WorkspaceQuery } from '../../state';
 import {
@@ -33,7 +32,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
   private terraformService = inject(TerraformService);
 
   readonly id = input<string>(undefined);
-  @Output() editWorkspaceComplete = new EventEmitter<boolean>();
+  readonly editWorkspaceComplete = output<boolean>();
 
   public workspace$: Observable<Workspace>;
   public versionResult$: Observable<TerraformVersionsResult>;

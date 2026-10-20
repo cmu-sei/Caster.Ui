@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import {
@@ -22,7 +22,7 @@ class WorkspaceEditStub {
   readonly workspace = input<Workspace>(undefined);
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
-  @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
+  readonly updateWorkspace = output<Partial<Workspace>>();
 }
 
 async function renderContainer() {

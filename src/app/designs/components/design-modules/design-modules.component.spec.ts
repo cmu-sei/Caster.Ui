@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  getDebugNode,
-  Output,
-  input,
-} from '@angular/core';
+import { Component, getDebugNode, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
@@ -40,7 +34,10 @@ import { ModuleVariablesComponent } from 'src/app/editor/component/module-variab
 class ModuleListStub {
   readonly modules = input<Module[]>(undefined);
   readonly isEditing = input<boolean>(undefined);
-  @Output() getModule = new EventEmitter<{ id: string; name: string }>();
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
 }
 
 @Component({ selector: 'cas-design-module', template: '' })
@@ -64,7 +61,7 @@ class ModuleVariablesStub {
   readonly requireChanges = input<boolean>(undefined);
   readonly requireValues = input<boolean>(undefined);
   readonly submitButtonText = input<string>(undefined);
-  @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
+  readonly variablesSelected = output<ModuleVariablesResult>();
 }
 
 const pickedModule: Module = {

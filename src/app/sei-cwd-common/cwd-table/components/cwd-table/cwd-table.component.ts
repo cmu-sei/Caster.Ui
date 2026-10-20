@@ -5,15 +5,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   ContentChild,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   input,
+  output,
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort, MatSortHeader } from '@angular/material/sort';
@@ -98,11 +97,11 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
   readonly excludedAttributes = input<string[]>([]);
   @Input() trackByPropertyName: string;
   readonly idPropertyName = input('id');
-  @Output() expand: EventEmitter<{
+  readonly expand = output<{
     expand: boolean;
     item: T;
-  }> = new EventEmitter<{ expand: boolean; item: T }>();
-  @Output() add: EventEmitter<T> = new EventEmitter<T>();
+  }>();
+  readonly add = output<T>();
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;

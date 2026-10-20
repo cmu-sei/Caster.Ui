@@ -5,9 +5,8 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
   input,
+  output,
 } from '@angular/core';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -21,7 +20,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 })
 export class LockingStatusComponent implements OnInit {
   readonly lockingEnabled = input<boolean>(undefined);
-  @Output() setLockingEnabled = new EventEmitter<boolean>();
+  readonly setLockingEnabled = output<boolean>();
 
   constructor() {}
 

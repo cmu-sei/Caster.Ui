@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Project, ProjectsService } from 'src/app/generated/caster-api';
@@ -17,7 +17,7 @@ class ProjectListStub {
   readonly projects = input<Project[]>(undefined);
   readonly isLoading = input<boolean>(undefined);
   readonly manageMode = input<boolean>(undefined);
-  @Output() selectedProjectId = new EventEmitter<string>();
+  readonly selectedProjectId = output<string>();
 }
 
 @Component({
@@ -27,7 +27,7 @@ class ProjectListStub {
 class ProjectMembershipsStub {
   readonly projectId = input<string>(undefined);
   readonly embedded = input<boolean>(undefined);
-  @Output() goBack = new EventEmitter<void>();
+  readonly goBack = output<void>();
 }
 
 async function renderAdminProjects() {

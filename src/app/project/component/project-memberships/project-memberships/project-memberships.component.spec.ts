@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, Type, input } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -44,8 +44,7 @@ class MembershipListStub {
   readonly users = input<User[]>(undefined);
   readonly groups = input<Group[]>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() createMembership =
-    new EventEmitter<CreateProjectMembershipCommand>();
+  readonly createMembership = output<CreateProjectMembershipCommand>();
 }
 
 @Component({
@@ -58,8 +57,8 @@ class MemberListStub {
   readonly groups = input<Group[]>(undefined);
   readonly roles = input<ProjectRole[]>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() deleteMembership = new EventEmitter<string>();
-  @Output() editMembership = new EventEmitter<EditProjectMembershipCommand>();
+  readonly deleteMembership = output<string>();
+  readonly editMembership = output<EditProjectMembershipCommand>();
 }
 
 async function renderMemberships(grants: PermissionGrants, embedded = false) {

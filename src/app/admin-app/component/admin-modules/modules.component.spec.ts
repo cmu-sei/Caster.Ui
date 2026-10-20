@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { By } from '@angular/platform-browser';
@@ -32,9 +32,9 @@ class ModuleListStub {
   readonly modules = input<Module[]>(undefined);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() load = new EventEmitter<boolean>();
-  @Output() loadModuleById = new EventEmitter<string>();
-  @Output() delete = new EventEmitter<string>();
+  readonly load = output<boolean>();
+  readonly loadModuleById = output<string>();
+  readonly delete = output<string>();
 }
 
 const healthy: ModuleSource = {

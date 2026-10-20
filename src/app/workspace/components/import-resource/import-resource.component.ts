@@ -5,10 +5,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  EventEmitter,
-  Output,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -53,7 +52,7 @@ export class ImportResourceComponent implements OnInit {
   readonly workspaceId = input<string>(undefined);
   readonly loading = input<boolean>(undefined);
 
-  @Output() importComplete = new EventEmitter<boolean>();
+  readonly importComplete = output<boolean>();
 
   form: UntypedFormGroup;
   message: string = '';

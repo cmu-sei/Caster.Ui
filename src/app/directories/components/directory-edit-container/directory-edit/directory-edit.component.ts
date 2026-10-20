@@ -5,10 +5,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   Directory,
@@ -68,7 +67,7 @@ export class DirectoryEditComponent implements OnInit {
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
 
-  @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
+  readonly updateDirectory = output<Partial<Directory>>();
 
   form: FormGroup;
 

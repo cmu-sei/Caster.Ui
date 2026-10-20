@@ -5,13 +5,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   OnDestroy,
   OnInit,
-  Output,
   ViewEncapsulation,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { FileVersion } from '../../../generated/caster-api';
 import { MatTableDataSource } from '@angular/material/table';
@@ -56,10 +55,12 @@ export class VersionListComponent implements OnInit, OnDestroy {
 
   readonly fileId = input<string>(undefined);
   readonly selectedVersionId = input<string>(undefined);
-  @Output() getVersion: EventEmitter<{ id: string }> = new EventEmitter();
-  @Output() revertToVersion: EventEmitter<{
+  readonly getVersion = output<{
+    id: string;
+  }>();
+  readonly revertToVersion = output<{
     fileVersion: FileVersion;
-  }> = new EventEmitter();
+  }>();
   public versions: FileVersion[];
   public dataSource = new MatTableDataSource();
   public filterString = '';

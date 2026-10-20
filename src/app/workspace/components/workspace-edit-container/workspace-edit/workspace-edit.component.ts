@@ -4,11 +4,10 @@
 import {
   Component,
   OnInit,
-  Output,
-  EventEmitter,
   ChangeDetectionStrategy,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   Workspace,
@@ -67,7 +66,7 @@ export class WorkspaceEditComponent implements OnInit {
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
 
-  @Output() updateWorkspace = new EventEmitter<Partial<Workspace>>();
+  readonly updateWorkspace = output<Partial<Workspace>>();
 
   form: FormGroup;
 

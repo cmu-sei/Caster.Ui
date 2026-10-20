@@ -7,13 +7,12 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   OnChanges,
   OnInit,
-  Output,
   ViewChild,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -96,8 +95,7 @@ export class ProjectMembershipListComponent
 
   readonly canEdit = input<boolean>(undefined);
 
-  @Output()
-  createMembership = new EventEmitter<CreateProjectMembershipCommand>();
+  readonly createMembership = output<CreateProjectMembershipCommand>();
 
   viewColumns = ['name', 'type'];
   editColumns = ['actions'];

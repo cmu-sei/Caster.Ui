@@ -6,10 +6,9 @@ import {
   OnInit,
   Input,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
@@ -68,7 +67,7 @@ export class ProjectExportComponent implements OnInit {
     this.typeString = val;
   }
 
-  @Output() exportComplete = new EventEmitter<boolean>();
+  readonly exportComplete = output<boolean>();
 
   form: UntypedFormGroup;
   isArchiveable: boolean;

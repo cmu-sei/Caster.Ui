@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -23,7 +23,7 @@ class DirectoryEditStub {
   readonly directory = input<Directory>(undefined);
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
-  @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
+  readonly updateDirectory = output<Partial<Directory>>();
 }
 
 async function renderContainer() {

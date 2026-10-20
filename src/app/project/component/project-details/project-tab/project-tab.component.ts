@@ -4,15 +4,14 @@
 import {
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   HostListener,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   SimpleChanges,
   inject,
   input,
+  output,
 } from '@angular/core';
 import {
   Breadcrumb,
@@ -101,11 +100,11 @@ export class ProjectTabComponent
 
   readonly project = input<Project>(undefined);
   readonly projectUI = input<ProjectUI>(undefined);
-  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
-  @Output() tabChanged: EventEmitter<{
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<{
     index: number;
     tab: MatTab;
-  }> = new EventEmitter<{ index: number; tab: MatTab }>();
+  }>();
 
   public tabType = ProjectObjectType;
   // public selectedTab: Tab;

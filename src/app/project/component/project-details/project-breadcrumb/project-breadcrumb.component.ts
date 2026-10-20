@@ -4,9 +4,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Output,
   input,
+  output,
 } from '@angular/core';
 import { ProjectObjectType, Breadcrumb } from '../../../state';
 import { MatButton } from '@angular/material/button';
@@ -23,7 +22,7 @@ import { MatIcon } from '@angular/material/icon';
 export class ProjectBreadcrumbComponent {
   readonly useButtonStyleBreadcrumbs = input<boolean>(undefined);
   readonly breadcrumbs = input<Array<Breadcrumb>>(new Array<Breadcrumb>());
-  @Output() buttonClick: EventEmitter<any> = new EventEmitter<any>();
+  readonly buttonClick = output<any>();
   tabType = ProjectObjectType;
   constructor() {}
 }

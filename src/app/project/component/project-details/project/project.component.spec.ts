@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Project } from 'src/app/generated/caster-api';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -15,8 +15,8 @@ import { ProjectTabComponent } from 'src/app/project/component/project-details/p
 class ProjectTabStub {
   readonly project = input<Project>(undefined);
   readonly projectUI = input<ProjectUI>(undefined);
-  @Output() closeTab = new EventEmitter<string>();
-  @Output() tabChanged = new EventEmitter<unknown>();
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<unknown>();
 }
 
 describe('ProjectComponent', () => {

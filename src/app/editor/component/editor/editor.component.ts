@@ -6,16 +6,15 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   SimpleChanges,
   ViewChild,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
@@ -106,10 +105,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   readonly canEdit = input<boolean>(undefined);
   readonly canAdminLock = input<boolean>(undefined);
   readonly canManage = input<boolean>(undefined);
-  @Output() sidebarChanged = new EventEmitter<boolean>();
-  @Output() sidebarViewChanged = new EventEmitter<string>();
-  @Output() codeChanged = new EventEmitter<string>();
-  @Output() sidenavWidthChanged = new EventEmitter<number>();
+  readonly sidebarChanged = output<boolean>();
+  readonly sidebarViewChanged = output<string>();
+  readonly codeChanged = output<string>();
+  readonly sidenavWidthChanged = output<number>();
   @ViewChild('sidenav', { read: ElementRef }) sidenav: ElementRef;
   @ViewChild('sidebar') sidebar: MatButtonToggleGroup;
   public ngxEditor: any;

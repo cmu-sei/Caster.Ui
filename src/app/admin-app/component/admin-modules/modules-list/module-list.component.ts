@@ -3,14 +3,13 @@
 
 import {
   Component,
-  EventEmitter,
   OnInit,
   ViewChild,
-  Output,
   OnChanges,
   SimpleChanges,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -94,9 +93,9 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   readonly modules = input<Module[]>(undefined);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  @Output() load: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() loadModuleById: EventEmitter<string> = new EventEmitter<string>();
-  @Output() delete: EventEmitter<string> = new EventEmitter<string>();
+  readonly load = output<boolean>();
+  readonly loadModuleById = output<string>();
+  readonly delete = output<string>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 

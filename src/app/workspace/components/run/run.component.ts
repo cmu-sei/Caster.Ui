@@ -6,15 +6,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
   NgZone,
   OnChanges,
   OnDestroy,
-  Output,
   ViewChild,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -31,12 +30,7 @@ import { MatIconButton } from '@angular/material/button';
   templateUrl: './run.component.html',
   styleUrls: ['./run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CdkDrag,
-    MatIcon,
-    MatTooltip,
-    MatIconButton,
-  ],
+  imports: [CdkDrag, MatIcon, MatTooltip, MatIconButton],
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   private signalRService = inject(SignalRService);
@@ -44,8 +38,8 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   readonly run = input<Run>(undefined);
   readonly loading = input<boolean>(undefined);
-  @Output() planOutput = new EventEmitter<string>();
-  @Output() applyOutput = new EventEmitter<string>();
+  readonly planOutput = output<string>();
+  readonly applyOutput = output<string>();
 
   output = '';
   streamSub: ISubscription<any>;

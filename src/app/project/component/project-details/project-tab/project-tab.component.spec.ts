@@ -4,12 +4,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   Component,
-  EventEmitter,
   inject,
-  Output,
   provideEnvironmentInitializer,
   Type,
   input,
+  output,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -61,9 +60,9 @@ class EditorStub {
   readonly canEdit = input<boolean>(undefined);
   readonly canAdminLock = input<boolean>(undefined);
   readonly canManage = input<boolean>(undefined);
-  @Output() sidebarChanged = new EventEmitter<boolean>();
-  @Output() sidebarViewChanged = new EventEmitter<string>();
-  @Output() sidenavWidthChanged = new EventEmitter<number>();
+  readonly sidebarChanged = output<boolean>();
+  readonly sidebarViewChanged = output<string>();
+  readonly sidenavWidthChanged = output<number>();
 }
 
 @Component({

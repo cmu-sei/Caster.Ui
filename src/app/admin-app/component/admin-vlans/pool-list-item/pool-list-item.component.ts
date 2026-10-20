@@ -8,12 +8,11 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
-  EventEmitter,
-  Output,
   ViewChild,
   ElementRef,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
@@ -48,7 +47,7 @@ export class PoolListItemComponent implements OnInit {
   readonly pool = input<Pool>(undefined);
   readonly canEdit = input<boolean>(undefined);
 
-  @Output() poolSelected = new EventEmitter<Pool>();
+  readonly poolSelected = output<Pool>();
 
   @ViewChild('nameInput') nameInput: ElementRef<Input>;
 

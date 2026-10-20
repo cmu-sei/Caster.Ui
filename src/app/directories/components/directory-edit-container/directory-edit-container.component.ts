@@ -5,10 +5,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -33,7 +32,7 @@ export class DirectoryEditContainerComponent implements OnInit {
   private terraformService = inject(TerraformService);
 
   readonly id = input<string>(undefined);
-  @Output() editDirectoryComplete = new EventEmitter<boolean>();
+  readonly editDirectoryComplete = output<boolean>();
 
   public directory$: Observable<Directory>;
   public versionResult$: Observable<TerraformVersionsResult>;

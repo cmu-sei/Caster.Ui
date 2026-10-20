@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  getDebugNode,
-  Output,
-  input,
-} from '@angular/core';
+import { Component, getDebugNode, input, output } from '@angular/core';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,7 +26,7 @@ class ModuleVariablesStub {
   readonly readOnly = input<boolean>(undefined);
   readonly submitButtonText = input<string>(undefined);
   readonly requireChanges = input<boolean>(undefined);
-  @Output() variablesSelected = new EventEmitter<CreateSnippetCommand>();
+  readonly variablesSelected = output<CreateSnippetCommand>();
 }
 
 const modules: Module[] = [

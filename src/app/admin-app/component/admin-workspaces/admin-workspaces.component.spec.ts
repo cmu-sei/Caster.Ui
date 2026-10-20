@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Output, Type, input } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -22,16 +22,25 @@ import { LockingStatusComponent } from 'src/app/admin-app/component/admin-worksp
 @Component({ selector: 'cas-locking-status', template: '' })
 class LockingStatusStub {
   readonly lockingEnabled = input<boolean>(undefined);
-  @Output() setLockingEnabled = new EventEmitter<boolean>();
+  readonly setLockingEnabled = output<boolean>();
 }
 
 @Component({ selector: 'cas-active-runs', template: '' })
 class ActiveRunsStub {
   readonly runs = input<Run[]>(undefined);
   readonly expandedRuns = input<string[]>(undefined);
-  @Output() expandRun = new EventEmitter<{ expand: boolean; item: Run }>();
-  @Output() planUpdated = new EventEmitter<{ output: string; item: Run }>();
-  @Output() applyUpdated = new EventEmitter<{ output: string; item: Run }>();
+  readonly expandRun = output<{
+    expand: boolean;
+    item: Run;
+  }>();
+  readonly planUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
+  readonly applyUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
 }
 
 async function renderAdminWorkspaces() {

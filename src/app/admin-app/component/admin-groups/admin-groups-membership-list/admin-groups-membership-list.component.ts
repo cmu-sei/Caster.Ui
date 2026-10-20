@@ -6,13 +6,12 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import {
   AfterViewInit,
   Component,
-  EventEmitter,
   OnChanges,
   OnInit,
-  Output,
   ViewChild,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -91,8 +90,7 @@ export class AdminGroupsMembershipListComponent
 
   readonly canEdit = input<boolean>(undefined);
 
-  @Output()
-  createMembership = new EventEmitter<CreateGroupMembershipCommand>();
+  readonly createMembership = output<CreateGroupMembershipCommand>();
 
   viewColumns = ['name'];
   editColumns = ['actions'];

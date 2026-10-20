@@ -3,14 +3,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   inject,
   input,
+  output,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
@@ -61,8 +60,8 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   readonly topbarView = input<TopbarView>(TopbarView.CASTER_HOME);
   @Input() projectId?: string;
 
-  @Output() sidenavToggle?: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() editMemberships?: EventEmitter<any> = new EventEmitter<any>();
+  readonly sidenavToggle = output<boolean>();
+  readonly editMemberships = output<any>();
 
   currentUser$: Observable<CurrentUserState>;
   theme$: Observable<Theme>;
@@ -103,7 +102,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   editMembershipsFn(event) {
     event.preventDefault();
-    this.editMemberships.emit();
+    this.editMemberships.emit(undefined);
   }
 
   getEditMembershipsUrl() {}

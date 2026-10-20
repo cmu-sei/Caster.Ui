@@ -4,9 +4,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Output,
   input,
+  output,
 } from '@angular/core';
 import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
@@ -24,11 +23,11 @@ export class ProjectComponent {
   readonly loading = input<boolean>(undefined);
   readonly project = input<Project>(undefined);
   readonly projectUI = input<ProjectUI>(undefined);
-  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
-  @Output() tabChanged: EventEmitter<{
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<{
     index: number;
     tab: MatTab;
-  }> = new EventEmitter<{ index: number; tab: MatTab }>();
-  @Output() breadcrumbClicked: EventEmitter<any> = new EventEmitter<any>();
+  }>();
+  readonly breadcrumbClicked = output<any>();
   constructor() {}
 }
