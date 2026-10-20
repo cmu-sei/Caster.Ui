@@ -57,11 +57,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { ProjectModule } from './app/project/project.module';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { HotkeysModule } from '@ngneat/hotkeys';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
-import { DesignModule } from './app/designs/design.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AppComponent } from './app/app.component';
 
@@ -145,11 +143,9 @@ bootstrapApplication(AppComponent, {
       MatBottomSheetModule,
       MatExpansionModule,
       MatToolbarModule,
-      ProjectModule,
       OverlayModule,
       HotkeysModule,
       MonacoEditorModule.forRoot(),
-      DesignModule,
       MatCheckboxModule,
       ComnHeaderBarModule,
     ),
