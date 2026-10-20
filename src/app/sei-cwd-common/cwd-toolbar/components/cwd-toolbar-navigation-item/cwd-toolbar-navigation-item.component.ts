@@ -9,9 +9,10 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild,
+  TemplateRef,
   ViewContainerRef,
   inject,
+  viewChild,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -34,7 +35,9 @@ export class CwdToolbarNavigationItemComponent
 
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
-  @ViewChild('cwdToolbarNavigation', { static: true }) cwdNavigationTmplRef;
+  readonly cwdNavigationTmplRef = viewChild<TemplateRef<unknown>>(
+    'cwdToolbarNavigation',
+  );
 
   ngOnInit() {}
 
@@ -46,7 +49,7 @@ export class CwdToolbarNavigationItemComponent
     );
 
     this.portal = new TemplatePortal(
-      this.cwdNavigationTmplRef,
+      this.cwdNavigationTmplRef(),
       this.viewContainerRef,
     );
     this.portalOutlet.attach(this.portal);

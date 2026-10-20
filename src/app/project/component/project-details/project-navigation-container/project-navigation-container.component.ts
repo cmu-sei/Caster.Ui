@@ -6,8 +6,8 @@ import {
   OnDestroy,
   OnInit,
   TemplateRef,
-  ViewChild,
   inject,
+  viewChild,
 } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import {
@@ -71,10 +71,12 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<void>();
 
-  @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
+  readonly exportDialog =
+    viewChild<TemplateRef<ProjectExportComponent>>('exportDialog');
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
 
-  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  readonly importDialog =
+    viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
   ngOnInit() {
@@ -163,14 +165,14 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   exportProject() {
-    this.exportDialogRef = this.dialog.open(this.exportDialog, {
+    this.exportDialogRef = this.dialog.open(this.exportDialog(), {
       width: '480px',
       maxWidth: '90vw',
     });
   }
 
   importProject() {
-    this.importDialogRef = this.dialog.open(this.importDialog, {
+    this.importDialogRef = this.dialog.open(this.importDialog(), {
       width: '480px',
       maxWidth: '90vw',
     });

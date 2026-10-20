@@ -11,10 +11,10 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild,
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
@@ -109,8 +109,8 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   readonly sidebarViewChanged = output<string>();
   readonly codeChanged = output<string>();
   readonly sidenavWidthChanged = output<number>();
-  @ViewChild('sidenav', { read: ElementRef }) sidenav: ElementRef;
-  @ViewChild('sidebar') sidebar: MatButtonToggleGroup;
+  readonly sidenav = viewChild('sidenav', { read: ElementRef });
+  readonly sidebar = viewChild<MatButtonToggleGroup>('sidebar');
   public ngxEditor: any;
   public selectedVersionForDiff: FileVersion;
   public file: ModelFile;

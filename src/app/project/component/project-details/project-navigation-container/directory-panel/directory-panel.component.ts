@@ -7,8 +7,8 @@ import {
   OnDestroy,
   OnInit,
   TemplateRef,
-  ViewChild,
   inject,
+  viewChild,
 } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import {
@@ -139,20 +139,24 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   private _destroyed$ = new Subject();
 
-  @ViewChild(MatMenuTrigger, { static: true }) contextMenu: MatMenuTrigger;
+  readonly contextMenu = viewChild(MatMenuTrigger);
 
-  @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
+  readonly exportDialog =
+    viewChild<TemplateRef<ProjectExportComponent>>('exportDialog');
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
 
-  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  readonly importDialog =
+    viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
-  @ViewChild('workspaceEditDialog')
-  workspaceEditDialog: TemplateRef<WorkspaceEditContainerComponent>;
+  readonly workspaceEditDialog = viewChild<
+    TemplateRef<WorkspaceEditContainerComponent>
+  >('workspaceEditDialog');
   private workspaceEditDialogRef: MatDialogRef<WorkspaceEditContainerComponent>;
 
-  @ViewChild('directoryEditDialog')
-  directoryEditDialog: TemplateRef<DirectoryEditContainerComponent>;
+  readonly directoryEditDialog = viewChild<
+    TemplateRef<DirectoryEditContainerComponent>
+  >('directoryEditDialog');
   private directoryEditDialogRef: MatDialogRef<DirectoryEditContainerComponent>;
 
   contextMenuPosition = { x: '0px', y: '0px' };
@@ -610,9 +614,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.contextMenuPosition.x = event.clientX + 'px';
     this.contextMenuPosition.y = event.clientY + 'px';
-    this.contextMenu.menuData = { item: { object: obj, type: objectType } };
-    this.contextMenu.menu.focusFirstItem('mouse');
-    this.contextMenu.openMenu();
+    const contextMenu = this.contextMenu();
+    contextMenu.menuData = { item: { object: obj, type: objectType } };
+    contextMenu.menu.focusFirstItem('mouse');
+    contextMenu.openMenu();
   }
 
   onContextRename(obj: any) {
@@ -663,7 +668,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   editWorkspace(workspace: Workspace) {
     this.editingWorkspaceId = workspace.id;
-    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog, {
+    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog(), {
       minWidth: '400px',
       maxWidth: '90vw',
     });
@@ -671,7 +676,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   editDirectory(directory: Directory) {
     this.editingDirectoryId = directory.id;
-    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog, {
+    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog(), {
       minWidth: '400px',
       maxWidth: '90vw',
     });
@@ -720,7 +725,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.exportId = obj.object.id;
       this.exportName = obj.object.name;
       this.exportObjectType = obj.type as ProjectObjectType;
-      this.exportDialogRef = this.dialog.open(this.exportDialog, {
+      this.exportDialogRef = this.dialog.open(this.exportDialog(), {
         width: '480px',
         maxWidth: '90vw',
       });
@@ -731,7 +736,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.exportId = obj.object.id;
     this.exportName = obj.object.name;
     this.exportObjectType = obj.type as ProjectObjectType;
-    this.importDialogRef = this.dialog.open(this.importDialog, {
+    this.importDialogRef = this.dialog.open(this.importDialog(), {
       width: '480px',
       maxWidth: '90vw',
     });

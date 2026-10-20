@@ -9,8 +9,8 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild,
   input,
+  viewChild,
 } from '@angular/core';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
@@ -24,14 +24,14 @@ import { FitAddon } from '@xterm/addon-fit';
 export class OutputComponent implements OnInit, OnChanges, OnDestroy {
   readonly loading = input<boolean>(undefined);
   readonly output = input<string>(undefined);
-  @ViewChild('xterm', { static: true, read: ElementRef }) eleXtern: ElementRef;
+  readonly eleXtern = viewChild('xterm', { read: ElementRef });
   xterm: Terminal = new Terminal();
   fitAddon: FitAddon = new FitAddon();
   constructor() {}
 
   ngOnInit() {
     this.xterm.options.convertEol = true;
-    this.xterm.open(this.eleXtern.nativeElement);
+    this.xterm.open(this.eleXtern().nativeElement);
     this.xterm.loadAddon(this.fitAddon);
     this.xterm.options.scrollback = 9999999; // there is no infinite scrolling for xterm.  Set number of lines to very large number!
     this.fitAddon.fit();

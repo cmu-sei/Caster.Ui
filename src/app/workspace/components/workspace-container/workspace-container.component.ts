@@ -9,9 +9,9 @@ import {
   OnInit,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
@@ -120,12 +120,12 @@ export class WorkspaceContainerComponent
   resourcesToTarget: string[] = [];
   canImport$: Observable<boolean>;
 
-  @ViewChild('importResourceDialog')
-  importResourceDialog: TemplateRef<ImportResourceComponent>;
+  readonly importResourceDialog = viewChild<
+    TemplateRef<ImportResourceComponent>
+  >('importResourceDialog');
   private importResourceDialogRef: MatDialogRef<ImportResourceComponent>;
 
-  @ViewChild('errorDialog')
-  errorDialog: TemplateRef<OutputComponent>;
+  readonly errorDialog = viewChild<TemplateRef<OutputComponent>>('errorDialog');
   private errorDialogRef: MatDialogRef<OutputComponent>;
   public errorMessage: string;
 
@@ -408,14 +408,17 @@ export class WorkspaceContainerComponent
     if (result.errors.length > 0) {
       this.errorMessage = '';
       result.errors.forEach((e) => (this.errorMessage += `${e}\n`));
-      this.dialog.open(this.errorDialog, { width: '75%' });
+      this.dialog.open(this.errorDialog(), { width: '75%' });
     }
   }
 
   openImportResourceDialog() {
-    this.importResourceDialogRef = this.dialog.open(this.importResourceDialog, {
-      width: '75%',
-    });
+    this.importResourceDialogRef = this.dialog.open(
+      this.importResourceDialog(),
+      {
+        width: '75%',
+      },
+    );
   }
 
   expandRun(event) {

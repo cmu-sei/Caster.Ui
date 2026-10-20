@@ -4,12 +4,12 @@
 import {
   Component,
   OnInit,
-  ViewChild,
   OnChanges,
   SimpleChanges,
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -101,14 +101,15 @@ export class UserListComponent implements OnInit, OnChanges {
   readonly canEdit = input<boolean>(undefined);
   readonly create = output<User>();
   readonly delete = output<string>();
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   ngOnInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
+    const paginator = this.paginator();
+    if (paginator) {
+      this.dataSource.paginator = paginator;
     }
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.roleService.getRoles().subscribe();
     this.filterAndSort(this.filterString);
   }

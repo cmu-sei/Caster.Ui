@@ -9,11 +9,11 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
-  ViewChild,
   ChangeDetectorRef,
   OnChanges,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -138,10 +138,10 @@ export class VlanListComponent implements OnInit, OnChanges {
 
   private unsubscribe$ = new Subject<void>();
 
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  readonly sort = viewChild(MatSort);
 
   ngOnInit(): void {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.dataSource.filterPredicate = (data: Vlan, filter: string): boolean => {
       const terms = filter
         .split(',')

@@ -9,9 +9,9 @@ import {
   inject,
   OnChanges,
   OnInit,
-  ViewChild,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatPaginator } from '@angular/material/paginator';
@@ -110,8 +110,8 @@ export class AdminGroupsMemberListComponent
     isCurrentUser: boolean;
   }>();
 
-  @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatPaginator) paginator: MatPaginator;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   groupMembershipRoles = Object.values(GroupMembershipRole);
 
@@ -139,8 +139,8 @@ export class AdminGroupsMemberListComponent
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator();
+    this.dataSource.sort = this.sort();
   }
 
   ngOnChanges() {

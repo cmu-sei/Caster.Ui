@@ -40,7 +40,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   ></mat-paginator>
   <div class="spacer"></div>
   <div class="button-end list-actions">
-    <ng-container *ngTemplateOutlet="tableActionTemplate"></ng-container>
+    <ng-container *ngTemplateOutlet="tableActionTemplate()"></ng-container>
   </div>
   <div class="spacer"></div>
 </div>
@@ -90,7 +90,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <span class="mat-mdc-cell">
                 <ng-container
                   *ngTemplateOutlet="
-                    tableActionItemTemplate;
+                    tableActionItemTemplate();
                     context: { $implicit: item }
                   "
                 ></ng-container>
@@ -100,7 +100,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         }
       </mat-expansion-panel-header>
       <ng-container
-        *ngTemplateOutlet="tableItemContent; context: { $implicit: item }"
+        *ngTemplateOutlet="tableItemContent(); context: { $implicit: item }"
       >
       </ng-container>
     </mat-expansion-panel>

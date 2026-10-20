@@ -8,9 +8,9 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   TemplateRef,
-  ViewChild,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -79,8 +79,7 @@ export class DesignModulesComponent implements OnInit {
   public newModuleName: string;
   private addDialogRef: MatDialogRef<unknown>;
 
-  @ViewChild('addDialog')
-  addDialogTemplate: TemplateRef<unknown>;
+  readonly addDialogTemplate = viewChild<TemplateRef<unknown>>('addDialog');
 
   ngOnInit(): void {
     this.moduleService.load(false, true).subscribe();
@@ -112,7 +111,7 @@ export class DesignModulesComponent implements OnInit {
 
         this.newModule = module;
         this.newModuleName = this.uniqueName(toTerraformName(module.name));
-        this.addDialogRef = this.dialog.open(this.addDialogTemplate, {
+        this.addDialogRef = this.dialog.open(this.addDialogTemplate(), {
           minWidth: '400px',
           maxWidth: '90vw',
         });

@@ -4,15 +4,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ContentChild,
   Input,
   OnChanges,
   OnInit,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
   input,
   output,
+  viewChild,
+  contentChild,
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort, MatSortHeader } from '@angular/material/sort';
@@ -103,14 +103,17 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
   }>();
   readonly add = output<T>();
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
-  @ContentChild(TableActionDirective, { read: TemplateRef })
-  tableActionTemplate;
-  @ContentChild(TableItemActionDirective, { read: TemplateRef })
-  tableActionItemTemplate;
-  @ContentChild(TableItemContentDirective, { read: TemplateRef })
-  tableItemContent;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
+  readonly tableActionTemplate = contentChild(TableActionDirective, {
+    read: TemplateRef,
+  });
+  readonly tableActionItemTemplate = contentChild(TableItemActionDirective, {
+    read: TemplateRef,
+  });
+  readonly tableItemContent = contentChild(TableItemContentDirective, {
+    read: TemplateRef,
+  });
   constructor() {}
 
   /**
@@ -142,8 +145,8 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       const transformedFilter = filter.trim().toLowerCase();
       return dataStr.indexOf(transformedFilter) !== -1;
     };
-    this.sortEvents$ = fromMatSort(this.sort);
-    this.pageEvents$ = fromMatPaginator(this.paginator);
+    this.sortEvents$ = fromMatSort(this.sort());
+    this.pageEvents$ = fromMatPaginator(this.paginator());
 
     this.isInitialized = true;
   }

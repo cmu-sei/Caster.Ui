@@ -12,6 +12,7 @@ import {
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import {
   Project,
@@ -112,8 +113,8 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
   readonly selectedProjectId = output<string>();
 
-  @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: false }) sort: MatSort;
+  readonly createInput = viewChild<HTMLInputElement>('createInput');
+  readonly sort = viewChild(MatSort);
 
   @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
     if (paginator) {
@@ -156,8 +157,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.loadProjects();
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
+    const sort = this.sort();
+    if (sort) {
+      this.dataSource.sort = sort;
     }
     this.filterAndSort(this.filterString);
   }
@@ -166,8 +168,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
     if (changes.projects) {
       this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
-      if (this.sort) {
-        this.dataSource.sort = this.sort;
+      const sort = this.sort();
+      if (sort) {
+        this.dataSource.sort = sort;
       }
       this.filterAndSort(this.filterString);
     }

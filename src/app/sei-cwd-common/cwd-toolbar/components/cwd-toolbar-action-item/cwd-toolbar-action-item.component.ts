@@ -9,10 +9,11 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild,
+  TemplateRef,
   ViewContainerRef,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -36,7 +37,8 @@ export class CwdToolbarActionItemComponent
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
   readonly selector = input<string>(undefined);
-  @ViewChild('cwdToolbarAction', { static: true }) cwdActionTmplRef;
+  readonly cwdActionTmplRef =
+    viewChild<TemplateRef<unknown>>('cwdToolbarAction');
 
   ngOnInit() {}
 
@@ -48,7 +50,7 @@ export class CwdToolbarActionItemComponent
     );
 
     this.portal = new TemplatePortal(
-      this.cwdActionTmplRef,
+      this.cwdActionTmplRef(),
       this.viewContainerRef,
     );
     this.portalOutlet.attach(this.portal);

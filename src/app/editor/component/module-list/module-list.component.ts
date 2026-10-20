@@ -7,11 +7,11 @@ import {
   Input,
   OnInit,
   TemplateRef,
-  ViewChild,
   ViewEncapsulation,
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
@@ -86,8 +86,8 @@ export class ModuleListComponent implements OnInit {
   variablesDialogRef: MatDialogRef<ModuleVariablesComponent>;
   initialized = false;
 
-  @ViewChild('variablesDialog')
-  variablesTemplate: TemplateRef<ModuleVariablesComponent>;
+  readonly variablesTemplate =
+    viewChild<TemplateRef<ModuleVariablesComponent>>('variablesDialog');
 
   ngOnInit(): void {
     this.dataSource.data = this._modules;
@@ -135,7 +135,7 @@ export class ModuleListComponent implements OnInit {
       this._selectedModule.versions.length > 0
     ) {
       this.isDialogOpen = true;
-      this.variablesDialogRef = this.dialog.open(this.variablesTemplate, {
+      this.variablesDialogRef = this.dialog.open(this.variablesTemplate(), {
         minWidth: '400px',
         maxWidth: '90vw',
       });

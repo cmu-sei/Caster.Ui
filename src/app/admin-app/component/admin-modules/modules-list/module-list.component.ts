@@ -4,12 +4,12 @@
 import {
   Component,
   OnInit,
-  ViewChild,
   OnChanges,
   SimpleChanges,
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -96,14 +96,15 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   readonly load = output<boolean>();
   readonly loadModuleById = output<string>();
   readonly delete = output<string>();
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   ngOnInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
+    const paginator = this.paginator();
+    if (paginator) {
+      this.dataSource.paginator = paginator;
     }
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.filterAndSort(this.filterString);
   }
 

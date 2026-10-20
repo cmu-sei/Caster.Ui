@@ -10,10 +10,10 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
-  ViewChild,
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -51,8 +51,8 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private preventScroll = false;
 
-  @ViewChild('xterm') eleXterm: ElementRef;
-  @ViewChild('dragHandleBottom') dragHandleBottom: ElementRef;
+  readonly eleXterm = viewChild<ElementRef>('xterm');
+  readonly dragHandleBottom = viewChild<ElementRef>('dragHandleBottom');
 
   // there is no infinite scrolling for xterm.  Set number of lines to very large number!
   xtermOptions: ITerminalOptions = {
@@ -85,7 +85,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   openTerminal() {
     this.xterm.loadAddon(this.fitAddon);
-    this.xterm.open(this.eleXterm.nativeElement);
+    this.xterm.open(this.eleXterm().nativeElement);
     this.fitAddon.fit();
   }
 
@@ -231,7 +231,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   fullscreen() {
-    const elem = this.eleXterm.nativeElement;
+    const elem = this.eleXterm().nativeElement;
 
     // save current height to restore after fullscreen
     this.height = elem.offsetHeight;
@@ -260,15 +260,15 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   fullscreenmode() {
     // return to previous height when exiting fullscreen
     if (document.fullscreenElement == null) {
-      this.eleXterm.nativeElement.style.height = this.height + 'px';
+      this.eleXterm().nativeElement.style.height = this.height + 'px';
       this.setAllHandleTransform();
       this.fitAddon.fit();
     }
   }
 
   setAllHandleTransform() {
-    const rect = this.eleXterm.nativeElement.getBoundingClientRect();
-    this.setHandleTransform(this.dragHandleBottom.nativeElement, rect, 'y');
+    const rect = this.eleXterm().nativeElement.getBoundingClientRect();
+    this.setHandleTransform(this.dragHandleBottom().nativeElement, rect, 'y');
   }
 
   setHandleTransform(
@@ -295,7 +295,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   dragMove(dragHandle: HTMLElement) {
     this.ngZone.runOutsideAngular(() => {
-      this.resize(dragHandle, this.eleXterm.nativeElement);
+      this.resize(dragHandle, this.eleXterm().nativeElement);
     });
 
     this.fitAddon.fit();
