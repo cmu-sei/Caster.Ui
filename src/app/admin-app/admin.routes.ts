@@ -8,12 +8,14 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Routes } from '@angular/router';
-import { AdminContainerComponent } from './component/admin-container/admin-container.component';
 
 export const ADMIN_ROUTES: Routes = [
   {
     path: '',
-    component: AdminContainerComponent,
+    loadComponent: () =>
+      import('./component/admin-container/admin-container.component').then(
+        (m) => m.AdminContainerComponent,
+      ),
     pathMatch: 'full',
     // The lazy AdminAppModule gave the admin pages their own injector with
     // these modules' services (MatDialog, MatSnackBar, Dialog, Overlay,
