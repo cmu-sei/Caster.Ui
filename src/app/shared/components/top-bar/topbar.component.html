@@ -15,7 +15,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Caster home"
         [routerLink]="['/']"
       >
-        <mat-icon svgIcon="ic_crucible_caster"></mat-icon>
+        <mat-icon svgIcon="ic_crucible_caster" />
       </a>
     </span>
     <span class="view-text">{{ title() }}</span>
@@ -31,7 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           style="outline: none"
         >
           <strong>{{ currentUser.name }}</strong>
-          <mat-icon class="menu-trigger" fontIcon="mdi-chevron-down"></mat-icon>
+          <mat-icon class="menu-trigger" fontIcon="mdi-chevron-down" />
         </button>
         <mat-menu #menu="matMenu" [overlapTrigger]="false">
           @if (projectId && (canManageProject$ | async)) {

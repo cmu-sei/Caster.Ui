@@ -12,7 +12,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [attr.aria-label]="returnLabel()"
         [matTooltip]="returnLabel()"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"></mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return" />
       </button>
     }
     <h1>{{ project.name }}</h1>
@@ -26,7 +26,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [groups]="groupNonMembers$ | async"
       [canEdit]="canEdit$ | async"
       (createMembership)="createMembership($event)"
-    ></cas-project-membership-list>
+    />
 
     <cas-project-member-list
       [memberships]="memberships$ | async"
@@ -36,6 +36,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [canEdit]="canEdit$ | async"
       (deleteMembership)="deleteMembership($event)"
       (editMembership)="editMembership($event)"
-    ></cas-project-member-list>
+    />
   </div>
 </div>

@@ -10,7 +10,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     -->
   </div>
   <mat-form-field style="width: 320px">
-    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+    <mat-icon matPrefix svgIcon="ic_magnify_search" />
     <input
       matInput
       [(ngModel)]="filterString"
@@ -24,10 +24,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Clear"
         (click)="clearFilter()"
       >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-close-circle-outline"
-        ></mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
       </button>
     }
   </mat-form-field>
@@ -37,10 +34,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [pageIndex]="0"
     [pageSize]="20"
     [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
-  ></mat-paginator>
+  />
   <div class="spacer"></div>
   <div class="button-end list-actions">
-    <ng-container *ngTemplateOutlet="tableActionTemplate()"></ng-container>
+    <ng-container *ngTemplateOutlet="tableActionTemplate()" />
   </div>
   <div class="spacer"></div>
 </div>
@@ -93,7 +90,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     tableActionItemTemplate();
                     context: { $implicit: item }
                   "
-                ></ng-container>
+                />
               </span>
             }
           }
@@ -101,8 +98,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-expansion-panel-header>
       <ng-container
         *ngTemplateOutlet="tableItemContent(); context: { $implicit: item }"
-      >
-      </ng-container>
+      />
     </mat-expansion-panel>
   }
 </mat-accordion>
@@ -112,7 +108,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     appearance="outlined"
     style="display: flex; justify-content: center; align-items: center"
   >
-    <mat-progress-spinner color="primary" mode="indeterminate">
-    </mat-progress-spinner>
+    <mat-progress-spinner color="primary" mode="indeterminate" />
   </mat-card>
 }

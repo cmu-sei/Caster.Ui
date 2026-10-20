@@ -31,10 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             aria-label="Close Side Bar"
             matTooltip="Close Side Bar"
           >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-chevron-double-right"
-            ></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-chevron-double-right" />
           </button>
           @switch (sidebarView) {
             @case ('modules') {
@@ -46,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     [isEditing]="isEditing"
                     (getModule)="getModuleFn($event)"
                     (insertModule)="insertModuleFn($event)"
-                  ></cas-module-list>
+                  />
                 }
               </div>
             }
@@ -59,7 +56,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   "
                   (getVersion)="getVersionFn($event)"
                   (revertToVersion)="revertToVersionFn($event)"
-                ></cas-version-list>
+                />
               </div>
             }
           }
@@ -91,7 +88,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 class="mdi-24px"
                 fontIcon="mdi-lock-open-outline"
                 matTooltip="Not administratively locked"
-              ></mat-icon>
+              />
             </button>
           }
           @if (file && file.administrativelyLocked) {
@@ -107,7 +104,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 class="mdi-24px"
                 fontIcon="mdi-lock-outline"
                 matTooltip="Administratively locked"
-              ></mat-icon>
+              />
             </button>
           }
           <button
@@ -123,7 +120,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               class="mdi-24px"
               fontIcon="mdi-content-save"
               matTooltip="Save Changes"
-            ></mat-icon>
+            />
           </button>
           <button
             mat-icon-button
@@ -140,7 +137,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               class="mdi-24px"
               fontIcon="mdi-undo"
               matTooltip="Discard Changes"
-            ></mat-icon>
+            />
           </button>
           @if (file && file.lockedById && file.lockedById !== currentUserId) {
             <button
@@ -159,7 +156,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   : 'This file is being edited by ' + file.lockedByName
               "
             >
-              <mat-icon class="mdi-24px" fontIcon="mdi-account-edit"></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-account-edit" />
             </button>
           }
           @if (file && !file.lockedById) {
@@ -177,10 +174,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   : 'You do not have permissions to edit this file'
               "
             >
-              <mat-icon
-                class="mdi-24px"
-                fontIcon="mdi-square-edit-outline"
-              ></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
             </button>
           }
           @if (file && file.lockedById === currentUserId) {
@@ -194,13 +188,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               aria-label="Finish editing"
               matTooltip="Finish editing and allow someone else to edit this file"
             >
-              <mat-icon
-                class="mdi-24px"
-                fontIcon="mdi-square-edit-outline"
-              ></mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
             </button>
           }
-          <mat-divider vertical style="height: 100%"></mat-divider>
+          <mat-divider vertical style="height: 100%" />
           @if (filename.endsWith('.tf')) {
             <div>
               <button
@@ -215,7 +206,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 aria-label="Show the module list"
                 matTooltip="Show the module list"
               >
-                <mat-icon class="mdi-24px" fontIcon="mdi-code-tags"></mat-icon>
+                <mat-icon class="mdi-24px" fontIcon="mdi-code-tags" />
               </button>
               <button
                 mat-icon-button
@@ -229,7 +220,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 aria-label="Show the file versions"
                 matTooltip="Show the file versions"
               >
-                <mat-icon class="mdi-24px" fontIcon="mdi-history"></mat-icon>
+                <mat-icon class="mdi-24px" fontIcon="mdi-history" />
               </button>
             </div>
           }
@@ -245,8 +236,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (onInit)="editorInit($event)"
           [(ngModel)]="code"
           (ngModelChange)="codeChangedEventHandler($event)"
-        >
-        </ngx-monaco-editor>
+        />
       }
       @if (selectedVersionForDiff) {
         <mat-toolbar class="version-toolbar">
@@ -255,9 +245,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           >
             <span class="left-version-text"> CURRENT </span>
             <span class="right-version-text">
-              {{
-                selectedVersionForDiff.dateSaved | date: 'yyyy-MM-dd HH:mm'
-              }}
+              {{ selectedVersionForDiff.dateSaved | date: 'yyyy-MM-dd HH:mm' }}
               by {{ selectedVersionForDiff.modifiedByName }} as
               {{ selectedVersionForDiff.name }}
             </span>
@@ -273,8 +261,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             code: selectedVersionForDiff.content,
             language: detectedLanguage,
           }"
-        >
-        </ngx-monaco-diff-editor>
+        />
       }
     </div>
   </mat-sidenav-content>

@@ -8,12 +8,12 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
     [users]="nonMembers$ | async"
     [canEdit]="canEdit()"
     (createMembership)="createMembership($event)"
-  ></cas-admin-groups-membership-list>
+  />
   <cas-admin-groups-member-list
     [memberships]="memberships$ | async"
     [users]="members$ | async"
     [canEdit]="canEdit()"
     (deleteMembership)="deleteMembership($event)"
     (changeRole)="changeRole($event)"
-  ></cas-admin-groups-member-list>
+  />
 </div>

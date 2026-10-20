@@ -23,7 +23,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [modules]="modules$ | async"
     [isEditing]="true"
     (getModule)="getModuleFn($event.id)"
-  ></cas-module-list>
+  />
 }
 
 <ng-template #addDialog>
@@ -38,7 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [requireValues]="true"
     submitButtonText="Add"
     (variablesSelected)="onAddComplete($event)"
-  ></cas-module-variables>
+  />
 </ng-template>
 
 @if (!showModuleList) {
@@ -52,7 +52,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [designModule]="designModule"
           [module]="moduleQuery.selectByModuleId(designModule.moduleId) | async"
           [canEdit]="canEdit()"
-        ></cas-design-module>
+        />
       </div>
     }
   </div>

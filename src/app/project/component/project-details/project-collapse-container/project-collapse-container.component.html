@@ -7,7 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="appcontent-container"
   [hasBackdrop]="false"
   autosize
-  >
+>
   <mat-sidenav
     class="appbarmenu-container"
     #sidenav
@@ -19,23 +19,36 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (resizeEnd)="resizeEndFn($event)"
     [opened]="leftSidebarOpen"
     (openedChange)="leftSidebarOpenFn($event)"
-    >
+  >
     <div class="grid">
-      <div class="w-100 d-flex flex-column justify-content-between align-items-center" style="height: 100%; overflow-x: hidden;">
-        <mat-toolbar class="sidenav-header" title="Return to Home" [routerLink]="['/']">
+      <div
+        class="w-100 d-flex flex-column justify-content-between align-items-center"
+        style="height: 100%; overflow-x: hidden"
+      >
+        <mat-toolbar
+          class="sidenav-header"
+          title="Return to Home"
+          [routerLink]="['/']"
+        >
           <a class="nolink" [routerLink]="['/']">
             <div class="cssLayoutRowStartCenter">
-              <mat-icon class="icon-35px caster-icon-header" svgIcon="ic_crucible_caster"></mat-icon>
+              <mat-icon
+                class="icon-35px caster-icon-header"
+                svgIcon="ic_crucible_caster"
+              />
               <h2 class="icon-text">{{ titleText }}</h2>
             </div>
           </a>
         </mat-toolbar>
         <div class="scroll-y flex-grow-1 w-100">
-          <cas-project-navigation></cas-project-navigation>
+          <cas-project-navigation />
         </div>
-        <mat-divider></mat-divider>
+        <mat-divider />
 
-        <div class="d-flex flex-row justify-content-start align-items-end w-100" style="flex: 0 0 auto;">
+        <div
+          class="d-flex flex-row justify-content-start align-items-end w-100"
+          style="flex: 0 0 auto"
+        >
           <img
             class="crucible-logo"
             alt="Crucible"
@@ -44,7 +57,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 ? 'assets/img/crucible-logo-light.png'
                 : 'assets/img/crucible-logo-dark.png'
             "
-            />
+          />
         </div>
       </div>
       <div
@@ -64,7 +77,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [projectId]="project.id"
         (sidenavToggle)="sidenav.toggle()"
         (editMemberships)="openEditMemberships()"
-      ></cas-topbar>
+      />
       <cas-project
         class="project-content"
         [loading]="loading$ | async"
@@ -72,8 +85,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [projectUI]="projectUI$ | async"
         (closeTab)="closeTab($event)"
         (tabChanged)="tabChangedFn($event)"
-      >
-      </cas-project>
+      />
     </mat-sidenav-content>
   }
 </mat-sidenav-container>

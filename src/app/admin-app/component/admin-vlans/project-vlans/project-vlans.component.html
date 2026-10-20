@@ -45,7 +45,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </mat-select>
           @if (loading$ | async; as loading) {
             @if (loading.get(element.id)) {
-              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+              <mat-progress-bar mode="indeterminate" />
             }
           }
         </mat-form-field>

@@ -22,14 +22,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             class="mdi-24px icon"
             fontIcon="mdi-view-list"
             matTooltip="Runs View"
-          ></mat-icon>
+          />
         </mat-button-toggle>
         <mat-button-toggle value="state" aria-label="versions">
           <mat-icon
             class="mdi-24px icon"
             fontIcon="mdi-monitor-multiple"
             matTooltip="State View"
-          ></mat-icon>
+          />
         </mat-button-toggle>
       </mat-button-toggle-group>
     </mat-toolbar-row>
@@ -80,8 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             Destroy
           </button>
           @if (workspace$ | async; as workspace) {
-            <cas-workspace-version [workspace]="workspace">
-            </cas-workspace-version>
+            <cas-workspace-version [workspace]="workspace" />
           }
         </div>
         <div
@@ -144,7 +143,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   class="mdi-24px"
                   fontIcon="mdi-information"
                   matTooltip="Retry saving State. Workspace operations are disabled until State has been successfully saved, to avoid data loss."
-                ></mat-icon>
+                />
               </span>
             </button>
           }
@@ -155,8 +154,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [run]="item"
               (planOutput)="planOutput($event, item)"
               (applyOutput)="applyOutput($event, item)"
-            >
-            </cas-run>
+            />
           }
         </div>
       </cwd-table>
@@ -233,8 +231,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 [checked]="resourceToReplace(item.id)"
                 [disabled]="!canEdit()"
                 style="align-self: center"
-              >
-              </mat-checkbox>
+              />
               <mat-checkbox
                 matTooltip="Target"
                 (click)="$event.stopPropagation()"
@@ -242,8 +239,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 [checked]="resourceToTarget(item.id)"
                 [disabled]="!canEdit()"
                 style="align-self: center"
-              >
-              </mat-checkbox>
+              />
             </div>
             <div class="action-buttons">
               <button
@@ -265,8 +261,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       color="accent"
                       diameter="35"
                       mode="indeterminate"
-                    >
-                    </mat-progress-spinner>
+                    />
                   }
                   @default {
                     <span>Taint</span>
@@ -292,8 +287,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       color="accent"
                       diameter="35"
                       mode="indeterminate"
-                    >
-                    </mat-progress-spinner>
+                    />
                   }
                   @default {
                     <span>Untaint</span>
@@ -316,8 +310,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       color="accent"
                       diameter="35"
                       mode="indeterminate"
-                    >
-                    </mat-progress-spinner>
+                    />
                   }
                   @default {
                     <span>Remove</span>
@@ -342,10 +335,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [workspaceId]="(workspace$ | async).id"
     [loading]="loading$ | async"
     (importComplete)="onImportComplete()"
-  >
-  </cas-import-resource>
+  />
 </ng-template>
 
 <ng-template #errorDialog>
-  <cas-output [output]="errorMessage" [loading]="false"> </cas-output>
+  <cas-output [output]="errorMessage" [loading]="false" />
 </ng-template>

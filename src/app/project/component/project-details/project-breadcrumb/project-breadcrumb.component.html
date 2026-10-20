@@ -12,13 +12,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         (click)="buttonClick.emit(breadcrumb)"
       >
         @if (breadcrumb.type === tabType.DIRECTORY) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-folder"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-folder" />
         }
         @if (breadcrumb.type === tabType.FILE) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-file"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-file" />
         }
         @if (breadcrumb.type === tabType.WORKSPACE) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-briefcase"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-briefcase" />
         }
         {{ breadcrumb?.name }}
       </button>
@@ -31,13 +31,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @for (breadcrumb of breadcrumbs(); track breadcrumb.id; let i = $index) {
       <span [ngClass]="i === 0 ? 'breadcrumb-item-first' : 'breadcrumb-item'">
         @if (breadcrumb.type === tabType.DIRECTORY) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-folder"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-folder" />
         }
         @if (breadcrumb.type === tabType.FILE) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-file"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-file" />
         }
         @if (breadcrumb.type === tabType.WORKSPACE) {
-          <mat-icon class="mdi-18px icon" fontIcon="mdi-briefcase"></mat-icon>
+          <mat-icon class="mdi-18px icon" fontIcon="mdi-briefcase" />
         }
         <span style="font-size: 14px">
           {{ breadcrumb?.name }}

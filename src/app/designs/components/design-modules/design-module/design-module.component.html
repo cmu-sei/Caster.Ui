@@ -23,7 +23,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Edit"
       matTooltip="Edit"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"> </mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
     </button>
     <button
       color="primary"
@@ -33,7 +33,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="View Module Outputs"
       matTooltip="View Module Outputs"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-export"> </mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-export" />
     </button>
     <button
       color="primary"
@@ -43,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       matTooltip="Delete"
       [disabled]="!canEdit()"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline"> </mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
     </button>
     <button
       color="primary"
@@ -57,15 +57,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           class="mdi-24px"
           fontIcon="mdi-circle-off-outline"
           matTooltip="Disable"
-        ></mat-icon>
+        />
       }
       @if (!designModule().enabled) {
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-circle-outline"
           matTooltip="Enable"
-        >
-        </mat-icon>
+        />
       }
     </button>
   </mat-card-actions>
@@ -84,8 +83,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [isSaving]="saving$ | async"
           [requireValues]="true"
           (variablesSelected)="onEditComplete($event)"
-        >
-        </cas-module-variables>
+        />
       } @else {
         <div>Loading...</div>
       }
@@ -95,7 +93,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <cas-module-outputs
           [moduleName]="designModule().name"
           [outputs]="outputs$ | async"
-        ></cas-module-outputs>
+        />
       } @else {
         <div>Loading...</div>
       }

@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="cssLayoutRowStartCenter">
   <div class="sp-icon">
-    <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
+    <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple" />
   </div>
   <mat-form-field style="width: 300px">
     <input
@@ -21,10 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Clear"
         (click)="clearFilter()"
       >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-close-circle-outline"
-        ></mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
       </button>
     }
   </mat-form-field>
@@ -34,7 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [pageIndex]="0"
       [pageSize]="20"
       [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
-    ></mat-paginator>
+    />
   </div>
 </div>
 
@@ -49,7 +46,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Add User"
           [disabled]="!canEdit()"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
         </button>
         ID
       </th>
@@ -62,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           title="Copy:  {{ item.id }}"
           [attr.aria-label]="'Copy ID of ' + item.name"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
         {{ item.id }}
       </td>
@@ -97,10 +94,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             title="Delete User"
             [attr.aria-label]="'Delete user ' + item.name"
           >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-trash-can-outline"
-            ></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
           </button>
         }
       </td>
@@ -115,8 +109,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       appearance="outlined"
       style="display: flex; justify-content: center; align-items: center"
     >
-      <mat-progress-spinner color="primary" mode="indeterminate">
-      </mat-progress-spinner>
+      <mat-progress-spinner color="primary" mode="indeterminate" />
     </mat-card>
   }
 </div>

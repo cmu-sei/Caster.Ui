@@ -6,13 +6,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div class="mat-elevation-z8">
   <mat-toolbar>
     <mat-toolbar-row>
-      <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-account-multiple" />
       <p>Project Members</p>
     </mat-toolbar-row>
     <mat-toolbar-row>
       <mat-form-field class="w-50">
         <mat-label>Search</mat-label>
-        <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+        <mat-icon matPrefix svgIcon="ic_magnify_search" />
         <input
           matInput
           [(ngModel)]="filterString"
@@ -27,17 +27,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             aria-label="Clear"
             (click)="clearFilter()"
           >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-close-circle-outline"
-            ></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
           </button>
         }
       </mat-form-field>
       <mat-paginator
         [pageSizeOptions]="[10, 25, 50, 100]"
         aria-label="Select page of members"
-      ></mat-paginator>
+      />
     </mat-toolbar-row>
   </mat-toolbar>
   <table
@@ -90,7 +87,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <mat-icon
             class="mdi-24px self-center"
             fontIcon="mdi-minus-circle-outline"
-          ></mat-icon>
+          />
         </button>
       </td>
     </ng-container>

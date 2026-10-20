@@ -13,7 +13,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Create a Pool"
       matTooltip="Create a Pool"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
     </button>
   }
   <button
@@ -23,7 +23,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     aria-label="View Documentation"
     matTooltip="View Documentation"
   >
-    <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+    <mat-icon class="mdi-24px" fontIcon="mdi-information" />
   </button>
 </div>
 @if (showDocumentation) {
@@ -45,6 +45,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [pool]="pool"
       [canEdit]="canEdit()"
       (poolSelected)="selectPool(pool)"
-    ></cas-pool-list-item>
+    />
   }
 </div>

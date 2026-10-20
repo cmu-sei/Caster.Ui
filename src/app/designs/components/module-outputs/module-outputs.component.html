@@ -7,10 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <h2>Outputs</h2>
   @for (output of outputs(); track output) {
     <div>
-      <cas-module-output
-        [moduleName]="moduleName()"
-        [output]="output"
-      ></cas-module-output>
+      <cas-module-output [moduleName]="moduleName()" [output]="output" />
     </div>
   }
 </div>

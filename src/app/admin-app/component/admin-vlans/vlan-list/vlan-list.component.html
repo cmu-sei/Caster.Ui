@@ -8,7 +8,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     matTooltip="Search for vlans by comma-separated list of id, range of ids, and/or tag e.g. 10,11,20-30,mytag"
   >
     <mat-label>Search</mat-label>
-    <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+    <mat-icon matPrefix svgIcon="ic_magnify_search" />
     <input
       matInput
       [formControl]="filterControl"
@@ -24,10 +24,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Clear"
         (click)="clearFilter()"
       >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-close-circle-outline"
-        ></mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
       </button>
     }
   </mat-form-field>
@@ -97,16 +94,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (change)="$event ? toggleAllRows() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
-        >
-        </mat-checkbox>
+        />
       </th>
       <td mat-cell *matCellDef="let row">
         <mat-checkbox
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row.id) : null"
           [checked]="selection.isSelected(row.id)"
-        >
-        </mat-checkbox>
+        />
       </td>
     </ng-container>
 
@@ -174,8 +169,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 matTooltip="Edit Tag"
                 (click)="editingId = element.id"
               >
-                <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline">
-                </mat-icon>
+                <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
               </button>
             }
           }
@@ -196,7 +190,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               matTooltip="Confirm Edit"
               (click)="editTag(element.id, tagInput)"
             >
-              <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-check" />
             </button>
             <button
               mat-icon-button
@@ -205,7 +199,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               matTooltip="Cancel Edit"
               (click)="editingId = null"
             >
-              <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+              <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
             </button>
           }
         </div></td
@@ -227,7 +221,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matTooltip="Remove VLAN from this Partition"
             [disabled]="element.inUse"
           >
-            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle"> </mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle" />
           </button>
         }
       </td>

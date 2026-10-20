@@ -5,10 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="project-list-container elevate">
   <div class="icon-text-container">
-    <mat-icon
-      class="crucible-icon-caster"
-      svgIcon="ic_crucible_caster"
-    ></mat-icon>
+    <mat-icon class="crucible-icon-caster" svgIcon="ic_crucible_caster" />
     <span class="project-title text">My Projects</span>
     @if (canCreate$ | async) {
       <button
@@ -18,7 +15,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         hotkeyAction="PROJECT_NEW"
         (click)="create()"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
       </button>
     }
     <div class="searchBox">
@@ -41,7 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon
               style="transform: scale(0.85)"
               fontIcon="mdi-close-circle-outline"
-            ></mat-icon>
+            />
           </button>
         }
       </mat-form-field>
@@ -101,7 +98,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </mat-cell>
       </ng-container>
       <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-header-cell *matHeaderCellDef />
         <mat-cell *matCellDef="let element">
           @if (manageMode()) {
             <a
@@ -111,7 +108,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [routerLink]="['/projects', element.id]"
               target="_blank"
             >
-              <mat-icon color="primary" fontIcon="mdi-open-in-new"></mat-icon>
+              <mat-icon color="primary" fontIcon="mdi-open-in-new" />
             </a>
           }
           @if (
@@ -124,10 +121,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               matTooltip="Rename"
               (click)="update(element)"
             >
-              <mat-icon
-                color="primary"
-                fontIcon="mdi-square-edit-outline"
-              ></mat-icon>
+              <mat-icon color="primary" fontIcon="mdi-square-edit-outline" />
             </button>
             <button
               mat-icon-button
@@ -135,16 +129,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               matTooltip="Delete {{ element.name }}"
               (click)="delete(element)"
             >
-              <mat-icon
-                color="primary"
-                fontIcon="mdi-trash-can-outline"
-              ></mat-icon>
+              <mat-icon color="primary" fontIcon="mdi-trash-can-outline" />
             </button>
           }
         </mat-cell>
       </ng-container>
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns" />
+      <mat-row *matRowDef="let row; columns: displayedColumns" />
       <tr class="mat-mdc-row" *matNoDataRow>
         <td class="mat-mdc-cell" colspan="4">
           @if (input.value) {
@@ -169,8 +160,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       appearance="outlined"
       style="display: flex; justify-content: center; align-items: center"
     >
-      <mat-progress-spinner color="primary" mode="indeterminate">
-      </mat-progress-spinner>
+      <mat-progress-spinner color="primary" mode="indeterminate" />
     </mat-card>
   }
 
@@ -178,6 +168,5 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [pageSizeOptions]="[10, 25, 50, 100]"
     showFirstLastButtons
     aria-label="Select page of projects"
-  >
-  </mat-paginator>
+  />
 </div>

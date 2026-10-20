@@ -11,7 +11,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <mat-toolbar-row>
       <mat-form-field class="w-50">
         <mat-label>Search</mat-label>
-        <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+        <mat-icon matPrefix svgIcon="ic_magnify_search" />
         <input
           matInput
           [(ngModel)]="filterString"
@@ -26,17 +26,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             aria-label="Clear"
             (click)="clearFilter()"
           >
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-close-circle-outline"
-            ></mat-icon>
+            <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
           </button>
         }
       </mat-form-field>
       <mat-paginator
         [pageSizeOptions]="[10, 25, 50, 100]"
         aria-label="Select page of members"
-      ></mat-paginator>
+      />
     </mat-toolbar-row>
   </mat-toolbar>
   <table
@@ -52,9 +49,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <td mat-cell *matCellDef="let model">
         <span class="member-name">
           <span>{{ model.name }}</span>
-          <cas-current-user-badge
-            [userId]="model.membership.userId"
-          ></cas-current-user-badge>
+          <cas-current-user-badge [userId]="model.membership.userId" />
         </span>
       </td>
     </ng-container>
@@ -89,10 +84,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [attr.aria-label]="'Remove ' + model.name"
           [disabled]="!canEdit()"
         >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-minus-circle-outline"
-          ></mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle-outline" />
         </button>
       </td>
     </ng-container>

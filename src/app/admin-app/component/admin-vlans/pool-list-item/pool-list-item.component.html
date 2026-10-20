@@ -26,8 +26,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         fontIcon="mdi-check-circle"
         color="primary"
         matTooltip="Contains The Default Partition"
-      >
-      </mat-icon>
+      />
     }
   </mat-card-title>
   <mat-card-actions class="flex">
@@ -40,8 +39,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Edit Name"
           (click)="editing = !editing"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline">
-          </mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
         </button>
       }
       @if (editing) {
@@ -52,7 +50,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Rename"
           (click)="rename(nameInput().nativeElement)"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-check" />
         </button>
         <button
           mat-icon-button
@@ -61,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Cancel"
           (click)="editing = false"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
         </button>
       }
     }
@@ -72,7 +70,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       matTooltip="Open"
       (click)="selectPool(pool())"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-launch"> </mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-launch" />
     </button>
     @if (canEdit()) {
       <div class="align-right">
@@ -83,8 +81,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Delete"
           (click)="deletePool(pool())"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline">
-          </mat-icon>
+          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
         </button>
       </div>
     }

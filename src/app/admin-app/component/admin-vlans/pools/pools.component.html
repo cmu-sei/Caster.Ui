@@ -8,7 +8,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [pools]="pools$ | async"
     [canEdit]="canEdit()"
     (poolSelected)="selectPool($event)"
-  ></cas-pool-list>
+  />
 }
 
 @if (selectedPool$ | async; as selectedPool) {
@@ -20,13 +20,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Back to pools"
         (click)="deselectPool()"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return"> </mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return" />
       </button>
       <h1>Pool - {{ selectedPool.name }}</h1>
     </div>
-    <cas-partition-list
-      [poolId]="selectedPool.id"
-      [canEdit]="canEdit()"
-    ></cas-partition-list>
+    <cas-partition-list [poolId]="selectedPool.id" [canEdit]="canEdit()" />
   </div>
 }

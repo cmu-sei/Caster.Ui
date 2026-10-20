@@ -21,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         fontIcon="mdi-alert-octagon"
         matTooltip="Read-only because the current file is not in edit mode or you do not have edit permissions"
         matTooltipShowDelay="0"
-      ></mat-icon>
+      />
     }
     @if (promptForReload) {
       <button
@@ -31,7 +31,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         matTooltipShowDelay="0"
         (click)="reload()"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-alert-circle"> </mat-icon>
+        <mat-icon class="mdi-24px" fontIcon="mdi-alert-circle" />
       </button>
     }
     <span [ngClass]="promptForReload ? 'alert' : ''">
@@ -144,7 +144,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   matTooltip="View variables and outputs"
                   matSuffix
                 >
-                  <mat-icon class="mdi-16px" fontIcon="mdi-text"> </mat-icon>
+                  <mat-icon class="mdi-16px" fontIcon="mdi-text" />
                 </button>
               }
               <input
