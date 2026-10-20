@@ -6,25 +6,6 @@ import { ComnAuthGuardService } from '@cmusei/crucible-common';
 import { CanDeactivateGuard } from './sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 
 export const routes: Routes = [
-  // These came from RouterModule.forChild() in ProjectModule, which main.ts
-  // imported ahead of provideRouter(), so they stay first.
-  {
-    path: 'projects',
-    loadComponent: () =>
-      import('./project/component/project-home/project-list-container/project-list-container.component').then(
-        (m) => m.ProjectListContainerComponent,
-      ),
-    canActivate: [ComnAuthGuardService],
-  },
-  {
-    path: 'projects/:id',
-    loadComponent: () =>
-      import('./project/component/project-details/project-collapse-container/project-collapse-container.component').then(
-        (m) => m.ProjectCollapseContainerComponent,
-      ),
-    canActivate: [ComnAuthGuardService],
-    canDeactivate: [CanDeactivateGuard],
-  },
   {
     path: 'admin',
     pathMatch: 'full',
@@ -49,5 +30,24 @@ export const routes: Routes = [
       ),
     pathMatch: 'full',
     canActivate: [ComnAuthGuardService],
+  },
+  // From ProjectModule's RouterModule.forChild(), which AppModule imported
+  // after AppRoutingModule, so these come last as they did on main.
+  {
+    path: 'projects',
+    loadComponent: () =>
+      import('./project/component/project-home/project-list-container/project-list-container.component').then(
+        (m) => m.ProjectListContainerComponent,
+      ),
+    canActivate: [ComnAuthGuardService],
+  },
+  {
+    path: 'projects/:id',
+    loadComponent: () =>
+      import('./project/component/project-details/project-collapse-container/project-collapse-container.component').then(
+        (m) => m.ProjectCollapseContainerComponent,
+      ),
+    canActivate: [ComnAuthGuardService],
+    canDeactivate: [CanDeactivateGuard],
   },
 ];
