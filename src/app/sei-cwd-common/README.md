@@ -23,7 +23,7 @@ Caster UI. Settings and authentication are not part of this folder; they come fr
 If you would like to replace or extend any of these services. Angular makes this process very simple.
 
 ```typescript
-// Example of replacing the global error handler, which main.ts sets to ErrorService.
+// Example of replacing the global error handler, which app.config.ts sets to ErrorService.
 bootstrapApplication(AppComponent, {
   providers: [
     // Replace ErrorService in the providers array

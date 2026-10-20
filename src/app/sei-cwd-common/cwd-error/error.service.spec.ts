@@ -15,7 +15,7 @@ import { ErrorService } from './error.service';
 const API_URL = 'https://caster.test/api/projects/p1';
 
 /**
- * The real ErrorService (the app's ErrorHandler, main.ts) with
+ * The real ErrorService (the app's ErrorHandler, app.config.ts) with
  * SystemMessageService stubbed: the real one opens a MatBottomSheet after a
  * timeout, and what matters here is the title and message it is given.
  */
