@@ -1,13 +1,13 @@
-## CwdToolbarModule
+## CWD Toolbar
 
 #### Description
 
-The CWD toolbar module creates a common CWD module utilizing angular Cdk portals and content projection.
-The goal is to allow imported modules to provide buttons, menus and actions on the toolbar in a dynamic
+The CWD toolbar creates a common CWD toolbar using angular Cdk portals and content projection.
+The goal is to let components provide buttons, menus and actions on the toolbar in a dynamic
 way.
 
-This allows you to build the toolbar navigation and the actions needed for your application based on the modules
-and components that are imported or displayed.
+This allows you to build the toolbar navigation and the actions needed for your application based on the components
+that are displayed.
 
 #### Dependencies
 
@@ -23,24 +23,21 @@ and components that are imported or displayed.
 
 #### Implementation
 
-CWD Toolbar module needs to be imported into your NgModule declaration
+The components are standalone. Import the ones your component uses.
 
 ```typescript
-import { CwdToolbarModule } from './sei-cwd-common/cwd-toolbar/cwd-toolbar.module';
+import {
+  CwdToolbarComponent,
+  CwdToolbarActionItemComponent,
+  CwdToolbarNavigationItemComponent,
+} from './sei-cwd-common/cwd-toolbar';
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    CwdToolbarModule,
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  imports: [CwdToolbarComponent, CwdToolbarActionItemComponent, CwdToolbarNavigationItemComponent, RouterOutlet],
 })
-export class AppModule {}
+export class AppComponent {}
 ```
 
 #### Example
