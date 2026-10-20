@@ -16,8 +16,9 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DirectoryStore } from '../../state/directory.store';
 import { DirectoryEditContainerComponent } from './directory-edit-container.component';
+import { DirectoryEditComponent } from 'src/app/directories/components/directory-edit-container/directory-edit/directory-edit.component';
 
-@Component({ selector: 'cas-directory-edit', template: '', standalone: false })
+@Component({ selector: 'cas-directory-edit', template: '' })
 class DirectoryEditStub {
   @Input() directory: Directory;
   @Input() terraformVersions: TerraformVersionsResult;
@@ -42,7 +43,7 @@ async function renderContainer() {
   } satisfies ApiStub<DirectoriesService>;
   const editDirectoryComplete = vi.fn<(done: boolean) => void>();
   const view = await renderComponent(DirectoryEditContainerComponent, {
-    declarations: [DirectoryEditStub],
+    childStubs: [{ replace: DirectoryEditComponent, with: DirectoryEditStub }],
     providers: [
       { provide: TerraformService, useValue: terraformApi },
       { provide: DirectoriesService, useValue: directoriesApi },

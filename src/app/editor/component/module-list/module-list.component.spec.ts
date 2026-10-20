@@ -21,11 +21,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CreateSnippetCommand, Module } from 'src/app/generated/caster-api';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ModuleListComponent } from './module-list.component';
+import { ModuleVariablesComponent } from 'src/app/editor/component/module-variables/module-variables.component';
 
 @Component({
   selector: 'cas-module-variables',
   template: '',
-  standalone: false,
 })
 class ModuleVariablesStub {
   @Input() selectedModule: Module;
@@ -45,7 +45,9 @@ async function renderModuleList(isEditing = true) {
   const getModule = vi.fn<(m: { id: string; name: string }) => void>();
   const insertModule = vi.fn<(c: CreateSnippetCommand) => void>();
   const view = await renderComponent(ModuleListComponent, {
-    declarations: [ModuleVariablesStub],
+    childStubs: [
+      { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
+    ],
     imports: [
       MatCardModule,
       MatFormFieldModule,

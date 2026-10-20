@@ -25,13 +25,39 @@ import {
 } from 'src/app/generated/caster-api/model/models';
 import { ModuleService } from 'src/app/modules/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardActions,
+  MatCardContent,
+} from '@angular/material/card';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ModuleVariablesComponent } from '../../../../editor/component/module-variables/module-variables.component';
+import { ModuleOutputsComponent } from '../../module-outputs/module-outputs.component';
 
 @Component({
-    selector: 'cas-design-module',
-    templateUrl: './design-module.component.html',
-    styleUrls: ['./design-module.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-design-module',
+  templateUrl: './design-module.component.html',
+  styleUrls: ['./design-module.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    NgClass,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardActions,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    MatCardContent,
+    ModuleVariablesComponent,
+    ModuleOutputsComponent,
+    AsyncPipe,
+  ],
 })
 export class DesignModuleComponent implements OnInit, OnChanges {
   @Input()
@@ -72,17 +98,17 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     private designModuleService: DesignModuleService,
     private moduleService: ModuleService,
     private variableQuery: VariablesQuery,
-    private designModuleQuery: DesignModuleQuery
+    private designModuleQuery: DesignModuleQuery,
   ) {}
 
   ngOnInit(): void {
     this.variables$ = this.variableQuery.selectByDesignId(
-      this.designModule.designId
+      this.designModule.designId,
     );
 
     this.designOutputs$ = this.designModuleQuery.getOutputsByDesignId(
       this.designModule.designId,
-      this.designModule.id
+      this.designModule.id,
     );
   }
 
@@ -93,7 +119,7 @@ export class DesignModuleComponent implements OnInit, OnChanges {
       this.designModule.moduleVersion
     ) {
       const version = this.module.versions.find(
-        (x) => x.name == this.designModule.moduleVersion
+        (x) => x.name == this.designModule.moduleVersion,
       );
 
       if (version) {
@@ -162,7 +188,7 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     let apiCall: Observable<DesignModule>;
 
     const changedValues = event.variableValues.filter((x) =>
-      event.changedVariables.includes(x.name)
+      event.changedVariables.includes(x.name),
     );
 
     // edit the designModule if any of it's properties changed
@@ -184,7 +210,7 @@ export class DesignModuleComponent implements OnInit, OnChanges {
         this.designModule.id,
         {
           values: changedValues,
-        }
+        },
       );
     }
 

@@ -16,19 +16,49 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { CreateSnippetCommand, Module } from '../../../generated/caster-api';
 import { ModuleVariablesComponent } from '../module-variables/module-variables.component';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardContent,
+} from '@angular/material/card';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-module-list',
-    templateUrl: './module-list.component.html',
-    styleUrls: ['./module-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    encapsulation: ViewEncapsulation.None,
-    standalone: false
+  selector: 'cas-module-list',
+  templateUrl: './module-list.component.html',
+  styleUrls: ['./module-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  imports: [
+    MatCard,
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatTooltip,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    ModuleVariablesComponent,
+  ],
 })
 export class ModuleListComponent implements OnInit {
   @Input() set modules(val: Module[]) {
     this._modules = val.filter((x) =>
-      x.versionsCount != null ? x.versionsCount > 0 : true
+      x.versionsCount != null ? x.versionsCount > 0 : true,
     );
     this.updateDataSource();
   }
@@ -40,7 +70,8 @@ export class ModuleListComponent implements OnInit {
   @Input() isEditing: boolean;
 
   @Output()
-  insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<CreateSnippetCommand>();
+  insertModule: EventEmitter<CreateSnippetCommand> =
+    new EventEmitter<CreateSnippetCommand>();
   @Output() getModule: EventEmitter<{ id: string; name: string }> =
     new EventEmitter();
   private _modules: Module[];

@@ -29,11 +29,12 @@ import {
 } from 'src/app/test-utils/unhandled-rx-errors';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignModuleComponent } from './design-module.component';
+import { ModuleOutputsComponent } from 'src/app/designs/components/module-outputs/module-outputs.component';
+import { ModuleVariablesComponent } from 'src/app/editor/component/module-variables/module-variables.component';
 
 @Component({
   selector: 'cas-module-variables',
   template: '',
-  standalone: false,
 })
 class ModuleVariablesStub {
   @Input() selectedModule: Module;
@@ -48,7 +49,7 @@ class ModuleVariablesStub {
   @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
 }
 
-@Component({ selector: 'cas-module-outputs', template: '', standalone: false })
+@Component({ selector: 'cas-module-outputs', template: '' })
 class ModuleOutputsStub {
   @Input() moduleName: string;
   @Input() outputs: ModuleOutput[];
@@ -82,15 +83,18 @@ async function renderDesignModule(
       of<DesignModule>({ ...designModule, enabled: false }),
     ),
     addOrUpdateValuesDesignModule: vi.fn(saveValues),
-    editDesignModule: vi.fn(
-      (_id: string, _command?: EditDesignModuleCommand) => saveEdit(),
+    editDesignModule: vi.fn((_id: string, _command?: EditDesignModuleCommand) =>
+      saveEdit(),
     ),
   } satisfies ApiStub<DesignsModulesService>;
   const modulesApi = {
     getModule: vi.fn((_id: string) => of<Module>(structuredClone(module))),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(DesignModuleComponent, {
-    declarations: [ModuleVariablesStub, ModuleOutputsStub],
+    childStubs: [
+      { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
+      { replace: ModuleOutputsComponent, with: ModuleOutputsStub },
+    ],
     imports: [MatCardModule, MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [
       { provide: DesignsModulesService, useValue: designModulesApi },
@@ -186,9 +190,10 @@ describe('DesignModuleComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(
-      designModulesApi.addOrUpdateValuesDesignModule,
-    ).toHaveBeenCalledWith('dm1', { values: [{ name: 'size', value: 'large' }] });
+    expect(designModulesApi.addOrUpdateValuesDesignModule).toHaveBeenCalledWith(
+      'dm1',
+      { values: [{ name: 'size', value: 'large' }] },
+    );
     expect(variablesEditor()?.isSaving).toBe(true);
 
     const failure = new Error('500');

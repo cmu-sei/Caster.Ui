@@ -14,15 +14,17 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { ProjectListContainerComponent } from './project-list-container.component';
+import { ProjectListComponent } from 'src/app/project/component/project-home/project-list/project-list.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
   @Input() title: string;
   @Input() topbarView: TopbarView;
   @Input() sidenav: unknown;
 }
 
-@Component({ selector: 'cas-project-list', template: '', standalone: false })
+@Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
@@ -51,7 +53,10 @@ describe('ProjectListContainerComponent', () => {
       logout: vi.fn(() => Promise.resolve()),
     } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
     const { fixture } = await renderComponent(ProjectListContainerComponent, {
-      declarations: [TopbarStub, ProjectListStub],
+      childStubs: [
+        { replace: TopbarComponent, with: TopbarStub },
+        { replace: ProjectListComponent, with: ProjectListStub },
+      ],
       providers: [
         { provide: ProjectsService, useValue: projectsApi },
         { provide: ComnAuthService, useValue: auth },

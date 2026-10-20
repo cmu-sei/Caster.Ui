@@ -21,8 +21,9 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ImportResourceComponent } from './import-resource.component';
+import { OutputComponent } from 'src/app/workspace/components/output/output.component';
 
-@Component({ selector: 'cas-output', template: '', standalone: false })
+@Component({ selector: 'cas-output', template: '' })
 class OutputStub {
   @Input() loading: boolean;
   @Input() output: string;
@@ -34,7 +35,7 @@ async function renderImport(result: ResourceCommandResult) {
   } satisfies ApiStub<ResourcesService>;
   const { dialogRef } = dialogRefStub<ImportResourceComponent>();
   const view = await renderComponent(ImportResourceComponent, {
-    declarations: [OutputStub],
+    childStubs: [{ replace: OutputComponent, with: OutputStub }],
     imports: [
       ...CRUCIBLE_DIALOG_IMPORTS,
       A11yModule,

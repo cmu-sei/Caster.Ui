@@ -8,13 +8,14 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { Workspace } from 'src/app/generated/caster-api';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-workspace-version',
-    templateUrl: './workspace-version.component.html',
-    styleUrls: ['./workspace-version.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-workspace-version',
+  templateUrl: './workspace-version.component.html',
+  styleUrls: ['./workspace-version.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatTooltip],
 })
 export class WorkspaceVersionComponent implements OnInit {
   @Input() workspace: Workspace;

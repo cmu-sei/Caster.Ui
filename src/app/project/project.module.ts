@@ -25,7 +25,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule, Routes } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
-import { ComnAuthGuardService, CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
+import {
+  ComnAuthGuardService,
+  CRUCIBLE_DIALOG_IMPORTS,
+} from '@cmusei/crucible-common';
 import { ResizableModule } from 'angular-resizable-element';
 import { CanDeactivateGuard } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { DesignModule } from '../designs/design.module';
@@ -69,23 +72,6 @@ const projectRoutes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    ProjectComponent,
-    ProjectListComponent,
-    ProjectListContainerComponent,
-    ProjectNavigationContainerComponent,
-    ProjectCollapseContainerComponent,
-    DirectoryPanelComponent,
-    ProjectBreadcrumbComponent,
-    ProjectTabComponent,
-    FilesFilterPipe,
-    ProjectExportComponent,
-    ProjectImportComponent,
-    ProjectMembershipsComponent,
-    ProjectMembershipsPageComponent,
-    ProjectMembershipListComponent,
-    ProjectMemberListComponent,
-  ],
   imports: [
     CommonModule,
     RouterModule.forChild(projectRoutes),
@@ -125,6 +111,21 @@ const projectRoutes: Routes = [
     ClipboardModule,
     MatSnackBarModule,
     MatPaginatorModule,
+    ProjectComponent,
+    ProjectListComponent,
+    ProjectListContainerComponent,
+    ProjectNavigationContainerComponent,
+    ProjectCollapseContainerComponent,
+    DirectoryPanelComponent,
+    ProjectBreadcrumbComponent,
+    ProjectTabComponent,
+    FilesFilterPipe,
+    ProjectExportComponent,
+    ProjectImportComponent,
+    ProjectMembershipsComponent,
+    ProjectMembershipsPageComponent,
+    ProjectMembershipListComponent,
+    ProjectMemberListComponent,
   ],
   exports: [
     ProjectComponent,

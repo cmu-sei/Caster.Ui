@@ -22,11 +22,11 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminModulesComponent } from './modules.component';
+import { AdminModuleListComponent } from 'src/app/admin-app/component/admin-modules/modules-list/module-list.component';
 
 @Component({
   selector: 'cas-admin-module-list',
   template: '',
-  standalone: false,
 })
 class ModuleListStub {
   @Input() modules: Module[];
@@ -81,7 +81,7 @@ async function renderModules(
     ),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(AdminModulesComponent, {
-    declarations: [ModuleListStub],
+    childStubs: [{ replace: AdminModuleListComponent, with: ModuleListStub }],
     imports: [MatIconModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -159,9 +159,9 @@ describe('AdminModulesComponent', () => {
 
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
-      expect(
-        modulesApi.getAllModules.mock.invocationCallOrder[0],
-      ).toBeLessThan(modulesApi.getModuleSources.mock.invocationCallOrder[0]);
+      expect(modulesApi.getAllModules.mock.invocationCallOrder[0]).toBeLessThan(
+        modulesApi.getModuleSources.mock.invocationCallOrder[0],
+      );
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });

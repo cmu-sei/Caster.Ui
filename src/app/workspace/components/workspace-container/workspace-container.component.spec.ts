@@ -41,17 +41,20 @@ import {
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { WorkspaceContainerComponent } from './workspace-container.component';
+import { ImportResourceComponent } from 'src/app/workspace/components/import-resource/import-resource.component';
+import { OutputComponent } from 'src/app/workspace/components/output/output.component';
+import { RunComponent } from 'src/app/workspace/components/run/run.component';
+import { WorkspaceVersionComponent } from 'src/app/workspace/components/workspace-version/workspace-version.component';
 
 @Component({
   selector: 'cas-workspace-version',
   template: '',
-  standalone: false,
 })
 class WorkspaceVersionStub {
   @Input() workspace: Workspace;
 }
 
-@Component({ selector: 'cas-run', template: '', standalone: false })
+@Component({ selector: 'cas-run', template: '' })
 class RunStub {
   @Input() run: Run;
   @Input() loading: boolean;
@@ -59,14 +62,14 @@ class RunStub {
   @Output() applyOutput = new EventEmitter<string>();
 }
 
-@Component({ selector: 'cas-import-resource', template: '', standalone: false })
+@Component({ selector: 'cas-import-resource', template: '' })
 class ImportResourceStub {
   @Input() workspaceId: string;
   @Input() loading: boolean;
   @Output() importComplete = new EventEmitter<boolean>();
 }
 
-@Component({ selector: 'cas-output', template: '', standalone: false })
+@Component({ selector: 'cas-output', template: '' })
 class OutputStub {
   @Input() output: string;
   @Input() loading: boolean;
@@ -92,17 +95,17 @@ async function renderWorkspace(
   const view = await renderComponent(WorkspaceContainerComponent, {
     // The real cwd-table: an app NgModule's exports are not visible to the
     // test module, so its component and directives are declared here.
-    declarations: [
+    childStubs: [
+      { replace: WorkspaceVersionComponent, with: WorkspaceVersionStub },
+      { replace: RunComponent, with: RunStub },
+      { replace: ImportResourceComponent, with: ImportResourceStub },
+      { replace: OutputComponent, with: OutputStub },
+    ],
+    imports: [
       CwdTableComponent,
       TableActionDirective,
       TableItemActionDirective,
       TableItemContentDirective,
-      WorkspaceVersionStub,
-      RunStub,
-      ImportResourceStub,
-      OutputStub,
-    ],
-    imports: [
       MatToolbarModule,
       MatButtonToggleModule,
       MatButtonModule,

@@ -9,7 +9,19 @@ import {
   ChangeDetectionStrategy,
   Input,
 } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import {
   BehaviorSubject,
   combineLatest,
@@ -26,13 +38,39 @@ import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-vlans',
-    templateUrl: './project-vlans.component.html',
-    styleUrls: ['./project-vlans.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-vlans',
+  templateUrl: './project-vlans.component.html',
+  styleUrls: ['./project-vlans.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatOptgroup,
+    MatProgressBar,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    KeyValuePipe,
+  ],
 })
 export class ProjectVlansComponent implements OnInit {
   @Input() set projects(projects: Project[]) {
@@ -47,13 +85,13 @@ export class ProjectVlansComponent implements OnInit {
 
   // #region loading
   private loadingSubject = new BehaviorSubject<Map<string, boolean>>(
-    new Map<string, boolean>()
+    new Map<string, boolean>(),
   );
   public loading$ = this.loadingSubject.asObservable();
 
   private setLoading(projectId: string, val: boolean) {
     this.loadingSubject.next(
-      this.loadingSubject.getValue().set(projectId, val)
+      this.loadingSubject.getValue().set(projectId, val),
     );
   }
   // #endregion
@@ -65,7 +103,7 @@ export class ProjectVlansComponent implements OnInit {
     private poolService: PoolService,
     private partitionService: PartitionService,
     private poolQuery: PoolQuery,
-    private partitionQuery: PartitionQuery
+    private partitionQuery: PartitionQuery,
   ) {}
 
   ngOnInit(): void {
@@ -88,7 +126,7 @@ export class ProjectVlansComponent implements OnInit {
         });
 
         return map;
-      })
+      }),
     );
   }
 
@@ -102,7 +140,7 @@ export class ProjectVlansComponent implements OnInit {
         finalize(() => {
           // make sure progress bar is shown
           timer(500).subscribe(() => this.setLoading(projectId, false));
-        })
+        }),
       )
       .subscribe();
   }

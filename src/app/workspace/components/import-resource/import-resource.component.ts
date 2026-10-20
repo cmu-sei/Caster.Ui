@@ -9,17 +9,41 @@ import {
   EventEmitter,
   Output,
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { take } from 'rxjs/operators';
 import { ResourceCommandResult } from 'src/app/generated/caster-api';
 import { WorkspaceService } from '../../state';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatTooltip } from '@angular/material/tooltip';
+import { OutputComponent } from '../output/output.component';
 
 @Component({
-    selector: 'cas-import-resource',
-    templateUrl: './import-resource.component.html',
-    styleUrls: ['./import-resource.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-import-resource',
+  templateUrl: './import-resource.component.html',
+  styleUrls: ['./import-resource.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatTooltip,
+    OutputComponent,
+  ],
 })
 export class ImportResourceComponent implements OnInit {
   @Input() workspaceId: string;
@@ -32,7 +56,7 @@ export class ImportResourceComponent implements OnInit {
 
   constructor(
     private formBuilder: UntypedFormBuilder,
-    private workspaceService: WorkspaceService
+    private workspaceService: WorkspaceService,
   ) {
     this.form = formBuilder.group({
       address: ['', Validators.required],

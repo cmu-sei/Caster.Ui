@@ -15,20 +15,71 @@ import {
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import {
   CreateGroupMembershipCommand,
   Group,
   GroupMembershipRole,
   User,
 } from 'src/app/generated/caster-api';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { ClipboardModule } from 'ngx-clipboard';
+import { CurrentUserBadgeComponent } from '../../../../shared/components/current-user-badge/current-user-badge.component';
 
 @Component({
-    selector: 'cas-admin-groups-membership-list',
-    templateUrl: './admin-groups-membership-list.component.html',
-    styleUrls: ['./admin-groups-membership-list.component.scss'],
-    standalone: false
+  selector: 'cas-admin-groups-membership-list',
+  templateUrl: './admin-groups-membership-list.component.html',
+  styleUrls: ['./admin-groups-membership-list.component.scss'],
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatFormField,
+    MatLabel,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    ClipboardModule,
+    CurrentUserBadgeComponent,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+  ],
 })
 export class AdminGroupsMembershipListComponent
   implements OnInit, OnChanges, AfterViewInit
@@ -65,7 +116,7 @@ export class AdminGroupsMembershipListComponent
     this.dataSource.data = this.users;
 
     this.displayedColumns = this.viewColumns.concat(
-      this.canEdit ? this.editColumns : []
+      this.canEdit ? this.editColumns : [],
     );
   }
 

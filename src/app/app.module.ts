@@ -71,7 +71,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
 };
 
 @NgModule({
-  declarations: [AppComponent, SystemMessageComponent],
+  declarations: [AppComponent],
   bootstrap: [AppComponent],
   imports: [
     BrowserModule,
@@ -97,6 +97,7 @@ export const myCustomSnackBarDefaults: MatSnackBarConfig = {
     DesignModule,
     MatCheckboxModule,
     ComnHeaderBarModule,
+    SystemMessageComponent,
   ],
   providers: [
     {

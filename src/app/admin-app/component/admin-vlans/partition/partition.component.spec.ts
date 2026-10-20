@@ -20,8 +20,9 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlanStore } from 'src/app/vlans/state/vlan/vlan.store';
 import { PartitionComponent } from './partition.component';
+import { VlanListComponent } from 'src/app/admin-app/component/admin-vlans/vlan-list/vlan-list.component';
 
-@Component({ selector: 'cas-vlan-list', template: '', standalone: false })
+@Component({ selector: 'cas-vlan-list', template: '' })
 class VlanListStub {
   @Input() showUnassigned: boolean;
   @Input() vlans: Vlan[];
@@ -42,7 +43,7 @@ async function renderPartition(canEdit: boolean) {
     addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PartitionComponent, {
-    declarations: [VlanListStub],
+    childStubs: [{ replace: VlanListComponent, with: VlanListStub }],
     imports: [
       MatExpansionModule,
       MatButtonModule,

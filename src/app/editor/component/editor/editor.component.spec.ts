@@ -35,11 +35,16 @@ import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { CurrentUserStore } from 'src/app/users/state/user.store';
 import { EditorComponent } from './editor.component';
+import { ModuleListComponent } from 'src/app/editor/component/module-list/module-list.component';
+import { VersionListComponent } from 'src/app/editor/component/version-list/version-list.component';
+import {
+  EditorComponent as MonacoEditorComponent,
+  DiffEditorComponent as MonacoDiffEditorComponent,
+} from 'ngx-monaco-editor-v2';
 
 @Component({
   selector: 'ngx-monaco-editor',
   template: '',
-  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -59,7 +64,6 @@ class MonacoEditorStub implements ControlValueAccessor {
 @Component({
   selector: 'ngx-monaco-diff-editor',
   template: '',
-  standalone: false,
 })
 class MonacoDiffEditorStub {
   @Input() options: unknown;
@@ -67,7 +71,7 @@ class MonacoDiffEditorStub {
   @Input() modifiedModel: unknown;
 }
 
-@Component({ selector: 'cas-module-list', template: '', standalone: false })
+@Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
   @Input() modules: Module[];
   @Input() selectedModule: Module;
@@ -76,7 +80,7 @@ class ModuleListStub {
   @Output() insertModule = new EventEmitter<unknown>();
 }
 
-@Component({ selector: 'cas-version-list', template: '', standalone: false })
+@Component({ selector: 'cas-version-list', template: '' })
 class VersionListStub {
   @Input() fileId: string;
   @Input() selectedVersionId: string;
@@ -111,11 +115,11 @@ async function renderEditor(
   const { dialogRef } = dialogRefStub<unknown, boolean>(true);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(EditorComponent, {
-    declarations: [
-      MonacoEditorStub,
-      MonacoDiffEditorStub,
-      ModuleListStub,
-      VersionListStub,
+    childStubs: [
+      { replace: ModuleListComponent, with: ModuleListStub },
+      { replace: VersionListComponent, with: VersionListStub },
+      { replace: MonacoEditorComponent, with: MonacoEditorStub },
+      { replace: MonacoDiffEditorComponent, with: MonacoDiffEditorStub },
     ],
     imports: [
       MatSidenavModule,

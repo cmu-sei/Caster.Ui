@@ -13,21 +13,83 @@ import {
   ChangeDetectorRef,
   OnChanges,
 } from '@angular/core';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow,
+} from '@angular/material/table';
 import { Observable, Subject } from 'rxjs';
 import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import {
+  CdkVirtualScrollViewport,
+  CdkFixedSizeVirtualScroll,
+} from '@angular/cdk/scrolling';
+import { NgStyle } from '@angular/common';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 @Component({
-    selector: 'cas-vlan-list',
-    templateUrl: './vlan-list.component.html',
-    styleUrls: ['./vlan-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-vlan-list',
+  templateUrl: './vlan-list.component.html',
+  styleUrls: ['./vlan-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatFormField,
+    MatTooltip,
+    MatLabel,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatButton,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    NgStyle,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCheckbox,
+    MatCellDef,
+    MatCell,
+    MatSortHeader,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+  ],
 })
 export class VlanListComponent implements OnInit, OnChanges {
   @Input() showUnassigned = true;
@@ -76,7 +138,7 @@ export class VlanListComponent implements OnInit, OnChanges {
   constructor(
     private changeDetector: ChangeDetectorRef,
     private confirmService: CrucibleDialogService,
-    private vlanService: VlanService
+    private vlanService: VlanService,
   ) {}
 
   ngOnInit(): void {
@@ -137,7 +199,7 @@ export class VlanListComponent implements OnInit, OnChanges {
     this.displayedColumns = [].concat(
       this.canEdit ? this.preEditColumns : [],
       this.viewColumns,
-      this.canEdit ? this.postEditColumns : []
+      this.canEdit ? this.postEditColumns : [],
     );
   }
 
@@ -187,8 +249,8 @@ export class VlanListComponent implements OnInit, OnChanges {
             this.vlanService.reassign(
               [].concat(vlan.id),
               vlan.partitionId,
-              null
-            )
+              null,
+            ),
           );
         }
       });
@@ -208,7 +270,7 @@ export class VlanListComponent implements OnInit, OnChanges {
               this.selection.selected,
               this.vlans.find((x) => x.id == this.selection.selected[0])
                 .partitionId,
-              toPartitionId
+              toPartitionId,
             )
             .subscribe();
         }
@@ -251,7 +313,7 @@ export class VlanListComponent implements OnInit, OnChanges {
                     .afterClosed()
                     .subscribe();
                 }
-              })
+              }),
             )
             .subscribe();
         }
@@ -292,7 +354,7 @@ export class VlanListComponent implements OnInit, OnChanges {
         finalize(() => {
           this.loading.set(vlan.id, false);
           this.changeDetector.markForCheck();
-        })
+        }),
       )
       .subscribe();
   }

@@ -13,15 +13,52 @@ import {
   Directory,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { MatCheckboxChange, MatCheckbox } from '@angular/material/checkbox';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import {
+  MatFormField,
+  MatLabel,
+  MatSuffix,
+  MatError,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
-    selector: 'cas-directory-edit',
-    templateUrl: './directory-edit.component.html',
-    styleUrls: ['./directory-edit.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-directory-edit',
+  templateUrl: './directory-edit.component.html',
+  styleUrls: ['./directory-edit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatIconButton,
+    MatSuffix,
+    MatTooltip,
+    MatIcon,
+    MatError,
+    MatCheckbox,
+  ],
 })
 export class DirectoryEditComponent implements OnInit {
   @Input() directory: Directory;

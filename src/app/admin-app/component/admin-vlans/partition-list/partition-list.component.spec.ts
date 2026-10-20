@@ -15,8 +15,9 @@ import { Partition, Vlan, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { PartitionListComponent } from './partition-list.component';
+import { PartitionComponent } from 'src/app/admin-app/component/admin-vlans/partition/partition.component';
 
-@Component({ selector: 'cas-partition', template: '', standalone: false })
+@Component({ selector: 'cas-partition', template: '' })
 class PartitionStub {
   @Input() partition: Partition;
   @Input() poolId: string;
@@ -34,7 +35,7 @@ async function renderPartitionList(canEdit: boolean) {
     ),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PartitionListComponent, {
-    declarations: [PartitionStub],
+    childStubs: [{ replace: PartitionComponent, with: PartitionStub }],
     imports: [
       MatButtonModule,
       MatIconModule,

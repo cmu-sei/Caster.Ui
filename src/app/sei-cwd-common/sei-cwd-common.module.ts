@@ -24,7 +24,6 @@ import { NameDialogComponent } from './name-dialog/name-dialog.component';
 export const CWD_SETTINGS_TOKEN = new InjectionToken('CwdSettings');
 
 @NgModule({
-  declarations: [NameDialogComponent],
   imports: [
     CommonModule,
     SharedModule,
@@ -43,6 +42,7 @@ export const CWD_SETTINGS_TOKEN = new InjectionToken('CwdSettings');
     ReactiveFormsModule,
     A11yModule,
     ...CRUCIBLE_DIALOG_IMPORTS,
+    NameDialogComponent,
   ],
   exports: [NameDialogComponent],
 })

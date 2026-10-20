@@ -6,16 +6,18 @@ import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { PortalModule } from '@angular/cdk/portal';
 import { CwdToolbarComponent } from './components/cwd-toolbar/cwd-toolbar.component';
-import { CwdToolbarNavigationItemComponent} from './components/cwd-toolbar-navigation-item/cwd-toolbar-navigation-item.component';
+import { CwdToolbarNavigationItemComponent } from './components/cwd-toolbar-navigation-item/cwd-toolbar-navigation-item.component';
 import { CwdToolbarActionItemComponent } from './components/cwd-toolbar-action-item/cwd-toolbar-action-item.component';
 
 @NgModule({
-  declarations: [
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    PortalModule,
     CwdToolbarComponent,
     CwdToolbarNavigationItemComponent,
     CwdToolbarActionItemComponent,
   ],
-  imports: [CommonModule, MatToolbarModule, PortalModule],
   exports: [
     CwdToolbarComponent,
     CwdToolbarNavigationItemComponent,

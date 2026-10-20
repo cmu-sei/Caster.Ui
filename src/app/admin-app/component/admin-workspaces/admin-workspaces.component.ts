@@ -11,13 +11,17 @@ import { WorkspaceService, WorkspaceQuery } from 'src/app/workspace/state';
 import { Observable } from 'rxjs';
 import { Run } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { MatCard } from '@angular/material/card';
+import { LockingStatusComponent } from './locking-status/locking-status.component';
+import { ActiveRunsComponent } from './active-runs/active-runs.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-admin-workspaces',
-    templateUrl: './admin-workspaces.component.html',
-    styleUrls: ['./admin-workspaces.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-admin-workspaces',
+  templateUrl: './admin-workspaces.component.html',
+  styleUrls: ['./admin-workspaces.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatCard, LockingStatusComponent, ActiveRunsComponent, AsyncPipe],
 })
 export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   public lockingEnabled$: Observable<boolean>;
@@ -27,7 +31,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   constructor(
     private workspaceService: WorkspaceService,
     private workspaceQuery: WorkspaceQuery,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
   ) {}
 
   ngOnInit() {
@@ -42,7 +46,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
 
     this.workspaceService.loadLockingStatus();
     this.lockingEnabled$ = this.workspaceQuery.select(
-      (state) => state.lockingEnabled
+      (state) => state.lockingEnabled,
     );
 
     this.workspaceService.loadAllActiveRuns();
@@ -62,7 +66,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
     this.workspaceService.planOutputUpdated(
       event.item.workspaceId,
       event.item.id,
-      event.output
+      event.output,
     );
   }
 
@@ -70,7 +74,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
     this.workspaceService.applyOutputUpdated(
       event.item.workspaceId,
       event.item.id,
-      event.output
+      event.output,
     );
   }
 

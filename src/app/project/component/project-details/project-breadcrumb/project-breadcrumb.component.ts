@@ -9,13 +9,16 @@ import {
   Output,
 } from '@angular/core';
 import { ProjectObjectType, Breadcrumb } from '../../../state';
+import { MatButton } from '@angular/material/button';
+import { NgClass } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
-    selector: 'cas-project-breadcrumb',
-    templateUrl: './project-breadcrumb.component.html',
-    styleUrls: ['./project-breadcrumb.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-breadcrumb',
+  templateUrl: './project-breadcrumb.component.html',
+  styleUrls: ['./project-breadcrumb.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatButton, NgClass, MatIcon],
 })
 export class ProjectBreadcrumbComponent {
   @Input() useButtonStyleBreadcrumbs: boolean;

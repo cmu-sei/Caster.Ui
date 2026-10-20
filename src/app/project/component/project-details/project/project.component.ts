@@ -11,13 +11,14 @@ import {
 import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
+import { ProjectTabComponent } from '../project-tab/project-tab.component';
 
 @Component({
-    selector: 'cas-project',
-    templateUrl: './project.component.html',
-    styleUrls: ['./project.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project',
+  templateUrl: './project.component.html',
+  styleUrls: ['./project.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ProjectTabComponent],
 })
 export class ProjectComponent {
   @Input() loading: boolean;

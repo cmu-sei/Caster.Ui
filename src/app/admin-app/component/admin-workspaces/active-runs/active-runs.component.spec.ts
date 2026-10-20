@@ -19,8 +19,9 @@ import { CwdTableComponent } from 'src/app/sei-cwd-common/cwd-table/components/c
 import { TableItemContentDirective } from 'src/app/sei-cwd-common/cwd-table/directives/table-item-content.directive';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ActiveRunsComponent } from './active-runs.component';
+import { RunComponent } from 'src/app/workspace/components/run/run.component';
 
-@Component({ selector: 'cas-run', template: '', standalone: false })
+@Component({ selector: 'cas-run', template: '' })
 class RunStub {
   @Input() run: Run;
   @Output() planOutput = new EventEmitter<string>();
@@ -47,8 +48,10 @@ describe('ActiveRunsComponent', () => {
     const { fixture } = await renderComponent(ActiveRunsComponent, {
       // The real cwd-table: an app NgModule's exports are not visible to the
       // test module, so its component and directive are declared here.
-      declarations: [RunStub, CwdTableComponent, TableItemContentDirective],
+      childStubs: [{ replace: RunComponent, with: RunStub }],
       imports: [
+        CwdTableComponent,
+        TableItemContentDirective,
         MatCardModule,
         MatExpansionModule,
         MatFormFieldModule,

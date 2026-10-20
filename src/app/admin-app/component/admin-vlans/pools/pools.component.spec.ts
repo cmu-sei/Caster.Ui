@@ -13,15 +13,17 @@ import { Pool, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { PoolsComponent } from './pools.component';
+import { PartitionListComponent } from 'src/app/admin-app/component/admin-vlans/partition-list/partition-list.component';
+import { PoolListComponent } from 'src/app/admin-app/component/admin-vlans/pool-list/pool-list.component';
 
-@Component({ selector: 'cas-pool-list', template: '', standalone: false })
+@Component({ selector: 'cas-pool-list', template: '' })
 class PoolListStub {
   @Input() pools: Pool[];
   @Input() canEdit: boolean;
   @Output() poolSelected = new EventEmitter<Pool>();
 }
 
-@Component({ selector: 'cas-partition-list', template: '', standalone: false })
+@Component({ selector: 'cas-partition-list', template: '' })
 class PartitionListStub {
   @Input() poolId: string;
   @Input() canEdit: boolean;
@@ -32,7 +34,10 @@ async function renderPools(canEdit: boolean) {
     getPools: vi.fn(() => of<Pool[]>([{ id: 'pool1', name: 'Main' }])),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PoolsComponent, {
-    declarations: [PoolListStub, PartitionListStub],
+    childStubs: [
+      { replace: PoolListComponent, with: PoolListStub },
+      { replace: PartitionListComponent, with: PartitionListStub },
+    ],
     imports: [MatButtonModule, MatIconModule],
     providers: [{ provide: VlansService, useValue: vlansApi }],
     inputs: { canEdit },

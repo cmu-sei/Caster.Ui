@@ -21,21 +21,73 @@ import {
   UntypedFormBuilder,
   UntypedFormGroup,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import {
   toTerraformName,
   ValidatorPatterns,
 } from 'src/app/shared/models/validator-patterns';
-import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  CrucibleDialogService,
+  CrucibleDialogComponent,
+  CrucibleDialogTitleDirective,
+  CrucibleDialogContentDirective,
+  CrucibleDialogActionsDirective,
+} from '@cmusei/crucible-common';
 import { ModuleField, ModuleVariablesResult } from './module-variables.models';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteSelectedEvent,
+  MatAutocompleteTrigger,
+  MatAutocomplete,
+} from '@angular/material/autocomplete';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { NgClass } from '@angular/common';
+import {
+  MatFormField,
+  MatLabel,
+  MatError,
+  MatHint,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
+import { MatCard } from '@angular/material/card';
+import { MatInput } from '@angular/material/input';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
 @Component({
-    selector: 'cas-module-variables',
-    templateUrl: './module-variables.component.html',
-    styleUrls: ['./module-variables.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-module-variables',
+  templateUrl: './module-variables.component.html',
+  styleUrls: ['./module-variables.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogTitleDirective,
+    MatIcon,
+    MatTooltip,
+    MatIconButton,
+    NgClass,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatCard,
+    MatInput,
+    MatError,
+    MatHint,
+    CdkTextareaAutosize,
+    MatSuffix,
+    MatAutocompleteTrigger,
+    MatAutocomplete,
+    MatOptgroup,
+    CrucibleDialogActionsDirective,
+    MatButton,
+  ],
 })
 export class ModuleVariablesComponent implements OnInit, OnChanges {
   @Input() name: string;
@@ -66,7 +118,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
   constructor(
     private confirmDialogService: CrucibleDialogService,
-    private formBuilder: UntypedFormBuilder
+    private formBuilder: UntypedFormBuilder,
   ) {}
 
   ngOnInit() {
@@ -88,7 +140,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
     if (changes.isSaving && !changes.isSaving.firstChange) {
       this.onSavingChanged(
         changes.isSaving.currentValue,
-        changes.isSaving.previousValue
+        changes.isSaving.previousValue,
       );
     }
 
@@ -221,7 +273,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
   setVersion() {
     if (this.selectedVersionName) {
       const version = this.selectedModule.versions.find(
-        (x) => x.name == this.selectedVersionName
+        (x) => x.name == this.selectedVersionName,
       );
 
       if (version) {
@@ -256,7 +308,7 @@ export class ModuleVariablesComponent implements OnInit, OnChanges {
 
   autocompleteSelected(
     formControlName: string,
-    event: MatAutocompleteSelectedEvent
+    event: MatAutocompleteSelectedEvent,
   ) {
     const formControl = this.form.get(['values', formControlName]);
 

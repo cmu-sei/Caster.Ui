@@ -16,20 +16,73 @@ import {
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow,
+} from '@angular/material/table';
 import {
   CreateProjectMembershipCommand,
   Group,
   User,
 } from 'src/app/generated/caster-api';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-project-membership-list',
-    templateUrl: './project-membership-list.component.html',
-    styleUrls: ['./project-membership-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-membership-list',
+  templateUrl: './project-membership-list.component.html',
+  styleUrls: ['./project-membership-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatIcon,
+    MatFormField,
+    MatLabel,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    ClipboardModule,
+    MatTooltip,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+  ],
 })
 export class ProjectMembershipListComponent
   implements OnInit, OnChanges, AfterViewInit
@@ -70,7 +123,7 @@ export class ProjectMembershipListComponent
     this.dataSource.data = this.buildModel();
 
     this.displayedColumns = this.viewColumns.concat(
-      this.canEdit ? this.editColumns : []
+      this.canEdit ? this.editColumns : [],
     );
   }
 

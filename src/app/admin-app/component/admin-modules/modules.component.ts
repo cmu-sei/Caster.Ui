@@ -15,12 +15,15 @@ import { EMPTY, Observable } from 'rxjs';
 import { catchError, finalize, map, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatIcon } from '@angular/material/icon';
+import { AdminModuleListComponent } from './modules-list/module-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-admin-modules',
-    templateUrl: './modules.component.html',
-    styleUrls: ['./modules.component.css'],
-    standalone: false
+  selector: 'cas-admin-modules',
+  templateUrl: './modules.component.html',
+  styleUrls: ['./modules.component.css'],
+  imports: [MatIcon, AdminModuleListComponent, AsyncPipe],
 })
 export class AdminModulesComponent implements OnInit {
   public modules$: Observable<Module[]>;
@@ -31,7 +34,7 @@ export class AdminModulesComponent implements OnInit {
   public noSources = false;
 
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageWorkspaces
+    SystemPermission.ManageWorkspaces,
   );
 
   constructor(
@@ -40,7 +43,7 @@ export class AdminModulesComponent implements OnInit {
     private moduleQuery: ModuleQuery,
     private modulesService: ModulesService,
     private permissionService: PermissionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   /**
@@ -62,7 +65,7 @@ export class AdminModulesComponent implements OnInit {
       .load(false, true)
       .pipe(
         take(1),
-        finalize(() => this.loadSources(userRequested))
+        finalize(() => this.loadSources(userRequested)),
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
@@ -129,14 +132,16 @@ export class AdminModulesComponent implements OnInit {
         take(1),
         catchError((error) => {
           const message =
-            error.error?.title || error.message || 'Failed to update the Modules';
+            error.error?.title ||
+            error.message ||
+            'Failed to update the Modules';
           this.snackBar.open(message, 'Dismiss', {
             duration: 5000,
             verticalPosition: 'top',
             horizontalPosition: 'center',
           });
           return EMPTY;
-        })
+        }),
       )
       .subscribe(() => this.load());
   }
@@ -151,7 +156,7 @@ export class AdminModulesComponent implements OnInit {
 export class ModuleErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(
     control: UntypedFormControl | null,
-    form: FormGroupDirective | NgForm | null
+    form: FormGroupDirective | NgForm | null,
   ): boolean {
     const isSubmitted = form && form.submitted;
     return !!(control && control.invalid && (control.dirty || isSubmitted));

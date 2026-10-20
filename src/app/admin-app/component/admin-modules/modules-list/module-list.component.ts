@@ -12,10 +12,32 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { Module } from '../../../../generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { ClipboardModule } from 'ngx-clipboard';
+import { NgClass, DatePipe } from '@angular/common';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface Action {
   Value: string;
@@ -23,13 +45,44 @@ export interface Action {
 }
 
 @Component({
-    selector: 'cas-admin-module-list',
-    templateUrl: './module-list.component.html',
-    styleUrls: ['./module-list.component.css'],
-    standalone: false
+  selector: 'cas-admin-module-list',
+  templateUrl: './module-list.component.html',
+  styleUrls: ['./module-list.component.css'],
+  imports: [
+    MatIcon,
+    MatFormField,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTooltip,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    ClipboardModule,
+    NgClass,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatCard,
+    MatProgressSpinner,
+    DatePipe,
+  ],
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
-  public displayedColumns: string[] = ['name', 'path', 'versionsCount', 'dateModified'];
+  public displayedColumns: string[] = [
+    'name',
+    'path',
+    'versionsCount',
+    'dateModified',
+  ];
   public filterString = '';
   public savedFilterString = '';
   public dataSource = new MatTableDataSource<Module>(new Array<Module>());

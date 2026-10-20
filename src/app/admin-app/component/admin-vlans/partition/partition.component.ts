@@ -17,20 +17,49 @@ import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { VlanQuery } from 'src/app/vlans/state/vlan/vlan.query';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
+import {
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+  MatExpansionPanelDescription,
+  MatExpansionPanelContent,
+} from '@angular/material/expansion';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatFormField } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { VlanListComponent } from '../vlan-list/vlan-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-partition',
-    templateUrl: './partition.component.html',
-    styleUrls: ['./partition.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-partition',
+  templateUrl: './partition.component.html',
+  styleUrls: ['./partition.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ClipboardModule,
+    MatFormField,
+    MatInput,
+    MatExpansionPanelDescription,
+    MatExpansionPanelContent,
+    VlanListComponent,
+    AsyncPipe,
+  ],
 })
 export class PartitionComponent implements OnInit {
   @Input() set poolId(poolId: string) {
     this.vlans$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
     this.otherPartitions$ = this.partitionQuery.selectByPoolId(
       poolId,
-      this.partition?.id
+      this.partition?.id,
     );
   }
 
@@ -39,7 +68,7 @@ export class PartitionComponent implements OnInit {
     this.vlans$ = this.vlanQuery.selectByPartitionId(partition.id);
     this.otherPartitions$ = this.partitionQuery.selectByPoolId(
       partition.poolId,
-      partition.id
+      partition.id,
     );
   }
 
@@ -62,7 +91,7 @@ export class PartitionComponent implements OnInit {
     private vlanService: VlanService,
     private vlanQuery: VlanQuery,
     private confirmService: CrucibleDialogService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {}

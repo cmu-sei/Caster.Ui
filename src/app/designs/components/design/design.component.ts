@@ -9,12 +9,33 @@ import { Design } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { DesignQuery } from '../../state/design.query';
 import { VariableService } from '../../state/variables/variables.service';
+import { MatTooltip } from '@angular/material/tooltip';
+import {
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+  MatExpansionPanelDescription,
+  MatExpansionPanelContent,
+} from '@angular/material/expansion';
+import { VariablesComponent } from '../variables/variables.component';
+import { DesignModulesComponent } from '../design-modules/design-modules.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-design',
-    templateUrl: './design.component.html',
-    styleUrls: ['./design.component.scss'],
-    standalone: false
+  selector: 'cas-design',
+  templateUrl: './design.component.html',
+  styleUrls: ['./design.component.scss'],
+  imports: [
+    MatTooltip,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatExpansionPanelDescription,
+    MatExpansionPanelContent,
+    VariablesComponent,
+    DesignModulesComponent,
+    AsyncPipe,
+  ],
 })
 export class DesignComponent implements OnInit, OnDestroy {
   @Input()
@@ -28,7 +49,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   constructor(
     private designQuery: DesignQuery,
     private variableService: VariableService,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
   ) {}
 
   ngOnInit(): void {

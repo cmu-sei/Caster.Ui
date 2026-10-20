@@ -16,11 +16,10 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 @Component({
-    selector: 'cas-output',
-    templateUrl: './output.component.html',
-    styleUrls: ['./output.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-output',
+  templateUrl: './output.component.html',
+  styleUrls: ['./output.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OutputComponent implements OnInit, OnChanges, OnDestroy {
   @Input() loading: boolean;

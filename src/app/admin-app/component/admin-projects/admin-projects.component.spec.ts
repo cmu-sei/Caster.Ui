@@ -9,8 +9,10 @@ import { Project, ProjectsService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminProjectsComponent } from './admin-projects.component';
+import { ProjectListComponent } from 'src/app/project/component/project-home/project-list/project-list.component';
+import { ProjectMembershipsComponent } from 'src/app/project/component/project-memberships/project-memberships/project-memberships.component';
 
-@Component({ selector: 'cas-project-list', template: '', standalone: false })
+@Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
   @Input() projects: Project[];
   @Input() isLoading: boolean;
@@ -21,7 +23,6 @@ class ProjectListStub {
 @Component({
   selector: 'cas-project-memberships',
   template: '',
-  standalone: false,
 })
 class ProjectMembershipsStub {
   @Input() projectId: string;
@@ -36,7 +37,10 @@ async function renderAdminProjects() {
     ),
   } satisfies ApiStub<ProjectsService>;
   const view = await renderComponent(AdminProjectsComponent, {
-    declarations: [ProjectListStub, ProjectMembershipsStub],
+    childStubs: [
+      { replace: ProjectListComponent, with: ProjectListStub },
+      { replace: ProjectMembershipsComponent, with: ProjectMembershipsStub },
+    ],
     providers: [{ provide: ProjectsService, useValue: projectsApi }],
   });
   return { ...view, projectsApi };

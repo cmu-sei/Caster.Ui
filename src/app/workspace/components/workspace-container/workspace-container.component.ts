@@ -36,13 +36,52 @@ import {
 import { ImportResourceComponent } from '../import-resource/import-resource.component';
 import { OutputComponent } from '../output/output.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import {
+  MatButtonToggleGroup,
+  MatButtonToggle,
+} from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { CwdTableComponent } from '../../../sei-cwd-common/cwd-table/components/cwd-table/cwd-table.component';
+import { TableActionDirective } from '../../../sei-cwd-common/cwd-table/directives/table-action.directive';
+import { MatButton } from '@angular/material/button';
+import { WorkspaceVersionComponent } from '../workspace-version/workspace-version.component';
+import { TableItemActionDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-action.directive';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
+import { TableItemContentDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-content.directive';
+import { RunComponent } from '../run/run.component';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe, JsonPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-workspace-container',
-    templateUrl: './workspace-container.component.html',
-    styleUrls: ['./workspace-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-workspace-container',
+  templateUrl: './workspace-container.component.html',
+  styleUrls: ['./workspace-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatIcon,
+    MatTooltip,
+    CwdTableComponent,
+    TableActionDirective,
+    MatButton,
+    WorkspaceVersionComponent,
+    TableItemActionDirective,
+    MatCheckbox,
+    FormsModule,
+    TableItemContentDirective,
+    RunComponent,
+    MatProgressSpinner,
+    ImportResourceComponent,
+    OutputComponent,
+    AsyncPipe,
+    JsonPipe,
+  ],
 })
 export class WorkspaceContainerComponent
   implements OnInit, OnDestroy, OnChanges
@@ -88,12 +127,12 @@ export class WorkspaceContainerComponent
     private confirmService: CrucibleDialogService,
     public currentUserQuery: CurrentUserQuery,
     private dialog: MatDialog,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
   ) {}
 
   ngOnInit() {
     this.loading$ = this.workspaceQuery.selectLoading().pipe(
-      shareReplay(1)
+      shareReplay(1),
       // share({
       //   connector: () => new ReplaySubject(1),
       // })
@@ -107,13 +146,13 @@ export class WorkspaceContainerComponent
       .pipe(
         tap((resources) => {
           this.workspaceResources = resources;
-        })
+        }),
       );
     this.expandedRunIds$ = this.workspaceQuery
       .expandedRuns$(this.workspaceId)
       .pipe(
         tap(() => console.log(`Updating expandedRunIds`)),
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -125,7 +164,7 @@ export class WorkspaceContainerComponent
     this.expandedResourceIds$ = this.workspaceQuery
       .expandedResources$(this.workspaceId)
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -138,7 +177,7 @@ export class WorkspaceContainerComponent
     this.resourceActionIds$ = this.workspaceQuery
       .resourceActions$(this.workspaceId)
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -150,7 +189,7 @@ export class WorkspaceContainerComponent
     this.resourceAction$ = this.workspaceQuery
       .resourceAction$(this.workspaceId)
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -165,7 +204,7 @@ export class WorkspaceContainerComponent
     this.workspaceView$ = this.workspaceQuery
       .getWorkspaceView(this.workspaceId)
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -178,7 +217,7 @@ export class WorkspaceContainerComponent
     this.signalrService.joinWorkspace(this.workspaceId);
 
     this.canImport$ = this.permissionService.hasPermission(
-      SystemPermission.ImportResources
+      SystemPermission.ImportResources,
     );
   }
 
@@ -202,10 +241,10 @@ export class WorkspaceContainerComponent
         this.workspaceId,
         false,
         this.resourcesToReplace,
-        this.resourcesToTarget
+        this.resourcesToTarget,
       )
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -216,7 +255,7 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .rejectRun(this.workspaceId, run.id)
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -240,7 +279,7 @@ export class WorkspaceContainerComponent
           this.workspaceService
             .cancelRun(this.workspaceId, run.id, this.forceCancel)
             .pipe(
-              take(1)
+              take(1),
               // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
             )
             .subscribe();
@@ -267,7 +306,7 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .saveState(run.id)
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();

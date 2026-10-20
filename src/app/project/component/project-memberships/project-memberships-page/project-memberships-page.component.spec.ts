@@ -14,14 +14,15 @@ import { activatedRouteStub } from 'src/app/test-utils/activated-route';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectMembershipsPageComponent } from './project-memberships-page.component';
+import { ProjectMembershipsComponent } from 'src/app/project/component/project-memberships/project-memberships/project-memberships.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {}
 
 @Component({
   selector: 'cas-project-memberships',
   template: '',
-  standalone: false,
 })
 class ProjectMembershipsStub {
   @Input() projectId: string;
@@ -41,7 +42,10 @@ describe('ProjectMembershipsPageComponent', () => {
       ),
     } satisfies ApiStub<ProjectPermissionsService>;
     const { fixture } = await renderComponent(ProjectMembershipsPageComponent, {
-      declarations: [TopbarStub, ProjectMembershipsStub],
+      childStubs: [
+        { replace: TopbarComponent, with: TopbarStub },
+        { replace: ProjectMembershipsComponent, with: ProjectMembershipsStub },
+      ],
       providers: [
         {
           provide: ActivatedRoute,

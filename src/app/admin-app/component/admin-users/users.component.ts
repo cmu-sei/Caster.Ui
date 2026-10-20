@@ -9,12 +9,14 @@ import { SystemPermission, User } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { UserListComponent } from './user-list/user-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-users',
-    templateUrl: './users.component.html',
-    styleUrls: ['./users.component.css'],
-    standalone: false
+  selector: 'cas-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.css'],
+  imports: [UserListComponent, AsyncPipe],
 })
 export class UsersComponent implements OnInit {
   public matcher = new UserErrorStateMatcher();
@@ -22,13 +24,13 @@ export class UsersComponent implements OnInit {
   public users$: Observable<User[]>;
   public isLoading$: Observable<boolean>;
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageUsers
+    SystemPermission.ManageUsers,
   );
 
   constructor(
     private userService: UserService,
     private userQuery: UserQuery,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
   ) {}
 
   /**
@@ -53,7 +55,7 @@ export class UsersComponent implements OnInit {
 export class UserErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(
     control: UntypedFormControl | null,
-    form: FormGroupDirective | NgForm | null
+    form: FormGroupDirective | NgForm | null,
   ): boolean {
     const isSubmitted = form && form.submitted;
     return !!(control && control.invalid && (control.dirty || isSubmitted));

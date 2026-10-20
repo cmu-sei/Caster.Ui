@@ -24,7 +24,12 @@ import {
 import { DirectoryQuery } from 'src/app/directories/state';
 import { FileQuery, FileService } from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
-import { MatTab } from '@angular/material/tabs';
+import {
+  MatTab,
+  MatTabGroup,
+  MatTabLabel,
+  MatTabContent,
+} from '@angular/material/tabs';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
   catchError,
@@ -52,12 +57,31 @@ import {
   Workspace,
 } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { EditorComponent } from '../../../../editor/component/editor/editor.component';
+import { WorkspaceContainerComponent } from '../../../../workspace/components/workspace-container/workspace-container.component';
+import { DesignComponent } from '../../../../designs/components/design/design.component';
+import { ProjectComponent } from '../project/project.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-tab',
-    templateUrl: './project-tab.component.html',
-    styleUrls: ['./project-tab.component.scss'],
-    standalone: false
+  selector: 'cas-project-tab',
+  templateUrl: './project-tab.component.html',
+  styleUrls: ['./project-tab.component.scss'],
+  imports: [
+    MatTabGroup,
+    MatTab,
+    MatTabLabel,
+    MatIconButton,
+    MatIcon,
+    MatTabContent,
+    EditorComponent,
+    WorkspaceContainerComponent,
+    DesignComponent,
+    ProjectComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectTabComponent
   implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate
@@ -100,7 +124,7 @@ export class ProjectTabComponent
     private currentUserQuery: CurrentUserQuery,
     private changeDetectorRef: ChangeDetectorRef,
     private designQuery: DesignQuery,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
   ) {}
 
   /**
@@ -109,7 +133,7 @@ export class ProjectTabComponent
   ngOnInit() {
     this.canEdit$ = this.permissionService.canEditProject(this.project.id);
     this.canAdminLock$ = this.permissionService.canAdminLockProject(
-      this.project.id
+      this.project.id,
     );
     this.canManage$ = this.permissionService.canManageProject(this.project.id);
     this.moduleService.load(false, false).pipe(take(1)).subscribe();
@@ -117,7 +141,7 @@ export class ProjectTabComponent
     this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
     this.sidebarView$ = this.projectQuery.getRightSidebarView$(this.project.id);
     this.sidebarWidth$ = this.projectQuery.getRightSidebarWidth(
-      this.project.id
+      this.project.id,
     );
 
     // Subscribe when the tab changes.
@@ -144,7 +168,7 @@ export class ProjectTabComponent
         tap((tab: Tab) => {
           this.breadcrumb$ = this.projectQuery.selectTabBreadcrumb(
             this.project.id,
-            tab.id
+            tab.id,
           );
           this.updateBreadcrumb(tab);
         }),
@@ -154,22 +178,22 @@ export class ProjectTabComponent
             case ProjectObjectType.FILE:
               return this.fileQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the file entity.
-                map((file) => [tab, file])
+                map((file) => [tab, file]),
               );
             case ProjectObjectType.WORKSPACE:
               return this.workspaceQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the workspace entity.
-                map((workspace) => [tab, workspace])
+                map((workspace) => [tab, workspace]),
               );
             case ProjectObjectType.DIRECTORY:
               return this.directoryQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the directory entity.
-                map((directory) => [tab, directory])
+                map((directory) => [tab, directory]),
               );
             case ProjectObjectType.DESIGN:
               return this.designQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the directory entity.
-                map((design) => [tab, design])
+                map((design) => [tab, design]),
               );
           }
         }),
@@ -181,7 +205,7 @@ export class ProjectTabComponent
               return iif(
                 () => entity.content == null,
                 this.fileService.loadFile(entity.id).pipe(take(1)),
-                EMPTY
+                EMPTY,
               );
 
             case ProjectObjectType.WORKSPACE:
@@ -192,7 +216,7 @@ export class ProjectTabComponent
         }),
         shareReplay({ bufferSize: 1, refCount: true }),
         // unsubscribe automatically when the component is destroyed.
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 
@@ -207,7 +231,7 @@ export class ProjectTabComponent
           const subs = openTabs.map((tab) =>
             this.projectQuery
               .selectTabBreadcrumb(this.project.id, tab.id)
-              .pipe(take(1))
+              .pipe(take(1)),
           );
           return merge(subs);
         }),
@@ -220,7 +244,7 @@ export class ProjectTabComponent
         catchError((err) => {
           console.log(err);
           return EMPTY;
-        })
+        }),
       )
       .subscribe();
 
@@ -239,8 +263,7 @@ export class ProjectTabComponent
     // unsubscribe from closed tab changes
     this.tabSubscriptions.forEach((sub, tabId) => {
       const isClosed =
-        !this.showTabs ||
-        !this.projectUI.openTabs.some((t) => t.id === tabId);
+        !this.showTabs || !this.projectUI.openTabs.some((t) => t.id === tabId);
       if (isClosed) {
         sub.unsubscribe();
         this.tabSubscriptions.delete(tabId);
@@ -293,25 +316,28 @@ export class ProjectTabComponent
         if (!alreadyWatching) {
           switch (tab.type) {
             case ProjectObjectType.FILE:
-              this.tabSubscriptions.set(tab.id, this.fileQuery
-                .selectEntity(tab.id)
-                .subscribe((f) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.fileQuery.selectEntity(tab.id).subscribe((f) => {
                   this.fileChangeHandler(f);
-                }));
+                }),
+              );
               break;
             case ProjectObjectType.WORKSPACE:
-              this.tabSubscriptions.set(tab.id, this.workspaceQuery
-                .selectEntity(tab.id)
-                .subscribe((f) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.workspaceQuery.selectEntity(tab.id).subscribe((f) => {
                   this.workspaceChangeHandler(f);
-                }));
+                }),
+              );
               break;
             case ProjectObjectType.DESIGN:
-              this.tabSubscriptions.set(tab.id, this.designQuery
-                .selectEntity(tab.id)
-                .subscribe((d) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.designQuery.selectEntity(tab.id).subscribe((d) => {
                   this.designChangeHandler(d);
-                }));
+                }),
+              );
               break;
             default:
               break;
@@ -391,7 +417,7 @@ export class ProjectTabComponent
       newBreadcrumb = this.projectService.createBreadcrumb(
         this.project,
         obj,
-        tab.type
+        tab.type,
       );
       this.projectService.updateTabBreadcrumb(tab.id, newBreadcrumb);
       /*
@@ -402,7 +428,7 @@ export class ProjectTabComponent
       */
     } else {
       console.log(
-        tab.type.toString() + ': ' + tab.id + ' was not found with the query.'
+        tab.type.toString() + ': ' + tab.id + ' was not found with the query.',
       );
     }
   }

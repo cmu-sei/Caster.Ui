@@ -9,12 +9,15 @@ import { Project } from '../../../../generated/caster-api';
 import { CurrentUserQuery, UserService } from '../../../../users/state';
 import { ProjectQuery, ProjectService } from '../../../state';
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
+import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
+import { ProjectListComponent } from '../project-list/project-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-container',
-    templateUrl: './project-list-container.component.html',
-    styleUrls: ['./project-list-container.component.scss'],
-    standalone: false
+  selector: 'cas-project-container',
+  templateUrl: './project-list-container.component.html',
+  styleUrls: ['./project-list-container.component.scss'],
+  imports: [TopbarComponent, ProjectListComponent, AsyncPipe],
 })
 export class ProjectListContainerComponent implements OnInit {
   public username: string;
@@ -30,7 +33,7 @@ export class ProjectListContainerComponent implements OnInit {
     private settingsService: ComnSettingsService,
     private dialog: MatDialog,
     private userService: UserService,
-    private currentUserQuery: CurrentUserQuery
+    private currentUserQuery: CurrentUserQuery,
   ) {}
 
   ngOnInit() {

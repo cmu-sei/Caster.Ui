@@ -27,31 +27,38 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminContainerComponent } from './admin-container.component';
+import { AdminGroupsComponent } from 'src/app/admin-app/component/admin-groups/admin-groups.component';
+import { AdminModulesComponent } from 'src/app/admin-app/component/admin-modules/modules.component';
+import { AdminProjectsComponent } from 'src/app/admin-app/component/admin-projects/admin-projects.component';
+import { AdminRolesComponent } from 'src/app/admin-app/component/admin-roles/admin-roles.component';
+import { AdminWorkspacesComponent } from 'src/app/admin-app/component/admin-workspaces/admin-workspaces.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
+import { UsersComponent } from 'src/app/admin-app/component/admin-users/users.component';
+import { VlansComponent } from 'src/app/admin-app/component/admin-vlans/vlans.component';
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
   @Input() title: string;
   @Input() topbarView: TopbarView;
   @Input() sidenav: unknown;
   @Output() sidenavToggle = new EventEmitter<boolean>();
 }
-@Component({ selector: 'cas-users', template: '', standalone: false })
+@Component({ selector: 'cas-users', template: '' })
 class UsersStub {}
-@Component({ selector: 'cas-admin-modules', template: '', standalone: false })
+@Component({ selector: 'cas-admin-modules', template: '' })
 class ModulesStub {}
 @Component({
   selector: 'cas-admin-workspaces',
   template: '',
-  standalone: false,
 })
 class WorkspacesStub {}
-@Component({ selector: 'cas-vlans', template: '', standalone: false })
+@Component({ selector: 'cas-vlans', template: '' })
 class VlansStub {}
-@Component({ selector: 'cas-admin-roles', template: '', standalone: false })
+@Component({ selector: 'cas-admin-roles', template: '' })
 class RolesStub {}
-@Component({ selector: 'cas-admin-groups', template: '', standalone: false })
+@Component({ selector: 'cas-admin-groups', template: '' })
 class GroupsStub {}
-@Component({ selector: 'cas-admin-projects', template: '', standalone: false })
+@Component({ selector: 'cas-admin-projects', template: '' })
 class ProjectsStub {}
 
 async function renderContainer(grants: PermissionGrants, section?: string) {
@@ -71,15 +78,15 @@ async function renderContainer(grants: PermissionGrants, section?: string) {
     logout: vi.fn(() => Promise.resolve()),
   } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
   const view = await renderComponent(AdminContainerComponent, {
-    declarations: [
-      TopbarStub,
-      UsersStub,
-      ModulesStub,
-      WorkspacesStub,
-      VlansStub,
-      RolesStub,
-      GroupsStub,
-      ProjectsStub,
+    childStubs: [
+      { replace: TopbarComponent, with: TopbarStub },
+      { replace: UsersComponent, with: UsersStub },
+      { replace: AdminModulesComponent, with: ModulesStub },
+      { replace: AdminWorkspacesComponent, with: WorkspacesStub },
+      { replace: VlansComponent, with: VlansStub },
+      { replace: AdminRolesComponent, with: RolesStub },
+      { replace: AdminGroupsComponent, with: GroupsStub },
+      { replace: AdminProjectsComponent, with: ProjectsStub },
     ],
     imports: [
       MatSidenavModule,

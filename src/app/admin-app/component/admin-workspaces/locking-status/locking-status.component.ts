@@ -9,13 +9,15 @@ import {
   Output,
   EventEmitter,
 } from '@angular/core';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-locking-status',
-    templateUrl: './locking-status.component.html',
-    styleUrls: ['./locking-status.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-locking-status',
+  templateUrl: './locking-status.component.html',
+  styleUrls: ['./locking-status.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatSlideToggle, MatTooltip],
 })
 export class LockingStatusComponent implements OnInit {
   @Input() lockingEnabled: boolean;

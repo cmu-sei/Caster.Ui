@@ -16,13 +16,28 @@ import {
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { MatCard, MatCardTitle, MatCardActions } from '@angular/material/card';
+import { MatFormField } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton } from '@angular/material/button';
 
 @Component({
-    selector: 'cas-pool-list-item',
-    templateUrl: './pool-list-item.component.html',
-    styleUrls: ['./pool-list-item.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-pool-list-item',
+  templateUrl: './pool-list-item.component.html',
+  styleUrls: ['./pool-list-item.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatFormField,
+    MatInput,
+    MatIcon,
+    MatTooltip,
+    MatCardActions,
+    MatIconButton,
+  ],
 })
 export class PoolListItemComponent implements OnInit {
   @Input() pool: Pool;
@@ -36,7 +51,7 @@ export class PoolListItemComponent implements OnInit {
 
   constructor(
     private confirmService: CrucibleDialogService,
-    private poolService: PoolService
+    private poolService: PoolService,
   ) {}
 
   ngOnInit(): void {}
@@ -72,7 +87,7 @@ export class PoolListItemComponent implements OnInit {
                     }
                   });
               }
-            }
+            },
           );
         }
       });

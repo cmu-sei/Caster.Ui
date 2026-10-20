@@ -14,12 +14,19 @@ import { GroupMembershipService } from 'src/app/groups/group-membership.service'
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { UserQuery } from 'src/app/users/state';
+import { AdminGroupsMembershipListComponent } from '../admin-groups-membership-list/admin-groups-membership-list.component';
+import { AdminGroupsMemberListComponent } from '../admin-groups-member-list/admin-groups-member-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cas-admin-groups-detail',
   templateUrl: './admin-groups-detail.component.html',
   styleUrls: ['./admin-groups-detail.component.scss'],
-  standalone: false,
+  imports: [
+    AdminGroupsMembershipListComponent,
+    AdminGroupsMemberListComponent,
+    AsyncPipe,
+  ],
 })
 export class AdminGroupsDetailComponent implements OnInit, OnChanges {
   @Input()
@@ -57,7 +64,7 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.memberships$ = this.groupMembershipService.selectMemberships(
-      this.groupId
+      this.groupId,
     );
 
     this.nonMembers$ = this.selectUsers(false);
@@ -80,7 +87,7 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
             );
           }
         });
-      })
+      }),
     );
   }
 
@@ -94,7 +101,7 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
     this.groupMembershipService
       .deleteMembership(event.id)
       .pipe(
-        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser)),
       )
       .subscribe();
   }
@@ -107,7 +114,7 @@ export class AdminGroupsDetailComponent implements OnInit, OnChanges {
     this.groupMembershipService
       .editMembership(event.id, { role: event.role })
       .pipe(
-        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser))
+        switchMap(() => this.refreshSelfGroupPermissions(event.isCurrentUser)),
       )
       .subscribe();
   }

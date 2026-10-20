@@ -22,7 +22,6 @@ import {
   selector: 'cas-cwd-toolbar-navigation-item',
   templateUrl: './cwd-toolbar-navigation-item.component.html',
   styleUrls: ['./cwd-toolbar-navigation-item.component.scss'],
-  standalone: false,
 })
 export class CwdToolbarNavigationItemComponent
   implements OnInit, AfterViewInit, OnDestroy
@@ -35,7 +34,7 @@ export class CwdToolbarNavigationItemComponent
     private componentFactoryResolver: ComponentFactoryResolver,
     private injector: Injector,
     private appRef: ApplicationRef,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
   ) {}
 
   ngOnInit() {}
@@ -44,12 +43,12 @@ export class CwdToolbarNavigationItemComponent
     this.portalOutlet = new DomPortalOutlet(
       document.querySelector('#toolbar-navigation'),
       this.appRef,
-      this.injector
+      this.injector,
     );
 
     this.portal = new TemplatePortal(
       this.cwdNavigationTmplRef,
-      this.viewContainerRef
+      this.viewContainerRef,
     );
     this.portalOutlet.attach(this.portal);
   }

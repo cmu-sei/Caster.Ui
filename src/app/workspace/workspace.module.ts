@@ -22,7 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { OutputComponent} from './components/output/output.component';
+import { OutputComponent } from './components/output/output.component';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
 import { RunComponent } from './components/run/run.component';
@@ -38,15 +38,6 @@ import { A11yModule } from '@angular/cdk/a11y';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
 @NgModule({
-  declarations: [
-    WorkspaceContainerComponent,
-    OutputComponent,
-    RunComponent,
-    WorkspaceEditContainerComponent,
-    WorkspaceEditComponent,
-    WorkspaceVersionComponent,
-    ImportResourceComponent,
-  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -76,6 +67,13 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     MatSelectModule,
     DragDropModule,
     MatDialogModule,
+    WorkspaceContainerComponent,
+    OutputComponent,
+    RunComponent,
+    WorkspaceEditContainerComponent,
+    WorkspaceEditComponent,
+    WorkspaceVersionComponent,
+    ImportResourceComponent,
   ],
   exports: [
     WorkspaceContainerComponent,

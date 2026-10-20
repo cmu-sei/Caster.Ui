@@ -13,15 +13,51 @@ import {
   Workspace,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import {
+  MatFormField,
+  MatError,
+  MatLabel,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
-    selector: 'cas-workspace-edit',
-    templateUrl: './workspace-edit.component.html',
-    styleUrls: ['./workspace-edit.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-workspace-edit',
+  templateUrl: './workspace-edit.component.html',
+  styleUrls: ['./workspace-edit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatError,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatIconButton,
+    MatSuffix,
+    MatTooltip,
+    MatIcon,
+  ],
 })
 export class WorkspaceEditComponent implements OnInit {
   @Input() workspace: Workspace;

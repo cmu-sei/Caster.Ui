@@ -25,8 +25,9 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectNavigationContainerComponent } from './project-navigation-container.component';
+import { DirectoryPanelComponent } from 'src/app/project/component/project-details/project-navigation-container/directory-panel/directory-panel.component';
 
-@Component({ selector: 'cas-directory-panel', template: '', standalone: false })
+@Component({ selector: 'cas-directory-panel', template: '' })
 class DirectoryPanelStub {
   @Input() parentDirectory: Directory;
 }
@@ -49,7 +50,9 @@ async function renderNavigation(grants: PermissionGrants) {
     select: vi.fn(() => of({ params: { id: 'p1' } })),
   } as unknown as Pick<RouterQuery, 'select'>;
   const view = await renderComponent(ProjectNavigationContainerComponent, {
-    declarations: [DirectoryPanelStub],
+    childStubs: [
+      { replace: DirectoryPanelComponent, with: DirectoryPanelStub },
+    ],
     imports: [MatIconModule, MatTooltipModule, MatDialogModule],
     providers: [
       ...permissionDataProviders(grants),

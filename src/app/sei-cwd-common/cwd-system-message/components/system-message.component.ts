@@ -6,12 +6,25 @@ import {
   MAT_BOTTOM_SHEET_DATA,
   MatBottomSheetRef,
 } from '@angular/material/bottom-sheet';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
 
 @Component({
-    selector: 'app-system-message',
-    templateUrl: './system-message.component.html',
-    styleUrls: ['./system-message.component.css'],
-    standalone: false
+  selector: 'app-system-message',
+  templateUrl: './system-message.component.html',
+  styleUrls: ['./system-message.component.css'],
+  imports: [
+    MatIconButton,
+    MatIcon,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+  ],
 })
 export class SystemMessageComponent implements OnInit {
   public displayTitle: string;
@@ -19,7 +32,7 @@ export class SystemMessageComponent implements OnInit {
 
   constructor(
     public messageSheet: MatBottomSheetRef<SystemMessageComponent>,
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: any
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: any,
   ) {
     this.displayTitle = data.title;
     this.displayMessage = data.message;

@@ -16,14 +16,16 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminWorkspacesComponent } from './admin-workspaces.component';
+import { ActiveRunsComponent } from 'src/app/admin-app/component/admin-workspaces/active-runs/active-runs.component';
+import { LockingStatusComponent } from 'src/app/admin-app/component/admin-workspaces/locking-status/locking-status.component';
 
-@Component({ selector: 'cas-locking-status', template: '', standalone: false })
+@Component({ selector: 'cas-locking-status', template: '' })
 class LockingStatusStub {
   @Input() lockingEnabled: boolean;
   @Output() setLockingEnabled = new EventEmitter<boolean>();
 }
 
-@Component({ selector: 'cas-active-runs', template: '', standalone: false })
+@Component({ selector: 'cas-active-runs', template: '' })
 class ActiveRunsStub {
   @Input() runs: Run[];
   @Input() expandedRuns: string[];
@@ -54,7 +56,10 @@ async function renderAdminWorkspaces() {
     ),
   } satisfies ApiStub<RunsService>;
   const view = await renderComponent(AdminWorkspacesComponent, {
-    declarations: [LockingStatusStub, ActiveRunsStub],
+    childStubs: [
+      { replace: LockingStatusComponent, with: LockingStatusStub },
+      { replace: ActiveRunsComponent, with: ActiveRunsStub },
+    ],
     imports: [MatCardModule],
     providers: [
       { provide: SignalRService, useValue: signalR },

@@ -20,13 +20,24 @@ import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ITerminalOptions, Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
+import { CdkDrag } from '@angular/cdk/drag-drop';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton } from '@angular/material/button';
+import { WorkspaceContainerComponent } from '../workspace-container/workspace-container.component';
 
 @Component({
   selector: 'cas-run',
   templateUrl: './run.component.html',
   styleUrls: ['./run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [
+    CdkDrag,
+    MatIcon,
+    MatTooltip,
+    MatIconButton,
+    WorkspaceContainerComponent,
+  ],
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() run: Run;
@@ -55,7 +66,10 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   xterm: Terminal = new Terminal(this.xtermOptions);
   fitAddon: FitAddon = new FitAddon();
 
-  constructor(private signalRService: SignalRService, private ngZone: NgZone) {
+  constructor(
+    private signalRService: SignalRService,
+    private ngZone: NgZone,
+  ) {
     window.addEventListener('wheel', this.scroll, { passive: false });
   }
 
@@ -155,7 +169,11 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   private shouldStartStream(): boolean {
     if (this.run == null) {
       return false;
-    } else if (this.status == null && this.run.status !== RunStatus.Queued && this.run.status !== RunStatus.ApplyQueued) {
+    } else if (
+      this.status == null &&
+      this.run.status !== RunStatus.Queued &&
+      this.run.status !== RunStatus.ApplyQueued
+    ) {
       // if we haven't started streaming yet and there is something to stream, start stream
       this.setStatus();
       return true;
@@ -258,7 +276,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   setHandleTransform(
     dragHandle: HTMLElement,
     targetRect: ClientRect | DOMRect,
-    position: 'x' | 'y' | 'both'
+    position: 'x' | 'y' | 'both',
   ) {
     const dragRect = dragHandle.getBoundingClientRect();
     const translateX = targetRect.width - dragRect.width;

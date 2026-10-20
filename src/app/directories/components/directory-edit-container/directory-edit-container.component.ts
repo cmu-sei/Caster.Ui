@@ -16,13 +16,15 @@ import {
   TerraformService,
 } from 'src/app/generated/caster-api';
 import { DirectoryService, DirectoryQuery } from '../../state';
+import { DirectoryEditComponent } from './directory-edit/directory-edit.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-directory-edit-container',
-    templateUrl: './directory-edit-container.component.html',
-    styleUrls: ['./directory-edit-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-directory-edit-container',
+  templateUrl: './directory-edit-container.component.html',
+  styleUrls: ['./directory-edit-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DirectoryEditComponent, AsyncPipe],
 })
 export class DirectoryEditContainerComponent implements OnInit {
   @Input() id: string;
@@ -35,7 +37,7 @@ export class DirectoryEditContainerComponent implements OnInit {
   constructor(
     private directoryService: DirectoryService,
     private directoryQuery: DirectoryQuery,
-    private terraformService: TerraformService
+    private terraformService: TerraformService,
   ) {}
 
   ngOnInit(): void {

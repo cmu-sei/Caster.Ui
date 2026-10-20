@@ -15,13 +15,15 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlansComponent } from './vlans.component';
+import { PoolsComponent } from 'src/app/admin-app/component/admin-vlans/pools/pools.component';
+import { ProjectVlansComponent } from 'src/app/admin-app/component/admin-vlans/project-vlans/project-vlans.component';
 
-@Component({ selector: 'cas-pools', template: '', standalone: false })
+@Component({ selector: 'cas-pools', template: '' })
 class PoolsStub {
   @Input() canEdit: boolean;
 }
 
-@Component({ selector: 'cas-project-vlans', template: '', standalone: false })
+@Component({ selector: 'cas-project-vlans', template: '' })
 class ProjectVlansStub {
   @Input() projects: Project[];
   @Input() canEdit: boolean;
@@ -37,7 +39,10 @@ async function renderVlans(grants: PermissionGrants) {
     'startConnection' | 'joinVlansAdmin' | 'leaveVlansAdmin'
   >;
   const view = await renderComponent(VlansComponent, {
-    declarations: [PoolsStub, ProjectVlansStub],
+    childStubs: [
+      { replace: PoolsComponent, with: PoolsStub },
+      { replace: ProjectVlansComponent, with: ProjectVlansStub },
+    ],
     imports: [MatTabsModule],
     providers: [
       ...permissionDataProviders(grants),

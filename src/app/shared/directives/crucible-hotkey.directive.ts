@@ -13,15 +13,12 @@ import { ComnSettingsService } from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
 import { Subscription } from 'rxjs';
 
-@Directive({
-    selector: '[hotkeyAction]',
-    standalone: false
-})
+@Directive({ selector: '[hotkeyAction]' })
 export class CrucibleHotkeyDirective implements AfterViewInit {
   constructor(
     private settingsService: ComnSettingsService,
     private hotkeysService: HotkeysService,
-    private el: ElementRef
+    private el: ElementRef,
   ) {}
   private subscription: Subscription;
   @Input() hotkeyAction: string;

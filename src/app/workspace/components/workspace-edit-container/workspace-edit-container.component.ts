@@ -16,13 +16,15 @@ import {
   Workspace,
 } from 'src/app/generated/caster-api';
 import { Observable } from 'rxjs';
+import { WorkspaceEditComponent } from './workspace-edit/workspace-edit.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-workspace-edit-container',
-    templateUrl: './workspace-edit-container.component.html',
-    styleUrls: ['./workspace-edit-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-workspace-edit-container',
+  templateUrl: './workspace-edit-container.component.html',
+  styleUrls: ['./workspace-edit-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [WorkspaceEditComponent, AsyncPipe],
 })
 export class WorkspaceEditContainerComponent implements OnInit {
   @Input() id: string;
@@ -35,7 +37,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
   constructor(
     private workspaceService: WorkspaceService,
     private workspaceQuery: WorkspaceQuery,
-    private terraformService: TerraformService
+    private terraformService: TerraformService,
   ) {}
 
   ngOnInit(): void {

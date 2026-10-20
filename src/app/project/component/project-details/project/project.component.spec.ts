@@ -9,8 +9,9 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import { initialProjectUIState } from '../../../state/project-store.service';
 import { ProjectUI } from '../../../state/project.model';
 import { ProjectComponent } from './project.component';
+import { ProjectTabComponent } from 'src/app/project/component/project-details/project-tab/project-tab.component';
 
-@Component({ selector: 'cas-project-tab', template: '', standalone: false })
+@Component({ selector: 'cas-project-tab', template: '' })
 class ProjectTabStub {
   @Input() project: Project;
   @Input() projectUI: ProjectUI;
@@ -29,7 +30,7 @@ describe('ProjectComponent', () => {
     const project: Project = { id: 'p1', name: 'Range' };
     const projectUI: ProjectUI = { ...initialProjectUIState, id: 'p1' };
     const { fixture } = await renderComponent(ProjectComponent, {
-      declarations: [ProjectTabStub],
+      childStubs: [{ replace: ProjectTabComponent, with: ProjectTabStub }],
       inputs: { project, projectUI, loading: false },
       on: { closeTab },
     });

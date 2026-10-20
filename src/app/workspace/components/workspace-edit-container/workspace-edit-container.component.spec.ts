@@ -15,8 +15,9 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { WorkspaceEditContainerComponent } from './workspace-edit-container.component';
+import { WorkspaceEditComponent } from 'src/app/workspace/components/workspace-edit-container/workspace-edit/workspace-edit.component';
 
-@Component({ selector: 'cas-workspace-edit', template: '', standalone: false })
+@Component({ selector: 'cas-workspace-edit', template: '' })
 class WorkspaceEditStub {
   @Input() workspace: Workspace;
   @Input() terraformVersions: TerraformVersionsResult;
@@ -41,7 +42,7 @@ async function renderContainer() {
   } satisfies ApiStub<WorkspacesService>;
   const editWorkspaceComplete = vi.fn<(done: boolean) => void>();
   const view = await renderComponent(WorkspaceEditContainerComponent, {
-    declarations: [WorkspaceEditStub],
+    childStubs: [{ replace: WorkspaceEditComponent, with: WorkspaceEditStub }],
     providers: [
       { provide: TerraformService, useValue: terraformApi },
       { provide: WorkspacesService, useValue: workspacesApi },

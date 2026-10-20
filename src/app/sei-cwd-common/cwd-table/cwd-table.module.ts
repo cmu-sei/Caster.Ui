@@ -19,12 +19,6 @@ import { TableActionDirective } from './directives/table-action.directive';
 import { TableItemActionDirective } from './directives/table-item-action.directive';
 
 @NgModule({
-  declarations: [
-    CwdTableComponent,
-    TableItemContentDirective,
-    TableActionDirective,
-    TableItemActionDirective,
-  ],
   imports: [
     CommonModule,
     MatIconModule,
@@ -37,6 +31,10 @@ import { TableItemActionDirective } from './directives/table-item-action.directi
     MatInputModule,
     MatSortModule,
     FormsModule,
+    CwdTableComponent,
+    TableItemContentDirective,
+    TableActionDirective,
+    TableItemActionDirective,
   ],
   exports: [
     CwdTableComponent,

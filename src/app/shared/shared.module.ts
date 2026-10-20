@@ -17,11 +17,6 @@ import { TopbarComponent } from './components/top-bar/topbar.component';
 import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive';
 
 @NgModule({
-  declarations: [
-    CrucibleHotkeyDirective,
-    TopbarComponent,
-    HotkeysHelpDialogComponent,
-  ],
   imports: [
     CommonModule,
     MatToolbarModule,
@@ -33,7 +28,14 @@ import { CrucibleHotkeyDirective } from './directives/crucible-hotkey.directive'
     RouterModule,
     A11yModule,
     ...CRUCIBLE_DIALOG_IMPORTS,
+    CrucibleHotkeyDirective,
+    TopbarComponent,
+    HotkeysHelpDialogComponent,
   ],
-  exports: [CrucibleHotkeyDirective, TopbarComponent, HotkeysHelpDialogComponent],
+  exports: [
+    CrucibleHotkeyDirective,
+    TopbarComponent,
+    HotkeysHelpDialogComponent,
+  ],
 })
 export class SharedModule {}

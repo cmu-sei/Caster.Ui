@@ -29,14 +29,25 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectImportComponent } from '../project-import/project-import.component';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DirectoryPanelComponent } from './directory-panel/directory-panel.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { AsyncPipe } from '@angular/common';
 
 const NAME_VALUE = 'nameValue';
 
 @Component({
-    selector: 'cas-project-navigation',
-    templateUrl: './project-navigation-container.component.html',
-    styleUrls: ['./project-navigation-container.component.scss'],
-    standalone: false
+  selector: 'cas-project-navigation',
+  templateUrl: './project-navigation-container.component.html',
+  styleUrls: ['./project-navigation-container.component.scss'],
+  imports: [
+    DirectoryPanelComponent,
+    MatIcon,
+    MatTooltip,
+    ProjectExportComponent,
+    ProjectImportComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   public project$: Observable<Project>;
@@ -64,7 +75,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private permissionService: PermissionService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit() {
@@ -74,7 +85,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
         map((state) => {
           return state.params;
         }),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((params) => {
         this.projectId = params.id;
@@ -95,12 +106,12 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
                 if (error.status === 404) {
                   this.snackBar.open('Project not found', 'Dismiss', {
                     duration: 5000,
-                    verticalPosition: 'top'
+                    verticalPosition: 'top',
                   });
                   this.router.navigate(['/']);
                 }
                 return EMPTY;
-              })
+              }),
             )
             .subscribe();
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -108,7 +119,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
             .loadDirectories(this.projectId)
             .pipe(
               take(1),
-              catchError(() => EMPTY)
+              catchError(() => EMPTY),
             )
             .subscribe(() => {
               // Drop any persisted tabs whose underlying file/workspace/design
@@ -126,7 +137,11 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
@@ -149,11 +164,17 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   exportProject() {
-    this.exportDialogRef = this.dialog.open(this.exportDialog, { width: '480px', maxWidth: '90vw' });
+    this.exportDialogRef = this.dialog.open(this.exportDialog, {
+      width: '480px',
+      maxWidth: '90vw',
+    });
   }
 
   importProject() {
-    this.importDialogRef = this.dialog.open(this.importDialog, { width: '480px', maxWidth: '90vw' });
+    this.importDialogRef = this.dialog.open(this.importDialog, {
+      width: '480px',
+      maxWidth: '90vw',
+    });
   }
 
   onExportComplete() {

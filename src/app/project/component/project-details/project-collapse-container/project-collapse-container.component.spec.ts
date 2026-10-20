@@ -25,15 +25,17 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectStore } from '../../../state/project-store.service';
 import { ProjectUI } from '../../../state/project.model';
 import { ProjectCollapseContainerComponent } from './project-collapse-container.component';
+import { ProjectComponent } from 'src/app/project/component/project-details/project/project.component';
+import { ProjectNavigationContainerComponent } from 'src/app/project/component/project-details/project-navigation-container/project-navigation-container.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 
 @Component({
   selector: 'cas-project-navigation',
   template: '',
-  standalone: false,
 })
 class ProjectNavigationStub {}
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
   @Input() title: string;
   @Input() topbarView: TopbarView;
@@ -43,7 +45,7 @@ class TopbarStub {
   @Output() editMemberships = new EventEmitter<void>();
 }
 
-@Component({ selector: 'cas-project', template: '', standalone: false })
+@Component({ selector: 'cas-project', template: '' })
 class ProjectStub {
   @Input() loading: boolean;
   @Input() project: Project;
@@ -84,7 +86,14 @@ describe('ProjectCollapseContainerComponent', () => {
     const { fixture } = await renderComponent(
       ProjectCollapseContainerComponent,
       {
-        declarations: [ProjectNavigationStub, TopbarStub, ProjectStub],
+        childStubs: [
+          {
+            replace: ProjectNavigationContainerComponent,
+            with: ProjectNavigationStub,
+          },
+          { replace: TopbarComponent, with: TopbarStub },
+          { replace: ProjectComponent, with: ProjectStub },
+        ],
         imports: [
           MatSidenavModule,
           MatToolbarModule,

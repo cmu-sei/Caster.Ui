@@ -21,13 +21,24 @@ import { DesignModuleQuery } from '../../state/design-modules/design-module.quer
 import { DesignModuleService } from '../../state/design-modules/design-module.service';
 import { VariablesQuery } from '../../state/variables/variables.query';
 import { toTerraformName } from 'src/app/shared/models/validator-patterns';
+import { MatButton } from '@angular/material/button';
+import { ModuleListComponent } from '../../../editor/component/module-list/module-list.component';
+import { ModuleVariablesComponent } from '../../../editor/component/module-variables/module-variables.component';
+import { DesignModuleComponent } from './design-module/design-module.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-design-modules',
-    templateUrl: './design-modules.component.html',
-    styleUrls: ['./design-modules.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-design-modules',
+  templateUrl: './design-modules.component.html',
+  styleUrls: ['./design-modules.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatButton,
+    ModuleListComponent,
+    ModuleVariablesComponent,
+    DesignModuleComponent,
+    AsyncPipe,
+  ],
 })
 export class DesignModulesComponent implements OnInit {
   @Input()
@@ -71,7 +82,7 @@ export class DesignModulesComponent implements OnInit {
     private designModulesService: DesignModuleService,
     private designModuleQuery: DesignModuleQuery,
     private variablesQuery: VariablesQuery,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -116,7 +127,7 @@ export class DesignModulesComponent implements OnInit {
       this.designModuleQuery
         .getAll()
         .filter((x) => x.designId == this.designId)
-        .map((x) => x.name)
+        .map((x) => x.name),
     );
 
     let unique = name;
@@ -141,7 +152,7 @@ export class DesignModulesComponent implements OnInit {
         name: event.moduleName,
         moduleVersion: event.versionName,
         values: event.variableValues.filter(
-          (x) => event.changedVariables.includes(x.name) && !!x.value
+          (x) => event.changedVariables.includes(x.name) && !!x.value,
         ),
       })
       .pipe(finalize(() => this.savingSubject.next(false)))

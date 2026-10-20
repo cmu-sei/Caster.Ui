@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSort, Sort } from '@angular/material/sort';
+import { MatSort, Sort, MatSortHeader } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   fromMatPaginator,
@@ -28,13 +28,49 @@ import { map } from 'rxjs/operators';
 import { TableActionDirective } from '../../directives/table-action.directive';
 import { TableItemActionDirective } from '../../directives/table-item-action.directive';
 import { TableItemContentDirective } from '../../directives/table-item-content.directive';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { NgTemplateOutlet, NgClass, AsyncPipe } from '@angular/common';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+} from '@angular/material/expansion';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
-    selector: 'cwd-table',
-    templateUrl: './cwd-table.component.html',
-    styleUrls: ['./cwd-table.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cwd-table',
+  templateUrl: './cwd-table.component.html',
+  styleUrls: ['./cwd-table.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    NgTemplateOutlet,
+    MatAccordion,
+    MatSort,
+    MatSortHeader,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    NgClass,
+    MatCard,
+    MatProgressSpinner,
+    AsyncPipe,
+  ],
 })
 export class CwdTableComponent<T> implements OnInit, OnChanges {
   public filterString = '';
@@ -160,7 +196,7 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       this.totalRows$ = rows$.pipe(map((rows) => rows.length));
       this.displayedRows$ = rows$.pipe(
         sortRows(this.sortEvents$),
-        paginateRows(this.pageEvents$)
+        paginateRows(this.pageEvents$),
       );
     }
   }

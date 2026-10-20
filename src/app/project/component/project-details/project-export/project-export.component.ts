@@ -18,15 +18,38 @@ import {
   UntypedFormGroup,
   UntypedFormBuilder,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { TitleCasePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-export',
-    templateUrl: './project-export.component.html',
-    styleUrls: ['./project-export.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-export',
+  templateUrl: './project-export.component.html',
+  styleUrls: ['./project-export.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatSlideToggle,
+    MatTooltip,
+    TitleCasePipe,
+  ],
 })
 export class ProjectExportComponent implements OnInit {
   @Input() id: string;
@@ -51,7 +74,7 @@ export class ProjectExportComponent implements OnInit {
     private directoryService: DirectoryService,
     private projectService: ProjectService,
     private fileService: FileService,
-    private formBuilder: UntypedFormBuilder
+    private formBuilder: UntypedFormBuilder,
   ) {
     this.form = formBuilder.group({
       archiveType: [this.archiveTypes[0]],
@@ -66,7 +89,7 @@ export class ProjectExportComponent implements OnInit {
       this.id,
       this._type,
       this.form.value.archiveType,
-      this.form.value.includeIds
+      this.form.value.includeIds,
     );
     this.exportComplete.emit(true);
   }
@@ -79,7 +102,7 @@ export class ProjectExportComponent implements OnInit {
     id: string,
     type: ProjectObjectType,
     archiveType: ArchiveType,
-    includeIds: boolean
+    includeIds: boolean,
   ) {
     switch (type) {
       case ProjectObjectType.DIRECTORY: {

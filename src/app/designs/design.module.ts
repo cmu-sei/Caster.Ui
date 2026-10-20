@@ -9,7 +9,7 @@ import { DesignComponent } from './components/design/design.component';
 import { EditorModule } from '../editor/editor.module';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { VariablesComponent} from './components/variables/variables.component';
+import { VariablesComponent } from './components/variables/variables.component';
 import { VariableComponent } from './components/variables/variable/variable.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,15 +28,6 @@ import { ModuleOutputsComponent } from './components/module-outputs/module-outpu
 import { ModuleOutputComponent } from './components/module-outputs/module-output/module-output.component';
 
 @NgModule({
-  declarations: [
-    DesignComponent,
-    VariablesComponent,
-    VariableComponent,
-    DesignModulesComponent,
-    DesignModuleComponent,
-    ModuleOutputsComponent,
-    ModuleOutputComponent,
-  ],
   imports: [
     CommonModule,
     EditorModule,
@@ -53,6 +44,13 @@ import { ModuleOutputComponent } from './components/module-outputs/module-output
     MatIconModule,
     MatTooltipModule,
     MatSnackBarModule,
+    DesignComponent,
+    VariablesComponent,
+    VariableComponent,
+    DesignModulesComponent,
+    DesignModuleComponent,
+    ModuleOutputsComponent,
+    ModuleOutputComponent,
   ],
   exports: [DesignComponent],
 })

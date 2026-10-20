@@ -13,13 +13,16 @@ import { Observable } from 'rxjs';
 import { Variable } from 'src/app/generated/caster-api';
 import { VariablesQuery } from '../../state/variables/variables.query';
 import { VariableService } from '../../state/variables/variables.service';
+import { MatButton } from '@angular/material/button';
+import { VariableComponent } from './variable/variable.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-variables',
-    templateUrl: './variables.component.html',
-    styleUrls: ['./variables.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-variables',
+  templateUrl: './variables.component.html',
+  styleUrls: ['./variables.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatButton, VariableComponent, AsyncPipe],
 })
 export class VariablesComponent implements OnInit {
   @Input()
@@ -32,7 +35,7 @@ export class VariablesComponent implements OnInit {
 
   constructor(
     private variableService: VariableService,
-    private variablesQuery: VariablesQuery
+    private variablesQuery: VariablesQuery,
   ) {}
 
   ngOnInit(): void {

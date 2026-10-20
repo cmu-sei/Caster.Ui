@@ -23,7 +23,7 @@ import { AppComponent } from './app.component';
 @Component({ selector: 'cas-test-page', template: '' })
 class PageStub {}
 
-@Component({ selector: 'comn-header-bar', template: '', standalone: false })
+@Component({ selector: 'comn-header-bar', template: '' })
 class HeaderBarStub {}
 
 async function renderApp(queryParams: Record<string, string> = {}) {
@@ -41,7 +41,7 @@ async function renderApp(queryParams: Record<string, string> = {}) {
     userTheme$: of(Theme.DARK),
   } satisfies Pick<ComnAuthQuery, 'userTheme$'>;
   const view = await renderComponent(AppComponent, {
-    declarations: [HeaderBarStub],
+    imports: [HeaderBarStub],
     providers: [
       { provide: HotkeysService, useValue: hotkeys },
       { provide: CrucibleThemeService, useValue: theme },

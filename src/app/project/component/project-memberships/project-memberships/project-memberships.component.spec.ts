@@ -33,11 +33,12 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectMembershipsComponent } from './project-memberships.component';
+import { ProjectMemberListComponent } from 'src/app/project/component/project-memberships/project-member-list/project-member-list.component';
+import { ProjectMembershipListComponent } from 'src/app/project/component/project-memberships/project-membership-list/project-membership-list.component';
 
 @Component({
   selector: 'cas-project-membership-list',
   template: '',
-  standalone: false,
 })
 class MembershipListStub {
   @Input() users: User[];
@@ -50,7 +51,6 @@ class MembershipListStub {
 @Component({
   selector: 'cas-project-member-list',
   template: '',
-  standalone: false,
 })
 class MemberListStub {
   @Input() memberships: ProjectMembership[];
@@ -105,7 +105,10 @@ async function renderMemberships(grants: PermissionGrants, embedded = false) {
   >;
   const goBack = vi.fn();
   const view = await renderComponent(ProjectMembershipsComponent, {
-    declarations: [MembershipListStub, MemberListStub],
+    childStubs: [
+      { replace: ProjectMembershipListComponent, with: MembershipListStub },
+      { replace: ProjectMemberListComponent, with: MemberListStub },
+    ],
     imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),

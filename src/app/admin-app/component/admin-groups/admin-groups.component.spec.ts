@@ -32,11 +32,11 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminGroupsComponent } from './admin-groups.component';
+import { AdminGroupsDetailComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-detail/admin-groups-detail.component';
 
 @Component({
   selector: 'cas-admin-groups-detail',
   template: '',
-  standalone: false,
 })
 class GroupsDetailStub {
   @Input() groupId: string;
@@ -59,7 +59,9 @@ async function renderGroups(grants: PermissionGrants, confirmAnswer?: boolean) {
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(AdminGroupsComponent, {
-    declarations: [GroupsDetailStub],
+    childStubs: [
+      { replace: AdminGroupsDetailComponent, with: GroupsDetailStub },
+    ],
     imports: [
       MatTableModule,
       MatSortModule,

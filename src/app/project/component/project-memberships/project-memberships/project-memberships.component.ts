@@ -25,12 +25,25 @@ import {
 import { GroupService } from 'src/app/groups/group.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ProjectMembershipListComponent } from '../project-membership-list/project-membership-list.component';
+import { ProjectMemberListComponent } from '../project-member-list/project-member-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-memberships',
-    templateUrl: './project-memberships.component.html',
-    styleUrls: ['./project-memberships.component.scss'],
-    standalone: false
+  selector: 'cas-project-memberships',
+  templateUrl: './project-memberships.component.html',
+  styleUrls: ['./project-memberships.component.scss'],
+  imports: [
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ProjectMembershipListComponent,
+    ProjectMemberListComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectMembershipsComponent implements OnInit, OnChanges {
   @Input()
@@ -73,7 +86,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
     private userQuery: UserQuery,
     private groupService: GroupService,
     private permissionService: PermissionService,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
   ) {}
 
   ngOnInit(): void {
@@ -102,7 +115,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   ngOnChanges() {
     this.project$ = this.projectQuery.selectEntity(this.projectId).pipe(
       filter((x) => x != null),
-      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id)))
+      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))),
     );
   }
 
@@ -122,7 +135,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
             );
           }
         });
-      })
+      }),
     );
   }
 
@@ -142,7 +155,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
             );
           }
         });
-      })
+      }),
     );
   }
 

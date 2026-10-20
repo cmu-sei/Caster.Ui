@@ -13,13 +13,24 @@ import { Observable, of } from 'rxjs';
 import { Pool } from 'src/app/generated/caster-api';
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { PoolListComponent } from '../pool-list/pool-list.component';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { PartitionListComponent } from '../partition-list/partition-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-pools',
-    templateUrl: './pools.component.html',
-    styleUrls: ['./pools.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-pools',
+  templateUrl: './pools.component.html',
+  styleUrls: ['./pools.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    PoolListComponent,
+    MatIconButton,
+    MatIcon,
+    PartitionListComponent,
+    AsyncPipe,
+  ],
 })
 export class PoolsComponent implements OnInit {
   @Input()
@@ -30,7 +41,10 @@ export class PoolsComponent implements OnInit {
   public showPools = true;
   public selectedPool$: Observable<Pool>;
 
-  constructor(private poolService: PoolService, private poolQuery: PoolQuery) {}
+  constructor(
+    private poolService: PoolService,
+    private poolQuery: PoolQuery,
+  ) {}
 
   ngOnInit(): void {
     this.poolService.load().subscribe();

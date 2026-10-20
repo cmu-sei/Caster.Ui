@@ -18,11 +18,12 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { UserStore } from 'src/app/users/state/user.store';
 import { AdminGroupsDetailComponent } from './admin-groups-detail.component';
+import { AdminGroupsMemberListComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-member-list/admin-groups-member-list.component';
+import { AdminGroupsMembershipListComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-membership-list/admin-groups-membership-list.component';
 
 @Component({
   selector: 'cas-admin-groups-membership-list',
   template: '',
-  standalone: false,
 })
 class MembershipListStub {
   @Input() users: User[];
@@ -33,7 +34,6 @@ class MembershipListStub {
 @Component({
   selector: 'cas-admin-groups-member-list',
   template: '',
-  standalone: false,
 })
 class MemberListStub {
   @Input() memberships: GroupMembership[];
@@ -72,7 +72,10 @@ async function renderDetail(canEdit: boolean) {
     'startConnection' | 'joinGroup' | 'leaveGroup'
   >;
   const view = await renderComponent(AdminGroupsDetailComponent, {
-    declarations: [MembershipListStub, MemberListStub],
+    childStubs: [
+      { replace: AdminGroupsMembershipListComponent, with: MembershipListStub },
+      { replace: AdminGroupsMemberListComponent, with: MemberListStub },
+    ],
     providers: [
       { provide: GroupsService, useValue: groupsApi },
       { provide: SignalRService, useValue: signalR },

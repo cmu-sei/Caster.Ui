@@ -32,15 +32,18 @@ import {
 } from 'src/app/test-utils/unhandled-rx-errors';
 import { VariablesStore } from '../../state/variables/variables.store';
 import { DesignModulesComponent } from './design-modules.component';
+import { DesignModuleComponent } from 'src/app/designs/components/design-modules/design-module/design-module.component';
+import { ModuleListComponent } from 'src/app/editor/component/module-list/module-list.component';
+import { ModuleVariablesComponent } from 'src/app/editor/component/module-variables/module-variables.component';
 
-@Component({ selector: 'cas-module-list', template: '', standalone: false })
+@Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
   @Input() modules: Module[];
   @Input() isEditing: boolean;
   @Output() getModule = new EventEmitter<{ id: string; name: string }>();
 }
 
-@Component({ selector: 'cas-design-module', template: '', standalone: false })
+@Component({ selector: 'cas-design-module', template: '' })
 class DesignModuleStub {
   @Input() designModule: DesignModule;
   @Input() module: Module;
@@ -50,7 +53,6 @@ class DesignModuleStub {
 @Component({
   selector: 'cas-module-variables',
   template: '',
-  standalone: false,
 })
 class ModuleVariablesStub {
   @Input() selectedModule: Module;
@@ -117,7 +119,11 @@ async function renderDesignModules({
     createDesignModule: vi.fn(create),
   } satisfies ApiStub<DesignsModulesService>;
   const view = await renderComponent(DesignModulesComponent, {
-    declarations: [ModuleListStub, DesignModuleStub, ModuleVariablesStub],
+    childStubs: [
+      { replace: ModuleListComponent, with: ModuleListStub },
+      { replace: DesignModuleComponent, with: DesignModuleStub },
+      { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
+    ],
     imports: [MatButtonModule, MatDialogModule],
     providers: [
       { provide: ModulesService, useValue: modulesApi },
@@ -342,8 +348,9 @@ describe('DesignModulesComponent', () => {
    * Data: canEdit true, Add Module clicked, then canEdit set false (the live canEdit$ of the project); module "web server" picked.
    */
   it('opens the add dialog read-only when canEdit turns false', async () => {
-    const { fixture, user, moduleList, addDialog } =
-      await renderDesignModules({ canEdit: true });
+    const { fixture, user, moduleList, addDialog } = await renderDesignModules({
+      canEdit: true,
+    });
 
     await user.click(screen.getByRole('button', { name: 'Add Module' }));
     fixture.componentRef.setInput('canEdit', false);

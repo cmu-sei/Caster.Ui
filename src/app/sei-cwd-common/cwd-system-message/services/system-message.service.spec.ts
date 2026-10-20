@@ -27,8 +27,8 @@ function setup(): SystemMessageService {
       MatExpansionModule,
       MatIconModule,
       MatIconTestingModule,
+      SystemMessageComponent,
     ],
-    declarations: [SystemMessageComponent],
     providers: [SystemMessageService],
   });
   return TestBed.inject(SystemMessageService);

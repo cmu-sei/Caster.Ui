@@ -14,8 +14,9 @@ import { Pool, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { PoolListComponent } from './pool-list.component';
+import { PoolListItemComponent } from 'src/app/admin-app/component/admin-vlans/pool-list-item/pool-list-item.component';
 
-@Component({ selector: 'cas-pool-list-item', template: '', standalone: false })
+@Component({ selector: 'cas-pool-list-item', template: '' })
 class PoolListItemStub {
   @Input() pool: Pool;
   @Input() canEdit: boolean;
@@ -32,7 +33,7 @@ async function renderPoolList(canEdit: boolean) {
     createPool: vi.fn(() => of<Pool>({ id: 'pool3', name: 'New Pool' })),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PoolListComponent, {
-    declarations: [PoolListItemStub],
+    childStubs: [{ replace: PoolListItemComponent, with: PoolListItemStub }],
     imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [{ provide: VlansService, useValue: vlansApi }],
     inputs: { pools, canEdit },

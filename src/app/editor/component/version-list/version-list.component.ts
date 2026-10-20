@@ -17,14 +17,37 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FileVersionQuery } from 'src/app/fileVersions/state';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { DatePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-version-list',
-    templateUrl: './version-list.component.html',
-    styleUrls: ['./version-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    encapsulation: ViewEncapsulation.None,
-    standalone: false
+  selector: 'cas-version-list',
+  templateUrl: './version-list.component.html',
+  styleUrls: ['./version-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  imports: [
+    MatCard,
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatCardContent,
+    MatButton,
+    DatePipe,
+  ],
 })
 export class VersionListComponent implements OnInit, OnDestroy {
   @Input() fileId: string;
@@ -40,7 +63,7 @@ export class VersionListComponent implements OnInit, OnDestroy {
 
   constructor(
     private fileVersionQuery: FileVersionQuery,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

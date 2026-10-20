@@ -10,12 +10,8 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import {
-  ComnAuthQuery,
-  ComnAuthService,
-  Theme,
-} from '@cmusei/crucible-common';
+import { Router, RouterLink } from '@angular/router';
+import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
@@ -25,12 +21,30 @@ import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectPermission } from 'src/app/generated/caster-api';
 import { ProjectQuery } from 'src/app/project';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { AsyncPipe } from '@angular/common';
 @Component({
-    selector: 'cas-topbar',
-    templateUrl: './topbar.component.html',
-    styleUrls: ['./topbar.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-topbar',
+  templateUrl: './topbar.component.html',
+  styleUrls: ['./topbar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatIconButton,
+    RouterLink,
+    MatIcon,
+    MatButton,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,
+    MatSlideToggle,
+    AsyncPipe,
+  ],
 })
 export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() title?: string = 'Caster';
@@ -52,7 +66,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
     private userService: UserService,
     private authQuery: ComnAuthQuery,
     private router: Router,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
   ) {}
 
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
@@ -65,7 +79,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),
-      takeUntil(this.unsubscribe$)
+      takeUntil(this.unsubscribe$),
     );
 
     this.theme$ = this.authQuery.userTheme$;
@@ -73,7 +87,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnChanges() {
     this.canManageProject$ = this.permissionService.canManageProject(
-      this.projectId
+      this.projectId,
     );
   }
 

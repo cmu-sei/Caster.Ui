@@ -23,9 +23,12 @@ interface Row {
   status: string;
 }
 
-// The host's template is set with overrideTemplate in each test, so it is
-// compiled against the test module, where the table and directive are declared.
-@Component({ template: '', standalone: false })
+// The host's template is set with overrideTemplate in each test. The host
+// imports the table and directive, so the template compiles against them.
+@Component({
+  template: '',
+  imports: [CwdTableComponent, TableItemActionDirective],
+})
 class TableHost {
   items: Row[] = [
     { id: 'r1', name: 'alpha', status: 'Planned' },
@@ -52,8 +55,9 @@ const unmarkedTemplate = `
 
 async function renderHost(template: string) {
   return renderComponent(TableHost, {
-    declarations: [CwdTableComponent, TableItemActionDirective],
     imports: [
+      CwdTableComponent,
+      TableItemActionDirective,
       MatFormFieldModule,
       MatInputModule,
       MatIconModule,

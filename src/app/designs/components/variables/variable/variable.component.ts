@@ -16,6 +16,8 @@ import {
   UntypedFormBuilder,
   UntypedFormGroup,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
@@ -23,13 +25,52 @@ import { take } from 'rxjs/operators';
 import { VariableService } from 'src/app/designs/state/variables/variables.service';
 import { Variable, VariableType } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardActions,
+  MatCardContent,
+} from '@angular/material/card';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
+import { NgClass, AsyncPipe, KeyValuePipe } from '@angular/common';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
 @Component({
-    selector: 'cas-variable',
-    templateUrl: './variable.component.html',
-    styleUrls: ['./variable.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-variable',
+  templateUrl: './variable.component.html',
+  styleUrls: ['./variable.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardActions,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ClipboardModule,
+    MatCardContent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    NgClass,
+    MatInput,
+    MatHint,
+    MatSelect,
+    MatOption,
+    CdkTextareaAutosize,
+    MatButton,
+    AsyncPipe,
+    KeyValuePipe,
+  ],
 })
 export class VariableComponent implements OnInit, OnChanges {
   @Input()
@@ -58,7 +99,7 @@ export class VariableComponent implements OnInit, OnChanges {
     private variableService: VariableService,
     private confirmDialogService: CrucibleDialogService,
     private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -148,7 +189,7 @@ export class VariableComponent implements OnInit, OnChanges {
       (err) => {
         console.log('err');
         this.isSaving.next(false);
-      }
+      },
     );
   }
 
@@ -168,6 +209,9 @@ export class VariableComponent implements OnInit, OnChanges {
   }
 
   onClipboardSuccess() {
-    this.snackBar.open(`Copied ${this.variable.terraform} to clipboard`, 'Dismiss');
+    this.snackBar.open(
+      `Copied ${this.variable.terraform} to clipboard`,
+      'Dismiss',
+    );
   }
 }

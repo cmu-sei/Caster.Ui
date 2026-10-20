@@ -14,8 +14,9 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VariablesStore } from '../../state/variables/variables.store';
 import { VariablesComponent } from './variables.component';
+import { VariableComponent } from 'src/app/designs/components/variables/variable/variable.component';
 
-@Component({ selector: 'cas-variable', template: '', standalone: false })
+@Component({ selector: 'cas-variable', template: '' })
 class VariableStub {
   @Input() variable: Variable;
   @Input() canEdit: boolean;
@@ -28,7 +29,7 @@ async function renderVariables(canEdit: boolean) {
     ),
   } satisfies ApiStub<VariablesService>;
   const view = await renderComponent(VariablesComponent, {
-    declarations: [VariableStub],
+    childStubs: [{ replace: VariableComponent, with: VariableStub }],
     imports: [MatButtonModule],
     providers: [{ provide: VariablesService, useValue: variablesApi }],
     inputs: { designId: 'd1', canEdit },

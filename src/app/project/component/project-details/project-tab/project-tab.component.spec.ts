@@ -46,8 +46,11 @@ import {
   Tab,
 } from '../../../state/project.model';
 import { ProjectTabComponent } from './project-tab.component';
+import { DesignComponent } from 'src/app/designs/components/design/design.component';
+import { EditorComponent } from 'src/app/editor/component/editor/editor.component';
+import { WorkspaceContainerComponent } from 'src/app/workspace/components/workspace-container/workspace-container.component';
 
-@Component({ selector: 'cas-editor', template: '', standalone: false })
+@Component({ selector: 'cas-editor', template: '' })
 class EditorStub {
   @Input() fileId: string;
   @Input() modules: Module[];
@@ -66,7 +69,6 @@ class EditorStub {
 @Component({
   selector: 'cas-workspace-container',
   template: '',
-  standalone: false,
 })
 class WorkspaceContainerStub {
   @Input() workspaceId: string;
@@ -74,7 +76,7 @@ class WorkspaceContainerStub {
   @Input() canEdit: boolean;
 }
 
-@Component({ selector: 'cas-design', template: '', standalone: false })
+@Component({ selector: 'cas-design', template: '' })
 class DesignStub {
   @Input() designId: string;
   @Input() canEdit: boolean;
@@ -102,7 +104,11 @@ async function renderProjectTab(grants: PermissionGrants, tab: Tab | Tab[]) {
     selectedTab: 0,
   };
   const view = await renderComponent(ProjectTabComponent, {
-    declarations: [EditorStub, WorkspaceContainerStub, DesignStub],
+    childStubs: [
+      { replace: EditorComponent, with: EditorStub },
+      { replace: WorkspaceContainerComponent, with: WorkspaceContainerStub },
+      { replace: DesignComponent, with: DesignStub },
+    ],
     imports: [MatTabsModule, MatButtonModule, MatIconModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -320,7 +326,11 @@ describe('ProjectTabComponent', () => {
    */
   it('asks to open a file when no tab is open', async () => {
     await renderComponent(ProjectTabComponent, {
-      declarations: [EditorStub, WorkspaceContainerStub, DesignStub],
+      childStubs: [
+        { replace: EditorComponent, with: EditorStub },
+        { replace: WorkspaceContainerComponent, with: WorkspaceContainerStub },
+        { replace: DesignComponent, with: DesignStub },
+      ],
       imports: [MatTabsModule],
       providers: [
         ...permissionDataProviders({}),

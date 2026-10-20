@@ -13,13 +13,17 @@ import {
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { PoolListItemComponent } from '../pool-list-item/pool-list-item.component';
 
 @Component({
-    selector: 'cas-pool-list',
-    templateUrl: './pool-list.component.html',
-    styleUrls: ['./pool-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-pool-list',
+  templateUrl: './pool-list.component.html',
+  styleUrls: ['./pool-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatIconButton, MatTooltip, MatIcon, PoolListItemComponent],
 })
 export class PoolListComponent implements OnInit {
   @Input() pools: Pool[];

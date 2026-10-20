@@ -7,8 +7,9 @@ import { By } from '@angular/platform-browser';
 import { ModuleOutput } from 'src/app/generated/caster-api';
 import { renderComponent } from '../../../test-utils/render-component';
 import { ModuleOutputsComponent } from './module-outputs.component';
+import { ModuleOutputComponent } from 'src/app/designs/components/module-outputs/module-output/module-output.component';
 
-@Component({ selector: 'cas-module-output', template: '', standalone: false })
+@Component({ selector: 'cas-module-output', template: '' })
 class ModuleOutputStub {
   @Input() moduleName: string;
   @Input() output: ModuleOutput;
@@ -23,7 +24,7 @@ describe('ModuleOutputsComponent', () => {
   it('renders one row per output', async () => {
     const outputs: ModuleOutput[] = [{ name: 'ip' }, { name: 'id' }];
     const { fixture } = await renderComponent(ModuleOutputsComponent, {
-      declarations: [ModuleOutputStub],
+      childStubs: [{ replace: ModuleOutputComponent, with: ModuleOutputStub }],
       inputs: { moduleName: 'web', outputs },
     });
 
