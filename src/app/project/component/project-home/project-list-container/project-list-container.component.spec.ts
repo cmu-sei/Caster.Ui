@@ -12,6 +12,10 @@ import { Project, ProjectsService } from 'src/app/generated/caster-api';
 import { TopbarView } from 'src/app/shared/components/top-bar/topbar.models';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import {
+  captureUnhandledRejections,
+  flush,
+} from 'src/app/test-utils/unhandled-rx-errors';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { ProjectListContainerComponent } from './project-list-container.component';
 
@@ -28,35 +32,61 @@ class ProjectListStub {
   @Input() isLoading: boolean;
 }
 
+async function renderProjectContainer(
+  authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
+) {
+  const projectsApi = {
+    getAllProjects: vi.fn((_onlyMine?: boolean) =>
+      of<Project[]>([{ id: 'p1', name: 'Range' }]),
+    ),
+  } satisfies ApiStub<ProjectsService>;
+  const auth = {
+    user$: of(
+      new OidcUser({
+        access_token: '',
+        token_type: 'Bearer',
+        profile: { sub: 'u1', name: 'Ada', iss: '', aud: '', exp: 0, iat: 0 },
+      }),
+    ),
+    logout: vi.fn(() => Promise.resolve()),
+    ...authOverrides,
+  } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
+  const view = await renderComponent(ProjectListContainerComponent, {
+    declarations: [TopbarStub, ProjectListStub],
+    providers: [
+      { provide: ProjectsService, useValue: projectsApi },
+      { provide: ComnAuthService, useValue: auth },
+    ],
+  });
+  return { ...view, projectsApi };
+}
+
 describe('ProjectListContainerComponent', () => {
+  /**
+   * Verifies: calling logout lets its rejected promise escape (current behavior).
+   * Interacts with: ComnAuthService.logout, captureUnhandledRejections.
+   * Data: rendered project list container; the sign-out redirect rejects.
+   */
+  it('leaves a rejected direct logout unhandled', async () => {
+    const failure = new Error('sign-out redirect failed');
+    const errors = captureUnhandledRejections();
+    const { fixture } = await renderProjectContainer({
+      logout: () => Promise.reject(failure),
+    });
+
+    fixture.componentInstance.logout();
+    await flush();
+
+    expect(errors).toEqual([failure]);
+  });
+
   /**
    * Verifies: the home page loads only the user's projects into the project list and records the signed-in user.
    * Interacts with: ProjectsService.getAllProjects (stub), ComnAuthService.user$ (stub), real ProjectService, UserService and CurrentUserQuery.
    * Data: one project p1; signed-in user Ada (u1).
    */
   it('lists the current user projects', async () => {
-    const projectsApi = {
-      getAllProjects: vi.fn((_onlyMine?: boolean) =>
-        of<Project[]>([{ id: 'p1', name: 'Range' }]),
-      ),
-    } satisfies ApiStub<ProjectsService>;
-    const auth = {
-      user$: of(
-        new OidcUser({
-          access_token: '',
-          token_type: 'Bearer',
-          profile: { sub: 'u1', name: 'Ada', iss: '', aud: '', exp: 0, iat: 0 },
-        }),
-      ),
-      logout: vi.fn(() => Promise.resolve()),
-    } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
-    const { fixture } = await renderComponent(ProjectListContainerComponent, {
-      declarations: [TopbarStub, ProjectListStub],
-      providers: [
-        { provide: ProjectsService, useValue: projectsApi },
-        { provide: ComnAuthService, useValue: auth },
-      ],
-    });
+    const { fixture, projectsApi } = await renderProjectContainer();
 
     expect(projectsApi.getAllProjects).toHaveBeenCalledWith(true);
     const list: ProjectListStub = fixture.debugElement.query(

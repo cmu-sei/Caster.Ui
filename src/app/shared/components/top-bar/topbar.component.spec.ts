@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { ComnAuthService } from '@cmusei/crucible-common';
 import {
   GroupPermission,
   ProjectPermission,
@@ -20,6 +21,10 @@ import {
   permissionDataProviders,
 } from '../../../test-utils/mock-permission-data.service';
 import { renderComponent } from '../../../test-utils/render-component';
+import {
+  captureUnhandledRxErrors,
+  flush,
+} from '../../../test-utils/unhandled-rx-errors';
 import { CurrentUserStore } from '../../../users/state/user.store';
 import { TopbarComponent } from './topbar.component';
 import { TopbarView } from './topbar.models';
@@ -32,6 +37,7 @@ import { TopbarView } from './topbar.models';
 async function renderTopbar(
   grants: PermissionGrants = {},
   inputs: { projectId?: string; topbarView?: TopbarView } = {},
+  authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
 ) {
   const user = userEvent.setup();
   const view = await renderComponent(TopbarComponent, {
@@ -42,7 +48,16 @@ async function renderTopbar(
       MatIconModule,
       MatSlideToggleModule,
     ],
-    providers: [...permissionDataProviders(grants)],
+    providers: [
+      ...permissionDataProviders(grants),
+      {
+        provide: ComnAuthService,
+        useValue: {
+          logout: () => Promise.resolve(),
+          ...authOverrides,
+        } satisfies Pick<ComnAuthService, 'logout'>,
+      },
+    ],
     inputs,
   });
   TestBed.inject(CurrentUserStore).update({ id: 'u1', name: 'Ada' });
@@ -58,6 +73,24 @@ const nearMissAdmin: PermissionGrants = {
 };
 
 describe('TopbarComponent', () => {
+  /**
+   * Verifies: a rejected logout from the user menu escapes through Angular's zone (current behavior).
+   * Interacts with: ComnAuthService.logout, the rendered user menu, captureUnhandledRxErrors.
+   * Data: Ada clicks Logout and the sign-out redirect rejects.
+   */
+  it('leaves a rejected menu logout unhandled', async () => {
+    const failure = new Error('sign-out redirect failed');
+    const errors = captureUnhandledRxErrors();
+    const { user } = await renderTopbar({}, {}, {
+      logout: () => Promise.reject(failure),
+    });
+
+    await user.click(screen.getByRole('menuitem', { name: 'Logout' }));
+    await flush();
+
+    expect(errors).toEqual([failure]);
+  });
+
   /**
    * Verifies: a user with any View* system permission sees the Administration link.
    * Interacts with: PermissionService.canViewAdiminstration (real), SystemPermissionsService (stub).
