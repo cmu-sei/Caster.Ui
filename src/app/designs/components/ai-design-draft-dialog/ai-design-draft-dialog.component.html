@@ -32,6 +32,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         ></textarea>
         <mat-hint align="end">{{ prompt.length }} / 8000</mat-hint>
       </mat-form-field>
+      @if (configuredHypervisors?.length > 1) {
+        <mat-form-field class="form-full-width">
+          <mat-label>Hypervisor</mat-label>
+          <mat-select [(ngModel)]="hypervisor">
+            @for (h of configuredHypervisors; track h) {
+              <mat-option [value]="h">{{ h }}</mat-option>
+            }
+            <mat-option [value]="both">Both</mat-option>
+          </mat-select>
+          @if (hypervisor === both) {
+            <mat-hint>Each machine stays on its own hypervisor's networks. Linking the two sides is up to you.</mat-hint>
+          }
+        </mat-form-field>
+      } @else if (configuredHypervisors?.length === 1) {
+        <p class="module-purpose">Drafting for {{ configuredHypervisors[0] }}, the only hypervisor configured for Terraform runs.</p>
+      } @else if (configuredHypervisors) {
+        <p class="field-problem">
+          No hypervisor is configured for Terraform runs, so the draft can use modules for any hypervisor.
+        </p>
+      }
       <mat-form-field class="form-full-width">
         <mat-label>Design name (optional)</mat-label>
         <input matInput [(ngModel)]="designName" autocomplete="off" />
@@ -75,6 +95,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </mat-form-field>
             <span class="module-source" [matTooltip]="'Module version ' + row.moduleVersion">
               {{ row.moduleName }} {{ row.moduleVersion }}
+              <span class="module-target">
+                {{ row.hypervisor || 'Any hypervisor' }}@if (row.source) { &middot; {{ row.source }}}
+              </span>
             </span>
             <button
               mat-icon-button

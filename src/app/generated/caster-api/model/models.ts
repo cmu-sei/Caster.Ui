@@ -7,6 +7,7 @@ export * from './acquireVlanCommand';
 export * from './addOrUpdateValuesDesignModuleCommand';
 export * from './addVlansToPartitionCommand';
 export * from './aiDesignDraft';
+export * from './aiDesignDraftOptions';
 export * from './aiDraftModule';
 export * from './apply';
 export * from './applyStatus';

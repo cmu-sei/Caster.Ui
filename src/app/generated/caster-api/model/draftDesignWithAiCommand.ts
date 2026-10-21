@@ -25,5 +25,9 @@ export interface DraftDesignWithAiCommand {
      * Name for the Design. The model picks one if this is empty.
      */
     designName?: string | null;
+    /**
+     * Hypervisors the Design builds on: Proxmox, vSphere or both. Empty means every hypervisor configured for Terraform runs.
+     */
+    hypervisors?: Array<string> | null;
 }
 

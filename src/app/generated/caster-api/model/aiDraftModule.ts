@@ -23,6 +23,14 @@ export interface AiDraftModule {
     moduleVersion?: string | null;
     name?: string | null;
     purpose?: string | null;
+    /**
+     * The hypervisor the Module builds on, or null for a Module that works on any.
+     */
+    hypervisor?: string | null;
+    /**
+     * The module source the Module was synced from.
+     */
+    source?: string | null;
     values?: Array<ModuleValue> | null;
     missingRequiredVariables?: Array<string> | null;
 }

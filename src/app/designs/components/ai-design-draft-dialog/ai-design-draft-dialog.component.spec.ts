@@ -13,10 +13,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { of, throwError } from 'rxjs';
-import { AiDesignDraft, Design, DesignsService } from 'src/app/generated/caster-api';
+import { AiDesignDraft, AiDesignDraftOptions, Design, DesignsService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -30,12 +31,14 @@ const DRAFT: AiDesignDraft = {
   snippet: 'module "office_net" {}',
   modules: [
     {
-      moduleId: 'mod-net', moduleName: 'vsphere-network', moduleVersion: '1.2.0', name: 'office_net',
+      moduleId: 'mod-net', moduleName: 'vsphere-network', moduleVersion: '1.2.0', hypervisor: 'vSphere',
+      source: 'crucible-modules', name: 'office_net',
       purpose: 'The office LAN', values: [{ name: 'cidr', value: '10.0.0.0/24' }, { name: 'vlan', value: '' }],
       missingRequiredVariables: [],
     },
     {
-      moduleId: 'mod-vm', moduleName: 'vsphere-vm', moduleVersion: '2.0.1', name: 'ws1',
+      moduleId: 'mod-vm', moduleName: 'vsphere-vm', moduleVersion: '2.0.1', hypervisor: null,
+      source: 'crucible-modules', name: 'ws1',
       purpose: 'A workstation', values: [{ name: 'network', value: 'module.office_net.id' }],
       missingRequiredVariables: ['image'],
     },
@@ -54,6 +57,7 @@ async function renderDraftDialog(designsApi: ApiStub<DesignsService>) {
       MatFormFieldModule,
       MatIconModule,
       MatInputModule,
+      MatSelectModule,
       MatTooltipModule,
     ],
     providers: [
@@ -65,8 +69,9 @@ async function renderDraftDialog(designsApi: ApiStub<DesignsService>) {
   return { ...view, close, user: userEvent.setup() };
 }
 
-function stubApi(draft: AiDesignDraft = DRAFT) {
+function stubApi(draft: AiDesignDraft = DRAFT, options: AiDesignDraftOptions = { enabled: true, configuredHypervisors: ['vSphere'] }) {
   return {
+    getAiDesignDraftOptions: vi.fn((_directoryId: string) => of(options)),
     draftDesignWithAi: vi.fn((_directoryId: string) => of(structuredClone(draft))),
     createDesignFromAiDraft: vi.fn((_directoryId: string) => of<Design>({ id: 'design-1', name: 'Small office', enabled: false })),
   } satisfies ApiStub<DesignsService>;
@@ -91,12 +96,64 @@ describe('AiDesignDraftDialogComponent', () => {
     expect(screen.getByRole('button', { name: 'Draft' })).toBeDisabled();
     await draft(user);
 
-    expect(api.draftDesignWithAi).toHaveBeenCalledWith('dir-1', { prompt: 'A small office', designName: null });
+    expect(api.draftDesignWithAi).toHaveBeenCalledWith('dir-1', { prompt: 'A small office', designName: null, hypervisors: [] });
     expect(screen.getByRole('textbox', { name: 'Design name' })).toHaveValue('Small office');
     expect(screen.getByText('Dropped a module that is not in the catalog: pfsense')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'image (required)' })).toHaveValue('');
     expect(screen.getByText('ws1 needs image.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Design' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: with one hypervisor configured the dialog says so and asks nothing; the review shows each
+   * module's hypervisor and source, "Any hypervisor" for a module that works on either.
+   * Interacts with: getAiDesignDraftOptions, toRow.
+   * Data: configuredHypervisors ["vSphere"]; office_net on vSphere, ws1 with no hypervisor.
+   */
+  it('drafts for the only configured hypervisor and labels each module', async () => {
+    const { user } = await renderDraftDialog(stubApi());
+
+    expect(screen.getByText(/Drafting for vSphere, the only hypervisor/)).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Hypervisor' })).not.toBeInTheDocument();
+    await draft(user);
+
+    expect(screen.getByText(/vSphere\s*·\s*crucible-modules/)).toBeInTheDocument();
+    expect(screen.getByText(/Any hypervisor\s*·\s*crucible-modules/)).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: with two hypervisors configured the planner picks one or Both; one sends only it, Both sends
+   * none so the server targets every configured hypervisor.
+   * Interacts with: requestedHypervisors, mat-select.
+   * Data: configuredHypervisors ["Proxmox", "vSphere"]; picks Proxmox, then Both.
+   */
+  it('asks which hypervisor when more than one is configured', async () => {
+    const api = stubApi(DRAFT, { enabled: true, configuredHypervisors: ['Proxmox', 'vSphere'] });
+    const { user } = await renderDraftDialog(api);
+
+    await user.click(screen.getByRole('combobox', { name: 'Hypervisor' }));
+    await user.click(screen.getByRole('option', { name: 'Proxmox' }));
+    await draft(user);
+    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith('dir-1', expect.objectContaining({ hypervisors: ['Proxmox'] }));
+
+    await user.click(screen.getByRole('button', { name: 'Change prompt' }));
+    await user.click(screen.getByRole('combobox', { name: 'Hypervisor' }));
+    await user.click(screen.getByRole('option', { name: 'Both' }));
+    expect(screen.getByText(/Each machine stays on its own hypervisor's networks/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Draft' }));
+    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith('dir-1', expect.objectContaining({ hypervisors: [] }));
+  });
+
+  /**
+   * Verifies: with no hypervisor configured the dialog warns that modules for any hypervisor may be used.
+   * Interacts with: getAiDesignDraftOptions.
+   * Data: configuredHypervisors [].
+   */
+  it('warns when no hypervisor is configured', async () => {
+    await renderDraftDialog(stubApi(DRAFT, { enabled: true, configuredHypervisors: [] }));
+
+    expect(screen.getByText(/No hypervisor is configured for Terraform runs/)).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Hypervisor' })).not.toBeInTheDocument();
   });
 
   /**

@@ -1,7 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
@@ -23,11 +23,16 @@ export interface DraftModuleRow {
   moduleId: string;
   moduleName: string;
   moduleVersion: string;
+  hypervisor: string;
+  source: string;
   name: string;
   purpose: string;
   values: ModuleValue[];
   required: string[];
 }
+
+/** The hypervisor choice that targets every configured hypervisor at once. */
+export const BOTH_HYPERVISORS = 'Both';
 
 // The Terraform name rule DesignModuleValidation enforces.
 const TERRAFORM_NAME = /^[a-zA-Z_][a-zA-Z0-9_-]*$/;
@@ -43,10 +48,14 @@ const TERRAFORM_NAME = /^[a-zA-Z_][a-zA-Z0-9_-]*$/;
   styleUrls: ['./ai-design-draft-dialog.component.scss'],
   standalone: false,
 })
-export class AiDesignDraftDialogComponent {
+export class AiDesignDraftDialogComponent implements OnInit {
   step: 'prompt' | 'review' = 'prompt';
   prompt = '';
   designName = '';
+  /** Hypervisors Terraform runs can build on; null until the server answers. */
+  configuredHypervisors: string[] = null;
+  hypervisor = BOTH_HYPERVISORS;
+  readonly both = BOTH_HYPERVISORS;
   loading = false;
   errorMessage = '';
 
@@ -58,6 +67,26 @@ export class AiDesignDraftDialogComponent {
     private dialogRef: MatDialogRef<AiDesignDraftDialogComponent, Design>,
     private designsService: DesignsService
   ) {}
+
+  ngOnInit() {
+    this.designsService
+      .getAiDesignDraftOptions(this.data.directoryId)
+      .pipe(take(1))
+      .subscribe({
+        next: (options) => {
+          this.configuredHypervisors = options.configuredHypervisors ?? [];
+          if (!options.enabled) this.errorMessage = 'AI drafting is not enabled on this server.';
+        },
+        // the draft still works without the options; the server then targets every configured hypervisor
+        error: () => (this.configuredHypervisors = null),
+      });
+  }
+
+  /** The hypervisors the draft asks for; empty lets the server use every configured one. */
+  get requestedHypervisors(): string[] {
+    if (!this.configuredHypervisors?.length || this.hypervisor === BOTH_HYPERVISORS) return [];
+    return [this.hypervisor];
+  }
 
   get submitLabel(): string {
     return this.step === 'prompt' ? 'Draft' : 'Create Design';
@@ -99,6 +128,7 @@ export class AiDesignDraftDialogComponent {
       .draftDesignWithAi(this.data.directoryId, {
         prompt: this.prompt.trim(),
         designName: this.designName.trim() || null,
+        hypervisors: this.requestedHypervisors,
       })
       .pipe(take(1))
       .subscribe({
@@ -192,6 +222,8 @@ function toRow(m: AiDraftModule): DraftModuleRow {
     moduleId: m.moduleId,
     moduleName: m.moduleName,
     moduleVersion: m.moduleVersion,
+    hypervisor: m.hypervisor ?? null,
+    source: m.source ?? null,
     name: m.name ?? '',
     purpose: m.purpose ?? '',
     values,
