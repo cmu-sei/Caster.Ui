@@ -2,17 +2,17 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import {
-  mdiCloudOutline,
   mdiDatabase,
   mdiEmailOutline,
+  mdiEthernet,
   mdiIncognito,
-  mdiLan,
   mdiLinux,
   mdiMicrosoftWindows,
   mdiMonitor,
   mdiRouterNetwork,
   mdiServer,
   mdiShieldAccount,
+  mdiSwitch,
   mdiWallFire,
   mdiWeb,
 } from '@mdi/js';
@@ -50,8 +50,10 @@ export const ROLE_OPTIONS: TopologyRoleOption[] = [
 
 /** A machine nobody has given a role. */
 export const MACHINE_ICON = mdiServer;
-export const NETWORK_ICON = mdiLan;
-export const EXTERNAL_NETWORK_ICON = mdiCloudOutline;
+/** A network the workspace creates: a switch its machines plug into. */
+export const NETWORK_ICON = mdiSwitch;
+/** One it does not, such as the host's bridge: an uplink, not the internet. */
+export const EXTERNAL_NETWORK_ICON = mdiEthernet;
 
 /**
  * An icon as an image cytoscape can draw, in one colour. Width and height are

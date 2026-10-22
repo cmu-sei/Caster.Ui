@@ -183,7 +183,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         } } @else { @if (machinesOn(selected).length) {
         <tr>
           <th>Machines</th>
-          <td>{{ machinesOn(selected).join(', ') }}</td>
+          <td>
+            @for (machine of machinesOn(selected); track $index) {
+            <div>{{ machine }}</div>
+            }
+          </td>
         </tr>
         } }
       </table>
