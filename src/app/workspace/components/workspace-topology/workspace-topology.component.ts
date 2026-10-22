@@ -68,9 +68,18 @@ const ACTION_DESCRIPTIONS: Record<string, string> = {
   delete: 'Applying this plan destroys it',
 };
 
-/** How nodes nobody has placed are laid out, chosen by each viewer. */
+/**
+ * How the topology is laid out, chosen by each viewer. Each keeps its own
+ * saved arrangement, so moving a node in one leaves the other as it was.
+ */
 type LayoutStyle = 'tree' | 'force';
 const LAYOUT_STYLE_KEY = 'caster.topology.layoutStyle';
+
+/** Where each layout saves a node's position. */
+const POSITION_KEYS: Record<LayoutStyle, ['x', 'y'] | ['treeX', 'treeY']> = {
+  force: ['x', 'y'],
+  tree: ['treeX', 'treeY'],
+};
 
 /** Runs whose plan has not yet been applied, rejected or failed: its changes are still to come. */
 const PENDING: RunStatus[] = [
@@ -201,10 +210,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     this.cy?.fit(undefined, 30);
   }
 
-  /** Whether anyone has moved a node, so there is a layout to reset. */
+  /** Whether anyone has moved a node in this layout, so there is a layout to reset. */
   get hasSavedPositions(): boolean {
-    return Object.values(this.topology?.layout ?? {}).some(
-      (n) => n.x != null && n.y != null
+    return Object.keys(this.topology?.layout ?? {}).some(
+      (id) => !!this.savedPosition(id)
     );
   }
 
@@ -219,70 +228,40 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Forget where everyone put the nodes, for everyone, and lay them all out
-   * afresh. Roles stay.
+   * Forget where everyone put the nodes in this layout, for everyone, and lay
+   * them all out afresh. Roles, and the other layout, stay.
    */
   resetLayout() {
     this.dialogService
       .confirm({
         title: 'Reset Layout',
-        message:
-          'Lay out the topology afresh? This forgets where nodes were moved to, for everyone who views this workspace.',
+        message: `Lay out the ${this.layoutStyle} layout afresh? This forgets where nodes were moved to in it, for everyone who views this workspace.`,
         confirmText: 'Reset',
         cancelText: 'Cancel',
       })
       .afterClosed()
       .pipe(take(1))
       .subscribe((confirmed) => {
-        if (confirmed) {
-          this.relayout();
+        if (!confirmed) {
+          return;
         }
+        const [x, y] = POSITION_KEYS[this.layoutStyle];
+        Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
+          this.remember(id, { ...node, [x]: null, [y]: null })
+        );
+        this.saveLayout();
+        this.redraw();
       });
   }
 
-  /**
-   * Switch between a tree and the force-directed layout. Where nodes have
-   * been moved, that arrangement is what everyone sees, so switching
-   * forgets it, as Reset layout does.
-   */
+  /** Switch between the tree and the force-directed layout, each as it was saved. */
   toggleLayoutStyle() {
-    const style: LayoutStyle = this.layoutStyle === 'tree' ? 'force' : 'tree';
-    const apply = () => {
-      this.layoutStyle = style;
-      localStorage.setItem(LAYOUT_STYLE_KEY, style);
-      this.relayout();
-    };
-
-    if (!this.hasSavedPositions) {
-      apply();
-      return;
-    }
-
-    this.dialogService
-      .confirm({
-        title: style === 'tree' ? 'Tree Layout' : 'Force Layout',
-        message:
-          'Lay out the topology afresh? This forgets where nodes were moved to, for everyone who views this workspace.',
-        confirmText: 'Switch',
-        cancelText: 'Cancel',
-      })
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          apply();
-        }
-      });
+    this.layoutStyle = this.layoutStyle === 'tree' ? 'force' : 'tree';
+    localStorage.setItem(LAYOUT_STYLE_KEY, this.layoutStyle);
+    this.redraw();
   }
 
-  /** Forget the saved positions, keeping roles, and lay everything out. */
-  private relayout() {
-    if (this.hasSavedPositions) {
-      Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
-        this.remember(id, { role: node.role })
-      );
-      this.saveLayout();
-    }
+  private redraw() {
     this.cy?.nodes('[kind]').positions({ x: 0, y: 0 });
     this.layout();
     this.changeDetector.markForCheck();
@@ -496,10 +475,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Lay out what nobody has placed, around what they have. With nothing
-   * placed, a tree, unless the viewer chose otherwise. Otherwise, locking the placed nodes
-   * keeps cose from pushing the others through them, but cose still moves
-   * them, so they are put back where they were saved after.
+   * Lay out what nobody has placed, around what they have. The tree comes
+   * out the same each time, so it is drawn whole and the placed nodes moved
+   * to where they were saved. With the force layout, locking the placed
+   * nodes keeps cose from pushing the others through them, but cose still
+   * moves them, so they are put back where they were saved after.
    */
   private layout() {
     const nodes = this.cy.nodes('[kind]');
@@ -510,23 +490,25 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (placed.empty() && this.layoutStyle === 'tree') {
+    if (this.layoutStyle === 'tree') {
       this.layoutTree();
-      return;
+    } else {
+      placed.forEach((n) => {
+        n.position(this.savedPosition(n.id()));
+      });
+      placed.lock();
+      this.cy
+        .layout({
+          name: 'cose',
+          animate: false,
+          padding: 30,
+          nodeRepulsion: () => 12000,
+          idealEdgeLength: () => 90,
+          randomize: false,
+        } as any)
+        .run();
+      placed.unlock();
     }
-
-    placed.lock();
-    this.cy
-      .layout({
-        name: 'cose',
-        animate: false,
-        padding: 30,
-        nodeRepulsion: () => 12000,
-        idealEdgeLength: () => 90,
-        randomize: false,
-      } as any)
-      .run();
-    placed.unlock();
     placed.forEach((n) => {
       n.position(this.savedPosition(n.id()));
     });
@@ -607,12 +589,14 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       .nodes()
       .layout({ name: 'preset', positions, animate: false } as any)
       .run();
-    this.fit();
   }
 
   private savedPosition(id: string): { x: number; y: number } {
     const node = this.topology?.layout?.[id];
-    return node?.x != null && node?.y != null ? { x: node.x, y: node.y } : null;
+    const [x, y] = POSITION_KEYS[this.layoutStyle];
+    return node?.[x] != null && node?.[y] != null
+      ? { x: node[x], y: node[y] }
+      : null;
   }
 
   /** Nodes someone dragged: keep where they are now, and save it if they may. */
@@ -620,12 +604,13 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     if (!this.canEdit) {
       return;
     }
+    const [kx, ky] = POSITION_KEYS[this.layoutStyle];
     ids.forEach((id) => {
       const { x, y } = this.cy.getElementById(id).position();
       this.remember(id, {
         ...this.topology.layout?.[id],
-        x: Math.round(x),
-        y: Math.round(y),
+        [kx]: Math.round(x),
+        [ky]: Math.round(y),
       });
     });
     // Reset layout is enabled by what was just saved.
@@ -639,7 +624,13 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
    */
   private remember(id: string, node: TopologyNodeLayout) {
     const layout = { ...this.topology.layout };
-    if (node.x == null && node.y == null && node.role == null) {
+    if (
+      node.x == null &&
+      node.y == null &&
+      node.treeX == null &&
+      node.treeY == null &&
+      node.role == null
+    ) {
       delete layout[id];
     } else {
       layout[id] = node;

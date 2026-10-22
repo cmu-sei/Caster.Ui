@@ -22,10 +22,15 @@ import { TopologyNodeRole } from './topologyNodeRole';
  */
 export interface TopologyNodeLayout { 
     /**
-     * The node\'s position in the view. Null until someone moves it, so the layout places it.
+     * The node\'s position in the force layout. Null until someone moves it there, so the layout places it.
      */
     x?: number | null;
     y?: number | null;
+    /**
+     * The node\'s position in the tree layout, kept apart from the force layout\'s so each keeps its own arrangement.
+     */
+    treeX?: number | null;
+    treeY?: number | null;
     role?: TopologyNodeRole;
 }
 
