@@ -776,11 +776,11 @@ describe('SignalRService', () => {
     });
 
     /**
-     * Verifies: FileUpdated with content null (caster.api omits Content unless it changed) replaces the stored content with null.
+     * Verifies: FileUpdated with content null (caster.api omits Content unless it changed) keeps the stored content.
      * Interacts with: FileService.fileUpdated, FileQuery (real).
      * Data: stored 'f1' with content; payload locks the file and carries content: null, modifiedProperties ['LockedById'].
      */
-    it('FileUpdated without content stores content as null', async () => {
+    it('FileUpdated without content keeps the stored content', async () => {
       const { hub } = await connected();
       const query = TestBed.inject(FileQuery);
       TestBed.inject(FileStore).add(file());
@@ -789,11 +789,8 @@ describe('SignalRService', () => {
         'LockedById',
       ]);
 
-      // NOTE: the payload replaces the content (modifiedProperties is ignored
-      // for files). ProjectTabComponent reloads a file whose content is null,
-      // which seems to be how the app copes with this.
       expect(query.getEntity('f1')).toMatchObject({
-        content: null,
+        content: file().content,
         lockedById: 'u2',
       });
     });
