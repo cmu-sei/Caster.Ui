@@ -189,8 +189,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <tr>
           <th>Console</th>
           <td>
-            @for (team of console.teamIds; track team) {
-            <div>{{ team }}</div>
+            @for (team of console.teams; track team.id) {
+            <div [title]="team.id">
+              @if (team.name) { {{ team.name }} @if (team.variable) {
+              <span class="console-guess">var.{{ team.variable }}</span>
+              } } @else { {{ team.id }} }
+            </div>
+            } @if (console.url) {
+            <div>
+              <a [href]="console.url" target="_blank" rel="noopener"
+                >Open console</a
+              >
+            </div>
             } @if (console.teamsUnknown) {
             <div>Teams known after apply</div>
             } @else if (!console.teamIds?.length) {

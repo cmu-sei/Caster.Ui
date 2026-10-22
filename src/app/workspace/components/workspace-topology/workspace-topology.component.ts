@@ -497,6 +497,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     const placed = nodes.filter((n) => !!this.savedPosition(n.id()));
 
     if (placed.length === nodes.length) {
+      // A redraw stacked them all at the origin.
+      placed.forEach((n) => {
+        n.position(this.savedPosition(n.id()));
+      });
       this.fit();
       return;
     }
