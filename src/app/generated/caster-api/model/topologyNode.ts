@@ -14,6 +14,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TopologyConsole } from './topologyConsole';
 import { TopologyNodeKind } from './topologyNodeKind';
 
 
@@ -51,5 +52,6 @@ export interface TopologyNode {
      * A few display values, such as cpus and memory_mb, when the plan knows them.
      */
     properties?: { [key: string]: string; } | null;
+    console?: TopologyConsole;
 }
 
