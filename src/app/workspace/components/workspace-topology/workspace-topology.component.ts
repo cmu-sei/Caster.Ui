@@ -409,6 +409,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       this.cy = cytoscape({
         container: this.graph.nativeElement,
         elements,
+        // Otherwise cytoscape lays them out in a grid, over the saved
+        // positions; layout() below places what has none.
+        layout: { name: 'preset' },
         style: this.stylesheet() as any,
         minZoom: 0.2,
         maxZoom: 3,
