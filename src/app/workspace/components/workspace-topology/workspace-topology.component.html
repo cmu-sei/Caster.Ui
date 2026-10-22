@@ -56,9 +56,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </button>
     <button
       mat-icon-button
-      [matTooltip]="layoutStyle === 'tree' ? 'Switch to force layout' : 'Switch to tree layout'"
+      [matTooltip]="layoutStyle === 'tree' ? 'Tree layout: switch to force layout' : 'Force layout: switch to tree layout'"
       [attr.aria-label]="layoutStyle === 'tree' ? 'Switch to force layout' : 'Switch to tree layout'"
-      [disabled]="hasSavedPositions && !canEdit"
       (click)="toggleLayoutStyle()"
     >
       <mat-icon
@@ -69,8 +68,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (canEdit) {
     <button
       mat-icon-button
-      matTooltip="Reset layout"
-      aria-label="Reset layout"
+      [matTooltip]="'Reset ' + layoutStyle + ' layout'"
+      [attr.aria-label]="'Reset ' + layoutStyle + ' layout'"
       [disabled]="!hasSavedPositions"
       (click)="resetLayout()"
     >
