@@ -13,3 +13,19 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   background-color: red;
   text-align: center;
 }
+
+.incomplete {
+  margin-bottom: 0.5em;
+  padding: 0.25em 1em;
+  border-left: 4px solid var(--mat-sys-tertiary);
+  background: var(--mat-sys-surface-container);
+
+  h3 {
+    margin: 0;
+  }
+
+  p,
+  ul {
+    margin: 0.25em 0;
+  }
+}

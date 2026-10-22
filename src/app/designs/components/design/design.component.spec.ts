@@ -15,6 +15,7 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignStore } from '../../state/design.store';
+import { DesignModuleStore } from '../../state/design-modules/design-module.store';
 import { DesignComponent } from './design.component';
 
 @Component({ selector: 'cas-variables', template: '', standalone: false })
@@ -72,6 +73,28 @@ describe('DesignComponent', () => {
     expect(signalR.joinDesign).toHaveBeenCalledWith('d1');
     expect(variablesApi.getVariablesByDesign).toHaveBeenCalledWith('d1');
     expect(screen.getByRole('heading', { name: 'Disabled' })).toBeVisible();
+  });
+
+  /**
+   * Verifies: an enabled module holding placeholders marks the design Incomplete and names each variable to
+   * replace; a disabled module's placeholders do not count.
+   * Interacts with: real DesignModuleQuery.getByDesignId.
+   * Data: design d1, disabled; dc01 enabled with template_name and node_name placeholders, spare disabled.
+   */
+  it('flags the design incomplete while an enabled module holds placeholders', async () => {
+    const { fixture } = await renderDesign(true);
+    TestBed.inject(DesignStore).set([{ id: 'd1', name: 'Net', enabled: false }]);
+    TestBed.inject(DesignModuleStore).set([
+      { id: 'm1', designId: 'd1', name: 'dc01', enabled: true, placeholders: ['template_name', 'node_name'] },
+      { id: 'm2', designId: 'd1', name: 'spare', enabled: false, placeholders: ['template_name'] },
+      { id: 'm3', designId: 'd1', name: 'ws01', enabled: true, placeholders: [] },
+    ]);
+    fixture.detectChanges();
+
+    expect(screen.getByRole('heading', { name: 'Incomplete' })).toBeVisible();
+    expect(screen.getByText('dc01 (template_name, node_name)')).toBeVisible();
+    expect(screen.queryByText(/^spare/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^ws01/)).not.toBeInTheDocument();
   });
 
   /**

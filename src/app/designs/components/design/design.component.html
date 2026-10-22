@@ -15,6 +15,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
   }
 
+  @if (incomplete$ | async; as incomplete) {
+    @if (incomplete.length) {
+      <div class="incomplete" role="status">
+        <h3>Incomplete</h3>
+        <p>Replace the placeholder values before enabling this Design:</p>
+        <ul>
+          @for (module of incomplete; track module.id) {
+            <li>{{ module.name }} ({{ module.placeholders.join(', ') }})</li>
+          }
+        </ul>
+      </div>
+    }
+  }
+
   <mat-expansion-panel (opened)="loadVariables()">
     <mat-expansion-panel-header>
       <mat-panel-title> Variables </mat-panel-title>

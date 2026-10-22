@@ -10,6 +10,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
   <mat-card-header>
     <mat-card-title>{{ designModule.name }}</mat-card-title>
+    @if (designModule.placeholders?.length) {
+      <mat-card-subtitle
+        class="placeholders"
+        matTooltip="Edit the module and replace these before the Design can be enabled"
+        >
+        <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline"></mat-icon>
+        Placeholders: {{ designModule.placeholders.join(', ') }}
+      </mat-card-subtitle>
+    }
   </mat-card-header>
 
   <mat-card-actions class="d-flex flex-row justify-content-start align-items-center">

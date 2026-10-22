@@ -33,5 +33,6 @@ export interface AiDraftModule {
     source?: string | null;
     values?: Array<ModuleValue> | null;
     missingRequiredVariables?: Array<string> | null;
+    placeholders?: Array<string> | null;
 }
 

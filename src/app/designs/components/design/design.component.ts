@@ -5,9 +5,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Design } from 'src/app/generated/caster-api';
+import { map } from 'rxjs/operators';
+import { Design, DesignModule } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { DesignQuery } from '../../state/design.query';
+import { DesignModuleQuery } from '../../state/design-modules/design-module.query';
 import { VariableService } from '../../state/variables/variables.service';
 
 @Component({
@@ -25,14 +27,21 @@ export class DesignComponent implements OnInit, OnDestroy {
 
   design$: Observable<Design>;
 
+  /** Enabled modules still holding placeholders, which keep the Design from being enabled. */
+  incomplete$: Observable<DesignModule[]>;
+
   constructor(
     private designQuery: DesignQuery,
+    private designModuleQuery: DesignModuleQuery,
     private variableService: VariableService,
     private signalRService: SignalRService
   ) {}
 
   ngOnInit(): void {
     this.design$ = this.designQuery.selectEntity(this.designId);
+    this.incomplete$ = this.designModuleQuery
+      .getByDesignId(this.designId)
+      .pipe(map((modules) => modules.filter((m) => m.enabled && m.placeholders?.length)));
 
     this.signalRService
       .startConnection()

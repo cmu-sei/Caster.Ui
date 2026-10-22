@@ -23,7 +23,8 @@ import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AiDesignDraftDialogComponent } from './ai-design-draft-dialog.component';
 
-// A network module the model filled in, and a VM module whose required image it left out.
+// A network module the model filled in, and a VM module whose required image it left out and
+// whose template it could not know, so it set a placeholder.
 const DRAFT: AiDesignDraft = {
   designName: 'Small office',
   summary: 'One network and a workstation.',
@@ -39,8 +40,9 @@ const DRAFT: AiDesignDraft = {
     {
       moduleId: 'mod-vm', moduleName: 'vsphere-vm', moduleVersion: '2.0.1', hypervisor: null,
       source: 'crucible-modules', name: 'ws1',
-      purpose: 'A workstation', values: [{ name: 'network', value: 'module.office_net.id' }],
-      missingRequiredVariables: ['image'],
+      purpose: 'A workstation',
+      values: [{ name: 'network', value: 'module.office_net.id' }, { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' }],
+      missingRequiredVariables: ['image'], placeholders: ['template'],
     },
   ],
 };
@@ -85,11 +87,12 @@ async function draft(user: ReturnType<typeof userEvent.setup>) {
 describe('AiDesignDraftDialogComponent', () => {
   /**
    * Verifies: Draft waits for a prompt, sends it for the directory, then shows the draft's name, warnings,
-   * and a blank required row for the variable the model left out, which blocks Create.
-   * Interacts with: DesignsService.draftDesignWithAi, toRow, reviewProblems.
-   * Data: prompt "A small office"; DRAFT with ws1 missing image.
+   * a blank required row for the variable the model left out and a mark on the placeholder. Neither
+   * blocks Create; both are listed as what to replace before enabling.
+   * Interacts with: DesignsService.draftDesignWithAi, toRow, reviewProblems, toFinish.
+   * Data: prompt "A small office"; DRAFT with ws1 missing image and template a placeholder.
    */
-  it('drafts from the prompt and asks for what the draft left out', async () => {
+  it('drafts from the prompt and marks what the draft left to finish', async () => {
     const api = stubApi();
     const { user } = await renderDraftDialog(api);
 
@@ -100,8 +103,38 @@ describe('AiDesignDraftDialogComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Design name' })).toHaveValue('Small office');
     expect(screen.getByText('Dropped a module that is not in the catalog: pfsense')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'image (required)' })).toHaveValue('');
-    expect(screen.getByText('ws1 needs image.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create Design' })).toBeDisabled();
+    expect(screen.getByText(/left blank, it is saved as a placeholder/)).toBeInTheDocument();
+    expect(screen.getByText('Placeholder: replace before enabling')).toBeInTheDocument();
+    expect(screen.getByText('Incomplete: replace these before enabling')).toBeInTheDocument();
+    expect(screen.getByText('ws1: template, image')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Design' })).toBeEnabled();
+  });
+
+  /**
+   * Verifies: an incomplete draft can be created; a blank required value is sent empty for the server to
+   * save as a placeholder, and a placeholder is sent as is.
+   * Interacts with: createDesign.
+   * Data: DRAFT unedited.
+   */
+  it('creates an incomplete design with its placeholders', async () => {
+    const api = stubApi();
+    const { user } = await renderDraftDialog(api);
+    await draft(user);
+
+    await user.click(screen.getByRole('button', { name: 'Create Design' }));
+
+    expect(api.createDesignFromAiDraft).toHaveBeenCalledWith('dir-1', expect.objectContaining({
+      modules: expect.arrayContaining([
+        expect.objectContaining({
+          name: 'ws1',
+          values: [
+            { name: 'network', value: 'module.office_net.id' },
+            { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' },
+            { name: 'image', value: '' },
+          ],
+        }),
+      ]),
+    }));
   });
 
   /**
@@ -157,10 +190,10 @@ describe('AiDesignDraftDialogComponent', () => {
   });
 
   /**
-   * Verifies: filling the missing value enables Create, which sends the edited modules, leaves out a blank
-   * optional value, and closes with the new Design.
-   * Interacts with: createDesign, MatDialogRef.close (dialogRefStub).
-   * Data: image = "win11"; office_net's vlan left blank.
+   * Verifies: filling in the draft clears the incomplete list; Create sends the edited modules, leaves out
+   * a blank optional value, and closes with the new Design.
+   * Interacts with: createDesign, toFinish, MatDialogRef.close (dialogRefStub).
+   * Data: image = "win11", template = "win11-template"; office_net's vlan left blank.
    */
   it('creates the reviewed design', async () => {
     const api = stubApi();
@@ -168,6 +201,9 @@ describe('AiDesignDraftDialogComponent', () => {
     await draft(user);
 
     await user.type(screen.getByRole('textbox', { name: 'image (required)' }), 'win11');
+    await user.clear(screen.getByRole('textbox', { name: 'template' }));
+    await user.type(screen.getByRole('textbox', { name: 'template' }), 'win11-template');
+    expect(screen.queryByText('Incomplete: replace these before enabling')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Create Design' }));
 
     expect(api.createDesignFromAiDraft).toHaveBeenCalledWith('dir-1', {
@@ -176,7 +212,11 @@ describe('AiDesignDraftDialogComponent', () => {
         { moduleId: 'mod-net', name: 'office_net', moduleVersion: '1.2.0', values: [{ name: 'cidr', value: '10.0.0.0/24' }] },
         {
           moduleId: 'mod-vm', name: 'ws1', moduleVersion: '2.0.1',
-          values: [{ name: 'network', value: 'module.office_net.id' }, { name: 'image', value: 'win11' }],
+          values: [
+            { name: 'network', value: 'module.office_net.id' },
+            { name: 'template', value: 'win11-template' },
+            { name: 'image', value: 'win11' },
+          ],
         },
       ],
     });

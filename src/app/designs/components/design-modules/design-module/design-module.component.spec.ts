@@ -73,6 +73,7 @@ async function renderDesignModule(
   canEdit: boolean,
   saveValues: () => Subject<DesignModule> = () => new Subject<DesignModule>(),
   saveEdit: () => Subject<DesignModule> = () => new Subject<DesignModule>(),
+  shown: DesignModule = designModule,
 ) {
   const designModulesApi = {
     getDesignModule: vi.fn((_id: string) =>
@@ -96,7 +97,7 @@ async function renderDesignModule(
       { provide: DesignsModulesService, useValue: designModulesApi },
       { provide: ModulesService, useValue: modulesApi },
     ],
-    inputs: { designModule, module, canEdit },
+    inputs: { designModule: shown, module, canEdit },
   });
   const variablesEditor = (): ModuleVariablesStub | undefined =>
     view.fixture.debugElement.query(By.directive(ModuleVariablesStub))
@@ -126,6 +127,24 @@ describe('DesignModuleComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Edit' }));
     expect(variablesEditor()?.readOnly).toBe(false);
     expect(variablesEditor()?.requireValues).toBe(true);
+  });
+
+  /**
+   * Verifies: a module holding placeholders names the variables to replace; one without shows nothing.
+   * Interacts with: DesignModule.placeholders.
+   * Data: web with template_name and node_name placeholders, then web with none.
+   */
+  it('names the placeholders still to replace', async () => {
+    await renderDesignModule(false, undefined, undefined, {
+      ...designModule,
+      placeholders: ['template_name', 'node_name'],
+    });
+    expect(screen.getByText('Placeholders: template_name, node_name')).toBeVisible();
+  });
+
+  it('shows no placeholders for a complete module', async () => {
+    await renderDesignModule(false);
+    expect(screen.queryByText(/^Placeholders:/)).not.toBeInTheDocument();
   });
 
   /**

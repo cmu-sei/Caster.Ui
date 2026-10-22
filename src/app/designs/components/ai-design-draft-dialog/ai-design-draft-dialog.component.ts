@@ -37,10 +37,19 @@ export const BOTH_HYPERVISORS = 'Both';
 // The Terraform name rule DesignModuleValidation enforces.
 const TERRAFORM_NAME = /^[a-zA-Z_][a-zA-Z0-9_-]*$/;
 
+// The placeholder the API recognizes (Placeholders.cs): a value the planner still has to supply.
+const PLACEHOLDER = /\bREPLACE_WITH_[A-Za-z0-9_]*/;
+
+/** Whether a value is, or contains, a placeholder the planner must replace before enabling. */
+export function isPlaceholder(value: string): boolean {
+  return !!value && PLACEHOLDER.test(value);
+}
+
 /**
  * Drafts a Design with AI from the module catalog. Drafting saves nothing: the planner
- * reviews the modules and values, fills in what the model left out, and only then
- * creates the Design, disabled, so no Workspace picks it up until it is enabled.
+ * reviews the modules and values and only then creates the Design, disabled. A value the
+ * model could not know is saved as a placeholder, and the Design cannot be enabled, so no
+ * Workspace picks it up, until every placeholder is replaced.
  */
 @Component({
   selector: 'cas-ai-design-draft-dialog',
@@ -156,7 +165,8 @@ export class AiDesignDraftDialogComponent implements OnInit {
           moduleId: m.moduleId,
           name: m.name.trim(),
           moduleVersion: m.moduleVersion,
-          // an optional variable left blank is left out, so the module's default applies
+          // an optional variable left blank is left out, so the module's default applies;
+          // a required one left blank is saved as a placeholder
           values: m.values
             .filter((v) => v.value?.trim() || m.required.includes(v.name))
             .map((v) => ({ name: v.name, value: v.value })),
@@ -187,6 +197,22 @@ export class AiDesignDraftDialogComponent implements OnInit {
     return this.isRequired(row, value) && !value.value?.trim();
   }
 
+  isPlaceholder(value: ModuleValue): boolean {
+    return isPlaceholder(value.value);
+  }
+
+  /** The values each module still needs before the Design can be enabled: blanks and placeholders. */
+  toFinish(): string[] {
+    const items: string[] = [];
+    for (const row of this.modules) {
+      const names = row.values
+        .filter((v) => this.isMissing(row, v) || this.isPlaceholder(v))
+        .map((v) => v.name);
+      if (names.length) items.push(`${row.name || row.moduleName}: ${names.join(', ')}`);
+    }
+    return items;
+  }
+
   nameProblem(row: DraftModuleRow): string {
     const name = row.name.trim();
     if (!name) return 'Name is required';
@@ -197,15 +223,16 @@ export class AiDesignDraftDialogComponent implements OnInit {
     return '';
   }
 
-  /** What stops the Design from being created, in the order a planner would fix it. */
+  /**
+   * What stops the Design from being created, in the order a planner would fix it. Values
+   * still to fill do not: they are saved as placeholders and block enabling instead.
+   */
   reviewProblems(): string[] {
     const problems: string[] = [];
     if (!this.designName.trim()) problems.push('The design needs a name.');
     if (this.modules.length === 0) problems.push('The design needs at least one module.');
     for (const row of this.modules) {
       if (this.nameProblem(row)) problems.push(`${row.name || row.moduleName}: ${this.nameProblem(row)}.`);
-      const missing = row.values.filter((v) => this.isMissing(row, v)).map((v) => v.name);
-      if (missing.length) problems.push(`${row.name || row.moduleName} needs ${missing.join(', ')}.`);
     }
     return problems;
   }

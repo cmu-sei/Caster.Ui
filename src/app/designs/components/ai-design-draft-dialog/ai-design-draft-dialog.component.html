@@ -117,7 +117,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-label>{{ value.name }}{{ isRequired(row, value) ? ' (required)' : '' }}</mat-label>
               <input matInput [(ngModel)]="value.value" autocomplete="off" />
               @if (isMissing(row, value)) {
-                <mat-hint class="field-problem">The draft left this out; enter a value</mat-hint>
+                <mat-hint class="field-placeholder">The draft left this out; left blank, it is saved as a placeholder</mat-hint>
+              } @else if (isPlaceholder(value)) {
+                <mat-hint class="field-placeholder">Placeholder: replace before enabling</mat-hint>
               }
             </mat-form-field>
           } @empty {
@@ -144,6 +146,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <li>{{ problem }}</li>
           }
         </ul>
+      } @else if (toFinish().length) {
+        <div class="draft-warnings" role="status" aria-label="To finish before enabling">
+          <strong>Incomplete: replace these before enabling</strong>
+          <ul>
+            @for (item of toFinish(); track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+          <p class="module-purpose">
+            You can create the Design now. It is created disabled and cannot be enabled until
+            these are replaced.
+          </p>
+        </div>
       } @else {
         <p class="module-purpose">The Design is created disabled. Enable it to add it to Workspaces.</p>
       }
