@@ -185,6 +185,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <th>{{ p.key }}</th>
           <td>{{ p.value }}</td>
         </tr>
+        } @if (selected.console; as console) {
+        <tr>
+          <th>Console</th>
+          <td>
+            @for (team of console.teamIds; track team) {
+            <div>{{ team }}</div>
+            } @if (console.teamsUnknown) {
+            <div>Teams known after apply</div>
+            } @else if (!console.teamIds?.length) {
+            <div>No console access: not registered in Player</div>
+            } @if (console.match === 'Name') {
+            <div class="console-guess">Matched to its Player record by name only</div>
+            }
+          </td>
+        </tr>
         } @if (selected.kind === 'Machine') { @for (n of networksOf(selected);
         track n.iface) {
         <tr>

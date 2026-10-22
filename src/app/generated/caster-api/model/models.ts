@@ -105,6 +105,8 @@ export * from './systemRole';
 export * from './tagFileCommand';
 export * from './taintResourcesCommand';
 export * from './terraformVersionsResult';
+export * from './topologyConsole';
+export * from './topologyConsoleMatch';
 export * from './topologyEdge';
 export * from './topologyNode';
 export * from './topologyNodeKind';

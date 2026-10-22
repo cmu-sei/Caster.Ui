@@ -127,3 +127,8 @@
   vertical-align: text-bottom;
   fill: currentColor;
 }
+
+.console-guess {
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant);
+}
