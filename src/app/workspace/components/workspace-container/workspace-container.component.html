@@ -209,7 +209,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Replace"
           (click)="$event.stopPropagation()"
           (change)="markResourceForReplace($event, item.address)"
-          [checked]="resourceToReplace(item.id)"
+          [checked]="resourceToReplace(item.address)"
           [disabled]="!canEdit"
           style="align-self: center"
         >
@@ -218,7 +218,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           matTooltip="Target"
           (click)="$event.stopPropagation()"
           (change)="markResourceForTarget($event, item.address)"
-          [checked]="resourceToTarget(item.id)"
+          [checked]="resourceToTarget(item.address)"
           [disabled]="!canEdit"
           style="align-self: center"
         >

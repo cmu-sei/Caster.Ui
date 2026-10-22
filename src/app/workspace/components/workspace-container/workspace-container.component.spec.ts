@@ -75,6 +75,7 @@ class OutputStub {
 async function renderWorkspace(
   canEdit: boolean,
   grants: PermissionGrants = {},
+  resources: Resource[] = [],
 ) {
   const runsApi = {
     createRun: vi.fn(() =>
@@ -83,7 +84,7 @@ async function renderWorkspace(
     getRunsByWorkspaceId: vi.fn((_id: string) => of<Run[]>([])),
   } satisfies ApiStub<RunsService>;
   const resourcesApi = {
-    getResourcesByWorkspace: vi.fn((_id: string) => of<Resource[]>([])),
+    getResourcesByWorkspace: vi.fn((_id: string) => of(resources)),
   } satisfies ApiStub<ResourcesService>;
   const signalR = {
     joinWorkspace: vi.fn(),
@@ -211,4 +212,64 @@ describe('WorkspaceContainerComponent', () => {
       ).toBe(!canEdit);
     },
   );
+
+  /**
+   * Verifies: a ticked Replace or Target checkbox follows its resource when the table re-renders, and Plan sends the ticked addresses.
+   * Interacts with: the [checked] bindings in the state view; cwd-table, which tracks resource rows by index; RunsService.createRun (stub).
+   * Data: resources vm-a and vm-b, which have ids that differ from their addresses; Replace ticked on vm-a, Target on vm-b; the table filtered to vm-b, then the filter cleared with its Clear button.
+   */
+  it('keeps Replace and Target selections on their resources when the table is filtered', async () => {
+    const { openStateView, actions, runsApi, user } = await renderWorkspace(
+      true,
+      {},
+      [
+        {
+          id: '101',
+          name: 'vm-a',
+          type: 'proxmox_cloned_vm',
+          address: 'proxmox_cloned_vm.a',
+        },
+        {
+          id: '102',
+          name: 'vm-b',
+          type: 'proxmox_cloned_vm',
+          address: 'proxmox_cloned_vm.b',
+        },
+      ],
+    );
+    // Each row holds its Replace checkbox, then its Target checkbox.
+    const checkboxes = (name: string) =>
+      within(
+        screen
+          .getByText(name)
+          .closest('mat-expansion-panel-header') as HTMLElement,
+      ).getAllByRole('checkbox');
+
+    await openStateView();
+    await screen.findByText('vm-a');
+    await user.click(checkboxes('vm-a')[0]);
+    await user.click(checkboxes('vm-b')[1]);
+
+    const search = screen.getByPlaceholderText('Search');
+    await user.type(search, 'vm-b');
+    expect(screen.queryByText('vm-a')).toBeNull();
+    // vm-b now renders in the row vm-a had.
+    expect(checkboxes('vm-b')[0]).not.toBeChecked();
+    expect(checkboxes('vm-b')[1]).toBeChecked();
+
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(checkboxes('vm-a')[0]).toBeChecked();
+    expect(checkboxes('vm-a')[1]).not.toBeChecked();
+    expect(checkboxes('vm-b')[0]).not.toBeChecked();
+    expect(checkboxes('vm-b')[1]).toBeChecked();
+
+    await user.click(actions().getByRole('button', { name: 'Plan' }));
+
+    expect(runsApi.createRun).toHaveBeenCalledWith({
+      workspaceId: 'w1',
+      isDestroy: false,
+      replaceAddresses: ['proxmox_cloned_vm.a'],
+      targets: ['proxmox_cloned_vm.b'],
+    });
+  });
 });
