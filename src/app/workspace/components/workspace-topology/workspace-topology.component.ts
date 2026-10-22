@@ -231,6 +231,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         this.saveLayout();
         this.cy?.nodes('[kind]').positions({ x: 0, y: 0 });
         this.layout();
+        this.changeDetector.markForCheck();
       });
   }
 
@@ -439,8 +440,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Lay out what nobody has placed, around what they have. Saved positions
-   * are already set on the elements; locked, cose leaves them be.
+   * Lay out what nobody has placed, around what they have. Locking the
+   * placed nodes keeps cose from pushing the others through them, but cose
+   * still moves them, so they are put back where they were saved after.
    */
   private layout() {
     const placed = this.cy
@@ -464,6 +466,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       } as any)
       .run();
     placed.unlock();
+    placed.forEach((n) => {
+      n.position(this.savedPosition(n.id()));
+    });
+    this.fit();
   }
 
   private savedPosition(id: string): { x: number; y: number } {
@@ -484,6 +490,8 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         y: Math.round(y),
       });
     });
+    // Reset layout is enabled by what was just saved.
+    this.changeDetector.markForCheck();
     this.save$.next();
   }
 
