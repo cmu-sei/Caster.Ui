@@ -15,7 +15,13 @@ import {
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ComnAuthQuery, CrucibleDialogService } from '@cmusei/crucible-common';
-import type { Core, ElementDefinition, StylesheetJson } from 'cytoscape';
+import type {
+  Core,
+  ElementDefinition,
+  NodeCollection,
+  NodeSingular,
+  StylesheetJson,
+} from 'cytoscape';
 import { Subject, merge } from 'rxjs';
 import {
   debounceTime,
@@ -443,17 +449,22 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Lay out what nobody has placed, around what they have. Locking the
-   * placed nodes keeps cose from pushing the others through them, but cose
-   * still moves them, so they are put back where they were saved after.
+   * Lay out what nobody has placed, around what they have. With nothing
+   * placed, the whole graph is a tree. Otherwise, locking the placed nodes
+   * keeps cose from pushing the others through them, but cose still moves
+   * them, so they are put back where they were saved after.
    */
   private layout() {
-    const placed = this.cy
-      .nodes('[kind]')
-      .filter((n) => !!this.savedPosition(n.id()));
+    const nodes = this.cy.nodes('[kind]');
+    const placed = nodes.filter((n) => !!this.savedPosition(n.id()));
 
-    if (placed.length === this.cy.nodes('[kind]').length) {
+    if (placed.length === nodes.length) {
       this.fit();
+      return;
+    }
+
+    if (placed.empty()) {
+      this.layoutTree();
       return;
     }
 
@@ -472,6 +483,33 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     placed.forEach((n) => {
       n.position(this.savedPosition(n.id()));
     });
+    this.fit();
+  }
+
+  /**
+   * A tree for each connected part of the graph, rooted at its busiest
+   * external network (the uplink everything hangs off), or its busiest node
+   * when it has none.
+   */
+  private layoutTree() {
+    const graph = this.cy.nodes('[kind]').union(this.cy.edges());
+    const busiest = (nodes: NodeCollection) =>
+      nodes.max((n) => n.degree(false)).ele as NodeSingular;
+    const roots = graph.components().reduce((all, part) => {
+      const external = part.nodes('.external');
+      return all.union(busiest(external.nonempty() ? external : part.nodes()));
+    }, this.cy.collection());
+
+    graph
+      .layout({
+        name: 'breadthfirst',
+        roots,
+        animate: false,
+        padding: 30,
+        spacingFactor: 1.1,
+        avoidOverlap: true,
+      } as any)
+      .run();
     this.fit();
   }
 
