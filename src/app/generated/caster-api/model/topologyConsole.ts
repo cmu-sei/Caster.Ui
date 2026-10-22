@@ -15,6 +15,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  * Do not edit the class manually.
  */
 import { TopologyConsoleMatch } from './topologyConsoleMatch';
+import { TopologyTeam } from './topologyTeam';
 
 
 /**
@@ -30,4 +31,16 @@ export interface TopologyConsole {
      */
     teamsUnknown?: boolean;
     match?: TopologyConsoleMatch;
+    /**
+     * The machine\'s own VM id in Player. Null until apply, or when it has no Player record.
+     */
+    vmId?: string | null;
+    /**
+     * The machine\'s console in Player. Null while VmId is.
+     */
+    url?: string | null;
+    /**
+     * The teams in TeamIds, named where the Terraform names them. Caster does not ask Player.
+     */
+    teams?: Array<TopologyTeam> | null;
 }

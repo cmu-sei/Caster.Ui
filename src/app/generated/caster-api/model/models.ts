@@ -113,6 +113,7 @@ export * from './topologyNodeKind';
 export * from './topologyNodeLayout';
 export * from './topologyNodeRole';
 export * from './topologySource';
+export * from './topologyTeam';
 export * from './unassignPartitionCommand';
 export * from './user';
 export * from './validationProblemDetails';
