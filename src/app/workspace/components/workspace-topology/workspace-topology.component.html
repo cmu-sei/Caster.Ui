@@ -54,6 +54,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline"></mat-icon>
     </button>
+    <button
+      mat-icon-button
+      [matTooltip]="layoutStyle === 'tree' ? 'Switch to force layout' : 'Switch to tree layout'"
+      [attr.aria-label]="layoutStyle === 'tree' ? 'Switch to force layout' : 'Switch to tree layout'"
+      [disabled]="hasSavedPositions && !canEdit"
+      (click)="toggleLayoutStyle()"
+    >
+      <mat-icon
+        class="mdi-24px"
+        [fontIcon]="layoutStyle === 'tree' ? 'mdi-graph-outline' : 'mdi-file-tree-outline'"
+      ></mat-icon>
+    </button>
     @if (canEdit) {
     <button
       mat-icon-button

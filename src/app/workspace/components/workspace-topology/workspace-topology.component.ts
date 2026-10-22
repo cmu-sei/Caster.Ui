@@ -68,6 +68,10 @@ const ACTION_DESCRIPTIONS: Record<string, string> = {
   delete: 'Applying this plan destroys it',
 };
 
+/** How nodes nobody has placed are laid out, chosen by each viewer. */
+type LayoutStyle = 'tree' | 'force';
+const LAYOUT_STYLE_KEY = 'caster.topology.layoutStyle';
+
 /** Runs whose plan has not yet been applied, rejected or failed: its changes are still to come. */
 const PENDING: RunStatus[] = [
   RunStatus.Planned,
@@ -98,6 +102,8 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   readonly actionColors = ACTION_COLORS;
   readonly actionDescriptions = ACTION_DESCRIPTIONS;
   readonly roleOptions = ROLE_OPTIONS;
+  layoutStyle: LayoutStyle =
+    localStorage.getItem(LAYOUT_STYLE_KEY) === 'force' ? 'force' : 'tree';
 
   private cy: Core;
   private nodesById = new Map<string, TopologyNode>();
@@ -228,17 +234,58 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(take(1))
       .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
+        if (confirmed) {
+          this.relayout();
         }
-        Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
-          this.remember(id, { role: node.role })
-        );
-        this.saveLayout();
-        this.cy?.nodes('[kind]').positions({ x: 0, y: 0 });
-        this.layout();
-        this.changeDetector.markForCheck();
       });
+  }
+
+  /**
+   * Switch between a tree and the force-directed layout. Where nodes have
+   * been moved, that arrangement is what everyone sees, so switching
+   * forgets it, as Reset layout does.
+   */
+  toggleLayoutStyle() {
+    const style: LayoutStyle = this.layoutStyle === 'tree' ? 'force' : 'tree';
+    const apply = () => {
+      this.layoutStyle = style;
+      localStorage.setItem(LAYOUT_STYLE_KEY, style);
+      this.relayout();
+    };
+
+    if (!this.hasSavedPositions) {
+      apply();
+      return;
+    }
+
+    this.dialogService
+      .confirm({
+        title: style === 'tree' ? 'Tree Layout' : 'Force Layout',
+        message:
+          'Lay out the topology afresh? This forgets where nodes were moved to, for everyone who views this workspace.',
+        confirmText: 'Switch',
+        cancelText: 'Cancel',
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          apply();
+        }
+      });
+  }
+
+  /** Forget the saved positions, keeping roles, and lay everything out. */
+  private relayout() {
+    if (this.hasSavedPositions) {
+      Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
+        this.remember(id, { role: node.role })
+      );
+      this.saveLayout();
+    }
+    this.cy?.nodes('[kind]').positions({ x: 0, y: 0 });
+    this.layout();
+    this.changeDetector.markForCheck();
   }
 
   toggleFullscreen() {
@@ -450,7 +497,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   /**
    * Lay out what nobody has placed, around what they have. With nothing
-   * placed, the whole graph is a tree. Otherwise, locking the placed nodes
+   * placed, a tree, unless the viewer chose otherwise. Otherwise, locking the placed nodes
    * keeps cose from pushing the others through them, but cose still moves
    * them, so they are put back where they were saved after.
    */
@@ -463,7 +510,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (placed.empty()) {
+    if (placed.empty() && this.layoutStyle === 'tree') {
       this.layoutTree();
       return;
     }
@@ -489,26 +536,76 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   /**
    * A tree for each connected part of the graph, rooted at its busiest
    * external network (the uplink everything hangs off), or its busiest node
-   * when it has none.
+   * when it has none. Each node sits centred over what hangs off it, and each
+   * subtree is as wide as its labels need, so nothing overlaps.
    */
   private layoutTree() {
     const graph = this.cy.nodes('[kind]').union(this.cy.edges());
     const busiest = (nodes: NodeCollection) =>
       nodes.max((n) => n.degree(false)).ele as NodeSingular;
-    const roots = graph.components().reduce((all, part) => {
+    const gap = 16;
+    const width = (n: NodeSingular) =>
+      n.boundingBox({ includeLabels: true } as any).w + gap;
+    const rowHeight =
+      Math.max(
+        ...graph.nodes().map((n) => n.boundingBox({ includeLabels: true } as any).h)
+      ) + 40;
+    const positions: Record<string, { x: number; y: number }> = {};
+    let left = 0;
+
+    graph.components().forEach((part) => {
       const external = part.nodes('.external');
-      return all.union(busiest(external.nonempty() ? external : part.nodes()));
-    }, this.cy.collection());
+      const root = busiest(external.nonempty() ? external : part.nodes());
+
+      // Breadth first, so each node hangs off the nearest one to the root.
+      const children = new Map<string, NodeSingular[]>();
+      const seen = new Set([root.id()]);
+      const queue = [root];
+      while (queue.length) {
+        const node = queue.shift();
+        const next = node
+          .neighborhood('node[kind]')
+          .filter((n) => !seen.has(n.id()))
+          .sort((a, b) =>
+            (a.data('label') ?? '').localeCompare(b.data('label') ?? '', undefined, {
+              numeric: true,
+            })
+          )
+          .toArray() as NodeSingular[];
+        next.forEach((n) => seen.add(n.id()));
+        children.set(node.id(), next);
+        queue.push(...next);
+      }
+
+      const spans = new Map<string, number>();
+      const span = (node: NodeSingular): number => {
+        const below = children
+          .get(node.id())
+          .reduce((sum, child) => sum + span(child), 0);
+        const own = Math.max(width(node), below);
+        spans.set(node.id(), own);
+        return own;
+      };
+      span(root);
+      const place = (node: NodeSingular, x: number, depth: number) => {
+        const own = spans.get(node.id());
+        positions[node.id()] = { x: x + own / 2, y: depth * rowHeight };
+        const kids = children.get(node.id());
+        const below = kids.reduce((sum, child) => sum + spans.get(child.id()), 0);
+        let next = x + (own - below) / 2;
+        kids.forEach((child) => {
+          place(child, next, depth + 1);
+          next += spans.get(child.id());
+        });
+      };
+
+      place(root, left, 0);
+      left += spans.get(root.id()) + gap * 4;
+    });
 
     graph
-      .layout({
-        name: 'breadthfirst',
-        roots,
-        animate: false,
-        padding: 30,
-        spacingFactor: 1.1,
-        avoidOverlap: true,
-      } as any)
+      .nodes()
+      .layout({ name: 'preset', positions, animate: false } as any)
       .run();
     this.fit();
   }
