@@ -81,6 +81,12 @@ const POSITION_KEYS: Record<LayoutStyle, ['x', 'y'] | ['treeX', 'treeY']> = {
   tree: ['treeX', 'treeY'],
 };
 
+/** What each layout is called in the view. */
+const LAYOUT_NAMES: Record<LayoutStyle, string> = {
+  force: 'grouped',
+  tree: 'tree',
+};
+
 /** Runs whose plan has not yet been applied, rejected or failed: its changes are still to come. */
 const PENDING: RunStatus[] = [
   RunStatus.Planned,
@@ -210,6 +216,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     this.cy?.fit(undefined, 30);
   }
 
+  /** The layout in view, as the toolbar names it. */
+  get layoutName(): string {
+    return LAYOUT_NAMES[this.layoutStyle];
+  }
+
   /** Whether anyone has moved a node in this layout, so there is a layout to reset. */
   get hasSavedPositions(): boolean {
     return Object.keys(this.topology?.layout ?? {}).some(
@@ -235,7 +246,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     this.dialogService
       .confirm({
         title: 'Reset Layout',
-        message: `Lay out the ${this.layoutStyle} layout afresh? This forgets where nodes were moved to in it, for everyone who views this workspace.`,
+        message: `Lay out the ${this.layoutName} layout afresh? This forgets where nodes were moved to in it, for everyone who views this workspace.`,
         confirmText: 'Reset',
         cancelText: 'Cancel',
       })
