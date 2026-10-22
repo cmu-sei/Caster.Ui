@@ -14,7 +14,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ComnAuthQuery } from '@cmusei/crucible-common';
+import { ComnAuthQuery, CrucibleDialogService } from '@cmusei/crucible-common';
 import type { Core, ElementDefinition, StylesheetJson } from 'cytoscape';
 import { Subject, merge } from 'rxjs';
 import {
@@ -23,6 +23,7 @@ import {
   map,
   skip,
   switchMap,
+  take,
   takeUntil,
 } from 'rxjs/operators';
 import {
@@ -30,11 +31,20 @@ import {
   RunStatus,
   TopologyNode,
   TopologyNodeKind,
+  TopologyNodeLayout,
+  TopologyNodeRole,
   TopologySource,
   WorkspaceTopology,
   WorkspacesService,
 } from '../../../generated/caster-api';
 import { WorkspaceQuery } from '../../state';
+import {
+  EXTERNAL_NETWORK_ICON,
+  MACHINE_ICON,
+  NETWORK_ICON,
+  ROLE_OPTIONS,
+  iconImage,
+} from './topology-icons';
 
 /** Border colours for what the plan does to a node; mid tones that read on light and dark. */
 const ACTION_COLORS: Record<string, string> = {
@@ -68,6 +78,8 @@ const PENDING: RunStatus[] = [
 })
 export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   @Input() workspaceId: string;
+  /** Whether the reader may save the layout and roles; anyone can still drag nodes about. */
+  @Input() canEdit: boolean;
 
   @ViewChild('graph', { static: true }) graph: ElementRef<HTMLElement>;
   @ViewChild('root', { static: true }) root: ElementRef<HTMLElement>;
@@ -79,10 +91,14 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   error: string;
   readonly actionColors = ACTION_COLORS;
   readonly actionDescriptions = ACTION_DESCRIPTIONS;
+  readonly roleOptions = ROLE_OPTIONS;
 
   private cy: Core;
   private nodesById = new Map<string, TopologyNode>();
   private runs: Run[] = [];
+  /** Nodes moved or given a role since the layout was last saved. */
+  private unsaved = new Set<string>();
+  private save$ = new Subject<void>();
   private unsubscribe$ = new Subject<void>();
 
   constructor(
@@ -92,7 +108,8 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     private changeDetector: ChangeDetectorRef,
     private zone: NgZone,
     private host: ElementRef<HTMLElement>,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialogService: CrucibleDialogService
   ) {}
 
   ngOnInit() {
@@ -126,6 +143,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           this.changeDetector.markForCheck();
         },
       });
+
+    // A drag ends in one dragfree per node moved; save them together.
+    this.save$
+      .pipe(debounceTime(400), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.saveLayout());
 
     // Cytoscape cannot read CSS variables, so restyle when the theme flips.
     this.authQuery.userTheme$
@@ -165,6 +187,51 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   fit() {
     this.cy?.fit(undefined, 30);
+  }
+
+  /** Whether anyone has moved a node, so there is a layout to reset. */
+  get hasSavedPositions(): boolean {
+    return Object.values(this.topology?.layout ?? {}).some(
+      (n) => n.x != null && n.y != null
+    );
+  }
+
+  roleOf(node: TopologyNode): TopologyNodeRole {
+    return this.topology?.layout?.[node.id]?.role ?? null;
+  }
+
+  setRole(node: TopologyNode, role: TopologyNodeRole) {
+    this.cy?.getElementById(node.id).data('role', role ?? '');
+    this.remember(node.id, { ...this.topology.layout?.[node.id], role });
+    this.saveLayout();
+  }
+
+  /**
+   * Forget where everyone put the nodes, for everyone, and lay them all out
+   * afresh. Roles stay.
+   */
+  resetLayout() {
+    this.dialogService
+      .confirm({
+        title: 'Reset Layout',
+        message:
+          'Lay out the topology afresh? This forgets where nodes were moved to, for everyone who views this workspace.',
+        confirmText: 'Reset',
+        cancelText: 'Cancel',
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
+          this.remember(id, { role: node.role })
+        );
+        this.saveLayout();
+        this.cy?.nodes('[kind]').positions({ x: 0, y: 0 });
+        this.layout();
+      });
   }
 
   toggleFullscreen() {
@@ -293,6 +360,19 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   private async show(topology: WorkspaceTopology) {
+    // A change still waiting to be saved is newer than what was fetched.
+    if (this.unsaved.size) {
+      const layout = { ...topology.layout };
+      this.unsaved.forEach((id) => {
+        const node = this.topology?.layout?.[id];
+        if (node) {
+          layout[id] = node;
+        } else {
+          delete layout[id];
+        }
+      });
+      topology = { ...topology, layout };
+    }
     this.topology = topology;
     this.loading = false;
     this.error = null;
@@ -340,6 +420,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           this.changeDetector.markForCheck();
         })
       );
+      this.cy.on('dragfree', 'node', (event) => {
+        // Dragging a module box moves what is in it.
+        const moved = event.target.union(event.target.descendants()).filter('[kind]');
+        this.zone.run(() => this.moved(moved.map((n) => n.id())));
+      });
       this.cy.on('tap', (event) => {
         if (event.target === this.cy) {
           this.zone.run(() => {
@@ -353,7 +438,21 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Lay out what nobody has placed, around what they have. Saved positions
+   * are already set on the elements; locked, cose leaves them be.
+   */
   private layout() {
+    const placed = this.cy
+      .nodes('[kind]')
+      .filter((n) => !!this.savedPosition(n.id()));
+
+    if (placed.length === this.cy.nodes('[kind]').length) {
+      this.fit();
+      return;
+    }
+
+    placed.lock();
     this.cy
       .layout({
         name: 'cose',
@@ -364,6 +463,62 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         randomize: false,
       } as any)
       .run();
+    placed.unlock();
+  }
+
+  private savedPosition(id: string): { x: number; y: number } {
+    const node = this.topology?.layout?.[id];
+    return node?.x != null && node?.y != null ? { x: node.x, y: node.y } : null;
+  }
+
+  /** Nodes someone dragged: keep where they are now, and save it if they may. */
+  private moved(ids: string[]) {
+    if (!this.canEdit) {
+      return;
+    }
+    ids.forEach((id) => {
+      const { x, y } = this.cy.getElementById(id).position();
+      this.remember(id, {
+        ...this.topology.layout?.[id],
+        x: Math.round(x),
+        y: Math.round(y),
+      });
+    });
+    this.save$.next();
+  }
+
+  /**
+   * Change a node's layout here straight away, so a refetch or another
+   * change before the save returns does not undo it, and mark it unsaved.
+   */
+  private remember(id: string, node: TopologyNodeLayout) {
+    const layout = { ...this.topology.layout };
+    if (node.x == null && node.y == null && node.role == null) {
+      delete layout[id];
+    } else {
+      layout[id] = node;
+    }
+    this.topology = { ...this.topology, layout };
+    this.unsaved.add(id);
+  }
+
+  private saveLayout() {
+    if (!this.unsaved.size) {
+      return;
+    }
+    const nodes: Record<string, TopologyNodeLayout> = {};
+    this.unsaved.forEach((id) => (nodes[id] = this.topology.layout?.[id] ?? null));
+    this.unsaved.clear();
+
+    this.workspacesService
+      .editWorkspaceTopologyLayout(this.workspaceId, { nodes })
+      .subscribe({
+        error: (err) =>
+          this.snackBar.open(
+            `Could not save the layout: ${err?.error?.title ?? err?.message ?? err}`,
+            'Dismiss'
+          ),
+      });
   }
 
   private elements(topology: WorkspaceTopology): ElementDefinition[] {
@@ -385,12 +540,14 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       })),
       ...nodes.map((n) => ({
         group: 'nodes' as const,
+        position: this.savedPosition(n.id) ?? undefined,
         data: {
           id: n.id,
           label: n.label,
           kind: n.kind,
           action: this.showsChanges ? (n.action ?? '') : '',
           notCreated: !!n.notCreated,
+          role: topology.layout?.[n.id]?.role ?? '',
           parent: boxed.includes(n.module) ? `module:${n.module}` : undefined,
         },
         classes: [
@@ -420,6 +577,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     const box = color('--mat-sys-surface-container-low', '#f5f3f7');
     const outline = color('--mat-sys-outline', '#777680');
     const primary = color('--mat-sys-primary', '#3f51b5');
+    const onPrimary = color('--mat-sys-on-primary', '#ffffff');
     const selected = color('--mat-sys-tertiary', '#ff4081');
     const error = color('--mat-sys-error', '#ba1a1a');
 
@@ -442,17 +600,27 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         style: {
           shape: 'round-rectangle',
           width: 44,
-          height: 32,
+          height: 36,
+          'background-image': iconImage(MACHINE_ICON, text),
+          'background-width': 24,
+          'background-height': 24,
         },
       },
+      ...ROLE_OPTIONS.map((option) => ({
+        selector: `node.machine[role = "${option.role}"]`,
+        style: { 'background-image': iconImage(option.path, text) },
+      })),
       {
         selector: 'node.network',
         style: {
           shape: 'ellipse',
-          width: 28,
-          height: 28,
+          width: 32,
+          height: 32,
           'background-color': primary,
           'border-color': primary,
+          'background-image': iconImage(NETWORK_ICON, onPrimary),
+          'background-width': 18,
+          'background-height': 18,
         },
       },
       {
@@ -461,6 +629,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           'background-opacity': 0,
           'border-style': 'dashed',
           'border-color': muted,
+          'background-image': iconImage(EXTERNAL_NETWORK_ICON, muted),
         },
       },
       ...Object.entries(ACTION_COLORS).map(([action, value]) => ({
@@ -533,6 +702,8 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // A drag just before leaving still counts.
+    this.saveLayout();
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
     this.cy?.destroy();

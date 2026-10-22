@@ -28,9 +28,13 @@ import { CreateWorkspaceCommand } from '../model/createWorkspaceCommand';
 // @ts-ignore
 import { EditWorkspaceCommand } from '../model/editWorkspaceCommand';
 // @ts-ignore
+import { EditWorkspaceTopologyLayoutCommand } from '../model/editWorkspaceTopologyLayoutCommand';
+// @ts-ignore
 import { PartialEditWorkspaceCommand } from '../model/partialEditWorkspaceCommand';
 // @ts-ignore
 import { ProblemDetails } from '../model/problemDetails';
+// @ts-ignore
+import { TopologyNodeLayout } from '../model/topologyNodeLayout';
 // @ts-ignore
 import { Workspace } from '../model/workspace';
 // @ts-ignore
@@ -383,6 +387,86 @@ export class WorkspacesService {
             {
                 context: localVarHttpContext,
                 body: editWorkspaceCommand,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Save where nodes sit in a Workspace\'s topology view, and their roles
+     * @param id The Id of the Workspace
+     * @param editWorkspaceTopologyLayoutCommand The nodes to save, by node id
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public editWorkspaceTopologyLayout(id: string, editWorkspaceTopologyLayoutCommand?: EditWorkspaceTopologyLayoutCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<{ [key: string]: TopologyNodeLayout; }>;
+    public editWorkspaceTopologyLayout(id: string, editWorkspaceTopologyLayoutCommand?: EditWorkspaceTopologyLayoutCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<{ [key: string]: TopologyNodeLayout; }>>;
+    public editWorkspaceTopologyLayout(id: string, editWorkspaceTopologyLayoutCommand?: EditWorkspaceTopologyLayoutCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<{ [key: string]: TopologyNodeLayout; }>>;
+    public editWorkspaceTopologyLayout(id: string, editWorkspaceTopologyLayoutCommand?: EditWorkspaceTopologyLayoutCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling editWorkspaceTopologyLayout.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/workspaces/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/topology/layout`;
+        return this.httpClient.request<{ [key: string]: TopologyNodeLayout; }>('patch', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: editWorkspaceTopologyLayoutCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

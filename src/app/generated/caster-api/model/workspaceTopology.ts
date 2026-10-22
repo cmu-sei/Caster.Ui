@@ -17,6 +17,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 import { TopologyNode } from './topologyNode';
 import { TopologyEdge } from './topologyEdge';
 import { TopologySource } from './topologySource';
+import { TopologyNodeLayout } from './topologyNodeLayout';
 
 
 /**
@@ -36,5 +37,9 @@ export interface WorkspaceTopology {
     isDestroy?: boolean;
     nodes?: Array<TopologyNode> | null;
     edges?: Array<TopologyEdge> | null;
+    /**
+     * The position and role saved for each node, by node id. Only nodes in Nodes; a node nobody has moved or given a role is absent.
+     */
+    layout?: { [key: string]: TopologyNodeLayout; } | null;
 }
 

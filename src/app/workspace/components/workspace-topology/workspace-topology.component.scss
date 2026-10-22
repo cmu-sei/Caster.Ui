@@ -114,3 +114,16 @@
   color: var(--mat-sys-on-surface-variant);
   word-break: break-all;
 }
+
+.role {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.role-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}

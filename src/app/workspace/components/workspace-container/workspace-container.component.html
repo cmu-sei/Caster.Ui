@@ -303,7 +303,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   }
   <!-- Topology -->
   @case ('topology') {
-  <cas-workspace-topology [workspaceId]="workspaceId"></cas-workspace-topology>
+  <cas-workspace-topology
+    [workspaceId]="workspaceId"
+    [canEdit]="canEdit"
+  ></cas-workspace-topology>
   } }
 </div>
 

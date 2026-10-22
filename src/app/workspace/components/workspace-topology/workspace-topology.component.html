@@ -54,6 +54,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline"></mat-icon>
     </button>
+    @if (canEdit) {
+    <button
+      mat-icon-button
+      matTooltip="Reset layout"
+      aria-label="Reset layout"
+      [disabled]="!hasSavedPositions"
+      (click)="resetLayout()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-restore"></mat-icon>
+    </button>
+    }
     <button
       mat-icon-button
       matTooltip="Copy image"
@@ -117,6 +128,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <div class="details">
       <div class="details-title">{{ selected.label }}</div>
       <div class="details-address">{{ selected.id }}</div>
+      @if (selected.kind === 'Machine') {
+      <mat-form-field class="role" subscriptSizing="dynamic">
+        <mat-label>Role</mat-label>
+        <mat-select
+          [value]="roleOf(selected)"
+          [disabled]="!canEdit"
+          (selectionChange)="setRole(selected, $event.value)"
+        >
+          <mat-option [value]="null">None</mat-option>
+          @for (option of roleOptions; track option.role) {
+          <mat-option [value]="option.role">
+            <svg class="role-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path [attr.d]="option.path"></path>
+            </svg>
+            {{ option.label }}
+          </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
       <table>
         @if (selected.type) {
         <tr>
