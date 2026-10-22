@@ -9,24 +9,24 @@ way.
 This allows you to build the toolbar navigation and the actions needed for your application based on the modules
 and components that are imported or displayed.
 
-#### Depenencies
+#### Dependencies
 
 - `@angular/material` - npm
 - `@angular/cdk` - npm
-- `@angular/flex-layout` - npm
+- `bootstrap` - npm (layout utility classes in the toolbar template)
 
 #### Components
 
-- `CwdToolbarComponent`
-- `CwdToolbarNavigationItemComponent`
-- `CwdToolbarActionItemComponent`
+- `CwdToolbarComponent` (`cas-cwd-toolbar`)
+- `CwdToolbarNavigationItemComponent` (`cas-cwd-toolbar-navigation-item`)
+- `CwdToolbarActionItemComponent` (`cas-cwd-toolbar-action-item`)
 
 #### Implementation
 
 CWD Toolbar module needs to be imported into your NgModule declaration
 
 ```typescript
-import {CwdToolbarModule} from './cwd-toolbar.module';
+import { CwdToolbarModule } from './sei-cwd-common/cwd-toolbar/cwd-toolbar.module';
 
 @NgModule({
   declarations: [
@@ -40,6 +40,7 @@ import {CwdToolbarModule} from './cwd-toolbar.module';
   providers: [],
   bootstrap: [AppComponent]
 })
+export class AppModule {}
 ```
 
 #### Example
@@ -59,11 +60,20 @@ will be put in a smart component.
     <button (click)="logout()" mat-menu-item>Logout</button>
   </mat-menu>
 </cas-cwd-toolbar-navigation-item>
+
+<cas-cwd-toolbar-action-item selector="#toolbar-action">
+  <!-- This block will show up in your action row -->
+  <button mat-button>New</button>
+</cas-cwd-toolbar-action-item>
 ```
 
-_app.module.html_
+_app.component.html_
 
-Additionaly you will handle any events within your component.
+`cas-cwd-toolbar-navigation-item` moves its content into the toolbar's `#toolbar-navigation` element.
+`cas-cwd-toolbar-action-item` moves its content into the element its `selector` input matches; the toolbar
+provides `#toolbar-action` in its action row.
+
+Additionally you will handle any events within your component.
 `<button (click)="logout()" mat-menu-item>Logout</button>`
 
 ```typescript
@@ -73,11 +83,12 @@ import { Component } from '@angular/core';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  standalone: false,
 })
 export class AppComponent {
   title = 'Caster';
 
-  constructor(authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   logout() {
     this.authService.logout();
@@ -89,18 +100,17 @@ _app.component.ts_
 
 #### Theme
 
-The module can incorporate with your existing material theme in your `styles.scss file`
+The toolbar's styles are in the `cwd-toolbar-theme` mixin in `theme/theme.scss`. Import it into your global
+stylesheet next to your material theme (this app's is `src/styles/styles.scss`) and include it. The mixin
+takes a theme argument but does not use its colors.
 
 ```scss
-import "~@angular/material/theming";
-@include mat-core();
+@use '@angular/material' as mat;
+@import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 
-$primary: mat-palette($mat-light-blue);
-$accent: mat-palette($mat-orange, A200, A100, A400);
-$warn: mat-palette($mat-yellow, A200);
-$theme: mat-light-theme($primary, $accent, $warn);
+html {
+  @include mat.theme((color: mat.$azure-palette));
+}
 
-@import "src/app/sei-cwd-common/cwd-toolbar/theme/theme";
-@include angular-material-theme($theme);
-@include cwd-toolbar-theme($theme);
+@include cwd-toolbar-theme(());
 ```
