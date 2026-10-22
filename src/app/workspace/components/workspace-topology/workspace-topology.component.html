@@ -200,7 +200,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <a [href]="console.url" target="_blank" rel="noopener"
                 >Open console</a
               >
+              @if (console.name) {
+              <span class="console-guess">{{ console.name }}</span>
+              }
             </div>
+            } @else if (console.name) {
+            <div class="console-guess">{{ console.name }}</div>
             } @if (console.teamsUnknown) {
             <div>Teams known after apply</div>
             } @else if (!console.teamIds?.length) {
