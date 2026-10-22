@@ -36,6 +36,10 @@ export interface TopologyConsole {
      */
     vmId?: string | null;
     /**
+     * The machine\'s name in Player, as its console shows it.
+     */
+    name?: string | null;
+    /**
      * The machine\'s console in Player. Null while VmId is.
      */
     url?: string | null;
