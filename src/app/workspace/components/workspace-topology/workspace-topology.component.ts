@@ -379,6 +379,11 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     return `${name ?? 'workspace'}-topology`;
   }
 
+  /** The name players see in Player, when the Terraform gives one, else the resource's own. */
+  labelOf(node: TopologyNode): string {
+    return node.console?.name || node.label;
+  }
+
   propertiesOf(node: TopologyNode): { key: string; value: string }[] {
     return Object.entries(node.properties ?? {}).map(([key, value]) => ({
       key,
@@ -399,7 +404,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   machinesOn(node: TopologyNode): string[] {
     return (this.topology?.edges ?? [])
       .filter((e) => e.to === node.id)
-      .map((e) => this.nodesById.get(e.from)?.label ?? e.from)
+      .map((e) => {
+        const machine = this.nodesById.get(e.from);
+        return machine ? this.labelOf(machine) : e.from;
+      })
       .sort();
   }
 
@@ -695,7 +703,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         position: this.savedPosition(n.id) ?? undefined,
         data: {
           id: n.id,
-          label: n.label,
+          label: this.labelOf(n),
           kind: n.kind,
           action: this.showsChanges ? (n.action ?? '') : '',
           notCreated: !!n.notCreated,
