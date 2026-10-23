@@ -13,8 +13,9 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
-import { filter, shareReplay, take, tap } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { EMPTY, Observable, OperatorFunction } from 'rxjs';
+import { catchError, filter, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -88,8 +89,22 @@ export class WorkspaceContainerComponent
     private confirmService: CrucibleDialogService,
     public currentUserQuery: CurrentUserQuery,
     private dialog: MatDialog,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar
   ) {}
+
+  /** Shows why a run action was refused, in the API's words, instead of the error dialog. */
+  private reportFailure<T>(action: string): OperatorFunction<T, T> {
+    return catchError((error) => {
+      const reason = error?.error?.title || error?.error?.detail || error?.message;
+      this.snackBar.open(`Could not ${action}: ${reason}`, 'Dismiss', {
+        duration: 8000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+      });
+      return EMPTY;
+    });
+  }
 
   ngOnInit() {
     this.loading$ = this.workspaceQuery.selectLoading().pipe(
@@ -205,7 +220,8 @@ export class WorkspaceContainerComponent
         this.resourcesToTarget
       )
       .pipe(
-        take(1)
+        take(1),
+        this.reportFailure('plan')
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -216,7 +232,8 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .rejectRun(this.workspaceId, run.id)
       .pipe(
-        take(1)
+        take(1),
+        this.reportFailure('reject')
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -240,7 +257,8 @@ export class WorkspaceContainerComponent
           this.workspaceService
             .cancelRun(this.workspaceId, run.id, this.forceCancel)
             .pipe(
-              take(1)
+              take(1),
+              this.reportFailure('cancel')
               // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
             )
             .subscribe();
@@ -251,7 +269,10 @@ export class WorkspaceContainerComponent
   apply(event: Event, run: Run) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
-    this.workspaceService.applyRun(this.workspaceId, run.id).pipe().subscribe();
+    this.workspaceService
+      .applyRun(this.workspaceId, run.id)
+      .pipe(this.reportFailure('apply'))
+      .subscribe();
   }
 
   destroy(event: Event) {
@@ -259,6 +280,7 @@ export class WorkspaceContainerComponent
     // TODO: Unsubscribe from this.
     this.workspaceService
       .createPlanRun(this.workspaceId, true, null, null)
+      .pipe(this.reportFailure('plan the destroy'))
       .subscribe();
   }
 
