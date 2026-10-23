@@ -232,6 +232,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <a [href]="console.url" target="_blank" rel="noopener">Open console</a>
             } @else {
             <span class="console-guess">Available after apply</span>
+            } @if (showsChanges && console.action) {
+            <div class="console-guess">Player record: {{ console.action }}</div>
             }
           </td>
         </tr>
