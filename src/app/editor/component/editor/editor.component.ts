@@ -28,7 +28,11 @@ import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
-import { FileQuery, FileService } from '../../../files/state';
+import {
+  FileQuery,
+  FileService,
+  isSameContent,
+} from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import {
@@ -267,6 +271,28 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       console.warn('Monaco keybinding configuration failed:', err);
     }
     this.updateModelLanguage();
+    // setValue (isFlush) re-detects the line ending from the new content
+    editor.onDidChangeModelContent((e: any) => {
+      if (e.isFlush && !this.editorOptions.readOnly) {
+        this.applyLineEnding();
+      }
+    });
+    if (!this.editorOptions.readOnly) {
+      this.applyLineEnding();
+    }
+  }
+
+  // Sets the line ending that edited files are saved with. EditorLineEnding
+  // is 'LF' (default) or 'CRLF'; any other value keeps the file's own endings.
+  applyLineEnding(): void {
+    const model = this.ngxEditor?.getModel();
+    const monaco = (window as any).monaco;
+    if (!model || !monaco) return;
+    const setting = this.settingsService.settings.EditorLineEnding ?? 'LF';
+    const eol = monaco.editor.EndOfLineSequence[setting];
+    if (typeof eol === 'number') {
+      model.setEOL(eol);
+    }
   }
 
   get detectedLanguage(): string {
@@ -319,6 +345,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       this.editorOptions.theme = theme;
       // Focus the editor when entering edit mode so the user can type immediately
       if (!readOnly) {
+        this.applyLineEnding();
         this.ngxEditor.focus();
       }
     } else {
@@ -348,7 +375,9 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   codeChangedEventHandler(event) {
-    if (event !== this.file.editorContent) {
+    // Monaco emits its line-ending-normalized copy of the content when a file
+    // loads and when applyLineEnding() runs; neither is an edit
+    if (!isSameContent(event, this.file.editorContent)) {
       this.fileService.updateEditorContent(this.file.id, this.code);
     }
   }

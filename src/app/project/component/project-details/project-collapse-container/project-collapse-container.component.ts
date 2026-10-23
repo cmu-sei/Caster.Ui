@@ -16,7 +16,7 @@ import {
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
-import { FileQuery } from 'src/app/files/state';
+import { FileQuery, isFileContentChanged } from 'src/app/files/state';
 import { Project, ProjectPermission } from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -190,8 +190,7 @@ export class ProjectCollapseContainerComponent
   }
 
   isFileContentChanged(fileId: string): boolean {
-    const file = this.fileQuery.getEntity(fileId);
-    return file && file.editorContent !== file.content;
+    return isFileContentChanged(this.fileQuery.getEntity(fileId));
   }
 
   openEditMemberships() {}

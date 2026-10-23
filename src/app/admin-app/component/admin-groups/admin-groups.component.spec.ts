@@ -152,6 +152,25 @@ describe('AdminGroupsComponent', () => {
   });
 
   /**
+   * Verifies: an EditGroup claim alone enables Rename on its group without enabling group creation or deletion.
+   * Interacts with: real PermissionService.canEditGroup and hasPermission, the rendered group table.
+   * Data: exactly one EditGroup claim on g1; no system permissions or other group claims.
+   */
+  it('enables Rename with only an EditGroup claim on that group', async () => {
+    await renderGroups({
+      groups: [{ groupId: 'g1', permissions: [GroupPermission.EditGroup] }],
+    });
+
+    const blue = within(rowOf('Blue Team'));
+    expect(blue.getByRole('button', { name: 'Rename' })).toBeEnabled();
+    expect(blue.getByRole('button', { name: 'Delete Blue Team' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add New Group' })).toBeDisabled();
+    expect(
+      within(rowOf('Red Team')).getByRole('button', { name: 'Rename' }),
+    ).toBeDisabled();
+  });
+
+  /**
    * Verifies: expanding a group passes canEdit true to its detail when the user has a ManageMembership claim on it.
    * Interacts with: PermissionService.canManageGroup (real), the detail stub's canEdit input.
    * Data: a ManageMembership claim on g1; the Blue Team row clicked.

@@ -22,7 +22,11 @@ import {
   Tab,
 } from '../../../state';
 import { DirectoryQuery } from 'src/app/directories/state';
-import { FileQuery, FileService } from 'src/app/files/state';
+import {
+  FileQuery,
+  FileService,
+  isFileContentChanged,
+} from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
 import {
   MatTab,
@@ -491,8 +495,7 @@ export class ProjectTabComponent
   }
 
   isFileContentChanged(fileId: string): boolean {
-    const file = this.fileQuery.getEntity(fileId);
-    return file && file.editorContent !== file.content;
+    return isFileContentChanged(this.fileQuery.getEntity(fileId));
   }
 
   // True only once the tab's referenced entity is hydrated into its store.

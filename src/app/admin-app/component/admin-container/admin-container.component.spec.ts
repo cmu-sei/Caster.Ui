@@ -26,6 +26,10 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import {
+  captureUnhandledRejections,
+  flush,
+} from 'src/app/test-utils/unhandled-rx-errors';
 import { AdminContainerComponent } from './admin-container.component';
 import { AdminGroupsComponent } from 'src/app/admin-app/component/admin-groups/admin-groups.component';
 import { AdminModulesComponent } from 'src/app/admin-app/component/admin-modules/modules.component';
@@ -61,7 +65,11 @@ class GroupsStub {}
 @Component({ selector: 'cas-admin-projects', template: '' })
 class ProjectsStub {}
 
-async function renderContainer(grants: PermissionGrants, section?: string) {
+async function renderContainer(
+  grants: PermissionGrants,
+  section?: string,
+  authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
+) {
   // selectQueryParams is overloaded and generic; the container only calls
   // selectQueryParams('section').
   const routerQuery = {
@@ -76,6 +84,7 @@ async function renderContainer(grants: PermissionGrants, section?: string) {
       }),
     ),
     logout: vi.fn(() => Promise.resolve()),
+    ...authOverrides,
   } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
   const view = await renderComponent(AdminContainerComponent, {
     childStubs: [
@@ -115,6 +124,24 @@ function navSections(): string[] {
 }
 
 describe('AdminContainerComponent', () => {
+  /**
+   * Verifies: calling logout lets its rejected promise escape (current behavior).
+   * Interacts with: ComnAuthService.logout, captureUnhandledRejections.
+   * Data: rendered container; the sign-out redirect rejects.
+   */
+  it('leaves a rejected direct logout unhandled', async () => {
+    const failure = new Error('sign-out redirect failed');
+    const errors = captureUnhandledRejections();
+    const { fixture } = await renderContainer({}, undefined, {
+      logout: () => Promise.reject(failure),
+    });
+
+    fixture.componentInstance.logout();
+    await flush();
+
+    expect(errors).toEqual([failure]);
+  });
+
   /**
    * Verifies: each sidenav section appears only with its own system permission (Groups also with a ManageMembership claim), and near-miss grants render no section.
    * Interacts with: PermissionService.permissions$ and canViewGroupsAdmin (real), SystemPermissionsService and GroupPermissionsService (stubs).

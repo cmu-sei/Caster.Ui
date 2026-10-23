@@ -89,6 +89,6 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptorsFromDi()),
-    provideCrucibleTheme({ brand: { color: '#E9831C', text: '#FFFFFF' } }),
+    provideCrucibleTheme({ brand: { color: '#AB650F', text: '#FFFFFF' } }),
   ],
 };
