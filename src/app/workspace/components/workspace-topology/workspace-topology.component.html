@@ -207,7 +207,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </tr>
         } } @if (selected.console; as console) {
         <tr>
-          <th>Team</th>
+          <th>{{ (console.teams?.length ?? 0) > 1 ? 'Teams' : 'Team' }}</th>
           <td>
             @for (team of console.teams; track team.id) {
             <div [title]="team.id">
