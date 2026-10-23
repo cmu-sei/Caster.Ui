@@ -374,34 +374,34 @@ export class WorkspaceContainerComponent
     this.resourcesToTarget = []; // clear the list after the plan
   }
 
-  markResourceForReplace(event: any, id: string) {
+  markResourceForReplace(event: any, address: string) {
     if (event.checked) {
-      this.resourcesToReplace.push(id);
+      this.resourcesToReplace.push(address);
     } else {
-      const index = this.resourcesToReplace.findIndex((m) => m === id);
+      const index = this.resourcesToReplace.findIndex((m) => m === address);
       if (index >= 0) {
         this.resourcesToReplace.splice(index, 1);
       }
     }
   }
 
-  resourceToReplace(id: string): boolean {
-    return this.resourcesToReplace.includes(id);
+  resourceToReplace(address: string): boolean {
+    return this.resourcesToReplace.includes(address);
   }
 
-  markResourceForTarget(event: any, id: string) {
+  markResourceForTarget(event: any, address: string) {
     if (event.checked) {
-      this.resourcesToTarget.push(id);
+      this.resourcesToTarget.push(address);
     } else {
-      const index = this.resourcesToTarget.findIndex((m) => m === id);
+      const index = this.resourcesToTarget.findIndex((m) => m === address);
       if (index >= 0) {
         this.resourcesToTarget.splice(index, 1);
       }
     }
   }
 
-  resourceToTarget(id: string): boolean {
-    return this.resourcesToTarget.includes(id);
+  resourceToTarget(address: string): boolean {
+    return this.resourcesToTarget.includes(address);
   }
 
   private showResult(result: ResourceCommandResult) {
