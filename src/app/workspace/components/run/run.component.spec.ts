@@ -11,6 +11,10 @@ import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { mockMatchMedia } from 'src/app/test-utils/match-media';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import {
+  captureUnhandledRxErrors,
+  flush,
+} from 'src/app/test-utils/unhandled-rx-errors';
 import { RunComponent } from './run.component';
 
 /** A hub stream that sends the given chunks, then completes. */
@@ -24,7 +28,10 @@ function streamOf(chunks: string[]): IStreamResult<string> {
   };
 }
 
-async function renderRun(run: Run) {
+async function renderRun(
+  run: Run,
+  signalROverrides: Partial<Pick<SignalRService, 'startConnection'>> = {},
+) {
   mockMatchMedia();
   const signalR = {
     startConnection: vi.fn(() => Promise.resolve()),
@@ -32,26 +39,68 @@ async function renderRun(run: Run) {
       streamOf(['Plan: ', '1 to add']),
     ),
     streamApplyOutput: vi.fn((_applyId: string) => streamOf([])),
+    ...signalROverrides,
   } satisfies Pick<
     SignalRService,
     'startConnection' | 'streamPlanOutput' | 'streamApplyOutput'
   >;
   const planOutput = vi.fn<(output: string) => void>();
+  const applyOutput = vi.fn<(output: string) => void>();
   const view = await renderComponent(RunComponent, {
     imports: [DragDropModule, MatIconModule, MatTooltipModule, MatButtonModule],
     providers: [{ provide: SignalRService, useValue: signalR }],
     inputs: { run, loading: false },
-    on: { planOutput },
+    on: { planOutput, applyOutput },
   });
   await view.fixture.whenStable();
   const firstLine = () =>
     view.fixture.componentInstance.xterm.buffer.active
       .getLine(0)
       ?.translateToString(true);
-  return { ...view, signalR, planOutput, firstLine };
+  return { ...view, signalR, planOutput, applyOutput, firstLine };
 }
 
 describe('RunComponent', () => {
+  /**
+   * Verifies: a failed connection start escapes and leaves the terminal empty without opening an output stream (current behavior).
+   * Interacts with: SignalRService.startConnection, real xterm Terminal, output emitters, captureUnhandledRxErrors.
+   * Data: applying or planning run without stored output; connection start rejects.
+   */
+  it.each<{ label: string; run: Run }>([
+    {
+      label: 'apply',
+      run: {
+        id: 'run1',
+        status: RunStatus.Applying,
+        planId: 'pl1',
+        applyId: 'ap1',
+      },
+    },
+    {
+      label: 'plan',
+      run: {
+        id: 'run1',
+        status: RunStatus.Planning,
+        planId: 'pl1',
+        applyId: null,
+      },
+    },
+  ])('leaves a rejected $label connection start unhandled', async ({ run }) => {
+    const failure = new Error('hub connection start failed');
+    const errors = captureUnhandledRxErrors();
+    const { signalR, planOutput, applyOutput, firstLine } = await renderRun(run, {
+      startConnection: () => Promise.reject(failure),
+    });
+    await flush();
+
+    expect(errors).toEqual([failure]);
+    expect(firstLine()).toBe('');
+    expect(signalR.streamPlanOutput).not.toHaveBeenCalled();
+    expect(signalR.streamApplyOutput).not.toHaveBeenCalled();
+    expect(planOutput).not.toHaveBeenCalled();
+    expect(applyOutput).not.toHaveBeenCalled();
+  });
+
   /**
    * Verifies: a planned run with its plan loaded writes the plan output without streaming.
    * Interacts with: the real xterm Terminal (with mockMatchMedia), SignalRService (stub, not streamed).
