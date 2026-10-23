@@ -128,7 +128,8 @@
   fill: currentColor;
 }
 
-.console-link {
+.console-link,
+.console-link:visited {
   color: var(--mat-sys-primary);
 }
 
