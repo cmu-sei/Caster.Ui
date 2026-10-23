@@ -168,12 +168,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         } @if (selected.type) {
         <tr>
           <th>Type</th>
-          <td>{{ selected.type }}</td>
+          <td>
+            <div>{{ selected.type }}</div>
+            @if (selected.console?.address) {
+            <div>crucible_player_virtual_machine</div>
+            }
+          </td>
         </tr>
         } @if (showsChanges && selected.action) {
         <tr>
           <th>Action</th>
-          <td>{{ selected.action }}</td>
+          <td>
+            {{ actionOf(selected) }} @if (actionScope(selected); as scope) {
+            <span class="console-guess">{{ scope }} only</span>
+            }
+          </td>
         </tr>
         } @if (selected.notCreated) {
         <tr>
@@ -232,8 +241,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <a [href]="console.url" target="_blank" rel="noopener">Open console</a>
             } @else {
             <span class="console-guess">Available after apply</span>
-            } @if (showsChanges && console.action) {
-            <div class="console-guess">Player record: {{ console.action }}</div>
             }
           </td>
         </tr>

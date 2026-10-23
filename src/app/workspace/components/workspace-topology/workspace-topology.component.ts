@@ -379,6 +379,23 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     return `${name ?? 'workspace'}-topology`;
   }
 
+  /** What the plan does to the machine as a whole: its own resource or its Player record. */
+  actionOf(node: TopologyNode): string {
+    return node.action === 'no-op' && node.console?.action ? 'update' : node.action;
+  }
+
+  /** Which of a machine's two resources the action is, when only one of them changes. */
+  actionScope(node: TopologyNode): string {
+    if (!node.console?.address) {
+      return '';
+    }
+    const vmChanges = !!node.action && node.action !== 'no-op';
+    if (vmChanges === !!node.console.action) {
+      return '';
+    }
+    return vmChanges ? node.type : 'crucible_player_virtual_machine';
+  }
+
   /** The name players see in Player, when the Terraform gives one, else the resource's own. */
   labelOf(node: TopologyNode): string {
     return node.console?.name || node.label;
@@ -705,7 +722,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           id: n.id,
           label: this.labelOf(n),
           kind: n.kind,
-          action: this.showsChanges ? (n.action ?? '') : '',
+          action: this.showsChanges ? (this.actionOf(n) ?? '') : '',
           notCreated: !!n.notCreated,
           role: topology.layout?.[n.id]?.role ?? '',
           parent: boxed.includes(n.module) ? `module:${n.module}` : undefined,
