@@ -36,6 +36,10 @@ export interface TopologyConsole {
      */
     vmId?: string | null;
     /**
+     * The address of the machine\'s Player record, such as crucible_player_virtual_machine.dc. Null when Caster\'s own Player sync registers it.
+     */
+    address?: string | null;
+    /**
      * What the plan does to the machine\'s Player record: create, update, replace or delete. Null when it leaves it alone, and when read from the state.
      */
     action?: string | null;
