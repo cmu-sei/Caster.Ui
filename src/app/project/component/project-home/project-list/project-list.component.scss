@@ -21,6 +21,8 @@
   margin: 0 auto;
   width: 80%;
   overflow: hidden;
+  // Same color as the page, so the panel stays readable over a landing background.
+  background-color: var(--mat-sys-background);
 }
 
 .crucible-icon-caster {

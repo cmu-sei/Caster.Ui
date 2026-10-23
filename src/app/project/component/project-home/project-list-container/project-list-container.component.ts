@@ -22,6 +22,7 @@ export class ProjectListContainerComponent implements OnInit {
   public projects: Observable<Project[]>;
   public isLoading$: Observable<boolean>;
   TopbarView = TopbarView;
+  public backgroundImage: string | null = null;
 
   constructor(
     private projectService: ProjectService,
@@ -42,6 +43,11 @@ export class ProjectListContainerComponent implements OnInit {
 
     // Set the page title from configuration file
     this.titleText = this.settingsService.settings.AppTopBarText;
+
+    // An optional image URL from settings, so a site can brand the page
+    // without shipping the image in this repo.
+    const background = this.settingsService.settings.AppLandingBackgroundImage;
+    this.backgroundImage = background ? `url("${background}")` : null;
 
     this.currentUserQuery.select().subscribe((cu) => {
       this.username = cu.name;

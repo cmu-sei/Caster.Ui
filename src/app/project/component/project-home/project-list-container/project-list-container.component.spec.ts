@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
-import { ComnAuthService } from '@cmusei/crucible-common';
+import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import { User as OidcUser } from 'oidc-client-ts';
 import { Project, ProjectsService } from 'src/app/generated/caster-api';
 import { TopbarView } from 'src/app/shared/components/top-bar/topbar.models';
@@ -34,6 +34,7 @@ class ProjectListStub {
 
 async function renderProjectContainer(
   authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
+  background?: string,
 ) {
   const projectsApi = {
     getAllProjects: vi.fn((_onlyMine?: boolean) =>
@@ -56,6 +57,12 @@ async function renderProjectContainer(
     providers: [
       { provide: ProjectsService, useValue: projectsApi },
       { provide: ComnAuthService, useValue: auth },
+      {
+        provide: ComnSettingsService,
+        useValue: {
+          settings: { AppTopBarText: 'Caster', AppLandingBackgroundImage: background },
+        } satisfies Pick<ComnSettingsService, 'settings'>,
+      },
     ],
   });
   return { ...view, projectsApi };
@@ -97,5 +104,21 @@ describe('ProjectListContainerComponent', () => {
       id: 'u1',
       name: 'Ada',
     });
+  });
+
+  /**
+   * Verifies: the page shows the background image named in settings, and none without the setting.
+   * Interacts with: ComnSettingsService.settings (stub), ProjectListContainerComponent template.
+   * Data: AppLandingBackgroundImage set to a relative asset URL, or unset.
+   */
+  it.each([
+    { label: 'with', background: '/assets/local/landing-background.jpg', expected: 'url("/assets/local/landing-background.jpg")' },
+    { label: 'without', background: undefined, expected: '' },
+  ])('shows the landing background $label the setting', async ({ background, expected }) => {
+    const { container } = await renderProjectContainer({}, background);
+
+    const page = container.querySelector('.content-container') as HTMLElement;
+    expect(page.style.getPropertyValue('--landing-background')).toBe(expected);
+    expect(page.classList.contains('has-background')).toBe(!!background);
   });
 });

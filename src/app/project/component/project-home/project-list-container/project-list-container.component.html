@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <cas-topbar title="Caster" [topbarView]="TopbarView.CASTER_HOME" [sidenav]="null"></cas-topbar>
 
-<div class="content-container">
+<div class="content-container" [class.has-background]="backgroundImage" [style.--landing-background]="backgroundImage">
   <cas-project-list
     [projects]="projects | async" [isLoading]="isLoading$ | async">
   </cas-project-list>
