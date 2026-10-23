@@ -137,7 +137,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
     } @if (selected) {
     <div class="details">
-      <div class="details-title">{{ selected.label }}</div>
+      <div class="details-title">{{ labelOf(selected) }}</div>
       <div class="details-address">{{ selected.id }}</div>
       @if (selected.kind === 'Machine') {
       <mat-form-field class="role" subscriptSizing="dynamic">
@@ -160,7 +160,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-form-field>
       }
       <table>
-        @if (selected.type) {
+        @if (labelOf(selected) !== selected.label) {
+        <tr>
+          <th>Name</th>
+          <td>{{ selected.label }}</td>
+        </tr>
+        } @if (selected.type) {
         <tr>
           <th>Type</th>
           <td>{{ selected.type }}</td>
@@ -185,36 +190,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <th>{{ p.key }}</th>
           <td>{{ p.value }}</td>
         </tr>
-        } @if (selected.console; as console) {
-        <tr>
-          <th>Console</th>
-          <td>
-            @for (team of console.teams; track team.id) {
-            <div [title]="team.id">
-              @if (team.name) { {{ team.name }} @if (team.variable) {
-              <span class="console-guess">var.{{ team.variable }}</span>
-              } } @else { {{ team.id }} }
-            </div>
-            } @if (console.url) {
-            <div>
-              <a [href]="console.url" target="_blank" rel="noopener"
-                >Open console</a
-              >
-              @if (console.name) {
-              <span class="console-guess console-name">{{ console.name }}</span>
-              }
-            </div>
-            } @else if (console.name) {
-            <div class="console-guess">{{ console.name }}</div>
-            } @if (console.teamsUnknown) {
-            <div>Teams known after apply</div>
-            } @else if (!console.teamIds?.length) {
-            <div>No console access: not registered in Player</div>
-            } @if (console.match === 'Name') {
-            <div class="console-guess">Matched to its Player record by name only</div>
-            }
-          </td>
-        </tr>
         } @if (selected.kind === 'Machine') { @for (n of networksOf(selected);
         track n.iface) {
         <tr>
@@ -227,6 +202,36 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <td>
             @for (machine of machinesOn(selected); track $index) {
             <div>{{ machine }}</div>
+            }
+          </td>
+        </tr>
+        } } @if (selected.console; as console) {
+        <tr>
+          <th>Team</th>
+          <td>
+            @for (team of console.teams; track team.id) {
+            <div [title]="team.id">
+              @if (team.name) { {{ team.name }} @if (team.variable) {
+              <span class="console-guess">var.{{ team.variable }}</span>
+              } } @else { {{ team.id }} }
+            </div>
+            } @if (console.teamsUnknown) {
+            <div>Known after apply</div>
+            } @else if (!console.teamIds?.length) {
+            <div>None: not registered in Player</div>
+            } @if (console.match === 'Name') {
+            <div class="console-guess">Matched to its Player record by name only</div>
+            }
+          </td>
+        </tr>
+        @if (console.teamIds?.length || console.teamsUnknown) {
+        <tr>
+          <th>Console</th>
+          <td>
+            @if (console.url) {
+            <a [href]="console.url" target="_blank" rel="noopener">Open console</a>
+            } @else {
+            <span class="console-guess">Available after apply</span>
             }
           </td>
         </tr>
