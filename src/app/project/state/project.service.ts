@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { ProjectStore } from './project-store.service';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ProjectUI, Breadcrumb, ProjectObjectType, Tab } from './project.model';
 import { DirectoryQuery } from 'src/app/directories';
 import { ProjectQuery } from './project-query.service';
@@ -28,16 +28,14 @@ import { FileDownload } from 'src/app/shared/models/file-download';
   providedIn: 'root',
 })
 export class ProjectService {
-  constructor(
-    private projectStore: ProjectStore,
-    private directoryQuery: DirectoryQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private projectQuery: ProjectQuery,
-    private projectsService: ProjectsService,
-    private vlanService: VlansService,
-    private fileQuery: FileQuery,
-    private designQuery: DesignQuery
-  ) {}
+  private projectStore = inject(ProjectStore);
+  private directoryQuery = inject(DirectoryQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private projectQuery = inject(ProjectQuery);
+  private projectsService = inject(ProjectsService);
+  private vlanService = inject(VlansService);
+  private fileQuery = inject(FileQuery);
+  private designQuery = inject(DesignQuery);
 
   loadProjects(onlyMine: boolean): Observable<Project[]> {
     return this.projectsService.getAllProjects(onlyMine).pipe(
@@ -50,7 +48,7 @@ export class ProjectService {
             this.projectStore.ui.upsert(project.id, projectUI);
           }
         });
-      })
+      }),
     );
   }
 
@@ -60,9 +58,9 @@ export class ProjectService {
         this.projectStore.upsert(project.id, project);
         this.projectStore.ui.upsert(
           project.id,
-          this.projectQuery.ui.getEntity(project.id)
+          this.projectQuery.ui.getEntity(project.id),
         );
-      })
+      }),
     );
   }
 
@@ -72,9 +70,9 @@ export class ProjectService {
         this.projectStore.add(ex);
         this.projectStore.ui.upsert(
           ex.id,
-          this.projectQuery.ui.getEntity(ex.id)
+          this.projectQuery.ui.getEntity(ex.id),
         );
-      })
+      }),
     );
   }
 
@@ -83,7 +81,7 @@ export class ProjectService {
       tap(() => {
         this.projectStore.remove(projectId);
         this.projectStore.ui.remove(projectId);
-      })
+      }),
     );
   }
 
@@ -93,9 +91,9 @@ export class ProjectService {
         this.projectStore.upsert(project.id, project);
         this.projectStore.ui.upsert(
           project.id,
-          this.projectQuery.ui.getEntity(project.id)
+          this.projectQuery.ui.getEntity(project.id),
         );
-      })
+      }),
     );
   }
 
@@ -233,7 +231,7 @@ export class ProjectService {
   createBreadcrumb(
     project: Project,
     obj: ModelFile | Workspace | Design | Tab,
-    objType: ProjectObjectType
+    objType: ProjectObjectType,
   ): Array<Breadcrumb> {
     const breadcrumb: Breadcrumb[] = [];
     breadcrumb.push({
@@ -247,7 +245,7 @@ export class ProjectService {
     ) {
       // When the file belongs to a workspace, add the workspace to the breadcrumb
       const workspace = this.workspaceQuery.getEntity(
-        (obj as ModelFile).workspaceId
+        (obj as ModelFile).workspaceId,
       );
       if (workspace) {
         breadcrumb.unshift({
@@ -299,7 +297,7 @@ export class ProjectService {
   export(
     id: string,
     archiveType: ArchiveType,
-    includeIds: boolean
+    includeIds: boolean,
   ): Observable<FileDownload> {
     return this.projectsService
       .exportProject(id, archiveType, includeIds, 'response')
@@ -309,7 +307,7 @@ export class ProjectService {
             blob: response.body,
             filename: HttpHeaderUtils.getFilename(response.headers),
           };
-        })
+        }),
       );
   }
 
@@ -331,7 +329,7 @@ export class ProjectService {
     }
 
     return obs.pipe(
-      tap((project) => this.projectStore.upsert(project.id, project))
+      tap((project) => this.projectStore.upsert(project.id, project)),
     );
   }
 }

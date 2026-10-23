@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
@@ -15,11 +15,9 @@ import { FileStore } from './file.store';
   providedIn: 'root',
 })
 export class FileService {
-  constructor(
-    private fileStore: FileStore,
-    private fileQuery: FileQuery,
-    private filesService: FilesService
-  ) {}
+  private fileStore = inject(FileStore);
+  private fileQuery = inject(FileQuery);
+  private filesService = inject(FilesService);
 
   loadFile(fileId: string): Observable<ModelFile> {
     return this.filesService.getFile(fileId).pipe(
@@ -27,7 +25,7 @@ export class FileService {
         file.editorContent = file.content;
         this.fileStore.upsert(file.id, file);
         this.setSave(fileId, true);
-      })
+      }),
     );
   }
 
@@ -38,7 +36,7 @@ export class FileService {
           this.upsertFile(file);
           this.setSave(file.id, true);
         });
-      })
+      }),
     );
   }
 
@@ -66,7 +64,7 @@ export class FileService {
       .pipe(
         tap((f) => {
           this.fileUpdated(f);
-        })
+        }),
       );
   }
 
@@ -148,7 +146,7 @@ export class FileService {
         ...f,
         content: file.content,
         editorContent: file.editorContent,
-      })
+      }),
     );
   }
 
@@ -195,7 +193,7 @@ export class FileService {
           blob: response.body,
           filename: HttpHeaderUtils.getFilename(response.headers),
         };
-      })
+      }),
     );
   }
 }

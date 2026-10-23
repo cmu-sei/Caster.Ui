@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import * as signalR from '@microsoft/signalr';
 import { DesignModuleService } from 'src/app/designs/state/design-modules/design-module.service';
@@ -38,6 +38,22 @@ import { ProjectMembershipService } from 'src/app/project/state/project-membersh
   providedIn: 'root',
 })
 export class SignalRService {
+  private fileService = inject(FileService);
+  private projectService = inject(ProjectService);
+  private directoryService = inject(DirectoryService);
+  private workspaceService = inject(WorkspaceService);
+  private authService = inject(ComnAuthService);
+  private settingsService = inject(ComnSettingsService);
+  private designService = inject(DesignService);
+  private variableService = inject(VariableService);
+  private designModuleService = inject(DesignModuleService);
+  private poolService = inject(PoolService);
+  private partitionService = inject(PartitionService);
+  private vlanService = inject(VlanService);
+  private roleService = inject(RoleService);
+  private groupMembershipService = inject(GroupMembershipService);
+  private projectMembershipService = inject(ProjectMembershipService);
+
   private hubConnection: signalR.HubConnection;
   private projectId: string;
   private projectAdminId: string;
@@ -48,24 +64,6 @@ export class SignalRService {
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
   private connectionPromise: Promise<void>;
-
-  constructor(
-    private fileService: FileService,
-    private projectService: ProjectService,
-    private directoryService: DirectoryService,
-    private workspaceService: WorkspaceService,
-    private authService: ComnAuthService,
-    private settingsService: ComnSettingsService,
-    private designService: DesignService,
-    private variableService: VariableService,
-    private designModuleService: DesignModuleService,
-    private poolService: PoolService,
-    private partitionService: PartitionService,
-    private vlanService: VlanService,
-    private roleService: RoleService,
-    private groupMembershipService: GroupMembershipService,
-    private projectMembershipService: ProjectMembershipService
-  ) {}
 
   public startConnection(): Promise<void> {
     if (this.connectionPromise) {
@@ -336,7 +334,7 @@ export class SignalRService {
       'WorkspaceSettingsUpdated',
       (lockingEnabled: boolean) => {
         this.workspaceService.lockingEnabledUpdated(lockingEnabled);
-      }
+      },
     );
   }
 
@@ -349,9 +347,12 @@ export class SignalRService {
       this.workspaceService.runUpdated(run);
     });
 
-    this.hubConnection.on('RunQueuePositionUpdated', (position: QueuePosition) => {
-      this.workspaceService.queuePositionUpdated(position);
-    });
+    this.hubConnection.on(
+      'RunQueuePositionUpdated',
+      (position: QueuePosition) => {
+        this.workspaceService.queuePositionUpdated(position);
+      },
+    );
   }
 
   private addDesignHandlers() {
@@ -364,9 +365,9 @@ export class SignalRService {
       (design: Design, modifiedProperties: string[]) => {
         this.designService.update(
           design.id,
-          this.getModified(design, modifiedProperties)
+          this.getModified(design, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('DesignDeleted', (id: string) => {
@@ -384,9 +385,9 @@ export class SignalRService {
       (variable: Variable, modifiedProperties: string[]) => {
         this.variableService.update(
           variable.id,
-          this.getModified(variable, modifiedProperties)
+          this.getModified(variable, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('VariableDeleted', (id: string) => {
@@ -399,7 +400,7 @@ export class SignalRService {
       'DesignModuleCreated',
       (designModule: DesignModule) => {
         this.designModuleService.add(designModule);
-      }
+      },
     );
 
     this.hubConnection.on(
@@ -407,9 +408,9 @@ export class SignalRService {
       (designModule: DesignModule, modifiedProperties: string[]) => {
         this.designModuleService.update(
           designModule.id,
-          this.getModified(designModule, modifiedProperties)
+          this.getModified(designModule, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('DesignModuleDeleted', (id: string) => {
@@ -427,9 +428,9 @@ export class SignalRService {
       (pool: Pool, modifiedProperties: string[]) => {
         this.poolService.update(
           pool.id,
-          this.getModified(pool, modifiedProperties)
+          this.getModified(pool, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('PoolDeleted', (id: string) => {
@@ -447,9 +448,9 @@ export class SignalRService {
       (partition: Partition, modifiedProperties: string[]) => {
         this.partitionService.update(
           partition.id,
-          this.getModified(partition, modifiedProperties)
+          this.getModified(partition, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('PartitionDeleted', (id: string) => {
@@ -467,9 +468,9 @@ export class SignalRService {
       (vlan: Vlan, modifiedProperties: string[]) => {
         this.vlanService.update(
           vlan.id,
-          this.getModified(vlan, modifiedProperties)
+          this.getModified(vlan, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('VlanDeleted', (id: string) => {
@@ -487,9 +488,9 @@ export class SignalRService {
       (role: SystemRole, modifiedProperties: string[]) => {
         this.roleService.upsert(
           role.id,
-          this.getModified(role, modifiedProperties)
+          this.getModified(role, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('RoleDeleted', (id: string) => {
@@ -502,7 +503,7 @@ export class SignalRService {
       'GroupMembershipCreated',
       (membership: GroupMembership) => {
         this.groupMembershipService.upsert(membership.id, membership);
-      }
+      },
     );
 
     this.hubConnection.on(
@@ -510,9 +511,9 @@ export class SignalRService {
       (membership: GroupMembership, modifiedProperties: string[]) => {
         this.groupMembershipService.upsert(
           membership.id,
-          this.getModified(membership, modifiedProperties)
+          this.getModified(membership, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('GroupMembershipDeleted', (id: string) => {
@@ -525,7 +526,7 @@ export class SignalRService {
       'ProjectMembershipCreated',
       (membership: ProjectMembership) => {
         this.projectMembershipService.upsert(membership.id, membership);
-      }
+      },
     );
 
     this.hubConnection.on(
@@ -533,9 +534,9 @@ export class SignalRService {
       (membership: ProjectMembership, modifiedProperties: string[]) => {
         this.projectMembershipService.upsert(
           membership.id,
-          this.getModified(membership, modifiedProperties)
+          this.getModified(membership, modifiedProperties),
         );
-      }
+      },
     );
 
     this.hubConnection.on('ProjectMembershipDeleted', (id: string) => {
@@ -572,11 +573,11 @@ class RetryPolicy {
   constructor(
     private maxSeconds: number,
     private minJitterSeconds: number,
-    private maxJitterSeconds: number
+    private maxJitterSeconds: number,
   ) {}
 
   nextRetryDelayInMilliseconds(
-    retryContext: signalR.RetryContext
+    retryContext: signalR.RetryContext,
   ): number | null {
     let nextRetrySeconds = Math.pow(2, retryContext.previousRetryCount + 1);
 
@@ -586,7 +587,7 @@ class RetryPolicy {
 
     nextRetrySeconds +=
       Math.floor(
-        Math.random() * (this.maxJitterSeconds - this.minJitterSeconds + 1)
+        Math.random() * (this.maxJitterSeconds - this.minJitterSeconds + 1),
       ) + this.minJitterSeconds; // Add Jitter
 
     return nextRetrySeconds * 1000;

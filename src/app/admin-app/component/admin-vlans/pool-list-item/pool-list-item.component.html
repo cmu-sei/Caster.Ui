@@ -6,32 +6,31 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <mat-card appearance="outlined">
   <mat-card-title class="flex">
     @if (!editing) {
-      <h4 class="header">{{ pool?.name }}</h4>
+      <h4 class="header">{{ pool()?.name }}</h4>
     }
     @if (editing) {
       <mat-form-field class="header">
         <input
           #nameInput
           matInput
-          [value]="pool?.name"
+          [value]="pool()?.name"
           (keydown.enter)="rename($event.target)"
           (keydown.esc)="editing = false"
           autocomplete="off"
-          />
+        />
       </mat-form-field>
     }
-    @if (pool?.isDefault) {
+    @if (pool()?.isDefault) {
       <mat-icon
         class="mdi-24px icon"
         fontIcon="mdi-check-circle"
         color="primary"
         matTooltip="Contains The Default Partition"
-        >
-      </mat-icon>
+      />
     }
   </mat-card-title>
   <mat-card-actions class="flex">
-    @if (canEdit) {
+    @if (canEdit()) {
       @if (!editing) {
         <button
           mat-icon-button
@@ -39,8 +38,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Edit Name"
           matTooltip="Edit Name"
           (click)="editing = !editing"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
         </button>
       }
       @if (editing) {
@@ -49,9 +48,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           color="primary"
           aria-label="Rename"
           matTooltip="Rename"
-          (click)="rename(nameInput.nativeElement)"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+          (click)="rename(nameInput().nativeElement)"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-check" />
         </button>
         <button
           mat-icon-button
@@ -59,8 +58,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Cancel"
           matTooltip="Cancel"
           (click)="editing = false"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
         </button>
       }
     }
@@ -69,20 +68,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       color="primary"
       aria-label="Open"
       matTooltip="Open"
-      (click)="selectPool(pool)"
-      >
-      <mat-icon class="mdi-24px" fontIcon="mdi-launch"> </mat-icon>
+      (click)="selectPool(pool())"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-launch" />
     </button>
-    @if (canEdit) {
+    @if (canEdit()) {
       <div class="align-right">
         <button
           mat-icon-button
           color="primary"
           aria-label="Delete"
           matTooltip="Delete"
-          (click)="deletePool(pool)"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline"> </mat-icon>
+          (click)="deletePool(pool())"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
         </button>
       </div>
     }

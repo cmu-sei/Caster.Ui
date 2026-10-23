@@ -3,25 +3,50 @@
 
 import {
   Component,
-  EventEmitter,
   OnInit,
-  ViewChild,
-  Input,
-  Output,
   OnChanges,
   SimpleChanges,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { User } from '../../../../generated/caster-api';
 import { RoleService } from 'src/app/roles/roles.service.service';
-import { MatSelectChange } from '@angular/material/select';
+import {
+  MatSelectChange,
+  MatSelect,
+  MatOption,
+} from '@angular/material/select';
 import { UserService } from 'src/app/users/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { take } from 'rxjs/operators';
 import { AddUserDialogComponent } from '../add-user-dialog/add-user-dialog.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe } from '@angular/common';
 
 export interface Action {
   Value: string;
@@ -32,34 +57,59 @@ export interface Action {
   selector: 'cas-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css'],
-  standalone: false,
+  imports: [
+    MatIcon,
+    MatFormField,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    ClipboardModule,
+    MatSelect,
+    MatOption,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatCard,
+    MatProgressSpinner,
+    AsyncPipe,
+  ],
 })
 export class UserListComponent implements OnInit, OnChanges {
+  private confirmService = inject(CrucibleDialogService);
+  private dialog = inject(MatDialog);
+  private roleService = inject(RoleService);
+  private userService = inject(UserService);
+
   public displayedColumns: string[] = ['id', 'name', 'roleId'];
   public filterString = '';
   public dataSource = new MatTableDataSource<User>(new Array<User>());
   roles$ = this.roleService.roles$;
 
-  @Input() users: User[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
-  @Output() create: EventEmitter<User> = new EventEmitter<User>();
-  @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
-
-  constructor(
-    private confirmService: CrucibleDialogService,
-    private dialog: MatDialog,
-    private roleService: RoleService,
-    private userService: UserService
-  ) {}
+  readonly users = input<User[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly create = output<User>();
+  readonly delete = output<string>();
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   ngOnInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
+    const paginator = this.paginator();
+    if (paginator) {
+      this.dataSource.paginator = paginator;
     }
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.roleService.getRoles().subscribe();
     this.filterAndSort(this.filterString);
   }

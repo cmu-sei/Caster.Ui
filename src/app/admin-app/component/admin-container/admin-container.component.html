@@ -9,79 +9,140 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     #sidenav
     mode="side"
     [(opened)]="isSidebarOpen"
-    >
+  >
     @if (permissions$ | async; as permissions) {
-      <mat-toolbar class="sidenav-header" title="Exit Administration" [routerLink]="['/']">
+      <mat-toolbar
+        class="sidenav-header"
+        title="Exit Administration"
+        [routerLink]="['/']"
+      >
         <a class="nolink" [routerLink]="['/']">
           <div class="cssLayoutRowStartCenter">
-            <mat-icon class="icon-35px caster-icon-header" svgIcon="ic_crucible_caster"></mat-icon>
+            <mat-icon
+              class="icon-35px caster-icon-header"
+              svgIcon="ic_crucible_caster"
+            />
             <h2 class="icon-text">Administration</h2>
           </div>
         </a>
       </mat-toolbar>
-      <mat-list
-        class="appitems-container"
-        >
+      <mat-list class="appitems-container">
         @if (permissions.includes(SystemPermission.ManageProjects)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoProjects()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-notebook"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-notebook"
+            />
             {{ projectsText }}
-            <button [attr.aria-label]="projectsText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="projectsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewWorkspaces)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoWorkspaces()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-briefcase"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-briefcase"
+            />
             {{ workspacesText }}
-            <button [attr.aria-label]="workspacesText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="workspacesText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewVlans)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoVlans()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-lan"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-lan"
+            />
             {{ vlansText }}
-            <button [attr.aria-label]="vlansText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="vlansText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewModules)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoModules()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-view-module"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-view-module"
+            />
             {{ modulesText }}
-            <button [attr.aria-label]="modulesText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="modulesText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewUsers)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoUsers()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-account-multiple"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-account-multiple"
+            />
             {{ usersText }}
-            <button [attr.aria-label]="usersText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="usersText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewRoles)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoRoles()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-lock"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-lock"
+            />
             {{ rolesText }}
-            <button [attr.aria-label]="rolesText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="rolesText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
         @if (canViewGroups$ | async) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
-            <mat-icon matListItemIcon class="mat-list-item-icon" fontIcon="mdi-account-group"></mat-icon>
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-account-group"
+            />
             {{ groupsText }}
-            <button [attr.aria-label]="groupsText" mat-icon-button class="pull-right">
-              <mat-icon fontIcon="mdi-menu-right"></mat-icon>
+            <button
+              [attr.aria-label]="groupsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
             </button>
           </mat-list-item>
         }
@@ -95,7 +156,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           ? 'assets/img/crucible-logo-light.png'
           : 'assets/img/crucible-logo-dark.png'
       "
-      />
+    />
   </mat-sidenav>
   <mat-sidenav-content>
     <div class="sidenav-layout">
@@ -104,54 +165,47 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [topbarView]="TopbarView.CASTER_ADMIN"
         [sidenav]="sidenav"
         (sidenavToggle)="sidenav.toggle()"
-      ></cas-topbar>
+      />
       <div class="admin-content">
         @if (permissions$ | async; as permissions) {
           @if (
             showStatus === usersText &&
             permissions.includes(SystemPermission.ViewUsers)
-            ) {
-            <cas-users
-            ></cas-users>
+          ) {
+            <cas-users />
           }
           @if (
             showStatus === modulesText &&
             permissions.includes(SystemPermission.ViewModules)
-            ) {
-            <cas-admin-modules
-            ></cas-admin-modules>
+          ) {
+            <cas-admin-modules />
           }
           @if (
             showStatus === workspacesText &&
             permissions.includes(SystemPermission.ViewWorkspaces)
-            ) {
-            <cas-admin-workspaces
-            ></cas-admin-workspaces>
+          ) {
+            <cas-admin-workspaces />
           }
           @if (
             showStatus === vlansText &&
             permissions.includes(SystemPermission.ViewVlans)
-            ) {
-            <cas-vlans
-            ></cas-vlans>
+          ) {
+            <cas-vlans />
           }
           @if (
             showStatus === rolesText &&
             permissions.includes(SystemPermission.ViewRoles)
-            ) {
-            <cas-admin-roles
-            ></cas-admin-roles>
+          ) {
+            <cas-admin-roles />
           }
           @if (showStatus === groupsText && (canViewGroups$ | async)) {
-            <cas-admin-groups
-            ></cas-admin-groups>
+            <cas-admin-groups />
           }
           @if (
             showStatus === projectsText &&
             permissions.includes(SystemPermission.ManageProjects)
-            ) {
-            <cas-admin-projects
-            ></cas-admin-projects>
+          ) {
+            <cas-admin-projects />
           }
         }
       </div>

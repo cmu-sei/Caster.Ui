@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { of } from 'rxjs';
@@ -28,10 +28,11 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectQuery } from '../../../state';
 import { DirectoryQuery } from '../../../../directories/state';
 import { ProjectNavigationContainerComponent } from './project-navigation-container.component';
+import { DirectoryPanelComponent } from 'src/app/project/component/project-details/project-navigation-container/directory-panel/directory-panel.component';
 
-@Component({ selector: 'cas-directory-panel', template: '', standalone: false })
+@Component({ selector: 'cas-directory-panel', template: '' })
 class DirectoryPanelStub {
-  @Input() parentDirectory: Directory;
+  readonly parentDirectory = input<Directory>(undefined);
 }
 
 async function renderNavigation(
@@ -74,7 +75,9 @@ async function renderNavigation(
     select: vi.fn(() => of({ params: { id: 'p1' }, queryParams })),
   } as unknown as Pick<RouterQuery, 'select'>;
   const view = await renderComponent(ProjectNavigationContainerComponent, {
-    declarations: [DirectoryPanelStub],
+    childStubs: [
+      { replace: DirectoryPanelComponent, with: DirectoryPanelStub },
+    ],
     imports: [MatIconModule, MatTooltipModule, MatDialogModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -104,7 +107,7 @@ describe('ProjectNavigationContainerComponent', () => {
     const panels: DirectoryPanelStub[] = fixture.debugElement
       .queryAll(By.directive(DirectoryPanelStub))
       .map((d) => d.componentInstance);
-    expect(panels.map((p) => p.parentDirectory.id)).toEqual(['dir1']);
+    expect(panels.map((p) => p.parentDirectory().id)).toEqual(['dir1']);
     expect(screen.getByText('Export Project')).toBeInTheDocument();
   });
 

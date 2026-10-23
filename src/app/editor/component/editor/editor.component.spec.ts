@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  forwardRef,
-  Input,
-  Output,
-} from '@angular/core';
+import { Component, forwardRef, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -38,11 +32,16 @@ import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { CurrentUserStore } from 'src/app/users/state/user.store';
 import { EditorComponent } from './editor.component';
+import { ModuleListComponent } from 'src/app/editor/component/module-list/module-list.component';
+import { VersionListComponent } from 'src/app/editor/component/version-list/version-list.component';
+import {
+  EditorComponent as MonacoEditorComponent,
+  DiffEditorComponent as MonacoDiffEditorComponent,
+} from 'ngx-monaco-editor-v2';
 
 @Component({
   selector: 'ngx-monaco-editor',
   template: '',
-  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -52,8 +51,8 @@ import { EditorComponent } from './editor.component';
   ],
 })
 class MonacoEditorStub implements ControlValueAccessor {
-  @Input() options: unknown;
-  @Output() onInit = new EventEmitter<unknown>();
+  readonly options = input<unknown>(undefined);
+  readonly onInit = output<unknown>();
   onChange: (value: string) => void = () => {};
   writeValue(): void {}
   registerOnChange(fn: (value: string) => void): void {
@@ -65,29 +64,31 @@ class MonacoEditorStub implements ControlValueAccessor {
 @Component({
   selector: 'ngx-monaco-diff-editor',
   template: '',
-  standalone: false,
 })
 class MonacoDiffEditorStub {
-  @Input() options: unknown;
-  @Input() originalModel: unknown;
-  @Input() modifiedModel: unknown;
+  readonly options = input<unknown>(undefined);
+  readonly originalModel = input<unknown>(undefined);
+  readonly modifiedModel = input<unknown>(undefined);
 }
 
-@Component({ selector: 'cas-module-list', template: '', standalone: false })
+@Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
-  @Input() modules: Module[];
-  @Input() selectedModule: Module;
-  @Input() isEditing: boolean;
-  @Output() getModule = new EventEmitter<{ id: string; name: string }>();
-  @Output() insertModule = new EventEmitter<unknown>();
+  readonly modules = input<Module[]>(undefined);
+  readonly selectedModule = input<Module>(undefined);
+  readonly isEditing = input<boolean>(undefined);
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
+  readonly insertModule = output<unknown>();
 }
 
-@Component({ selector: 'cas-version-list', template: '', standalone: false })
+@Component({ selector: 'cas-version-list', template: '' })
 class VersionListStub {
-  @Input() fileId: string;
-  @Input() selectedVersionId: string;
-  @Output() getVersion = new EventEmitter<FileVersion>();
-  @Output() revertToVersion = new EventEmitter<unknown>();
+  readonly fileId = input<string>(undefined);
+  readonly selectedVersionId = input<string>(undefined);
+  readonly getVersion = output<FileVersion>();
+  readonly revertToVersion = output<unknown>();
 }
 
 interface Gates {
@@ -118,11 +119,11 @@ async function renderEditor(
   const { dialogRef } = dialogRefStub<unknown, boolean>(true);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(EditorComponent, {
-    declarations: [
-      MonacoEditorStub,
-      MonacoDiffEditorStub,
-      ModuleListStub,
-      VersionListStub,
+    childStubs: [
+      { replace: ModuleListComponent, with: ModuleListStub },
+      { replace: VersionListComponent, with: VersionListStub },
+      { replace: MonacoEditorComponent, with: MonacoEditorStub },
+      { replace: MonacoDiffEditorComponent, with: MonacoDiffEditorStub },
     ],
     imports: [
       MatSidenavModule,
@@ -329,7 +330,7 @@ describe('EditorComponent', () => {
       const moduleList: ModuleListStub = fixture.debugElement.query(
         By.directive(ModuleListStub),
       ).componentInstance;
-      expect(moduleList.isEditing).toBe(isEditing);
+      expect(moduleList.isEditing()).toBe(isEditing);
     },
   );
 

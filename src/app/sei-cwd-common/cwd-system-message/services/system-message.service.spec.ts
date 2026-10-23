@@ -16,7 +16,7 @@ import { SystemMessageService } from './system-message.service';
 
 /**
  * Configures the real SystemMessageService over the real root MatBottomSheet,
- * with SystemMessageComponent declared as in AppModule, and returns the service.
+ * with the standalone SystemMessageComponent, and returns the service.
  */
 function setup(): SystemMessageService {
   TestBed.configureTestingModule({
@@ -27,8 +27,8 @@ function setup(): SystemMessageService {
       MatExpansionModule,
       MatIconModule,
       MatIconTestingModule,
+      SystemMessageComponent,
     ],
-    declarations: [SystemMessageComponent],
     providers: [SystemMessageService],
   });
   return TestBed.inject(SystemMessageService);
@@ -46,7 +46,7 @@ describe('SystemMessageService', () => {
 
   /**
    * Verifies: displayMessage opens one bottom sheet that renders SystemMessageComponent with the title as its heading and the message as its details.
-   * Interacts with: the real root MatBottomSheet and its overlay container, NgZone (the 0 ms timeout); SystemMessageComponent template (declared as in AppModule).
+   * Interacts with: the real root MatBottomSheet and its overlay container, NgZone (the 0 ms timeout); SystemMessageComponent template (standalone).
    * Data: title 'Save failed', message 'The workspace could not be applied.'; default delay of 0 ms.
    */
   it('opens the system message bottom sheet with the title and message', async () => {

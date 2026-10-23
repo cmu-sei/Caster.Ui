@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -15,16 +15,18 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlansComponent } from './vlans.component';
+import { PoolsComponent } from 'src/app/admin-app/component/admin-vlans/pools/pools.component';
+import { ProjectVlansComponent } from 'src/app/admin-app/component/admin-vlans/project-vlans/project-vlans.component';
 
-@Component({ selector: 'cas-pools', template: '', standalone: false })
+@Component({ selector: 'cas-pools', template: '' })
 class PoolsStub {
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 }
 
-@Component({ selector: 'cas-project-vlans', template: '', standalone: false })
+@Component({ selector: 'cas-project-vlans', template: '' })
 class ProjectVlansStub {
-  @Input() projects: Project[];
-  @Input() canEdit: boolean;
+  readonly projects = input<Project[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderVlans(grants: PermissionGrants) {
@@ -37,7 +39,10 @@ async function renderVlans(grants: PermissionGrants) {
     'startConnection' | 'joinVlansAdmin' | 'leaveVlansAdmin'
   >;
   const view = await renderComponent(VlansComponent, {
-    declarations: [PoolsStub, ProjectVlansStub],
+    childStubs: [
+      { replace: PoolsComponent, with: PoolsStub },
+      { replace: ProjectVlansComponent, with: ProjectVlansStub },
+    ],
     imports: [MatTabsModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -65,7 +70,7 @@ describe('VlansComponent', () => {
     const pools: PoolsStub = fixture.debugElement.query(
       By.directive(PoolsStub),
     ).componentInstance;
-    expect(pools.canEdit).toBe(true);
+    expect(pools.canEdit()).toBe(true);
   });
 
   /**
@@ -79,7 +84,7 @@ describe('VlansComponent', () => {
     const pools: PoolsStub = fixture.debugElement.query(
       By.directive(PoolsStub),
     ).componentInstance;
-    expect(pools.canEdit).toBe(false);
+    expect(pools.canEdit()).toBe(false);
   });
 
   /**
@@ -101,7 +106,7 @@ describe('VlansComponent', () => {
       const projectVlans: ProjectVlansStub = fixture.debugElement.query(
         By.directive(ProjectVlansStub),
       ).componentInstance;
-      expect(projectVlans.canEdit).toBe(canEdit);
+      expect(projectVlans.canEdit()).toBe(canEdit);
     },
   );
 });
