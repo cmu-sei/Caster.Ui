@@ -109,6 +109,22 @@ export class DirectoryService {
     }));
   }
 
+  // expands a directory and every directory above it, so the directory shows in the project tree
+  expandTo(directoryId: string) {
+    let directory = this.directoryQuery.getEntity(directoryId);
+    let isTarget = true;
+    while (directory) {
+      this.directoryStore.ui.upsert(
+        directory.id,
+        isTarget
+          ? { isExpanded: true, isWorkspacesExpanded: true }
+          : { isExpanded: true, isDirectoriesExpanded: true }
+      );
+      isTarget = false;
+      directory = this.directoryQuery.getEntity(directory.parentId);
+    }
+  }
+
   toggleIsFilesExpanded(directoryUI: DirectoryUI) {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
       isFilesExpanded: isUpdate<DirectoryUI>(d)

@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
 import { RouterQuery } from '@datorama/akita-ng-router-store';
 import {
   DirectoriesService,
@@ -24,6 +25,8 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import { ProjectQuery } from '../../../state';
+import { DirectoryQuery } from '../../../../directories/state';
 import { ProjectNavigationContainerComponent } from './project-navigation-container.component';
 
 @Component({ selector: 'cas-directory-panel', template: '', standalone: false })
@@ -31,22 +34,44 @@ class DirectoryPanelStub {
   @Input() parentDirectory: Directory;
 }
 
-async function renderNavigation(grants: PermissionGrants) {
+async function renderNavigation(
+  grants: PermissionGrants,
+  queryParams: Record<string, string> = {},
+) {
   const projectsApi = {
     getProject: vi.fn((id: string) => of<Project>({ id, name: 'Range' })),
   } satisfies ApiStub<ProjectsService>;
   const directoriesApi = {
     getDirectoriesByProject: vi.fn((projectId: string) =>
       of<Directory[]>([
-        { id: 'dir1', name: 'network', projectId, parentId: null },
-        { id: 'dir2', name: 'child', projectId, parentId: 'dir1' },
+        // the API includes files, workspaces and designs, empty or not
+        {
+          id: 'dir1',
+          name: 'network',
+          projectId,
+          parentId: null,
+          files: [],
+          workspaces: [
+            { id: 'ws1', name: 'prod', directoryId: 'dir1', runs: [] },
+          ],
+          designs: [],
+        },
+        {
+          id: 'dir2',
+          name: 'child',
+          projectId,
+          parentId: 'dir1',
+          files: [],
+          workspaces: [],
+          designs: [],
+        },
       ]),
     ),
   } satisfies ApiStub<DirectoriesService>;
   // RouterQuery.select is overloaded and generic; the container only reads
-  // select('state').params.
+  // select('state').params and .queryParams.
   const routerQuery = {
-    select: vi.fn(() => of({ params: { id: 'p1' } })),
+    select: vi.fn(() => of({ params: { id: 'p1' }, queryParams })),
   } as unknown as Pick<RouterQuery, 'select'>;
   const view = await renderComponent(ProjectNavigationContainerComponent, {
     declarations: [DirectoryPanelStub],
@@ -59,6 +84,11 @@ async function renderNavigation(grants: PermissionGrants) {
     ],
   });
   return { ...view, projectsApi };
+}
+
+function openTabIds(view: Awaited<ReturnType<typeof renderNavigation>>) {
+  const projectQuery = view.fixture.debugElement.injector.get(ProjectQuery);
+  return (projectQuery.ui.getEntity('p1')?.openTabs ?? []).map((t) => t.id);
 }
 
 describe('ProjectNavigationContainerComponent', () => {
@@ -121,5 +151,72 @@ describe('ProjectNavigationContainerComponent', () => {
     expect(screen.queryByText('Add Directory')).not.toBeInTheDocument();
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
     expect(screen.getByText('Import Project')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: ?workspace=<id> opens that workspace's tab and then drops the parameter from the URL.
+   * Interacts with: RouterQuery.select (stub), real DirectoryService/WorkspaceStore/ProjectService.openTab, Router.navigate (spy).
+   * Data: workspace ws1 in directory dir1 of project p1.
+   */
+  it('opens the workspace a link names', async () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const view = await renderNavigation({}, { workspace: 'ws1' });
+
+    expect(openTabIds(view)).toEqual(['ws1']);
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { workspace: null, directory: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    navigate.mockRestore();
+  });
+
+  /**
+   * Verifies: a link to a workspace that is not in the routed project opens no tab and says so.
+   * Interacts with: MatSnackBar (real), Router.navigate (spy).
+   * Data: workspace ws9, not among p1's directories.
+   */
+  it('says so when the linked workspace is not in the project', async () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const view = await renderNavigation({}, { workspace: 'ws9' });
+
+    expect(openTabIds(view)).toEqual([]);
+    expect(
+      await screen.findByText('The linked workspace is not in this project'),
+    ).toBeInTheDocument();
+    expect(navigate).toHaveBeenCalled();
+    navigate.mockRestore();
+  });
+
+  /**
+   * Verifies: ?directory=<id> expands that directory with its workspaces, and every directory above it with its subdirectories, without opening a tab.
+   * Interacts with: DirectoryService.expandTo (real), DirectoryQuery UI state, Router.navigate (spy).
+   * Data: directory dir2 under dir1 in project p1.
+   */
+  it('expands the directory a link names', async () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const view = await renderNavigation({}, { directory: 'dir2' });
+    const directories = view.fixture.debugElement.injector.get(DirectoryQuery);
+
+    expect(directories.ui.getEntity('dir2')).toMatchObject({ isExpanded: true, isWorkspacesExpanded: true });
+    expect(directories.ui.getEntity('dir1')).toMatchObject({ isExpanded: true, isDirectoriesExpanded: true });
+    expect(openTabIds(view)).toEqual([]);
+    expect(navigate).toHaveBeenCalled();
+    navigate.mockRestore();
+  });
+
+  /**
+   * Verifies: a link to a directory that is not in the routed project says so.
+   * Interacts with: MatSnackBar (real).
+   * Data: directory dir9, not among p1's directories.
+   */
+  it('says so when the linked directory is not in the project', async () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    await renderNavigation({}, { directory: 'dir9' });
+
+    expect(
+      await screen.findByText('The linked directory is not in this project'),
+    ).toBeInTheDocument();
+    navigate.mockRestore();
   });
 });
