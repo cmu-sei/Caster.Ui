@@ -34,6 +34,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { WorkspaceVersionComponent } from './components/workspace-version/workspace-version.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ImportResourceComponent } from './components/import-resource/import-resource.component';
+import { WorkspaceTopologyComponent } from './components/workspace-topology/workspace-topology.component';
 import { A11yModule } from '@angular/cdk/a11y';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 
@@ -46,6 +47,7 @@ import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
     WorkspaceEditComponent,
     WorkspaceVersionComponent,
     ImportResourceComponent,
+    WorkspaceTopologyComponent,
   ],
   imports: [
     CommonModule,
