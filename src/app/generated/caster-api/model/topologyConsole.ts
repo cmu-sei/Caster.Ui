@@ -36,6 +36,10 @@ export interface TopologyConsole {
      */
     vmId?: string | null;
     /**
+     * What the plan does to the machine\'s Player record: create, update, replace or delete. Null when it leaves it alone, and when read from the state.
+     */
+    action?: string | null;
+    /**
      * The machine\'s name in Player, as its console shows it.
      */
     name?: string | null;
