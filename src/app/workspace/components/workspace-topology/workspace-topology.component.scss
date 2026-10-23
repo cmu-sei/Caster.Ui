@@ -128,9 +128,14 @@
   fill: currentColor;
 }
 
-.console-link,
+// As the project list's links: the theme's text color, in light and dark, read or not.
+.console-link:link,
 .console-link:visited {
-  color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-background);
+}
+
+.console-link:hover {
+  color: var(--mat-sys-outline);
 }
 
 .console-guess {
