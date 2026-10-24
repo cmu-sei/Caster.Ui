@@ -37,8 +37,8 @@ const directory: Directory = {
 
 async function renderPanel(grants: PermissionGrants) {
   const view = await renderComponent(DirectoryPanelComponent, {
-    declarations: [FilesFilterPipe],
     imports: [
+      FilesFilterPipe,
       MatExpansionModule,
       MatListModule,
       MatBadgeModule,

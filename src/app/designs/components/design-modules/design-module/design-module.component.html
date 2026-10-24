@@ -6,32 +6,34 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <mat-card
   appearance="outlined"
   class="mat-elevation-z4"
-  [ngClass]="designModule.enabled ? 'enabled' : 'disabled'"
-  >
+  [ngClass]="designModule().enabled ? 'enabled' : 'disabled'"
+>
   <mat-card-header>
-    <mat-card-title>{{ designModule.name }}</mat-card-title>
+    <mat-card-title>{{ designModule().name }}</mat-card-title>
   </mat-card-header>
 
-  <mat-card-actions class="d-flex flex-row justify-content-start align-items-center">
+  <mat-card-actions
+    class="d-flex flex-row justify-content-start align-items-center"
+  >
     <button
       color="primary"
       mat-icon-button
       (click)="edit()"
-      [disabled]="!module || isEditing"
+      [disabled]="!module() || isEditing"
       aria-label="Edit"
       matTooltip="Edit"
-      >
-      <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline"> </mat-icon>
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
     </button>
     <button
       color="primary"
       mat-icon-button
       (click)="toggleOutputs()"
-      [disabled]="!module || isEditing"
+      [disabled]="!module() || isEditing"
       aria-label="View Module Outputs"
       matTooltip="View Module Outputs"
-      >
-      <mat-icon class="mdi-24px" fontIcon="mdi-export"> </mat-icon>
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-export" />
     </button>
     <button
       color="primary"
@@ -39,31 +41,30 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       (click)="delete()"
       aria-label="Delete"
       matTooltip="Delete"
-      [disabled]="!canEdit"
-      >
-      <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline"> </mat-icon>
+      [disabled]="!canEdit()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
     </button>
     <button
       color="primary"
       mat-icon-button
       (click)="toggleEnabled()"
-      [disabled]="!canEdit"
-      [attr.aria-label]="designModule.enabled ? 'Disable' : 'Enable'"
-      >
-      @if (designModule.enabled) {
+      [disabled]="!canEdit()"
+      [attr.aria-label]="designModule().enabled ? 'Disable' : 'Enable'"
+    >
+      @if (designModule().enabled) {
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-circle-off-outline"
           matTooltip="Disable"
-        ></mat-icon>
+        />
       }
-      @if (!designModule.enabled) {
+      @if (!designModule().enabled) {
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-circle-outline"
           matTooltip="Enable"
-          >
-        </mat-icon>
+        />
       }
     </button>
   </mat-card-actions>
@@ -72,18 +73,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (isEditing) {
       @if (!(loading$ | async)) {
         <cas-module-variables
-          [selectedModule]="module"
-          [readOnly]="!canEdit"
-          [values]="designModule.values"
-          [name]="designModule.name"
-          [selectedVersionName]="designModule.moduleVersion"
+          [selectedModule]="module()"
+          [readOnly]="!canEdit()"
+          [values]="designModule().values"
+          [name]="designModule().name"
+          [selectedVersionName]="designModule().moduleVersion"
           [variables]="variables$ | async"
           [outputs]="designOutputs$ | async"
           [isSaving]="saving$ | async"
           [requireValues]="true"
           (variablesSelected)="onEditComplete($event)"
-          >
-        </cas-module-variables>
+        />
       } @else {
         <div>Loading...</div>
       }
@@ -91,9 +91,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (showOutputs) {
       @if (!(loading$ | async)) {
         <cas-module-outputs
-          [moduleName]="designModule.name"
+          [moduleName]="designModule().name"
           [outputs]="outputs$ | async"
-        ></cas-module-outputs>
+        />
       } @else {
         <div>Loading...</div>
       }

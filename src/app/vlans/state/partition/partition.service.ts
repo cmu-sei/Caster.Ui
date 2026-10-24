@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import {
   EditPartitionCommand,
@@ -15,10 +15,8 @@ import { PartitionStore } from './partition.store';
 
 @Injectable({ providedIn: 'root' })
 export class PartitionService {
-  constructor(
-    private partitionStore: PartitionStore,
-    private vlansService: VlansService
-  ) {}
+  private partitionStore = inject(PartitionStore);
+  private vlansService = inject(VlansService);
 
   load() {
     this.partitionStore.setLoading(true);
@@ -26,7 +24,7 @@ export class PartitionService {
       tap((partitions: Partition[]) => {
         this.partitionStore.set(partitions);
         this.partitionStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -36,7 +34,7 @@ export class PartitionService {
       tap((partitions: Partition[]) => {
         this.partitionStore.set(partitions);
         this.partitionStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -46,7 +44,7 @@ export class PartitionService {
       .pipe(
         tap((partition: Partition) => {
           this.add(partition);
-        })
+        }),
       );
   }
 
@@ -54,7 +52,7 @@ export class PartitionService {
     return this.vlansService.deletePartition(id).pipe(
       tap(() => {
         this.remove(id);
-      })
+      }),
     );
   }
 
@@ -62,7 +60,7 @@ export class PartitionService {
     return this.vlansService.editPartition(id, command).pipe(
       tap((partition: Partition) => {
         this.update(id, partition);
-      })
+      }),
     );
   }
 
@@ -70,7 +68,7 @@ export class PartitionService {
     return this.vlansService.partialEditPartition(id, command).pipe(
       tap((partition: Partition) => {
         this.update(id, partition);
-      })
+      }),
     );
   }
 

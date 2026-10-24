@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   arrayRemove,
   arrayToggle,
@@ -37,16 +37,14 @@ import { WorkspaceStore } from './workspace.store';
   providedIn: 'root',
 })
 export class WorkspaceService {
-  constructor(
-    private workspaceStore: WorkspaceStore,
-    private workspacesService: WorkspacesService,
-    private workspaceQuery: WorkspaceQuery,
-    private fileService: FileService,
-    private runsService: RunsService,
-    private appliesService: AppliesService,
-    private plansService: PlansService,
-    private resourceService: ResourcesService
-  ) {}
+  private workspaceStore = inject(WorkspaceStore);
+  private workspacesService = inject(WorkspacesService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private fileService = inject(FileService);
+  private runsService = inject(RunsService);
+  private appliesService = inject(AppliesService);
+  private plansService = inject(PlansService);
+  private resourceService = inject(ResourcesService);
 
   getWorkspace(workspaceId: string) {
     this.workspacesService.getWorkspace(workspaceId).subscribe((workspace) => {
@@ -96,11 +94,9 @@ export class WorkspaceService {
 
   partialUpdate(id: string, workspace: Partial<Workspace>) {
     const { directoryId: _directoryId, ...command } = workspace;
-    this.workspacesService
-      .partialEditWorkspace(id, command)
-      .subscribe((w) => {
-        this.workspaceStore.update(w.id, w);
-      });
+    this.workspacesService.partialEditWorkspace(id, command).subscribe((w) => {
+      this.workspaceStore.update(w.id, w);
+    });
   }
 
   updated(workspace: Workspace) {
@@ -111,7 +107,7 @@ export class WorkspaceService {
     return this.workspacesService.deleteWorkspace(workspace.id).pipe(
       tap(() => {
         this.deleted(workspace.id);
-      })
+      }),
     );
   }
 
@@ -148,7 +144,7 @@ export class WorkspaceService {
       runs: entity.runs.map((run) =>
         run.id === position.runId
           ? { ...run, displayStatus: `Queued (Position ${position.position})` }
-          : run
+          : run,
       ),
     }));
   }
@@ -172,7 +168,7 @@ export class WorkspaceService {
       },
       () => {
         this.finishResourceAction(workspaceId, null);
-      }
+      },
     );
   }
 
@@ -180,7 +176,7 @@ export class WorkspaceService {
     const resourceAddresses = this.startResourceAction(
       workspaceId,
       items,
-      ResourceActions.Taint
+      ResourceActions.Taint,
     );
 
     return this.resourceService
@@ -192,7 +188,7 @@ export class WorkspaceService {
     const resourceAddresses = this.startResourceAction(
       workspaceId,
       items,
-      ResourceActions.Taint
+      ResourceActions.Taint,
     );
 
     return this.resourceService
@@ -204,7 +200,7 @@ export class WorkspaceService {
     const resourceAddresses = this.startResourceAction(
       workspaceId,
       items,
-      ResourceActions.Remove
+      ResourceActions.Remove,
     );
 
     return this.resourceService
@@ -221,7 +217,7 @@ export class WorkspaceService {
         }));
 
         this.workspaceStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -264,7 +260,7 @@ export class WorkspaceService {
     workspaceId: string,
     isDestroy: boolean,
     replaceAddresses: string[],
-    targets: string[]
+    targets: string[],
   ) {
     return this.workspaceQuery
       .selectEntity(workspaceId, (entity) => entity.id)
@@ -275,9 +271,9 @@ export class WorkspaceService {
             isDestroy,
             replaceAddresses,
             targets,
-          })
+          }),
         ),
-        tap((run) => this.expandRun(true, run))
+        tap((run) => this.expandRun(true, run)),
       );
   }
 
@@ -318,7 +314,7 @@ export class WorkspaceService {
         this.workspaceStore.setLoading(true);
       }),
       concatMap((_id) =>
-        this.runsService.getRunsByWorkspaceId(_id, null, false, false)
+        this.runsService.getRunsByWorkspaceId(_id, null, false, false),
       ),
       tap((runs) => {
         const runsWithDisplay = runs.map((r) => ({
@@ -333,7 +329,7 @@ export class WorkspaceService {
           .filter(
             (r) =>
               r.status === RunStatus.Queued ||
-              r.status === RunStatus.ApplyQueued
+              r.status === RunStatus.ApplyQueued,
           )
           .forEach((r) => {
             this.runsService
@@ -348,7 +344,7 @@ export class WorkspaceService {
       }),
       tap(() => {
         this.workspaceStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -371,7 +367,7 @@ export class WorkspaceService {
           runs.forEach((r) => this.runUpdated(r));
           this.workspaceStore.setLoading(false);
         }),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -389,7 +385,7 @@ export class WorkspaceService {
       }),
       tap(() => {
         this.workspaceStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -403,11 +399,11 @@ export class WorkspaceService {
               entity.resources,
               item.address,
               resource,
-              'address'
+              'address',
             ),
-          }))
+          })),
         ),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -418,9 +414,9 @@ export class WorkspaceService {
       tap((result: ResourceCommandResult) =>
         this.workspaceStore.update(workspaceId, (entity) => ({
           resources: result.resources,
-        }))
+        })),
       ),
-      tap(() => this.workspaceStore.setLoading(false))
+      tap(() => this.workspaceStore.setLoading(false)),
     );
   }
 
@@ -438,14 +434,14 @@ export class WorkspaceService {
         }
         // No Change
         return { expandedRuns: workspace.expandedRuns };
-      }
+      },
     );
   }
 
   startResourceAction(
     workspaceId: string,
     items: Resource | Resource[],
-    action: ResourceActions
+    action: ResourceActions,
   ): string[] {
     const itemsArray = coerceArray(items);
 
@@ -485,7 +481,7 @@ export class WorkspaceService {
         const ent = this.workspaceQuery.ui.getEntity(workspaceId);
         return { ...ent, isExpanded: !ent.isExpanded };
       },
-      (id, w) => ({ id, ...w, isExpanded: !w.isExpanded })
+      (id, w) => ({ id, ...w, isExpanded: !w.isExpanded }),
     );
   }
 

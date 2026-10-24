@@ -5,35 +5,61 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
-  EventEmitter,
-  Output,
+  inject,
+  input,
+  output,
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { take } from 'rxjs/operators';
 import { ResourceCommandResult } from 'src/app/generated/caster-api';
 import { WorkspaceService } from '../../state';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatTooltip } from '@angular/material/tooltip';
+import { OutputComponent } from '../output/output.component';
 
 @Component({
-    selector: 'cas-import-resource',
-    templateUrl: './import-resource.component.html',
-    styleUrls: ['./import-resource.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-import-resource',
+  templateUrl: './import-resource.component.html',
+  styleUrls: ['./import-resource.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatTooltip,
+    OutputComponent,
+  ],
 })
 export class ImportResourceComponent implements OnInit {
-  @Input() workspaceId: string;
-  @Input() loading: boolean;
+  private formBuilder = inject(UntypedFormBuilder);
+  private workspaceService = inject(WorkspaceService);
 
-  @Output() importComplete = new EventEmitter<boolean>();
+  readonly workspaceId = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
+
+  readonly importComplete = output<boolean>();
 
   form: UntypedFormGroup;
   message: string = '';
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private workspaceService: WorkspaceService
-  ) {
+  constructor() {
+    const formBuilder = this.formBuilder;
+
     this.form = formBuilder.group({
       address: ['', Validators.required],
       id: ['', Validators.required],
@@ -45,7 +71,7 @@ export class ImportResourceComponent implements OnInit {
   import() {
     this.message = '';
     this.workspaceService
-      .import(this.workspaceId, {
+      .import(this.workspaceId(), {
         resourceAddress: this.form.value.address,
         resourceId: this.form.value.id,
       })

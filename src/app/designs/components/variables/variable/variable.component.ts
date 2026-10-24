@@ -7,15 +7,18 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   OnChanges,
   SimpleChanges,
   Renderer2,
+  inject,
+  input,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
@@ -23,20 +26,62 @@ import { take } from 'rxjs/operators';
 import { VariableService } from 'src/app/designs/state/variables/variables.service';
 import { Variable, VariableType } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardActions,
+  MatCardContent,
+} from '@angular/material/card';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ClipboardModule } from 'ngx-clipboard';
+import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
+import { NgClass, AsyncPipe, KeyValuePipe } from '@angular/common';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
 @Component({
-    selector: 'cas-variable',
-    templateUrl: './variable.component.html',
-    styleUrls: ['./variable.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-variable',
+  templateUrl: './variable.component.html',
+  styleUrls: ['./variable.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardActions,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ClipboardModule,
+    MatCardContent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    NgClass,
+    MatInput,
+    MatHint,
+    MatSelect,
+    MatOption,
+    CdkTextareaAutosize,
+    MatButton,
+    AsyncPipe,
+    KeyValuePipe,
+  ],
 })
 export class VariableComponent implements OnInit, OnChanges {
-  @Input()
-  public variable: Variable;
+  private variableService = inject(VariableService);
+  private confirmDialogService = inject(CrucibleDialogService);
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
 
-  @Input()
-  canEdit: boolean;
+  public readonly variable = input<Variable>(undefined);
+
+  readonly canEdit = input<boolean>(undefined);
 
   private isSaving = new BehaviorSubject(false);
   public isSaving$ = this.isSaving.asObservable();
@@ -54,25 +99,18 @@ export class VariableComponent implements OnInit, OnChanges {
     defaultValue: false,
   };
 
-  constructor(
-    private variableService: VariableService,
-    private confirmDialogService: CrucibleDialogService,
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar
-  ) {}
-
   ngOnInit(): void {
     this.form = this.formBuilder.group({
       name: [
-        { value: this.variable.name, disabled: !this.canEdit },
+        { value: this.variable().name, disabled: !this.canEdit() },
         Validators.required,
       ],
       type: [
-        { value: this.variable.type, disabled: !this.canEdit },
+        { value: this.variable().type, disabled: !this.canEdit() },
         Validators.required,
       ],
       defaultValue: [
-        { value: this.variable.defaultValue, disabled: !this.canEdit },
+        { value: this.variable().defaultValue, disabled: !this.canEdit() },
       ],
     });
   }
@@ -88,9 +126,9 @@ export class VariableComponent implements OnInit, OnChanges {
   updateFormValue(propertyName: string) {
     const formControl = this.form?.get(propertyName);
 
-    this.canEdit ? formControl.enable() : formControl.disable();
+    this.canEdit() ? formControl.enable() : formControl.disable();
 
-    const val = this.variable[propertyName];
+    const val = this.variable()[propertyName];
 
     if (formControl?.pristine) {
       // if we haven't changed this field,
@@ -112,7 +150,7 @@ export class VariableComponent implements OnInit, OnChanges {
     const formControl = this.form.get(propertyName);
 
     if (formControl) {
-      formControl.setValue(this.variable[propertyName]);
+      formControl.setValue(this.variable()[propertyName]);
       formControl.markAsPristine();
       this.pendingChanges[propertyName] = false;
     }
@@ -137,7 +175,7 @@ export class VariableComponent implements OnInit, OnChanges {
   save() {
     this.isSaving.next(true);
 
-    this.variableService.edit(this.variable.id, this.form.value).subscribe(
+    this.variableService.edit(this.variable().id, this.form.value).subscribe(
       (x) => {
         this.isSaving.next(false);
         this.form.markAsPristine();
@@ -148,7 +186,7 @@ export class VariableComponent implements OnInit, OnChanges {
       (err) => {
         console.log('err');
         this.isSaving.next(false);
-      }
+      },
     );
   }
 
@@ -156,18 +194,21 @@ export class VariableComponent implements OnInit, OnChanges {
     this.confirmDialogService
       .confirm({
         title: 'Delete Variable',
-        message: `Are you sure you want to delete ${this.variable.name}?`,
+        message: `Are you sure you want to delete ${this.variable().name}?`,
       })
       .afterClosed()
       .pipe(take(1))
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.variableService.delete(this.variable.id);
+          this.variableService.delete(this.variable().id);
         }
       });
   }
 
   onClipboardSuccess() {
-    this.snackBar.open(`Copied ${this.variable.terraform} to clipboard`, 'Dismiss');
+    this.snackBar.open(
+      `Copied ${this.variable().terraform} to clipboard`,
+      'Dismiss',
+    );
   }
 }

@@ -6,7 +6,8 @@ import {
   OnDestroy,
   OnInit,
   TemplateRef,
-  ViewChild,
+  inject,
+  viewChild,
 } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import {
@@ -30,16 +31,39 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectImportComponent } from '../project-import/project-import.component';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DirectoryPanelComponent } from './directory-panel/directory-panel.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { AsyncPipe } from '@angular/common';
 
 const NAME_VALUE = 'nameValue';
 
 @Component({
-    selector: 'cas-project-navigation',
-    templateUrl: './project-navigation-container.component.html',
-    styleUrls: ['./project-navigation-container.component.scss'],
-    standalone: false
+  selector: 'cas-project-navigation',
+  templateUrl: './project-navigation-container.component.html',
+  styleUrls: ['./project-navigation-container.component.scss'],
+  imports: [
+    DirectoryPanelComponent,
+    MatIcon,
+    MatTooltip,
+    ProjectExportComponent,
+    ProjectImportComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
+  private routerQuery = inject(RouterQuery);
+  private projectQuery = inject(ProjectQuery);
+  private projectService = inject(ProjectService);
+  private projectStore = inject(ProjectStore);
+  private directoryQuery = inject(DirectoryQuery);
+  private directoryService = inject(DirectoryService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private workspaceQuery = inject(WorkspaceQuery);
+
   public project$: Observable<Project>;
   public projectDirectories$: Observable<Directory[]>;
   public projectId: string;
@@ -49,31 +73,19 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<void>();
 
-  @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
+  readonly exportDialog =
+    viewChild<TemplateRef<ProjectExportComponent>>('exportDialog');
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
 
-  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  readonly importDialog =
+    viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
-
-  constructor(
-    private routerQuery: RouterQuery,
-    private projectQuery: ProjectQuery,
-    private projectService: ProjectService,
-    private projectStore: ProjectStore,
-    private directoryQuery: DirectoryQuery,
-    private directoryService: DirectoryService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private workspaceQuery: WorkspaceQuery
-  ) {}
 
   ngOnInit() {
     this.routerQuery
       .select('state')
       .pipe(
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((state) => {
         this.projectId = state.params.id;
@@ -98,12 +110,12 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
                 if (error.status === 404) {
                   this.snackBar.open('Project not found', 'Dismiss', {
                     duration: 5000,
-                    verticalPosition: 'top'
+                    verticalPosition: 'top',
                   });
                   this.router.navigate(['/']);
                 }
                 return EMPTY;
-              })
+              }),
             )
             .subscribe();
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
@@ -111,7 +123,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
             .loadDirectories(this.projectId)
             .pipe(
               take(1),
-              catchError(() => EMPTY)
+              catchError(() => EMPTY),
             )
             .subscribe(() => {
               // Drop any persisted tabs whose underlying file/workspace/design
@@ -138,7 +150,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
       .pipe(
         filter((project) => project?.id === this.projectId),
         take(1),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         if (workspaceId) {
@@ -184,7 +196,11 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
@@ -207,11 +223,17 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   exportProject() {
-    this.exportDialogRef = this.dialog.open(this.exportDialog, { width: '480px', maxWidth: '90vw' });
+    this.exportDialogRef = this.dialog.open(this.exportDialog(), {
+      width: '480px',
+      maxWidth: '90vw',
+    });
   }
 
   importProject() {
-    this.importDialogRef = this.dialog.open(this.importDialog, { width: '480px', maxWidth: '90vw' });
+    this.importDialogRef = this.dialog.open(this.importDialog(), {
+      width: '480px',
+      maxWidth: '90vw',
+    });
   }
 
   onExportComplete() {

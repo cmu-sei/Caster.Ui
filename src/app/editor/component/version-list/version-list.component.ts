@@ -5,52 +5,75 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
-  Input,
   OnDestroy,
   OnInit,
-  Output,
   ViewEncapsulation,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import { FileVersion } from '../../../generated/caster-api';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FileVersionQuery } from 'src/app/fileVersions/state';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { DatePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-version-list',
-    templateUrl: './version-list.component.html',
-    styleUrls: ['./version-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    encapsulation: ViewEncapsulation.None,
-    standalone: false
+  selector: 'cas-version-list',
+  templateUrl: './version-list.component.html',
+  styleUrls: ['./version-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  imports: [
+    MatCard,
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatCardContent,
+    MatButton,
+    DatePipe,
+  ],
 })
 export class VersionListComponent implements OnInit, OnDestroy {
-  @Input() fileId: string;
-  @Input() selectedVersionId: string;
-  @Output() getVersion: EventEmitter<{ id: string }> = new EventEmitter();
-  @Output() revertToVersion: EventEmitter<{
+  private fileVersionQuery = inject(FileVersionQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+
+  readonly fileId = input<string>(undefined);
+  readonly selectedVersionId = input<string>(undefined);
+  readonly getVersion = output<{
+    id: string;
+  }>();
+  readonly revertToVersion = output<{
     fileVersion: FileVersion;
-  }> = new EventEmitter();
+  }>();
   public versions: FileVersion[];
   public dataSource = new MatTableDataSource();
   public filterString = '';
   private unsubscribe$ = new Subject();
-
-  constructor(
-    private fileVersionQuery: FileVersionQuery,
-    private changeDetectorRef: ChangeDetectorRef
-  ) {}
 
   ngOnInit(): void {
     this.fileVersionQuery
       .selectAll()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((versions) => {
-        if (this.fileId) {
+        if (this.fileId()) {
           const fileVersions = versions.filter((v) => {
-            return v.fileId === this.fileId;
+            return v.fileId === this.fileId();
           });
           this.dataSource.data = fileVersions;
           this.dataSource.data.sort((a: any, b: any) => {

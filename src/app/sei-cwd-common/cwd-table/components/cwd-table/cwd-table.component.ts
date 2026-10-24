@@ -4,18 +4,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ContentChild,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
+  input,
+  output,
+  viewChild,
+  contentChild,
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSort, Sort } from '@angular/material/sort';
+import { MatSort, Sort, MatSortHeader } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   fromMatPaginator,
@@ -28,13 +28,49 @@ import { map } from 'rxjs/operators';
 import { TableActionDirective } from '../../directives/table-action.directive';
 import { TableItemActionDirective } from '../../directives/table-item-action.directive';
 import { TableItemContentDirective } from '../../directives/table-item-content.directive';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { NgTemplateOutlet, NgClass, AsyncPipe } from '@angular/common';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+} from '@angular/material/expansion';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
-    selector: 'cwd-table',
-    templateUrl: './cwd-table.component.html',
-    styleUrls: ['./cwd-table.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cwd-table',
+  templateUrl: './cwd-table.component.html',
+  styleUrls: ['./cwd-table.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    NgTemplateOutlet,
+    MatAccordion,
+    MatSort,
+    MatSortHeader,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    NgClass,
+    MatCard,
+    MatProgressSpinner,
+    AsyncPipe,
+  ],
 })
 export class CwdTableComponent<T> implements OnInit, OnChanges {
   public filterString = '';
@@ -50,29 +86,34 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
 
   private isInitialized = false;
 
-  @Input() items: T[];
-  @Input() displayedColumns: (keyof T)[];
-  @Input() columnLabels: { [key: string]: string } = {};
-  @Input() loading: boolean;
-  @Input() expandedItems: string[];
-  @Input() getRowStyle: (item: T) => {};
-  @Input() excludedAttributes: string[] = [];
+  readonly items = input<T[]>(undefined);
+  readonly displayedColumns = input<(keyof T)[]>(undefined);
+  readonly columnLabels = input<{
+    [key: string]: string;
+  }>({});
+  readonly loading = input<boolean>(undefined);
+  readonly expandedItems = input<string[]>(undefined);
+  readonly getRowStyle = input<(item: T) => {}>(undefined);
+  readonly excludedAttributes = input<string[]>([]);
   @Input() trackByPropertyName: string;
-  @Input() idPropertyName = 'id';
-  @Output() expand: EventEmitter<{
+  readonly idPropertyName = input('id');
+  readonly expand = output<{
     expand: boolean;
     item: T;
-  }> = new EventEmitter<{ expand: boolean; item: T }>();
-  @Output() add: EventEmitter<T> = new EventEmitter<T>();
+  }>();
+  readonly add = output<T>();
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
-  @ContentChild(TableActionDirective, { read: TemplateRef })
-  tableActionTemplate;
-  @ContentChild(TableItemActionDirective, { read: TemplateRef })
-  tableActionItemTemplate;
-  @ContentChild(TableItemContentDirective, { read: TemplateRef })
-  tableItemContent;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
+  readonly tableActionTemplate = contentChild(TableActionDirective, {
+    read: TemplateRef,
+  });
+  readonly tableActionItemTemplate = contentChild(TableItemActionDirective, {
+    read: TemplateRef,
+  });
+  readonly tableItemContent = contentChild(TableItemContentDirective, {
+    read: TemplateRef,
+  });
   constructor() {}
 
   /**
@@ -87,12 +128,12 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       return;
     }
 
-    this.datasource.data = this.items;
+    this.datasource.data = this.items();
 
     this.datasource.filterPredicate = (data, filter: string) => {
       const accumulator = (currentTerm, key) => {
         let ret = '';
-        if (!this.excludedAttributes.includes(key)) {
+        if (!this.excludedAttributes().includes(key)) {
           ret += this.nestedFilterCheck(currentTerm, data, key);
         } else {
           ret += currentTerm;
@@ -104,8 +145,8 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       const transformedFilter = filter.trim().toLowerCase();
       return dataStr.indexOf(transformedFilter) !== -1;
     };
-    this.sortEvents$ = fromMatSort(this.sort);
-    this.pageEvents$ = fromMatPaginator(this.paginator);
+    this.sortEvents$ = fromMatSort(this.sort());
+    this.pageEvents$ = fromMatPaginator(this.paginator());
 
     this.isInitialized = true;
   }
@@ -160,14 +201,15 @@ export class CwdTableComponent<T> implements OnInit, OnChanges {
       this.totalRows$ = rows$.pipe(map((rows) => rows.length));
       this.displayedRows$ = rows$.pipe(
         sortRows(this.sortEvents$),
-        paginateRows(this.pageEvents$)
+        paginateRows(this.pageEvents$),
       );
     }
   }
 
   isExpanded(item) {
-    return this.expandedItems
-      ? this.expandedItems.includes(item[this.idPropertyName])
+    const expandedItems = this.expandedItems();
+    return expandedItems
+      ? expandedItems.includes(item[this.idPropertyName()])
       : false;
   }
   /**

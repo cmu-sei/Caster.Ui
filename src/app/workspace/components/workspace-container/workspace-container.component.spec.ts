@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
@@ -41,35 +41,38 @@ import {
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { WorkspaceContainerComponent } from './workspace-container.component';
+import { ImportResourceComponent } from 'src/app/workspace/components/import-resource/import-resource.component';
+import { OutputComponent } from 'src/app/workspace/components/output/output.component';
+import { RunComponent } from 'src/app/workspace/components/run/run.component';
+import { WorkspaceVersionComponent } from 'src/app/workspace/components/workspace-version/workspace-version.component';
 
 @Component({
   selector: 'cas-workspace-version',
   template: '',
-  standalone: false,
 })
 class WorkspaceVersionStub {
-  @Input() workspace: Workspace;
+  readonly workspace = input<Workspace>(undefined);
 }
 
-@Component({ selector: 'cas-run', template: '', standalone: false })
+@Component({ selector: 'cas-run', template: '' })
 class RunStub {
-  @Input() run: Run;
-  @Input() loading: boolean;
-  @Output() planOutput = new EventEmitter<string>();
-  @Output() applyOutput = new EventEmitter<string>();
+  readonly run = input<Run>(undefined);
+  readonly loading = input<boolean>(undefined);
+  readonly planOutput = output<string>();
+  readonly applyOutput = output<string>();
 }
 
-@Component({ selector: 'cas-import-resource', template: '', standalone: false })
+@Component({ selector: 'cas-import-resource', template: '' })
 class ImportResourceStub {
-  @Input() workspaceId: string;
-  @Input() loading: boolean;
-  @Output() importComplete = new EventEmitter<boolean>();
+  readonly workspaceId = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
+  readonly importComplete = output<boolean>();
 }
 
-@Component({ selector: 'cas-output', template: '', standalone: false })
+@Component({ selector: 'cas-output', template: '' })
 class OutputStub {
-  @Input() output: string;
-  @Input() loading: boolean;
+  readonly output = input<string>(undefined);
+  readonly loading = input<boolean>(undefined);
 }
 
 async function renderWorkspace(
@@ -93,17 +96,17 @@ async function renderWorkspace(
   const view = await renderComponent(WorkspaceContainerComponent, {
     // The real cwd-table: an app NgModule's exports are not visible to the
     // test module, so its component and directives are declared here.
-    declarations: [
+    childStubs: [
+      { replace: WorkspaceVersionComponent, with: WorkspaceVersionStub },
+      { replace: RunComponent, with: RunStub },
+      { replace: ImportResourceComponent, with: ImportResourceStub },
+      { replace: OutputComponent, with: OutputStub },
+    ],
+    imports: [
       CwdTableComponent,
       TableActionDirective,
       TableItemActionDirective,
       TableItemContentDirective,
-      WorkspaceVersionStub,
-      RunStub,
-      ImportResourceStub,
-      OutputStub,
-    ],
-    imports: [
       MatToolbarModule,
       MatButtonToggleModule,
       MatButtonModule,

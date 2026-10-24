@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
@@ -16,10 +16,8 @@ import { PoolStore } from './pool.store';
 
 @Injectable({ providedIn: 'root' })
 export class PoolService {
-  constructor(
-    private poolStore: PoolStore,
-    private vlansService: VlansService
-  ) {}
+  private poolStore = inject(PoolStore);
+  private vlansService = inject(VlansService);
 
   load(): Observable<Pool[]> {
     this.poolStore.setLoading(true);
@@ -27,7 +25,7 @@ export class PoolService {
       tap((pools: Pool[]) => {
         this.poolStore.set(pools);
         this.poolStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -35,7 +33,7 @@ export class PoolService {
     return this.vlansService.createPool({ name: 'New Pool' }).pipe(
       tap((pool: Pool) => {
         this.add(pool);
-      })
+      }),
     );
   }
 
@@ -43,7 +41,7 @@ export class PoolService {
     return this.vlansService.editPool(id, command).pipe(
       tap((pool: Pool) => {
         this.update(id, pool);
-      })
+      }),
     );
   }
 
@@ -51,7 +49,7 @@ export class PoolService {
     return this.vlansService.partialEditPool(id, command).pipe(
       tap((pool: Pool) => {
         this.update(id, pool);
-      })
+      }),
     );
   }
 
@@ -59,7 +57,7 @@ export class PoolService {
     return this.vlansService.deletePool(id, { force: force }).pipe(
       tap(() => {
         this.remove(id);
-      })
+      }),
     );
   }
 

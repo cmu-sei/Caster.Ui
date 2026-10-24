@@ -6,8 +6,9 @@ import {
   HostListener,
   OnDestroy,
   OnInit,
+  inject,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   ComnAuthQuery,
   ComnSettingsService,
@@ -32,19 +33,60 @@ import {
 } from '../../../state';
 import { TopbarView } from './../../../../shared/components/top-bar/topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import {
+  MatSidenavContainer,
+  MatSidenav,
+  MatSidenavContent,
+} from '@angular/material/sidenav';
+import {
+  ResizableDirective,
+  ResizeHandleDirective,
+} from 'angular-resizable-element';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIcon } from '@angular/material/icon';
+import { ProjectNavigationContainerComponent } from '../project-navigation-container/project-navigation-container.component';
+import { MatDivider } from '@angular/material/list';
+import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
+import { ProjectComponent } from '../project/project.component';
+import { AsyncPipe } from '@angular/common';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
 
 @Component({
-    selector: 'cas-project-collapse-container',
-    templateUrl: './project-collapse-container.component.html',
-    styleUrls: ['./project-collapse-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-collapse-container',
+  templateUrl: './project-collapse-container.component.html',
+  styleUrls: ['./project-collapse-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatSidenavContainer,
+    MatSidenav,
+    ResizableDirective,
+    MatToolbar,
+    RouterLink,
+    MatIcon,
+    ProjectNavigationContainerComponent,
+    MatDivider,
+    ResizeHandleDirective,
+    MatSidenavContent,
+    TopbarComponent,
+    ProjectComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectCollapseContainerComponent
   implements OnInit, OnDestroy, CanComponentDeactivate
 {
+  private projectQuery = inject(ProjectQuery);
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
+  private authQuery = inject(ComnAuthQuery);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private settingsService = inject(ComnSettingsService);
+  private fileQuery = inject(FileQuery);
+  private signalRService = inject(SignalRService);
+  private permissionService = inject(PermissionService);
+  private router = inject(Router);
+
   public project$: Observable<Project>;
   public project: Project;
   public projectUI$: Observable<ProjectUI>;
@@ -60,18 +102,7 @@ export class ProjectCollapseContainerComponent
 
   private unsubscribe$ = new Subject();
 
-  constructor(
-    private projectQuery: ProjectQuery,
-    private projectService: ProjectService,
-    private userService: UserService,
-    private authQuery: ComnAuthQuery,
-    private currentUserQuery: CurrentUserQuery,
-    private settingsService: ComnSettingsService,
-    private fileQuery: FileQuery,
-    private signalRService: SignalRService,
-    private permissionService: PermissionService,
-    private router: Router
-  ) {
+  constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
 
@@ -101,7 +132,7 @@ export class ProjectCollapseContainerComponent
             // Use a results selector to return all 3 values.
             (open: boolean, width: number) => {
               return { p, open, width };
-            }
+            },
           );
         }),
         // set the values of the sidebar without affecting the subscription.
@@ -109,12 +140,15 @@ export class ProjectCollapseContainerComponent
           this.leftSidebarOpen = open;
           this.leftSidebarWidth = width;
         }),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(({ p, open, width }) => {
         if (p) {
           this.project = p;
-          this.permissionService.loadProjectPermissions(p.id).pipe(take(1)).subscribe();
+          this.permissionService
+            .loadProjectPermissions(p.id)
+            .pipe(take(1))
+            .subscribe();
           this.signalRService
             .startConnection()
             .then(() => {

@@ -4,13 +4,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   ViewChild,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import {
   Project,
@@ -18,10 +20,23 @@ import {
   RunStatus,
   SystemPermission,
 } from '../../../../generated/caster-api';
-import { MatSort, MatSortable } from '@angular/material/sort';
+import { MatSort, MatSortable, MatSortHeader } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { Router } from '@angular/router';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow,
+} from '@angular/material/table';
+import { Router, RouterLink } from '@angular/router';
 import { ProjectService } from 'src/app/project/state';
 import { filter, map, take, catchError, concatMap } from 'rxjs/operators';
 import { Observable, of, forkJoin } from 'rxjs';
@@ -32,26 +47,74 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DirectoryQuery } from 'src/app/directories/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
+import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { CrucibleHotkeyDirective } from '../../../../shared/directives/crucible-hotkey.directive';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 const NAME_VALUE = 'nameValue';
 const DESCRIPTION_VALUE = 'descriptionValue';
 
 @Component({
-    selector: 'cas-project-list',
-    templateUrl: './project-list.component.html',
-    styleUrls: ['./project-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-list',
+  templateUrl: './project-list.component.html',
+  styleUrls: ['./project-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatIcon,
+    MatIconButton,
+    MatTooltip,
+    CrucibleHotkeyDirective,
+    MatFormField,
+    MatInput,
+    FormsModule,
+    MatSuffix,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    RouterLink,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+    MatCard,
+    MatProgressSpinner,
+    MatPaginator,
+    AsyncPipe,
+    DatePipe,
+  ],
 })
 export class ProjectListComponent implements OnInit, OnChanges {
-  @Input() projects: Project[];
+  private projectService = inject(ProjectService);
+  private confirmService = inject(CrucibleDialogService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
+  private directoryQuery = inject(DirectoryQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private workspaceService = inject(WorkspaceService);
+  private router = inject(Router);
+
+  readonly projects = input<Project[]>(undefined);
   @Input() isLoading: boolean;
-  @Input() manageMode = false;
+  readonly manageMode = input(false);
 
-  @Output() selectedProjectId = new EventEmitter<string>();
+  readonly selectedProjectId = output<string>();
 
-  @ViewChild('createInput', { static: true }) createInput: HTMLInputElement;
-  @ViewChild(MatSort, { static: false }) sort: MatSort;
+  readonly createInput = viewChild<HTMLInputElement>('createInput');
+  readonly sort = viewChild(MatSort);
 
   @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
     if (paginator) {
@@ -60,47 +123,43 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   filterString = '';
-  displayedColumns: string[] = ['actions', 'name', 'description', 'dateCreated'];
+  displayedColumns: string[] = [
+    'actions',
+    'name',
+    'description',
+    'dateCreated',
+  ];
   dataSource: MatTableDataSource<Project> = new MatTableDataSource();
 
   canManageAll$: Observable<boolean>;
   canManageProjects$: Observable<string[]>;
   canCreate$: Observable<boolean>;
 
-  constructor(
-    private projectService: ProjectService,
-    private confirmService: CrucibleDialogService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private snackBar: MatSnackBar,
-    private directoryQuery: DirectoryQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService,
-    private router: Router
-  ) {
+  constructor() {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
-      map((x) => x.includes(SystemPermission.ManageProjects))
+      map((x) => x.includes(SystemPermission.ManageProjects)),
     );
     this.canManageProjects$ = this.permissionService.projectPermissions$.pipe(
       map((x) =>
         x.map((y) =>
           y.permissions.includes(ProjectPermission.ManageProject)
             ? y.projectId
-            : null
-        )
+            : null,
+        ),
       ),
-      filter((x) => x != null)
+      filter((x) => x != null),
     );
 
     this.canCreate$ = this.permissionService.hasPermission(
-      SystemPermission.CreateProjects
+      SystemPermission.CreateProjects,
     );
   }
 
   ngOnInit() {
     this.loadProjects();
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
+    const sort = this.sort();
+    if (sort) {
+      this.dataSource.sort = sort;
     }
     this.filterAndSort(this.filterString);
   }
@@ -109,8 +168,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
     if (changes.projects) {
       this.loadProjects();
       this.dataSource.data = changes.projects.currentValue;
-      if (this.sort) {
-        this.dataSource.sort = this.sort;
+      const sort = this.sort();
+      if (sort) {
+        this.dataSource.sort = sort;
       }
       this.filterAndSort(this.filterString);
     }
@@ -189,12 +249,12 @@ export class ProjectListComponent implements OnInit, OnChanges {
   delete(project: Project) {
     // Get all directories in this project
     const directories = this.directoryQuery.getAll({
-      filterBy: (d) => d.projectId === project.id
+      filterBy: (d) => d.projectId === project.id,
     });
 
     // Get all workspaces in those directories
     const workspaces = this.workspaceQuery.getAll({
-      filterBy: (w) => directories.some(d => d.id === w.directoryId)
+      filterBy: (w) => directories.some((d) => d.id === w.directoryId),
     });
 
     if (workspaces.length === 0) {
@@ -204,53 +264,62 @@ export class ProjectListComponent implements OnInit, OnChanges {
     }
 
     // Terminal run statuses (completed)
-    const terminalStatuses: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
+    const terminalStatuses: RunStatus[] = [
+      RunStatus.Applied,
+      RunStatus.Failed,
+      RunStatus.Rejected,
+    ];
 
     // Load resources for all workspaces
-    const resourceChecks = workspaces.map(w =>
+    const resourceChecks = workspaces.map((w) =>
       this.workspaceService.loadResourcesByWorkspaceId(w.id).pipe(
         take(1),
-        catchError(() => of(null))
-      )
+        catchError(() => of(null)),
+      ),
     );
 
-    forkJoin(resourceChecks).pipe(
-      take(1),
-      map(() => {
-        // Check loaded resources and runs
-        const hasResources = workspaces.some(w => {
-          const updated = this.workspaceQuery.getEntity(w.id);
-          return updated?.resources && updated.resources.length > 0;
-        });
+    forkJoin(resourceChecks)
+      .pipe(
+        take(1),
+        map(() => {
+          // Check loaded resources and runs
+          const hasResources = workspaces.some((w) => {
+            const updated = this.workspaceQuery.getEntity(w.id);
+            return updated?.resources && updated.resources.length > 0;
+          });
 
-        const hasRuns = workspaces.some(w => {
-          const updated = this.workspaceQuery.getEntity(w.id);
-          return updated?.runs && updated.runs.some(r => !terminalStatuses.includes(r.status));
-        });
+          const hasRuns = workspaces.some((w) => {
+            const updated = this.workspaceQuery.getEntity(w.id);
+            return (
+              updated?.runs &&
+              updated.runs.some((r) => !terminalStatuses.includes(r.status))
+            );
+          });
 
-        return { hasResources, hasRuns };
-      })
-    ).subscribe(({ hasResources, hasRuns }) => {
-      if (hasResources) {
-        this.confirmService.confirm({
-          title: 'Cannot Delete Project',
-          message:
-            'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
-          confirmText: 'OK',
-          cancelText: '',
-        });
-      } else if (hasRuns) {
-        this.confirmService.confirm({
-          title: 'Cannot Delete Project',
-          message:
-            'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-          confirmText: 'OK',
-          cancelText: '',
-        });
-      } else {
-        this.proceedWithDelete(project);
-      }
-    });
+          return { hasResources, hasRuns };
+        }),
+      )
+      .subscribe(({ hasResources, hasRuns }) => {
+        if (hasResources) {
+          this.confirmService.confirm({
+            title: 'Cannot Delete Project',
+            message:
+              'Project has deployed resources and cannot be deleted. Please destroy the resources first.',
+            confirmText: 'OK',
+            cancelText: '',
+          });
+        } else if (hasRuns) {
+          this.confirmService.confirm({
+            title: 'Cannot Delete Project',
+            message:
+              'Project has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+            confirmText: 'OK',
+            cancelText: '',
+          });
+        } else {
+          this.proceedWithDelete(project);
+        }
+      });
   }
 
   private proceedWithDelete(project: Project) {
@@ -262,30 +331,37 @@ export class ProjectListComponent implements OnInit, OnChanges {
       })
       .afterClosed()
       .subscribe((confirmed) => {
-      if (confirmed) {
-        this.projectService.deleteProject(project.id).pipe(
-          take(1),
-          catchError((error) => {
-            const message = error.error?.message || error.message || error.statusText || 'Failed to delete project';
-            this.snackBar.open(
-              message,
-              'Dismiss',
-              {
-                duration: 5000,
-                verticalPosition: 'top',
-                horizontalPosition: 'center'
-              }
-            );
-            return of(null);
-          })
-        ).subscribe();
-      }
-    });
+        if (confirmed) {
+          this.projectService
+            .deleteProject(project.id)
+            .pipe(
+              take(1),
+              catchError((error) => {
+                const message =
+                  error.error?.message ||
+                  error.message ||
+                  error.statusText ||
+                  'Failed to delete project';
+                this.snackBar.open(message, 'Dismiss', {
+                  duration: 5000,
+                  verticalPosition: 'top',
+                  horizontalPosition: 'center',
+                });
+                return of(null);
+              }),
+            )
+            .subscribe();
+        }
+      });
   }
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 

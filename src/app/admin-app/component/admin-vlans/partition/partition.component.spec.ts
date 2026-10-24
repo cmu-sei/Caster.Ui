@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
@@ -20,13 +20,14 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlanStore } from 'src/app/vlans/state/vlan/vlan.store';
 import { PartitionComponent } from './partition.component';
+import { VlanListComponent } from 'src/app/admin-app/component/admin-vlans/vlan-list/vlan-list.component';
 
-@Component({ selector: 'cas-vlan-list', template: '', standalone: false })
+@Component({ selector: 'cas-vlan-list', template: '' })
 class VlanListStub {
-  @Input() showUnassigned: boolean;
-  @Input() vlans: Vlan[];
-  @Input() partitions: Partition[];
-  @Input() canEdit: boolean;
+  readonly showUnassigned = input<boolean>(undefined);
+  readonly vlans = input<Vlan[]>(undefined);
+  readonly partitions = input<Partition[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 const partition: Partition = {
@@ -42,7 +43,7 @@ async function renderPartition(canEdit: boolean) {
     addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PartitionComponent, {
-    declarations: [VlanListStub],
+    childStubs: [{ replace: VlanListComponent, with: VlanListStub }],
     imports: [
       MatExpansionModule,
       MatButtonModule,
@@ -135,8 +136,8 @@ describe('PartitionComponent', () => {
       const list: VlanListStub = fixture.debugElement.query(
         By.directive(VlanListStub),
       ).componentInstance;
-      expect(list.vlans.map((v) => v.vlanId)).toEqual([100]);
-      expect(list.canEdit).toBe(canEdit);
+      expect(list.vlans().map((v) => v.vlanId)).toEqual([100]);
+      expect(list.canEdit()).toBe(canEdit);
     },
   );
 });

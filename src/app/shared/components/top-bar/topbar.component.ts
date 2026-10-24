@@ -3,19 +3,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
+  inject,
+  input,
+  output,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import {
-  ComnAuthQuery,
-  ComnAuthService,
-  Theme,
-} from '@cmusei/crucible-common';
+import { Router, RouterLink } from '@angular/router';
+import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
@@ -24,36 +21,52 @@ import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectPermission } from 'src/app/generated/caster-api';
-import { ProjectQuery } from 'src/app/project';
+import { ProjectQuery } from 'src/app/project/state/project-query.service';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { AsyncPipe } from '@angular/common';
 @Component({
-    selector: 'cas-topbar',
-    templateUrl: './topbar.component.html',
-    styleUrls: ['./topbar.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-topbar',
+  templateUrl: './topbar.component.html',
+  styleUrls: ['./topbar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatIconButton,
+    RouterLink,
+    MatIcon,
+    MatButton,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,
+    MatSlideToggle,
+    AsyncPipe,
+  ],
 })
 export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() title?: string = 'Caster';
+  private authService = inject(ComnAuthService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private userService = inject(UserService);
+  private authQuery = inject(ComnAuthQuery);
+  private router = inject(Router);
+  private permissionService = inject(PermissionService);
+
+  readonly title = input<string>('Caster');
   @Input() sidenav?;
-  @Input() topbarView?: TopbarView = TopbarView.CASTER_HOME;
+  readonly topbarView = input<TopbarView>(TopbarView.CASTER_HOME);
   @Input() projectId?: string;
 
-  @Output() sidenavToggle?: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() editMemberships?: EventEmitter<any> = new EventEmitter<any>();
+  readonly sidenavToggle = output<boolean>();
+  readonly editMemberships = output<any>();
 
   currentUser$: Observable<CurrentUserState>;
   theme$: Observable<Theme>;
   unsubscribe$: Subject<null> = new Subject<null>();
   TopbarView = TopbarView;
-
-  constructor(
-    private authService: ComnAuthService,
-    private currentUserQuery: CurrentUserQuery,
-    private userService: UserService,
-    private authQuery: ComnAuthQuery,
-    private router: Router,
-    private permissionService: PermissionService
-  ) {}
 
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
 
@@ -65,7 +78,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
     this.currentUser$ = this.currentUserQuery.select().pipe(
       filter((user) => user !== null),
-      takeUntil(this.unsubscribe$)
+      takeUntil(this.unsubscribe$),
     );
 
     this.theme$ = this.authQuery.userTheme$;
@@ -73,7 +86,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnChanges() {
     this.canManageProject$ = this.permissionService.canManageProject(
-      this.projectId
+      this.projectId,
     );
   }
 
@@ -89,7 +102,7 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   editMembershipsFn(event) {
     event.preventDefault();
-    this.editMemberships.emit();
+    this.editMemberships.emit(undefined);
   }
 
   getEditMembershipsUrl() {}

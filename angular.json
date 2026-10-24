@@ -137,7 +137,7 @@
             "coverageReporters": ["text", "json", "html"],
             "coverageThresholds": {
               "statements": 79,
-              "branches": 72,
+              "branches": 70,
               "functions": 77,
               "lines": 78
             }

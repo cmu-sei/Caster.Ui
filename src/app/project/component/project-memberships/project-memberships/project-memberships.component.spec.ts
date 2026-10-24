@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -33,33 +33,32 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectMembershipsComponent } from './project-memberships.component';
+import { ProjectMemberListComponent } from 'src/app/project/component/project-memberships/project-member-list/project-member-list.component';
+import { ProjectMembershipListComponent } from 'src/app/project/component/project-memberships/project-membership-list/project-membership-list.component';
 
 @Component({
   selector: 'cas-project-membership-list',
   template: '',
-  standalone: false,
 })
 class MembershipListStub {
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() canEdit: boolean;
-  @Output() createMembership =
-    new EventEmitter<CreateProjectMembershipCommand>();
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly createMembership = output<CreateProjectMembershipCommand>();
 }
 
 @Component({
   selector: 'cas-project-member-list',
   template: '',
-  standalone: false,
 })
 class MemberListStub {
-  @Input() memberships: ProjectMembership[];
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() roles: ProjectRole[];
-  @Input() canEdit: boolean;
-  @Output() deleteMembership = new EventEmitter<string>();
-  @Output() editMembership = new EventEmitter<EditProjectMembershipCommand>();
+  readonly memberships = input<ProjectMembership[]>(undefined);
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly roles = input<ProjectRole[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly deleteMembership = output<string>();
+  readonly editMembership = output<EditProjectMembershipCommand>();
 }
 
 async function renderMemberships(grants: PermissionGrants, embedded = false) {
@@ -105,7 +104,10 @@ async function renderMemberships(grants: PermissionGrants, embedded = false) {
   >;
   const goBack = vi.fn();
   const view = await renderComponent(ProjectMembershipsComponent, {
-    declarations: [MembershipListStub, MemberListStub],
+    childStubs: [
+      { replace: ProjectMembershipListComponent, with: MembershipListStub },
+      { replace: ProjectMemberListComponent, with: MemberListStub },
+    ],
     imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -143,13 +145,21 @@ describe('ProjectMembershipsComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Range' })).toBeVisible();
     expect(signalR.joinProjectAdmin).toHaveBeenCalledWith('p1');
-    expect(stub(MemberListStub).users.map((u) => u.name)).toEqual(['Ada']);
-    expect(stub(MembershipListStub).users.map((u) => u.name)).toEqual([
-      'Grace',
-    ]);
-    expect(stub(MembershipListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Ada']);
+    expect(
+      stub(MembershipListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Grace']);
+    expect(
+      stub(MembershipListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
   });
 
   /**
@@ -165,8 +175,8 @@ describe('ProjectMembershipsComponent', () => {
     });
 
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(true);
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -180,7 +190,7 @@ describe('ProjectMembershipsComponent', () => {
     });
 
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -210,8 +220,8 @@ describe('ProjectMembershipsComponent', () => {
     const { stub } = await renderMemberships(grants);
 
     // Current behavior for the Manage rows; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(false);
-    expect(stub(MemberListStub).canEdit).toBe(false);
+    expect(stub(MembershipListStub).canEdit()).toBe(false);
+    expect(stub(MemberListStub).canEdit()).toBe(false);
   });
 
   /**
@@ -231,13 +241,16 @@ describe('ProjectMembershipsComponent', () => {
     expect(projectsApi.createProjectMembership).toHaveBeenCalledWith('p1', {
       groupId: 'g1',
     });
-    expect(stub(MemberListStub).memberships.map((m) => m.id)).toEqual([
-      'm1',
-      'm2',
-    ]);
-    expect(stub(MemberListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .memberships()
+        .map((m) => m.id),
+    ).toEqual(['m1', 'm2']);
+    expect(
+      stub(MemberListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
 
     await user.click(screen.getByRole('button', { name: 'Return' }));
     expect(goBack).toHaveBeenCalled();
