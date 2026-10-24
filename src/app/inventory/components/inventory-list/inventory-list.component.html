@@ -14,9 +14,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-expansion-panel-header>
         <mat-panel-title>
           <div class="d-flex flex-row justify-content-start align-items-center">
-            <mat-icon class="mdi-18px" [fontIcon]="descriptor.icon"></mat-icon>
+            <mat-icon class="mdi-18px" [fontIcon]="descriptor().icon"></mat-icon>
             <span class="panel-header"
-              ><strong>{{ descriptor.label }}</strong></span
+              ><strong>{{ descriptor().label }}</strong></span
               >
               @if (state.loaded && state.available) {
                 <span class="item-count">{{ (items$ | async)?.length }}</span>
@@ -25,7 +25,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <mat-icon
                   class="mdi-18px unavailable-icon"
                   fontIcon="mdi-information-outline"
-                  [matTooltip]="state.error || descriptor.fallbackUnavailableMessage"
+                  [matTooltip]="state.error || descriptor().fallbackUnavailableMessage"
                 ></mat-icon>
               }
             </div>
@@ -51,7 +51,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 fontIcon="mdi-information-outline"
               ></mat-icon>
               <span class="state-text">{{
-                state.error || descriptor.fallbackUnavailableMessage
+                state.error || descriptor().fallbackUnavailableMessage
               }}</span>
             </div>
             @if (state.loadFailed) {

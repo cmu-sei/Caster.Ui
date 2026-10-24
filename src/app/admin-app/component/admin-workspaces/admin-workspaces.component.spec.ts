@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -16,20 +16,31 @@ import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminWorkspacesComponent } from './admin-workspaces.component';
+import { ActiveRunsComponent } from 'src/app/admin-app/component/admin-workspaces/active-runs/active-runs.component';
+import { LockingStatusComponent } from 'src/app/admin-app/component/admin-workspaces/locking-status/locking-status.component';
 
-@Component({ selector: 'cas-locking-status', template: '', standalone: false })
+@Component({ selector: 'cas-locking-status', template: '' })
 class LockingStatusStub {
-  @Input() lockingEnabled: boolean;
-  @Output() setLockingEnabled = new EventEmitter<boolean>();
+  readonly lockingEnabled = input<boolean>(undefined);
+  readonly setLockingEnabled = output<boolean>();
 }
 
-@Component({ selector: 'cas-active-runs', template: '', standalone: false })
+@Component({ selector: 'cas-active-runs', template: '' })
 class ActiveRunsStub {
-  @Input() runs: Run[];
-  @Input() expandedRuns: string[];
-  @Output() expandRun = new EventEmitter<{ expand: boolean; item: Run }>();
-  @Output() planUpdated = new EventEmitter<{ output: string; item: Run }>();
-  @Output() applyUpdated = new EventEmitter<{ output: string; item: Run }>();
+  readonly runs = input<Run[]>(undefined);
+  readonly expandedRuns = input<string[]>(undefined);
+  readonly expandRun = output<{
+    expand: boolean;
+    item: Run;
+  }>();
+  readonly planUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
+  readonly applyUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
 }
 
 async function renderAdminWorkspaces() {
@@ -54,7 +65,10 @@ async function renderAdminWorkspaces() {
     ),
   } satisfies ApiStub<RunsService>;
   const view = await renderComponent(AdminWorkspacesComponent, {
-    declarations: [LockingStatusStub, ActiveRunsStub],
+    childStubs: [
+      { replace: LockingStatusComponent, with: LockingStatusStub },
+      { replace: ActiveRunsComponent, with: ActiveRunsStub },
+    ],
     imports: [MatCardModule],
     providers: [
       { provide: SignalRService, useValue: signalR },
@@ -79,9 +93,13 @@ describe('AdminWorkspacesComponent', () => {
     const { signalR, stub } = await renderAdminWorkspaces();
 
     expect(signalR.joinWorkspacesAdmin).toHaveBeenCalled();
-    expect(stub(LockingStatusStub).lockingEnabled).toBe(true);
-    expect(stub(ActiveRunsStub).runs.map((r) => r.id)).toEqual(['run1']);
-    expect(stub(ActiveRunsStub).expandedRuns).toEqual([]);
+    expect(stub(LockingStatusStub).lockingEnabled()).toBe(true);
+    expect(
+      stub(ActiveRunsStub)
+        .runs()
+        .map((r) => r.id),
+    ).toEqual(['run1']);
+    expect(stub(ActiveRunsStub).expandedRuns()).toEqual([]);
   });
 
   /**
@@ -96,6 +114,6 @@ describe('AdminWorkspacesComponent', () => {
     fixture.detectChanges();
 
     expect(workspacesApi.disableWorkspaceLocking).toHaveBeenCalled();
-    expect(stub(LockingStatusStub).lockingEnabled).toBe(false);
+    expect(stub(LockingStatusStub).lockingEnabled()).toBe(false);
   });
 });

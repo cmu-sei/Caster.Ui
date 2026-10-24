@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-slide-toggle
   matTooltip="Disable to prevent Workspace operations that require locking. Resets when API is restarted"
-  [checked]="!lockingEnabled"
+  [checked]="!lockingEnabled()"
   (click)="toggleLocking($event)"
 >
   Disable Workspace Operations

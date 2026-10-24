@@ -6,8 +6,9 @@ import {
   OnInit,
   Input,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
@@ -25,26 +26,51 @@ import {
   UntypedFormGroup,
   UntypedFormBuilder,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+  CrucibleDialogActionsDirective,
+} from '@cmusei/crucible-common';
+import { MatButton } from '@angular/material/button';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-import',
-    templateUrl: './project-import.component.html',
-    styleUrls: ['./project-import.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-import',
+  templateUrl: './project-import.component.html',
+  styleUrls: ['./project-import.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatButton,
+    MatSlideToggle,
+    MatTooltip,
+    CrucibleDialogActionsDirective,
+    AsyncPipe,
+    TitleCasePipe,
+  ],
 })
 export class ProjectImportComponent implements OnInit {
-  @Input() id: string;
-  @Input() name: string;
+  private directoryService = inject(DirectoryService);
+  private projectService = inject(ProjectService);
+
+  readonly id = input<string>(undefined);
+  readonly name = input<string>(undefined);
   @Input()
   set type(val: ProjectObjectType) {
     this._type = val;
     this.typeString = val;
   }
 
-  @Output() importComplete = new EventEmitter<boolean>();
+  readonly importComplete = output<boolean>();
 
   form: UntypedFormGroup;
   archiveTypes = Object.keys(ArchiveType);
@@ -64,11 +90,9 @@ export class ProjectImportComponent implements OnInit {
 
   private _type: ProjectObjectType;
 
-  constructor(
-    private directoryService: DirectoryService,
-    private projectService: ProjectService,
-    formBuilder: UntypedFormBuilder
-  ) {
+  constructor() {
+    const formBuilder = inject(UntypedFormBuilder);
+
     this.form = formBuilder.group({
       archive: [null, Validators.required],
       preserveIds: [false, Validators.required],
@@ -79,10 +103,10 @@ export class ProjectImportComponent implements OnInit {
 
   import() {
     this.onImport(
-      this.id,
+      this.id(),
       this._type,
       this.form.value.archive,
-      this.form.value.preserveIds
+      this.form.value.preserveIds,
     );
   }
 
@@ -109,7 +133,7 @@ export class ProjectImportComponent implements OnInit {
     id: string,
     type: ProjectObjectType,
     archive: Blob,
-    preserveIds: boolean
+    preserveIds: boolean,
   ) {
     let obs: Observable<ImportProjectResult | ImportDirectoryResult>;
 
@@ -137,7 +161,7 @@ export class ProjectImportComponent implements OnInit {
             (d) => d.status === DiskStatus.Missing,
           ).length;
           this.complete.next(true);
-        })
+        }),
       );
 
       obs.subscribe();

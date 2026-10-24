@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Query } from '@datorama/akita';
 import { combineLatest, Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
@@ -38,8 +38,8 @@ export class InventoryQuery extends Query<InventoryState> {
       )
   );
 
-  constructor(protected store: InventoryStore) {
-    super(store);
+  constructor() {
+    super(inject(InventoryStore));
   }
 
   /** The full state slice for one category, including its own availability. */

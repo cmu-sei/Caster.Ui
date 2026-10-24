@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  forwardRef,
-  Input,
-  Output,
-} from '@angular/core';
+import { Component, forwardRef, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -21,7 +15,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  ComnSettingsService,
+  CrucibleDialogService,
+} from '@cmusei/crucible-common';
 import { ResizableModule } from 'angular-resizable-element';
 import { FileStore } from 'src/app/files/state/file.store';
 import {
@@ -35,11 +32,16 @@ import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { CurrentUserStore } from 'src/app/users/state/user.store';
 import { EditorComponent } from './editor.component';
+import { ModuleListComponent } from 'src/app/editor/component/module-list/module-list.component';
+import { VersionListComponent } from 'src/app/editor/component/version-list/version-list.component';
+import {
+  EditorComponent as MonacoEditorComponent,
+  DiffEditorComponent as MonacoDiffEditorComponent,
+} from 'ngx-monaco-editor-v2';
 
 @Component({
   selector: 'ngx-monaco-editor',
   template: '',
-  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -49,39 +51,44 @@ import { EditorComponent } from './editor.component';
   ],
 })
 class MonacoEditorStub implements ControlValueAccessor {
-  @Input() options: unknown;
-  @Output() onInit = new EventEmitter<unknown>();
+  readonly options = input<unknown>(undefined);
+  readonly onInit = output<unknown>();
+  onChange: (value: string) => void = () => {};
   writeValue(): void {}
-  registerOnChange(): void {}
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
+  }
   registerOnTouched(): void {}
 }
 
 @Component({
   selector: 'ngx-monaco-diff-editor',
   template: '',
-  standalone: false,
 })
 class MonacoDiffEditorStub {
-  @Input() options: unknown;
-  @Input() originalModel: unknown;
-  @Input() modifiedModel: unknown;
+  readonly options = input<unknown>(undefined);
+  readonly originalModel = input<unknown>(undefined);
+  readonly modifiedModel = input<unknown>(undefined);
 }
 
-@Component({ selector: 'cas-module-list', template: '', standalone: false })
+@Component({ selector: 'cas-module-list', template: '' })
 class ModuleListStub {
-  @Input() modules: Module[];
-  @Input() selectedModule: Module;
-  @Input() isEditing: boolean;
-  @Output() getModule = new EventEmitter<{ id: string; name: string }>();
-  @Output() insertModule = new EventEmitter<unknown>();
+  readonly modules = input<Module[]>(undefined);
+  readonly selectedModule = input<Module>(undefined);
+  readonly isEditing = input<boolean>(undefined);
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
+  readonly insertModule = output<unknown>();
 }
 
-@Component({ selector: 'cas-version-list', template: '', standalone: false })
+@Component({ selector: 'cas-version-list', template: '' })
 class VersionListStub {
-  @Input() fileId: string;
-  @Input() selectedVersionId: string;
-  @Output() getVersion = new EventEmitter<FileVersion>();
-  @Output() revertToVersion = new EventEmitter<unknown>();
+  readonly fileId = input<string>(undefined);
+  readonly selectedVersionId = input<string>(undefined);
+  readonly getVersion = output<FileVersion>();
+  readonly revertToVersion = output<unknown>();
 }
 
 interface Gates {
@@ -99,6 +106,7 @@ async function renderEditor(
   gates: Gates,
   file: Partial<ModelFile> = {},
   sidebar: Sidebar = {},
+  settings: Record<string, unknown> = {},
 ) {
   const filesApi = {
     getFileVersions: vi.fn((_fileId: string) => of<FileVersion[]>([])),
@@ -111,11 +119,11 @@ async function renderEditor(
   const { dialogRef } = dialogRefStub<unknown, boolean>(true);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(EditorComponent, {
-    declarations: [
-      MonacoEditorStub,
-      MonacoDiffEditorStub,
-      ModuleListStub,
-      VersionListStub,
+    childStubs: [
+      { replace: ModuleListComponent, with: ModuleListStub },
+      { replace: VersionListComponent, with: VersionListStub },
+      { replace: MonacoEditorComponent, with: MonacoEditorStub },
+      { replace: MonacoDiffEditorComponent, with: MonacoDiffEditorStub },
     ],
     imports: [
       MatSidenavModule,
@@ -131,6 +139,10 @@ async function renderEditor(
       {
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
+      },
+      {
+        provide: ComnSettingsService,
+        useValue: { settings: { Hotkeys: {}, ...settings } },
       },
     ],
     inputs: {
@@ -163,6 +175,34 @@ async function renderEditor(
   store.ui.update('f1', { isSaved: false });
   view.fixture.detectChanges();
   return { ...view, filesApi, confirm, user: userEvent.setup() };
+}
+
+// Minimal Monaco: the EndOfLineSequence enum (with its reverse mapping) and
+// the calls the editor makes on init and on lock changes.
+function fakeMonaco() {
+  const model = { setEOL: vi.fn() };
+  const editor = {
+    getModel: () => model,
+    getDomNode: (): HTMLElement => null,
+    onDidChangeModelContent: vi.fn(),
+    updateOptions: vi.fn(),
+    focus: vi.fn(),
+    dispose: vi.fn(),
+  };
+  (window as any).monaco = {
+    editor: {
+      EndOfLineSequence: { LF: 0, CRLF: 1, 0: 'LF', 1: 'CRLF' },
+      setModelLanguage: vi.fn(),
+      setTheme: vi.fn(),
+    },
+    languages: { getLanguages: () => [] },
+  };
+  return { model, editor };
+}
+
+function monacoStub(fixture: { debugElement: any }): MonacoEditorStub {
+  return fixture.debugElement.query(By.directive(MonacoEditorStub))
+    .componentInstance;
 }
 
 describe('EditorComponent', () => {
@@ -290,7 +330,121 @@ describe('EditorComponent', () => {
       const moduleList: ModuleListStub = fixture.debugElement.query(
         By.directive(ModuleListStub),
       ).componentInstance;
-      expect(moduleList.isEditing).toBe(isEditing);
+      expect(moduleList.isEditing()).toBe(isEditing);
     },
   );
+
+  /**
+   * Verifies: Monaco reporting its line-ending-normalized copy of an unedited file (as it does on load) leaves the file saved.
+   * Interacts with: the ngModelChange handler, real FileService.updateEditorContent and FileQuery.
+   * Data: one render per row: stored content with mixed, CRLF or bare-CR endings; Monaco reports the same lines with other endings.
+   */
+  it.each([
+    { stored: 'a\r\nb\nc', reported: 'a\r\nb\r\nc' },
+    { stored: 'a\r\nb', reported: 'a\nb' },
+    { stored: 'a\rb', reported: 'a\nb' },
+  ])(
+    'keeps the file saved when only line endings differ ($stored)',
+    async ({ stored, reported }) => {
+      const { fixture } = await renderEditor(
+        { canEdit: true },
+        { content: stored, editorContent: stored },
+      );
+      const store = TestBed.inject(FileStore);
+      store.ui.update('f1', { isSaved: true });
+
+      monacoStub(fixture).onChange(reported);
+      fixture.detectChanges();
+
+      expect(store.getValue().entities.f1.editorContent).toBe(stored);
+      expect(store.ui.getValue().entities.f1.isSaved).toBe(true);
+      expect(
+        screen.getByRole('button', { name: 'Save Changes' }),
+      ).toBeDisabled();
+    },
+  );
+
+  /**
+   * Verifies: a real edit still marks the file unsaved and keeps the edited text.
+   * Interacts with: the ngModelChange handler, real FileService.updateEditorContent.
+   * Data: stored 'a\r\nb'; near miss of the row above: Monaco reports 'a\nb2', a changed line.
+   */
+  it('marks the file unsaved on a real edit', async () => {
+    const { fixture } = await renderEditor(
+      { canEdit: true },
+      { content: 'a\r\nb', editorContent: 'a\r\nb' },
+    );
+    const store = TestBed.inject(FileStore);
+    store.ui.update('f1', { isSaved: true });
+
+    monacoStub(fixture).onChange('a\nb2');
+    fixture.detectChanges();
+
+    expect(store.getValue().entities.f1.editorContent).toBe('a\nb2');
+    expect(store.ui.getValue().entities.f1.isSaved).toBe(false);
+    expect(screen.getByRole('button', { name: 'Save Changes' })).toBeEnabled();
+  });
+
+  /**
+   * Verifies: locking the file for editing sets the Monaco model's line ending from EditorLineEnding (LF when unset), and an unknown value keeps the file's own.
+   * Interacts with: editorInit, updateEditorOptions, a fake Monaco model's setEOL.
+   * Data: one render per row: EditorLineEnding unset, 'LF', 'CRLF', 'Keep' or '0' (an enum reverse-mapping key); main.tf unlocked, then locked by the current user u1.
+   */
+  it.each([
+    { setting: undefined, eol: 0 },
+    { setting: 'LF', eol: 0 },
+    { setting: 'CRLF', eol: 1 },
+    { setting: 'Keep', eol: null },
+    { setting: '0', eol: null },
+  ])(
+    'applies EditorLineEnding $setting when the file is unlocked for editing',
+    async ({ setting, eol }) => {
+      const { model, editor } = fakeMonaco();
+      try {
+        const { fixture } = await renderEditor(
+          { canEdit: true },
+          {},
+          {},
+          setting === undefined ? {} : { EditorLineEnding: setting },
+        );
+        monacoStub(fixture).onInit.emit(editor);
+        expect(model.setEOL).not.toHaveBeenCalled();
+
+        TestBed.inject(FileStore).update('f1', { lockedById: 'u1' });
+
+        if (eol === null) {
+          expect(model.setEOL).not.toHaveBeenCalled();
+        } else {
+          expect(model.setEOL).toHaveBeenCalledWith(eol);
+        }
+      } finally {
+        delete (window as any).monaco;
+      }
+    },
+  );
+
+  /**
+   * Verifies: when Monaco replaces the content of a file the user is editing (setValue, a flush), the LF line ending is applied again; a flush while read-only is left alone.
+   * Interacts with: the onDidChangeModelContent listener registered in editorInit.
+   * Data: main.tf locked by the current user u1 when the editor is created; flush event, then a non-flush edit event.
+   */
+  it('reapplies LF after Monaco replaces the content of a file being edited', async () => {
+    const { model, editor } = fakeMonaco();
+    try {
+      const { fixture } = await renderEditor(
+        { canEdit: true },
+        { lockedById: 'u1' },
+      );
+      monacoStub(fixture).onInit.emit(editor);
+      const listener = editor.onDidChangeModelContent.mock.calls[0][0];
+      model.setEOL.mockClear();
+
+      listener({ isFlush: false });
+      expect(model.setEOL).not.toHaveBeenCalled();
+      listener({ isFlush: true });
+      expect(model.setEOL).toHaveBeenCalledWith(0);
+    } finally {
+      delete (window as any).monaco;
+    }
+  });
 });

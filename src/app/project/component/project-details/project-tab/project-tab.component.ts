@@ -4,14 +4,14 @@
 import {
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   HostListener,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   SimpleChanges,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import {
   Breadcrumb,
@@ -22,9 +22,18 @@ import {
   Tab,
 } from '../../../state';
 import { DirectoryQuery } from 'src/app/directories/state';
-import { FileQuery, FileService } from 'src/app/files/state';
+import {
+  FileQuery,
+  FileService,
+  isFileContentChanged,
+} from 'src/app/files/state';
 import { WorkspaceQuery } from 'src/app/workspace/state';
-import { MatTab } from '@angular/material/tabs';
+import {
+  MatTab,
+  MatTabGroup,
+  MatTabLabel,
+  MatTabContent,
+} from '@angular/material/tabs';
 import { EMPTY, iif, merge, Observable, Subject, Subscription } from 'rxjs';
 import {
   catchError,
@@ -52,23 +61,54 @@ import {
   Workspace,
 } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { EditorComponent } from '../../../../editor/component/editor/editor.component';
+import { WorkspaceContainerComponent } from '../../../../workspace/components/workspace-container/workspace-container.component';
+import { DesignComponent } from '../../../../designs/components/design/design.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-tab',
-    templateUrl: './project-tab.component.html',
-    styleUrls: ['./project-tab.component.scss'],
-    standalone: false
+  selector: 'cas-project-tab',
+  templateUrl: './project-tab.component.html',
+  styleUrls: ['./project-tab.component.scss'],
+  imports: [
+    MatTabGroup,
+    MatTab,
+    MatTabLabel,
+    MatIconButton,
+    MatIcon,
+    MatTabContent,
+    EditorComponent,
+    WorkspaceContainerComponent,
+    DesignComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectTabComponent
   implements OnInit, OnDestroy, OnChanges, CanComponentDeactivate
 {
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
-  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
-  @Output() tabChanged: EventEmitter<{
+  private projectService = inject(ProjectService);
+  private projectQuery = inject(ProjectQuery);
+  private moduleService = inject(ModuleService);
+  private moduleQuery = inject(ModuleQuery);
+  private directoryQuery = inject(DirectoryQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private fileQuery = inject(FileQuery);
+  private fileService = inject(FileService);
+  private confirmService = inject(CrucibleDialogService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+  private designQuery = inject(DesignQuery);
+  private permissionService = inject(PermissionService);
+
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<{
     index: number;
     tab: MatTab;
-  }> = new EventEmitter<{ index: number; tab: MatTab }>();
+  }>();
 
   public tabType = ProjectObjectType;
   // public selectedTab: Tab;
@@ -87,47 +127,37 @@ export class ProjectTabComponent
   public canAdminLock$: Observable<boolean>;
   public canManage$: Observable<boolean>;
 
-  constructor(
-    private projectService: ProjectService,
-    private projectQuery: ProjectQuery,
-    private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery,
-    private directoryQuery: DirectoryQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private fileQuery: FileQuery,
-    private fileService: FileService,
-    private confirmService: CrucibleDialogService,
-    private currentUserQuery: CurrentUserQuery,
-    private changeDetectorRef: ChangeDetectorRef,
-    private designQuery: DesignQuery,
-    private permissionService: PermissionService
-  ) {}
-
   /**
    * ngOninit handles initialization required for all open tabs
    */
   ngOnInit() {
-    this.canEdit$ = this.permissionService.canEditProject(this.project.id);
+    this.canEdit$ = this.permissionService.canEditProject(this.project().id);
     this.canAdminLock$ = this.permissionService.canAdminLockProject(
-      this.project.id
+      this.project().id,
     );
-    this.canManage$ = this.permissionService.canManageProject(this.project.id);
+    this.canManage$ = this.permissionService.canManageProject(
+      this.project().id,
+    );
     this.moduleService.load(false, false).pipe(take(1)).subscribe();
     this.modules$ = this.moduleQuery.selectAll();
-    this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(this.project.id);
-    this.sidebarView$ = this.projectQuery.getRightSidebarView$(this.project.id);
+    this.sidebarOpen$ = this.projectQuery.getRightSidebarOpen$(
+      this.project().id,
+    );
+    this.sidebarView$ = this.projectQuery.getRightSidebarView$(
+      this.project().id,
+    );
     this.sidebarWidth$ = this.projectQuery.getRightSidebarWidth(
-      this.project.id
+      this.project().id,
     );
 
     // Subscribe when the tab changes.
     this.selectedTab$ = this.projectQuery
-      .selectSelectedTab(this.project.id)
+      .selectSelectedTab(this.project().id)
       .pipe(
         filter((selectedTab) => selectedTab >= 0),
         // since the selected tab is only an index we need to get the open tabs data from the openTabs array.
         // we use withLatestFrom() so this is only triggered the the selected tab is changed.
-        withLatestFrom(this.projectQuery.selectOpenTabs(this.project.id)),
+        withLatestFrom(this.projectQuery.selectOpenTabs(this.project().id)),
         // return the Tabs data
         map(([selectedTab, openTabs]) => {
           const tab = openTabs[selectedTab];
@@ -143,8 +173,8 @@ export class ProjectTabComponent
         // Set the breadcrumb based on the currently selected tab.
         tap((tab: Tab) => {
           this.breadcrumb$ = this.projectQuery.selectTabBreadcrumb(
-            this.project.id,
-            tab.id
+            this.project().id,
+            tab.id,
           );
           this.updateBreadcrumb(tab);
         }),
@@ -154,22 +184,22 @@ export class ProjectTabComponent
             case ProjectObjectType.FILE:
               return this.fileQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the file entity.
-                map((file) => [tab, file])
+                map((file) => [tab, file]),
               );
             case ProjectObjectType.WORKSPACE:
               return this.workspaceQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the workspace entity.
-                map((workspace) => [tab, workspace])
+                map((workspace) => [tab, workspace]),
               );
             case ProjectObjectType.DIRECTORY:
               return this.directoryQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the directory entity.
-                map((directory) => [tab, directory])
+                map((directory) => [tab, directory]),
               );
             case ProjectObjectType.DESIGN:
               return this.designQuery.selectEntity(tab.id).pipe(
                 // replaces the results selector and returns the tab along with the directory entity.
-                map((design) => [tab, design])
+                map((design) => [tab, design]),
               );
           }
         }),
@@ -181,7 +211,7 @@ export class ProjectTabComponent
               return iif(
                 () => entity.content == null,
                 this.fileService.loadFile(entity.id).pipe(take(1)),
-                EMPTY
+                EMPTY,
               );
 
             case ProjectObjectType.WORKSPACE:
@@ -192,13 +222,13 @@ export class ProjectTabComponent
         }),
         shareReplay({ bufferSize: 1, refCount: true }),
         // unsubscribe automatically when the component is destroyed.
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 
     // Subscribe to each open tab for changes.
     this.projectQuery
-      .selectOpenTabs(this.project.id)
+      .selectOpenTabs(this.project().id)
       .pipe(
         tap((openTabs) => {
           openTabs.forEach((tab) => this.updateBreadcrumb(tab));
@@ -206,8 +236,8 @@ export class ProjectTabComponent
         switchMap((openTabs) => {
           const subs = openTabs.map((tab) =>
             this.projectQuery
-              .selectTabBreadcrumb(this.project.id, tab.id)
-              .pipe(take(1))
+              .selectTabBreadcrumb(this.project().id, tab.id)
+              .pipe(take(1)),
           );
           return merge(subs);
         }),
@@ -220,7 +250,7 @@ export class ProjectTabComponent
         catchError((err) => {
           console.log(err);
           return EMPTY;
-        })
+        }),
       )
       .subscribe();
 
@@ -240,7 +270,7 @@ export class ProjectTabComponent
     this.tabSubscriptions.forEach((sub, tabId) => {
       const isClosed =
         !this.showTabs ||
-        !this.projectUI.openTabs.some((t) => t.id === tabId);
+        !this.projectUI().openTabs.some((t) => t.id === tabId);
       if (isClosed) {
         sub.unsubscribe();
         this.tabSubscriptions.delete(tabId);
@@ -248,10 +278,11 @@ export class ProjectTabComponent
     });
     // subscribe to open tab changes
     if (this.showTabs) {
-      for (let i = 0; i < this.projectUI.openTabs.length; i++) {
-        if (i === this.projectUI.selectedTab) {
+      for (let i = 0; i < this.projectUI().openTabs.length; i++) {
+        const projectUI = this.projectUI();
+        if (i === projectUI.selectedTab) {
           // subscribe to the total path for the selected tab to get path changes for breadcrumb
-          const tabBreadcrumbs = this.projectUI.openTabs[i].breadcrumb;
+          const tabBreadcrumbs = projectUI.openTabs[i].breadcrumb;
           if (tabBreadcrumbs) {
             tabBreadcrumbs.forEach((bc) => {
               switch (bc.type) {
@@ -288,30 +319,33 @@ export class ProjectTabComponent
         // Every open tab, selected or not, watches its own entity so a rename reaches
         // its label. These are kept off tabChangeRequested$: mat-tab-group emits
         // selectedTabChange when a tab opens, which would drop the watch at once.
-        const tab = this.projectUI.openTabs[i];
+        const tab = projectUI.openTabs[i];
         const alreadyWatching = this.tabSubscriptions.has(tab.id);
         if (!alreadyWatching) {
           switch (tab.type) {
             case ProjectObjectType.FILE:
-              this.tabSubscriptions.set(tab.id, this.fileQuery
-                .selectEntity(tab.id)
-                .subscribe((f) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.fileQuery.selectEntity(tab.id).subscribe((f) => {
                   this.fileChangeHandler(f);
-                }));
+                }),
+              );
               break;
             case ProjectObjectType.WORKSPACE:
-              this.tabSubscriptions.set(tab.id, this.workspaceQuery
-                .selectEntity(tab.id)
-                .subscribe((f) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.workspaceQuery.selectEntity(tab.id).subscribe((f) => {
                   this.workspaceChangeHandler(f);
-                }));
+                }),
+              );
               break;
             case ProjectObjectType.DESIGN:
-              this.tabSubscriptions.set(tab.id, this.designQuery
-                .selectEntity(tab.id)
-                .subscribe((d) => {
+              this.tabSubscriptions.set(
+                tab.id,
+                this.designQuery.selectEntity(tab.id).subscribe((d) => {
                   this.designChangeHandler(d);
-                }));
+                }),
+              );
               break;
             default:
               break;
@@ -323,7 +357,7 @@ export class ProjectTabComponent
 
   setProjectObjectNames() {
     if (this.showTabs) {
-      this.projectUI.openTabs.forEach((tab) => {
+      this.projectUI().openTabs.forEach((tab) => {
         this.projectObjectNames[tab.id] = tab.name;
         if (!!tab.breadcrumb) {
           tab.breadcrumb.forEach((bc) => {
@@ -389,9 +423,9 @@ export class ProjectTabComponent
     if (obj) {
       this.projectObjectNames[tab.id] = obj.name;
       newBreadcrumb = this.projectService.createBreadcrumb(
-        this.project,
+        this.project(),
         obj,
-        tab.type
+        tab.type,
       );
       this.projectService.updateTabBreadcrumb(tab.id, newBreadcrumb);
       /*
@@ -402,7 +436,7 @@ export class ProjectTabComponent
       */
     } else {
       console.log(
-        tab.type.toString() + ': ' + tab.id + ' was not found with the query.'
+        tab.type.toString() + ': ' + tab.id + ' was not found with the query.',
       );
     }
   }
@@ -461,8 +495,7 @@ export class ProjectTabComponent
   }
 
   isFileContentChanged(fileId: string): boolean {
-    const file = this.fileQuery.getEntity(fileId);
-    return file && file.editorContent !== file.content;
+    return isFileContentChanged(this.fileQuery.getEntity(fileId));
   }
 
   // True only once the tab's referenced entity is hydrated into its store.
@@ -484,15 +517,15 @@ export class ProjectTabComponent
   }
 
   sidebarChangedFn(event) {
-    this.projectService.setRightSidebarOpen(this.project.id, event);
+    this.projectService.setRightSidebarOpen(this.project().id, event);
   }
 
   sidebarViewChangedFn(event) {
-    this.projectService.setRightSidebarView(this.project.id, event);
+    this.projectService.setRightSidebarView(this.project().id, event);
   }
 
   sidebarWidthChangedFn(event) {
-    this.projectService.setRightSidebarWidth(this.project.id, event);
+    this.projectService.setRightSidebarWidth(this.project().id, event);
   }
 
   // @HostListener handles browser refresh, close, etc.
@@ -501,9 +534,10 @@ export class ProjectTabComponent
     // check if there are pending changes
     // returning true will navigate without confirmation
     // returning false will show a confirm dialog before navigating away
+    const projectUI = this.projectUI();
     const thereAreUnsavedChanges =
-      this.projectUI.openTabs &&
-      this.projectUI.openTabs.some((tab) => {
+      projectUI.openTabs &&
+      projectUI.openTabs.some((tab) => {
         return (
           tab.type === ProjectObjectType.FILE &&
           this.isFileContentChanged(tab.id)

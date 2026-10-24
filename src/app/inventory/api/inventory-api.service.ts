@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable, Optional } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BASE_PATH } from '../../generated/caster-api';
 import { InventoryCategory, InventoryResponse } from '../state/inventory.model';
@@ -49,10 +49,11 @@ export class InventoryApiService {
   // Matches the fallback the generated client uses when BASE_PATH is absent.
   private basePath = 'http://localhost';
 
-  constructor(
-    private httpClient: HttpClient,
-    @Optional() @Inject(BASE_PATH) basePath?: string | string[]
-  ) {
+  private httpClient = inject(HttpClient);
+
+  constructor() {
+    const basePath = inject<string | string[]>(BASE_PATH, { optional: true });
+
     if (Array.isArray(basePath) && basePath.length > 0) {
       this.basePath = basePath[0];
     } else if (typeof basePath === 'string') {

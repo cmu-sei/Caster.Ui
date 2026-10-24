@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
@@ -19,12 +19,13 @@ import { CwdTableComponent } from 'src/app/sei-cwd-common/cwd-table/components/c
 import { TableItemContentDirective } from 'src/app/sei-cwd-common/cwd-table/directives/table-item-content.directive';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ActiveRunsComponent } from './active-runs.component';
+import { RunComponent } from 'src/app/workspace/components/run/run.component';
 
-@Component({ selector: 'cas-run', template: '', standalone: false })
+@Component({ selector: 'cas-run', template: '' })
 class RunStub {
-  @Input() run: Run;
-  @Output() planOutput = new EventEmitter<string>();
-  @Output() applyOutput = new EventEmitter<string>();
+  readonly run = input<Run>(undefined);
+  readonly planOutput = output<string>();
+  readonly applyOutput = output<string>();
 }
 
 const runs: Run[] = [
@@ -47,8 +48,10 @@ describe('ActiveRunsComponent', () => {
     const { fixture } = await renderComponent(ActiveRunsComponent, {
       // The real cwd-table: an app NgModule's exports are not visible to the
       // test module, so its component and directive are declared here.
-      declarations: [RunStub, CwdTableComponent, TableItemContentDirective],
+      childStubs: [{ replace: RunComponent, with: RunStub }],
       imports: [
+        CwdTableComponent,
+        TableItemContentDirective,
         MatCardModule,
         MatExpansionModule,
         MatFormFieldModule,
@@ -67,6 +70,6 @@ describe('ActiveRunsComponent', () => {
     const run: RunStub = fixture.debugElement.query(
       By.directive(RunStub),
     ).componentInstance;
-    expect(run.run.id).toBe('run1');
+    expect(run.run().id).toBe('run1');
   });
 });

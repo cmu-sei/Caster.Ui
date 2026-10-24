@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,11 +19,12 @@ import {
   InventoryQuery,
   InventoryService,
 } from '../../state';
+import { InventoryListComponent } from '../inventory-list/inventory-list.component';
 import { InventoryPanelComponent } from './inventory-panel.component';
 
-@Component({ selector: 'cas-inventory-list', template: '', standalone: false })
+@Component({ selector: 'cas-inventory-list', template: '' })
 class InventoryListStub {
-  @Input() descriptor: InventoryCategoryDescriptor;
+  readonly descriptor = input<InventoryCategoryDescriptor>(undefined);
 }
 
 describe('InventoryPanelComponent', () => {
@@ -49,7 +50,9 @@ describe('InventoryPanelComponent', () => {
     } satisfies Partial<InventoryService>;
 
     const { fixture } = await renderComponent(InventoryPanelComponent, {
-      declarations: [InventoryListStub],
+      childStubs: [
+        { replace: InventoryListComponent, with: InventoryListStub },
+      ],
       imports: [
         MatButtonModule,
         MatExpansionModule,

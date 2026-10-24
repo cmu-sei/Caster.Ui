@@ -5,25 +5,57 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { SystemPermission, SystemRole } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { RoleService } from 'src/app/roles/roles.service.service';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SystemRolesModel } from './system-roles.models';
 import { map, take } from 'rxjs/operators';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatCheckboxChange, MatCheckbox } from '@angular/material/checkbox';
 import { Observable } from 'rxjs';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { AsyncPipe } from '@angular/common';
 
 const NAME_VALUE = 'nameValue';
 
 @Component({
-    selector: 'cas-system-roles',
-    templateUrl: './system-roles.component.html',
-    styleUrls: ['./system-roles.component.scss'],
-    standalone: false
+  selector: 'cas-system-roles',
+  templateUrl: './system-roles.component.html',
+  styleUrls: ['./system-roles.component.scss'],
+  imports: [
+    MatTable,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    MatCellDef,
+    MatCell,
+    MatCheckbox,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+  ],
 })
 export class SystemRolesComponent implements OnInit, OnDestroy {
   private roleService = inject(RoleService);
@@ -33,7 +65,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
   private signalRService = inject(SignalRService);
 
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageRoles
+    SystemPermission.ManageRoles,
   );
 
   public allPermission = 'All';
@@ -54,15 +86,15 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
         }
         // If 'immutable' values are the same, sort by 'name' (case-insensitive)
         return a.name.localeCompare(b.name);
-      })
-    )
+      }),
+    ),
   );
 
   public displayedColumns$ = this.roles$.pipe(
     map((x) => {
       const columnNames = x.map((y) => y.name);
       return ['permissions', ...columnNames];
-    })
+    }),
   );
 
   ngOnInit(): void {
@@ -97,7 +129,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
   setPermission(
     permission: string,
     role: SystemRole,
-    event: MatCheckboxChange
+    event: MatCheckboxChange,
   ) {
     if (permission == this.allPermission) {
       role.allPermissions = event.checked;
@@ -106,7 +138,7 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
         role.permissions.push(permission as SystemPermission);
       } else if (!event.checked) {
         role.permissions = role.permissions.filter(
-          (x) => x != (permission as SystemPermission)
+          (x) => x != (permission as SystemPermission),
         );
       }
     }
@@ -153,7 +185,11 @@ export class SystemRolesComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 

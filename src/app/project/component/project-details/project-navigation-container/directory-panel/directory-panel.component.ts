@@ -7,7 +7,8 @@ import {
   OnDestroy,
   OnInit,
   TemplateRef,
-  ViewChild,
+  inject,
+  viewChild,
 } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import {
@@ -22,7 +23,12 @@ import {
   WorkspaceService,
 } from '../../../../../workspace/state';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatMenuTrigger } from '@angular/material/menu';
+import {
+  MatMenuTrigger,
+  MatMenu,
+  MatMenuContent,
+  MatMenuItem,
+} from '@angular/material/menu';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import {
@@ -47,17 +53,71 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectImportComponent } from '../../project-import/project-import.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
+import { MatIcon } from '@angular/material/icon';
+import { MatBadge } from '@angular/material/badge';
+import { MatList, MatListItem, MatDivider } from '@angular/material/list';
+import { MatTooltip } from '@angular/material/tooltip';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { WorkspaceEditContainerComponent as WorkspaceEditContainerComponent_1 } from '../../../../../workspace/components/workspace-edit-container/workspace-edit-container.component';
+import { DirectoryEditContainerComponent as DirectoryEditContainerComponent_1 } from '../../../../../directories/components/directory-edit-container/directory-edit-container.component';
+import { FilesFilterPipe } from '../../../../pipes/files-filter-pipe';
 
 const NAME_VALUE = 'nameValue';
-const TERMINAL_RUN_STATUSES: RunStatus[] = [RunStatus.Applied, RunStatus.Failed, RunStatus.Rejected];
+const TERMINAL_RUN_STATUSES: RunStatus[] = [
+  RunStatus.Applied,
+  RunStatus.Failed,
+  RunStatus.Rejected,
+];
 
 @Component({
-    selector: 'cas-directory-panel',
-    templateUrl: './directory-panel.component.html',
-    styleUrls: ['./directory-panel.component.scss'],
-    standalone: false
+  selector: 'cas-directory-panel',
+  templateUrl: './directory-panel.component.html',
+  styleUrls: ['./directory-panel.component.scss'],
+  imports: [
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatIcon,
+    MatBadge,
+    MatList,
+    MatListItem,
+    MatTooltip,
+    MatDivider,
+    NgClass,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuContent,
+    MatMenuItem,
+    ProjectExportComponent,
+    ProjectImportComponent,
+    WorkspaceEditContainerComponent_1,
+    DirectoryEditContainerComponent_1,
+    AsyncPipe,
+    FilesFilterPipe,
+  ],
 })
 export class DirectoryPanelComponent implements OnInit, OnDestroy {
+  private directoryService = inject(DirectoryService);
+  private directoryQuery = inject(DirectoryQuery);
+  private fileService = inject(FileService);
+  private fileQuery = inject(FileQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private workspaceService = inject(WorkspaceService);
+  private projectService = inject(ProjectService);
+  private dialog = inject(MatDialog);
+  private confirmService = inject(CrucibleDialogService);
+  private designQuery = inject(DesignQuery);
+  private designService = inject(DesignService);
+  private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
+
   @Input() parentDirectory: Directory;
   public parentDirectoryUI$: Observable<DirectoryUI>;
   public panelOpenState = false;
@@ -79,48 +139,36 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   private _destroyed$ = new Subject();
 
-  @ViewChild(MatMenuTrigger, { static: true }) contextMenu: MatMenuTrigger;
+  readonly contextMenu = viewChild(MatMenuTrigger);
 
-  @ViewChild('exportDialog') exportDialog: TemplateRef<ProjectExportComponent>;
+  readonly exportDialog =
+    viewChild<TemplateRef<ProjectExportComponent>>('exportDialog');
   private exportDialogRef: MatDialogRef<ProjectExportComponent>;
 
-  @ViewChild('importDialog') importDialog: TemplateRef<ProjectImportComponent>;
+  readonly importDialog =
+    viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
-  @ViewChild('workspaceEditDialog')
-  workspaceEditDialog: TemplateRef<WorkspaceEditContainerComponent>;
+  readonly workspaceEditDialog = viewChild<
+    TemplateRef<WorkspaceEditContainerComponent>
+  >('workspaceEditDialog');
   private workspaceEditDialogRef: MatDialogRef<WorkspaceEditContainerComponent>;
 
-  @ViewChild('directoryEditDialog')
-  directoryEditDialog: TemplateRef<DirectoryEditContainerComponent>;
+  readonly directoryEditDialog = viewChild<
+    TemplateRef<DirectoryEditContainerComponent>
+  >('directoryEditDialog');
   private directoryEditDialogRef: MatDialogRef<DirectoryEditContainerComponent>;
 
   contextMenuPosition = { x: '0px', y: '0px' };
 
-  constructor(
-    private directoryService: DirectoryService,
-    private directoryQuery: DirectoryQuery,
-    private fileService: FileService,
-    private fileQuery: FileQuery,
-    private workspaceQuery: WorkspaceQuery,
-    private workspaceService: WorkspaceService,
-    private projectService: ProjectService,
-    private dialog: MatDialog,
-    private confirmService: CrucibleDialogService,
-    private designQuery: DesignQuery,
-    private designService: DesignService,
-    private permissionService: PermissionService,
-    private snackBar: MatSnackBar
-  ) {}
-
   ngOnInit() {
     this.canEdit$ = this.permissionService.canEditProject(
-      this.parentDirectory.projectId
+      this.parentDirectory.projectId,
     );
 
     if (this.parentDirectory) {
       this.parentDirectoryUI$ = this.directoryQuery.ui.selectEntity(
-        this.parentDirectory.id
+        this.parentDirectory.id,
       );
 
       this.directories$ = this.directoryQuery.selectAll({
@@ -154,7 +202,11 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   nameDialog(title: string, message: string, data?: any): Observable<any> {
     let dialogRef: MatDialogRef<NameDialogComponent>;
-    dialogRef = this.dialog.open(NameDialogComponent, { data: data || {}, minWidth: '400px', maxWidth: '90vw' });
+    dialogRef = this.dialog.open(NameDialogComponent, {
+      data: data || {},
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
@@ -164,20 +216,22 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   deleteDirectory(dir: Directory) {
     // Get all child directories (recursive)
     const childDirectories = this.directoryQuery.getAll({
-      filterBy: (d) => this.isDescendant(d, dir.id)
+      filterBy: (d) => this.isDescendant(d, dir.id),
     });
 
     // Get all workspaces in this directory and its children
-    const allDirectoryIds = [dir.id, ...childDirectories.map(d => d.id)];
+    const allDirectoryIds = [dir.id, ...childDirectories.map((d) => d.id)];
     const workspaces = this.workspaceQuery.getAll({
-      filterBy: (w) => allDirectoryIds.includes(w.directoryId)
+      filterBy: (w) => allDirectoryIds.includes(w.directoryId),
     });
 
-
     // Check if any workspace has resources or incomplete runs
-    const hasResources = workspaces.some(w => w.resources && w.resources.length > 0);
-    const hasIncompleteRuns = workspaces.some(w =>
-      w.runs && w.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status))
+    const hasResources = workspaces.some(
+      (w) => w.resources && w.resources.length > 0,
+    );
+    const hasIncompleteRuns = workspaces.some(
+      (w) =>
+        w.runs && w.runs.some((r) => !TERMINAL_RUN_STATUSES.includes(r.status)),
     );
 
     if (hasResources) {
@@ -211,25 +265,28 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe((confirmed) => {
-      if (confirmed) {
-        this.directoryService.delete(dir.id).pipe(
-          take(1),
-          catchError((error) => {
-            const message = error.error?.message || error.message || error.statusText || 'Failed to delete directory';
-            this.snackBar.open(
-              message,
-              'Dismiss',
-              {
-                duration: 5000,
-                verticalPosition: 'top',
-                horizontalPosition: 'center'
-              }
-            );
-            return of(null);
-          })
-        ).subscribe();
-      }
-    });
+        if (confirmed) {
+          this.directoryService
+            .delete(dir.id)
+            .pipe(
+              take(1),
+              catchError((error) => {
+                const message =
+                  error.error?.message ||
+                  error.message ||
+                  error.statusText ||
+                  'Failed to delete directory';
+                this.snackBar.open(message, 'Dismiss', {
+                  duration: 5000,
+                  verticalPosition: 'top',
+                  horizontalPosition: 'center',
+                });
+                return of(null);
+              }),
+            )
+            .subscribe();
+        }
+      });
   }
 
   private isDescendant(directory: Directory, ancestorId: string): boolean {
@@ -254,7 +311,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           };
           this.directoryService.add(newDir);
         }
-      }
+      },
     );
   }
 
@@ -284,7 +341,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           } as ModelFile;
           this.fileService.add(newFile);
         }
-      }
+      },
     );
   }
 
@@ -356,10 +413,16 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     // Check if workspace has resources or incomplete runs
     const workspaceEntity = this.workspaceQuery.getEntity(workspace.id);
 
-
-    const hasResources = workspaceEntity && workspaceEntity.resources && workspaceEntity.resources.length > 0;
-    const hasIncompleteRuns = workspaceEntity && workspaceEntity.runs &&
-      workspaceEntity.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
+    const hasResources =
+      workspaceEntity &&
+      workspaceEntity.resources &&
+      workspaceEntity.resources.length > 0;
+    const hasIncompleteRuns =
+      workspaceEntity &&
+      workspaceEntity.runs &&
+      workspaceEntity.runs.some(
+        (r) => !TERMINAL_RUN_STATUSES.includes(r.status),
+      );
 
     if (hasResources) {
       this.confirmService.confirm({
@@ -384,63 +447,82 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     }
 
     // Check resources via API to be sure
-    this.workspaceService.loadResourcesByWorkspaceId(workspace.id).pipe(
-      take(1),
-      map(() => this.workspaceQuery.getEntity(workspace.id)),
-      concatMap((updatedWorkspace) => {
-        const hasResourcesAfterLoad = updatedWorkspace && updatedWorkspace.resources && updatedWorkspace.resources.length > 0;
-        const hasIncompleteRunsAfterLoad = updatedWorkspace && updatedWorkspace.runs &&
-          updatedWorkspace.runs.some(r => !TERMINAL_RUN_STATUSES.includes(r.status));
+    this.workspaceService
+      .loadResourcesByWorkspaceId(workspace.id)
+      .pipe(
+        take(1),
+        map(() => this.workspaceQuery.getEntity(workspace.id)),
+        concatMap((updatedWorkspace) => {
+          const hasResourcesAfterLoad =
+            updatedWorkspace &&
+            updatedWorkspace.resources &&
+            updatedWorkspace.resources.length > 0;
+          const hasIncompleteRunsAfterLoad =
+            updatedWorkspace &&
+            updatedWorkspace.runs &&
+            updatedWorkspace.runs.some(
+              (r) => !TERMINAL_RUN_STATUSES.includes(r.status),
+            );
 
-        if (hasResourcesAfterLoad) {
-          return this.confirmService.confirm({
-            title: 'Cannot Delete Workspace',
-            message:
-              'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
-            confirmText: 'OK',
-            cancelText: '',
-          }).afterClosed().pipe(map(() => null));
-        }
+          if (hasResourcesAfterLoad) {
+            return this.confirmService
+              .confirm({
+                title: 'Cannot Delete Workspace',
+                message:
+                  'Workspace has deployed resources and cannot be deleted. Please destroy the resources first.',
+                confirmText: 'OK',
+                cancelText: '',
+              })
+              .afterClosed()
+              .pipe(map(() => null));
+          }
 
-        if (hasIncompleteRunsAfterLoad) {
-          return this.confirmService.confirm({
-            title: 'Cannot Delete Workspace',
-            message:
-              'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
-            confirmText: 'OK',
-            cancelText: '',
-          }).afterClosed().pipe(map(() => null));
-        }
+          if (hasIncompleteRunsAfterLoad) {
+            return this.confirmService
+              .confirm({
+                title: 'Cannot Delete Workspace',
+                message:
+                  'Workspace has pending runs and cannot be deleted. Please wait for runs to complete or reject them.',
+                confirmText: 'OK',
+                cancelText: '',
+              })
+              .afterClosed()
+              .pipe(map(() => null));
+          }
 
-        // No resources or runs, proceed with normal delete confirmation
-        return this.confirmService.confirm({
-          title: 'Delete workspace?',
-          message: 'Delete workspace ' + workspace.name + '?',
-          confirmText: 'Delete',
-        }).afterClosed().pipe(
-          concatMap((confirmed) => {
-            if (confirmed) {
-              return this.workspaceService.delete(workspace).pipe(
-                catchError((error) => {
-                  const message = error.error?.message || error.message || error.statusText || 'Failed to delete workspace';
-                  this.snackBar.open(
-                    message,
-                    'Dismiss',
-                    {
-                      duration: 5000,
-                      verticalPosition: 'top',
-                      horizontalPosition: 'center'
-                    }
+          // No resources or runs, proceed with normal delete confirmation
+          return this.confirmService
+            .confirm({
+              title: 'Delete workspace?',
+              message: 'Delete workspace ' + workspace.name + '?',
+              confirmText: 'Delete',
+            })
+            .afterClosed()
+            .pipe(
+              concatMap((confirmed) => {
+                if (confirmed) {
+                  return this.workspaceService.delete(workspace).pipe(
+                    catchError((error) => {
+                      const message =
+                        error.error?.message ||
+                        error.message ||
+                        error.statusText ||
+                        'Failed to delete workspace';
+                      this.snackBar.open(message, 'Dismiss', {
+                        duration: 5000,
+                        verticalPosition: 'top',
+                        horizontalPosition: 'center',
+                      });
+                      return of(null);
+                    }),
                   );
-                  return of(null);
-                })
-              );
-            }
-            return of(null);
-          })
-        );
-      })
-    ).subscribe();
+                }
+                return of(null);
+              }),
+            );
+        }),
+      )
+      .subscribe();
   }
 
   createDesign(dirId: string) {
@@ -453,7 +535,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           } as Design;
           this.designService.create(newDesign);
         }
-      }
+      },
     );
   }
 
@@ -527,14 +609,15 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   onContextMenu(
     event: MouseEvent,
     obj: ModelFile | Workspace | Directory | Design,
-    objectType: ProjectObjectType
+    objectType: ProjectObjectType,
   ) {
     event.preventDefault();
     this.contextMenuPosition.x = event.clientX + 'px';
     this.contextMenuPosition.y = event.clientY + 'px';
-    this.contextMenu.menuData = { item: { object: obj, type: objectType } };
-    this.contextMenu.menu.focusFirstItem('mouse');
-    this.contextMenu.openMenu();
+    const contextMenu = this.contextMenu();
+    contextMenu.menuData = { item: { object: obj, type: objectType } };
+    contextMenu.menu.focusFirstItem('mouse');
+    contextMenu.openMenu();
   }
 
   onContextRename(obj: any) {
@@ -585,12 +668,18 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   editWorkspace(workspace: Workspace) {
     this.editingWorkspaceId = workspace.id;
-    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog, { minWidth: '400px', maxWidth: '90vw' });
+    this.workspaceEditDialogRef = this.dialog.open(this.workspaceEditDialog(), {
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
   }
 
   editDirectory(directory: Directory) {
     this.editingDirectoryId = directory.id;
-    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog, { minWidth: '400px', maxWidth: '90vw' });
+    this.directoryEditDialogRef = this.dialog.open(this.directoryEditDialog(), {
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
   }
 
   onEditWorkspaceComplete() {
@@ -636,7 +725,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.exportId = obj.object.id;
       this.exportName = obj.object.name;
       this.exportObjectType = obj.type as ProjectObjectType;
-      this.exportDialogRef = this.dialog.open(this.exportDialog, { width: '480px', maxWidth: '90vw' });
+      this.exportDialogRef = this.dialog.open(this.exportDialog(), {
+        width: '480px',
+        maxWidth: '90vw',
+      });
     }
   }
 
@@ -644,7 +736,10 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     this.exportId = obj.object.id;
     this.exportName = obj.object.name;
     this.exportObjectType = obj.type as ProjectObjectType;
-    this.importDialogRef = this.dialog.open(this.importDialog, { width: '480px', maxWidth: '90vw' });
+    this.importDialogRef = this.dialog.open(this.importDialog(), {
+      width: '480px',
+      maxWidth: '90vw',
+    });
   }
 
   onExportComplete() {

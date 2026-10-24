@@ -9,17 +9,23 @@ import {
 } from './project-store.service';
 import { Breadcrumb, Tab } from './project.model';
 import { Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Project } from 'src/app/generated/caster-api';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectQuery extends QueryEntity<ProjectState, Project> {
+  protected store: ProjectStore;
+
   ui: EntityUIQuery<ProjectUIState>;
 
-  constructor(protected store: ProjectStore) {
+  constructor() {
+    const store = inject(ProjectStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 
@@ -34,7 +40,7 @@ export class ProjectQuery extends QueryEntity<ProjectState, Project> {
   getRightSidebarWidth(projectId): Observable<number> {
     return this.ui.selectEntity(
       projectId,
-      (entity) => entity.rightSidebarWidth
+      (entity) => entity.rightSidebarWidth,
     );
   }
 
@@ -48,7 +54,7 @@ export class ProjectQuery extends QueryEntity<ProjectState, Project> {
 
   selectTabBreadcrumb(
     projectId: string,
-    tabId: string
+    tabId: string,
   ): Observable<Breadcrumb[]> {
     return this.ui.selectEntity(projectId, (entity) => {
       const tab = entity.openTabs.find((t) => t.id === tabId);
@@ -66,11 +72,11 @@ export class ProjectQuery extends QueryEntity<ProjectState, Project> {
 
   selectBreadcrumb(
     projectId: string,
-    entityId: string
+    entityId: string,
   ): Observable<Breadcrumb[]> {
     return this.ui.selectEntity(
       projectId,
-      (entity) => entity.openTabs.find((t) => t.id === entityId).breadcrumb
+      (entity) => entity.openTabs.find((t) => t.id === entityId).breadcrumb,
     );
   }
 }

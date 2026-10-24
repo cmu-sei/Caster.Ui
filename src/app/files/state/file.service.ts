@@ -1,12 +1,13 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FilesService, ModelFile } from '../../generated/caster-api';
+import { isFileContentChanged } from './file-content';
 import { FileQuery } from './file.query';
 import { FileStore } from './file.store';
 
@@ -14,11 +15,9 @@ import { FileStore } from './file.store';
   providedIn: 'root',
 })
 export class FileService {
-  constructor(
-    private fileStore: FileStore,
-    private fileQuery: FileQuery,
-    private filesService: FilesService
-  ) {}
+  private fileStore = inject(FileStore);
+  private fileQuery = inject(FileQuery);
+  private filesService = inject(FilesService);
 
   loadFile(fileId: string): Observable<ModelFile> {
     return this.filesService.getFile(fileId).pipe(
@@ -26,7 +25,7 @@ export class FileService {
         file.editorContent = file.content;
         this.fileStore.upsert(file.id, file);
         this.setSave(fileId, true);
-      })
+      }),
     );
   }
 
@@ -37,7 +36,7 @@ export class FileService {
           this.upsertFile(file);
           this.setSave(file.id, true);
         });
-      })
+      }),
     );
   }
 
@@ -65,7 +64,7 @@ export class FileService {
       .pipe(
         tap((f) => {
           this.fileUpdated(f);
-        })
+        }),
       );
   }
 
@@ -112,11 +111,21 @@ export class FileService {
 
   fileUpdated(file: ModelFile) {
     const prev = this.fileQuery.getEntity(file.id);
+    // Updates that don't change the content (lock, unlock, rename) arrive with
+    // content null. Keep the loaded content: a null makes the open tab reload
+    // the file, and that reload overwrites unsaved edits.
+    if (file.content == null && prev?.content != null) {
+      file = { ...file, content: prev.content };
+    }
     if (prev?.lockedById && prev.lockedById !== file.lockedById) {
       file = { ...file, editorContent: file.content };
     }
     this.upsertFile(file);
-    this.setSave(file.id, true);
+    // Unsaved edits stay unsaved through updates that don't touch them
+    this.setSave(
+      file.id,
+      !isFileContentChanged(this.fileQuery.getEntity(file.id))
+    );
   }
 
   filesUpdated(files: ModelFile[]) {
@@ -137,7 +146,7 @@ export class FileService {
         ...f,
         content: file.content,
         editorContent: file.editorContent,
-      })
+      }),
     );
   }
 
@@ -184,7 +193,7 @@ export class FileService {
           blob: response.body,
           filename: HttpHeaderUtils.getFilename(response.headers),
         };
-      })
+      }),
     );
   }
 }

@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import { of } from 'rxjs';
@@ -25,34 +25,37 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectStore } from '../../../state/project-store.service';
 import { ProjectUI } from '../../../state/project.model';
 import { ProjectCollapseContainerComponent } from './project-collapse-container.component';
+import { ProjectComponent } from 'src/app/project/component/project-details/project/project.component';
+import { ProjectNavigationContainerComponent } from 'src/app/project/component/project-details/project-navigation-container/project-navigation-container.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
+import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
 
 @Component({
   selector: 'cas-project-navigation',
   template: '',
-  standalone: false,
 })
 class ProjectNavigationStub {}
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
-  @Input() projectId: string;
-  @Output() sidenavToggle = new EventEmitter<boolean>();
-  @Output() editMemberships = new EventEmitter<void>();
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
+  readonly projectId = input<string>(undefined);
+  readonly sidenavToggle = output<boolean>();
+  readonly editMemberships = output<void>();
 }
 
-@Component({ selector: 'cas-project', template: '', standalone: false })
+@Component({ selector: 'cas-project', template: '' })
 class ProjectStub {
-  @Input() loading: boolean;
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
-  @Output() closeTab = new EventEmitter<string>();
-  @Output() tabChanged = new EventEmitter<unknown>();
+  readonly loading = input<boolean>(undefined);
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<unknown>();
 }
 
-@Component({ selector: 'cas-inventory-panel', template: '', standalone: false })
+@Component({ selector: 'cas-inventory-panel', template: '' })
 class InventoryPanelStub {}
 
 describe('ProjectCollapseContainerComponent', () => {
@@ -87,11 +90,14 @@ describe('ProjectCollapseContainerComponent', () => {
     const { fixture } = await renderComponent(
       ProjectCollapseContainerComponent,
       {
-        declarations: [
-          ProjectNavigationStub,
-          TopbarStub,
-          ProjectStub,
-          InventoryPanelStub,
+        childStubs: [
+          {
+            replace: ProjectNavigationContainerComponent,
+            with: ProjectNavigationStub,
+          },
+          { replace: TopbarComponent, with: TopbarStub },
+          { replace: ProjectComponent, with: ProjectStub },
+          { replace: InventoryPanelComponent, with: InventoryPanelStub },
         ],
         imports: [
           MatSidenavModule,
@@ -128,12 +134,12 @@ describe('ProjectCollapseContainerComponent', () => {
     const topbar: TopbarStub = fixture.debugElement.query(
       By.directive(TopbarStub),
     ).componentInstance;
-    expect(topbar.title).toBe('Range');
-    expect(topbar.projectId).toBe('p1');
+    expect(topbar.title()).toBe('Range');
+    expect(topbar.projectId()).toBe('p1');
     const project: ProjectStub = fixture.debugElement.query(
       By.directive(ProjectStub),
     ).componentInstance;
-    expect(project.project.id).toBe('p1');
+    expect(project.project().id).toBe('p1');
     expect(screen.getByRole('heading', { name: 'Caster' })).toBeInTheDocument();
   });
 });

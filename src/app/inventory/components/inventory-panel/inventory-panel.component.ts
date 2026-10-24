@@ -6,7 +6,26 @@ import {
   Component,
   OnDestroy,
   OnInit,
+  inject,
 } from '@angular/core';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatTooltip } from '@angular/material/tooltip';
 import { Observable, Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import {
@@ -15,6 +34,7 @@ import {
   InventoryQuery,
   InventoryService,
 } from '../../state';
+import { InventoryListComponent } from '../inventory-list/inventory-list.component';
 
 /**
  * Read-only infrastructure inventory for the project side panel.
@@ -31,9 +51,29 @@ import {
   templateUrl: './inventory-panel.component.html',
   styleUrls: ['./inventory-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatIcon,
+    MatFormField,
+    MatPrefix,
+    MatSuffix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatTooltip,
+    MatProgressSpinner,
+    InventoryListComponent,
+    AsyncPipe,
+    DatePipe,
+  ],
 })
 export class InventoryPanelComponent implements OnInit, OnDestroy {
+  private inventoryQuery = inject(InventoryQuery);
+  private inventoryService = inject(InventoryService);
+
   public readonly categories: InventoryCategoryDescriptor[] =
     INVENTORY_CATEGORIES;
 
@@ -45,11 +85,6 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
 
   private loaded = false;
   private unsubscribe$ = new Subject<void>();
-
-  constructor(
-    private inventoryQuery: InventoryQuery,
-    private inventoryService: InventoryService
-  ) {}
 
   // Observables bound with `| async` are assigned here, before first render.
   // Assigning them later (from a subscribe callback) renders blank under

@@ -6,8 +6,9 @@ import {
   OnInit,
   Input,
   ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
@@ -25,19 +26,49 @@ import {
   UntypedFormGroup,
   UntypedFormBuilder,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import FileDownloadUtils from 'src/app/shared/utilities/file-download-utils';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-export',
-    templateUrl: './project-export.component.html',
-    styleUrls: ['./project-export.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-export',
+  templateUrl: './project-export.component.html',
+  styleUrls: ['./project-export.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatSlideToggle,
+    MatTooltip,
+    AsyncPipe,
+    TitleCasePipe,
+  ],
 })
 export class ProjectExportComponent implements OnInit {
-  @Input() id: string;
-  @Input() name: string;
+  private directoryService = inject(DirectoryService);
+  private projectService = inject(ProjectService);
+  private fileService = inject(FileService);
+  private formBuilder = inject(UntypedFormBuilder);
+  private permissionService = inject(PermissionService);
+
+  readonly id = input<string>(undefined);
+  readonly name = input<string>(undefined);
   @Input()
   set type(val: ProjectObjectType) {
     this._type = val;
@@ -45,7 +76,7 @@ export class ProjectExportComponent implements OnInit {
     this.typeString = val;
   }
 
-  @Output() exportComplete = new EventEmitter<boolean>();
+  readonly exportComplete = output<boolean>();
 
   form: UntypedFormGroup;
   isArchiveable: boolean;
@@ -58,19 +89,15 @@ export class ProjectExportComponent implements OnInit {
 
   private _type: ProjectObjectType;
 
-  constructor(
-    private directoryService: DirectoryService,
-    private projectService: ProjectService,
-    private fileService: FileService,
-    private formBuilder: UntypedFormBuilder,
-    permissionService: PermissionService,
-  ) {
+  constructor() {
+    const formBuilder = this.formBuilder;
+
     this.form = formBuilder.group({
       archiveType: [this.archiveTypes[0]],
       includeIds: [false, Validators.required],
       includeDiskManifest: [false],
     });
-    this.canIncludeDiskManifest$ = permissionService.hasPermission(
+    this.canIncludeDiskManifest$ = this.permissionService.hasPermission(
       SystemPermission.ViewHosts,
     );
   }
@@ -79,7 +106,7 @@ export class ProjectExportComponent implements OnInit {
 
   export() {
     this.onExport(
-      this.id,
+      this.id(),
       this._type,
       this.form.value.archiveType,
       this.form.value.includeIds,
@@ -98,8 +125,8 @@ export class ProjectExportComponent implements OnInit {
 
     const manifest$ =
       this._type === ProjectObjectType.DIRECTORY
-        ? this.directoryService.getDiskManifest(this.id)
-        : this.projectService.getDiskManifest(this.id);
+        ? this.directoryService.getDiskManifest(this.id())
+        : this.projectService.getDiskManifest(this.id());
 
     manifest$
       .pipe(take(1))

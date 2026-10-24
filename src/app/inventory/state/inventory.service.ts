@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, finalize, switchMap, tap } from 'rxjs/operators';
 import { InventoryApiService } from '../api/inventory-api.service';
@@ -18,10 +18,8 @@ import { InventoryState, InventoryStore } from './inventory.store';
   providedIn: 'root',
 })
 export class InventoryService {
-  constructor(
-    private inventoryStore: InventoryStore,
-    private inventoryApiService: InventoryApiService
-  ) {}
+  private inventoryStore = inject(InventoryStore);
+  private inventoryApiService = inject(InventoryApiService);
 
   /**
    * Loads a single category. Never errors: a transport failure is folded into

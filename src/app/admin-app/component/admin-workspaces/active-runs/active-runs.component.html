@@ -6,27 +6,31 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div>
   <h1>Active Runs</h1>
   <cwd-table
-    [items]="runs"
+    [items]="runs()"
     [displayedColumns]="[
       'createdAt',
       'isDestroy',
       'status',
       'workspaceId',
-      'actions'
+      'actions',
     ]"
-    [columnLabels]="{ createdAt: 'Created At', isDestroy: 'Destroy', workspaceId: 'Workspace ID', actions: 'Actions' }"
+    [columnLabels]="{
+      createdAt: 'Created At',
+      isDestroy: 'Destroy',
+      workspaceId: 'Workspace ID',
+      actions: 'Actions',
+    }"
     [trackByPropertyName]="'id'"
-    [expandedItems]="expandedRuns"
+    [expandedItems]="expandedRuns()"
     (expand)="expand($event)"
-    >
+  >
     <div *cwdTableItemContent="let item">
-      @if (expandedRuns.includes(item.id)) {
+      @if (expandedRuns().includes(item.id)) {
         <cas-run
           [run]="item"
           (planOutput)="planOutput($event, item)"
           (applyOutput)="applyOutput($event, item)"
-          >
-        </cas-run>
+        />
       }
     </div>
   </cwd-table>

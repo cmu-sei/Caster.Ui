@@ -4,10 +4,24 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   OnInit,
+  inject,
+  input,
 } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
+import { MatIcon } from '@angular/material/icon';
+import { MatList, MatListItem } from '@angular/material/list';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltip } from '@angular/material/tooltip';
+import { ClipboardModule } from 'ngx-clipboard';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import {
@@ -29,10 +43,27 @@ import {
   templateUrl: './inventory-list.component.html',
   styleUrls: ['./inventory-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatIcon,
+    MatTooltip,
+    MatProgressSpinner,
+    MatList,
+    MatListItem,
+    MatIconButton,
+    ClipboardModule,
+    AsyncPipe,
+  ],
 })
 export class InventoryListComponent implements OnInit {
-  @Input() descriptor: InventoryCategoryDescriptor;
+  private inventoryQuery = inject(InventoryQuery);
+  private inventoryService = inject(InventoryService);
+  private snackBar = inject(MatSnackBar);
+
+  readonly descriptor = input<InventoryCategoryDescriptor>(undefined);
 
   public state$: Observable<InventoryCategoryState>;
   public items$: Observable<InventoryItem[]>;
@@ -40,19 +71,15 @@ export class InventoryListComponent implements OnInit {
 
   public expanded = false;
 
-  constructor(
-    private inventoryQuery: InventoryQuery,
-    private inventoryService: InventoryService,
-    private snackBar: MatSnackBar
-  ) {}
-
   // Assigned here rather than in a later callback: under OnPush, assigning to
   // a template-bound `| async` observable after first render leaves the
   // template blank until something else triggers change detection.
   ngOnInit() {
-    this.state$ = this.inventoryQuery.selectCategory(this.descriptor.category);
+    this.state$ = this.inventoryQuery.selectCategory(
+      this.descriptor().category,
+    );
     this.items$ = this.inventoryQuery.selectFilteredItems(
-      this.descriptor.category
+      this.descriptor().category
     );
     this.filter$ = this.inventoryQuery.filter$;
   }
@@ -60,7 +87,7 @@ export class InventoryListComponent implements OnInit {
   /** Retry a transport failure for this one category. */
   retry() {
     this.inventoryService
-      .load(this.descriptor.category)
+      .load(this.descriptor().category)
       .pipe(take(1))
       .subscribe();
   }

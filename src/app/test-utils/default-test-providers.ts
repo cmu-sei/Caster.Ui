@@ -104,7 +104,7 @@ export function getDefaultProviders(
         settings: {
           ApiUrl: '',
           AppTopBarText: 'Caster',
-          AppTopBarHexColor: '#E9831C',
+          AppTopBarHexColor: '#AB650F',
           AppTopBarHexTextColor: '#FFFFFF',
           Hotkeys: {},
         },

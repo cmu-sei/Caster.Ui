@@ -8,42 +8,56 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
-  EventEmitter,
-  Output,
-  ViewChild,
   ElementRef,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { MatCard, MatCardTitle, MatCardActions } from '@angular/material/card';
+import { MatFormField } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton } from '@angular/material/button';
 
 @Component({
-    selector: 'cas-pool-list-item',
-    templateUrl: './pool-list-item.component.html',
-    styleUrls: ['./pool-list-item.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-pool-list-item',
+  templateUrl: './pool-list-item.component.html',
+  styleUrls: ['./pool-list-item.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatFormField,
+    MatInput,
+    MatIcon,
+    MatTooltip,
+    MatCardActions,
+    MatIconButton,
+  ],
 })
 export class PoolListItemComponent implements OnInit {
-  @Input() pool: Pool;
-  @Input() canEdit: boolean;
+  private confirmService = inject(CrucibleDialogService);
+  private poolService = inject(PoolService);
 
-  @Output() poolSelected = new EventEmitter<Pool>();
+  readonly pool = input<Pool>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 
-  @ViewChild('nameInput') nameInput: ElementRef<Input>;
+  readonly poolSelected = output<Pool>();
+
+  readonly nameInput = viewChild<ElementRef<Input>>('nameInput');
 
   editing: boolean;
-
-  constructor(
-    private confirmService: CrucibleDialogService,
-    private poolService: PoolService
-  ) {}
 
   ngOnInit(): void {}
 
   rename(target) {
     this.poolService
-      .partialEdit(this.pool.id, { name: target.value })
+      .partialEdit(this.pool().id, { name: target.value })
       .subscribe(() => (this.editing = false));
   }
 
@@ -72,7 +86,7 @@ export class PoolListItemComponent implements OnInit {
                     }
                   });
               }
-            }
+            },
           );
         }
       });

@@ -9,29 +9,29 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       @if (partition) {
         <button
           mat-icon-button
-          [attr.aria-label]="partition?.isDefault ? 'Unset Default' : 'Set Default'"
+          [attr.aria-label]="
+            partition?.isDefault ? 'Unset Default' : 'Set Default'
+          "
           [matTooltip]="partition?.isDefault ? 'Unset Default' : 'Set Default'"
           (click)="
             partition?.isDefault
               ? unsetDefault($event, partition.id)
               : setDefault($event, partition.id)
           "
-          >
+        >
           @if (partition?.isDefault) {
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-check-circle"
               color="primary"
-              >
-            </mat-icon>
+            />
           }
           @if (!partition?.isDefault) {
             <mat-icon
               class="mdi-24px"
               fontIcon="mdi-check-circle-outline"
               color="primary"
-              >
-            </mat-icon>
+            />
           }
         </button>
         <button
@@ -42,12 +42,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (click)="$event.stopPropagation()"
           title="Copy:  {{ partition.id }}"
           [attr.aria-label]="'Copy ID of ' + partition.name"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
         @if (!editing) {
           <h4>{{ partition?.name }}</h4>
-          @if (canEdit) {
+          @if (canEdit()) {
             <button
               mat-icon-button
               color="primary"
@@ -55,9 +55,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               matTooltip="Edit Name"
               (click)="editing = true"
               (click)="$event.stopPropagation()"
-              >
-              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline">
-              </mat-icon>
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
             </button>
           }
         }
@@ -69,7 +68,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [value]="partition?.name"
               (keydown.enter)="rename($event, $event.target)"
               (click)="$event.stopPropagation()"
-              />
+            />
           </mat-form-field>
           <button
             mat-icon-button
@@ -77,8 +76,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             aria-label="Rename"
             matTooltip="Rename"
             (click)="rename($event, nameInput)"
-            >
-            <mat-icon class="mdi-24px" fontIcon="mdi-check"> </mat-icon>
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-check" />
           </button>
           <button
             mat-icon-button
@@ -87,8 +86,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matTooltip="Cancel"
             (click)="editing = false"
             (click)="$event.stopPropagation()"
-            >
-            <mat-icon class="mdi-24px" fontIcon="mdi-cancel"> </mat-icon>
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
           </button>
         }
       }
@@ -101,13 +100,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div>{{ vlans.length }} VLANs</div>
       }
     </mat-panel-description>
-    @if (partition && canEdit) {
+    @if (partition && canEdit()) {
       <div class="action-buttons">
         <mat-form-field
           class="vlan-amount"
           subscriptSizing="dynamic"
           matTooltip="Number of VLANs to add or remove"
-          >
+        >
           <input
             #vlanAmount
             type="number"
@@ -115,7 +114,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [max]="4096"
             value="0"
             (click)="$event.stopPropagation()"
-            />
+          />
         </mat-form-field>
         <button
           mat-icon-button
@@ -123,8 +122,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Remove VLANs"
           matTooltip="Remove VLANs"
           (click)="removeVlans($event, vlanAmount.value)"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle" />
         </button>
         <button
           mat-icon-button
@@ -132,8 +131,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Add VLANs"
           matTooltip="Add VLANs"
           (click)="addVlans($event, vlanAmount.value)"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
         </button>
         <button
           mat-icon-button
@@ -141,8 +140,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="Delete"
           matTooltip="Delete"
           (click)="delete($event)"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
         </button>
       </div>
     }
@@ -152,7 +151,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [showUnassigned]="this.partition ? true : false"
       [vlans]="vlans$ | async"
       [partitions]="otherPartitions$ | async"
-      [canEdit]="canEdit"
-    ></cas-vlan-list>
+      [canEdit]="canEdit()"
+    />
   </ng-template>
 </mat-expansion-panel>

@@ -5,9 +5,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -16,37 +16,37 @@ import {
   TerraformService,
 } from 'src/app/generated/caster-api';
 import { DirectoryService, DirectoryQuery } from '../../state';
+import { DirectoryEditComponent } from './directory-edit/directory-edit.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-directory-edit-container',
-    templateUrl: './directory-edit-container.component.html',
-    styleUrls: ['./directory-edit-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-directory-edit-container',
+  templateUrl: './directory-edit-container.component.html',
+  styleUrls: ['./directory-edit-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DirectoryEditComponent, AsyncPipe],
 })
 export class DirectoryEditContainerComponent implements OnInit {
-  @Input() id: string;
-  @Output() editDirectoryComplete = new EventEmitter<boolean>();
+  private directoryService = inject(DirectoryService);
+  private directoryQuery = inject(DirectoryQuery);
+  private terraformService = inject(TerraformService);
+
+  readonly id = input<string>(undefined);
+  readonly editDirectoryComplete = output<boolean>();
 
   public directory$: Observable<Directory>;
   public versionResult$: Observable<TerraformVersionsResult>;
   public maxParallelism$: Observable<number>;
 
-  constructor(
-    private directoryService: DirectoryService,
-    private directoryQuery: DirectoryQuery,
-    private terraformService: TerraformService
-  ) {}
-
   ngOnInit(): void {
-    this.directory$ = this.directoryQuery.selectEntity(this.id);
+    this.directory$ = this.directoryQuery.selectEntity(this.id());
     this.versionResult$ = this.terraformService.getTerraformVersions();
     this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
   }
 
   onUpdateDirectory(directory: Partial<Directory>) {
     if (directory != null) {
-      this.directoryService.partialUpdate(this.id, directory);
+      this.directoryService.partialUpdate(this.id(), directory);
     }
     this.editDirectoryComplete.emit(true);
   }
