@@ -6,19 +6,35 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import {
   AfterViewInit,
   Component,
-  EventEmitter,
   inject,
-  Input,
   OnChanges,
   OnInit,
-  Output,
-  ViewChild,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSelectChange } from '@angular/material/select';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatSelectChange,
+  MatSelect,
+  MatOption,
+} from '@angular/material/select';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow,
+} from '@angular/material/table';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
   GroupMembership,
@@ -27,37 +43,75 @@ import {
 } from 'src/app/generated/caster-api';
 import { filter, tap } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { CurrentUserBadgeComponent } from '../../../../shared/components/current-user-badge/current-user-badge.component';
 
 @Component({
   selector: 'cas-admin-groups-member-list',
   templateUrl: './admin-groups-member-list.component.html',
   styleUrls: ['./admin-groups-member-list.component.scss'],
-  standalone: false,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatFormField,
+    MatLabel,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    CurrentUserBadgeComponent,
+    MatSelect,
+    MatOption,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+  ],
 })
 export class AdminGroupsMemberListComponent
   implements OnInit, OnChanges, AfterViewInit
 {
-  @Input()
-  memberships: GroupMembership[];
+  readonly memberships = input<GroupMembership[]>(undefined);
 
-  @Input()
-  users: User[];
+  readonly users = input<User[]>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
-  @Output()
-  deleteMembership = new EventEmitter<{ id: string; isCurrentUser: boolean }>();
+  readonly deleteMembership = output<{
+    id: string;
+    isCurrentUser: boolean;
+  }>();
 
-  @Output()
-  changeRole = new EventEmitter<{
+  readonly changeRole = output<{
     id: string;
     role: GroupMembershipRole;
     isCurrentUser: boolean;
   }>();
 
-  @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatPaginator) paginator: MatPaginator;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   groupMembershipRoles = Object.values(GroupMembershipRole);
 
@@ -75,7 +129,7 @@ export class AdminGroupsMemberListComponent
   // resolves, so a synchronous snapshot at construction time can be empty.
   private currentUserId = toSignal(
     this.currentUserQuery.select((s) => s.id),
-    { initialValue: '' }
+    { initialValue: '' },
   );
 
   ngOnInit(): void {}
@@ -85,21 +139,21 @@ export class AdminGroupsMemberListComponent
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator();
+    this.dataSource.sort = this.sort();
   }
 
   ngOnChanges() {
     this.buildModel();
     this.displayedColumns = this.viewColumns.concat(
-      this.canEdit ? this.editColumns : []
+      this.canEdit() ? this.editColumns : [],
     );
   }
 
   buildModel() {
-    this.dataSource.data = this.memberships
+    this.dataSource.data = this.memberships()
       .map((x) => {
-        const user = this.users.find((u) => u.id == x.userId);
+        const user = this.users().find((u) => u.id == x.userId);
 
         return {
           membership: x,
@@ -131,7 +185,7 @@ export class AdminGroupsMemberListComponent
               id: model.membership.id,
               isCurrentUser,
             });
-          })
+          }),
         )
         .subscribe();
       return;
@@ -168,7 +222,7 @@ export class AdminGroupsMemberListComponent
 
             // Revert the select back to the current (Manager) value.
             event.source.value = model.membership.role;
-          })
+          }),
         )
         .subscribe();
       return;

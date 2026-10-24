@@ -5,11 +5,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import {
   Component,
-  EventEmitter,
-  Input,
   OnChanges,
   OnInit,
-  Output,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
@@ -25,30 +25,48 @@ import {
 import { GroupService } from 'src/app/groups/group.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ProjectMembershipListComponent } from '../project-membership-list/project-membership-list.component';
+import { ProjectMemberListComponent } from '../project-member-list/project-member-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-memberships',
-    templateUrl: './project-memberships.component.html',
-    styleUrls: ['./project-memberships.component.scss'],
-    standalone: false
+  selector: 'cas-project-memberships',
+  templateUrl: './project-memberships.component.html',
+  styleUrls: ['./project-memberships.component.scss'],
+  imports: [
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ProjectMembershipListComponent,
+    ProjectMemberListComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectMembershipsComponent implements OnInit, OnChanges {
-  @Input()
-  projectId: string;
+  private projectService = inject(ProjectService);
+  private projectQuery = inject(ProjectQuery);
+  private projectMembershipService = inject(ProjectMembershipService);
+  private projectRolesService = inject(ProjectRoleService);
+  private userService = inject(UserService);
+  private userQuery = inject(UserQuery);
+  private groupService = inject(GroupService);
+  private permissionService = inject(PermissionService);
+  private signalRService = inject(SignalRService);
 
-  @Input()
-  embedded = false;
+  readonly projectId = input<string>(undefined);
+
+  readonly embedded = input(false);
 
   // Shows the return affordance when this view is not embedded in a parent
   // view, e.g. the standalone /projects/:id/memberships page.
-  @Input()
-  showReturnButton = false;
+  readonly showReturnButton = input(false);
 
-  @Input()
-  returnLabel = 'Return';
+  readonly returnLabel = input('Return');
 
-  @Output()
-  goBack = new EventEmitter();
+  readonly goBack = output();
 
   project$: Observable<Project>;
 
@@ -64,22 +82,10 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   canEdit$: Observable<boolean>;
 
-  constructor(
-    private projectService: ProjectService,
-    private projectQuery: ProjectQuery,
-    private projectMembershipService: ProjectMembershipService,
-    private projectRolesService: ProjectRoleService,
-    private userService: UserService,
-    private userQuery: UserQuery,
-    private groupService: GroupService,
-    private permissionService: PermissionService,
-    private signalRService: SignalRService
-  ) {}
-
   ngOnInit(): void {
     forkJoin([
-      this.projectService.loadProject(this.projectId),
-      this.projectMembershipService.loadMemberships(this.projectId),
+      this.projectService.loadProject(this.projectId()),
+      this.projectMembershipService.loadMemberships(this.projectId()),
       this.userService.load(),
       this.projectRolesService.loadRoles(),
       this.groupService.load(),
@@ -88,7 +94,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
     this.signalRService
       .startConnection()
       .then(() => {
-        this.signalRService.joinProjectAdmin(this.projectId);
+        this.signalRService.joinProjectAdmin(this.projectId());
       })
       .catch((err) => {
         console.log(err);
@@ -96,13 +102,13 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   }
 
   ngOnDestroy() {
-    this.signalRService.leaveProjectAdmin(this.projectId);
+    this.signalRService.leaveProjectAdmin(this.projectId());
   }
 
   ngOnChanges() {
-    this.project$ = this.projectQuery.selectEntity(this.projectId).pipe(
+    this.project$ = this.projectQuery.selectEntity(this.projectId()).pipe(
       filter((x) => x != null),
-      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id)))
+      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))),
     );
   }
 
@@ -122,7 +128,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
             );
           }
         });
-      })
+      }),
     );
   }
 
@@ -142,13 +148,13 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
             );
           }
         });
-      })
+      }),
     );
   }
 
   createMembership(command: CreateProjectMembershipCommand) {
     this.projectMembershipService
-      .createMembership(this.projectId, command)
+      .createMembership(this.projectId(), command)
       .subscribe();
   }
 

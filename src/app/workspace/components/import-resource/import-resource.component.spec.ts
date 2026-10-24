@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -21,11 +21,12 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ImportResourceComponent } from './import-resource.component';
+import { OutputComponent } from 'src/app/workspace/components/output/output.component';
 
-@Component({ selector: 'cas-output', template: '', standalone: false })
+@Component({ selector: 'cas-output', template: '' })
 class OutputStub {
-  @Input() loading: boolean;
-  @Input() output: string;
+  readonly loading = input<boolean>(undefined);
+  readonly output = input<string>(undefined);
 }
 
 async function renderImport(result: ResourceCommandResult) {
@@ -34,7 +35,7 @@ async function renderImport(result: ResourceCommandResult) {
   } satisfies ApiStub<ResourcesService>;
   const { dialogRef } = dialogRefStub<ImportResourceComponent>();
   const view = await renderComponent(ImportResourceComponent, {
-    declarations: [OutputStub],
+    childStubs: [{ replace: OutputComponent, with: OutputStub }],
     imports: [
       ...CRUCIBLE_DIALOG_IMPORTS,
       A11yModule,
@@ -81,7 +82,7 @@ describe('ImportResourceComponent', () => {
       resourceAddress: 'aws_instance.web',
       resourceId: 'i-123',
     });
-    expect(output().output).toBe(
+    expect(output().output()).toBe(
       '\u001b[32;1mSuccess\u001b[0m: imported aws_instance.web',
     );
   });
@@ -99,6 +100,6 @@ describe('ImportResourceComponent', () => {
 
     await fillAndImport();
 
-    expect(output().output).toBe('not found\nbad id\n');
+    expect(output().output()).toBe('not found\nbad id\n');
   });
 });

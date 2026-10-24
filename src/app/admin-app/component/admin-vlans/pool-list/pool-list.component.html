@@ -5,15 +5,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="header">
   <h1>Pools</h1>
-  @if (canEdit) {
+  @if (canEdit()) {
     <button
       mat-icon-button
       color="primary"
       (click)="createPool()"
       aria-label="Create a Pool"
       matTooltip="Create a Pool"
-      >
-      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
     </button>
   }
   <button
@@ -22,8 +22,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     (click)="toggleDocumentation()"
     aria-label="View Documentation"
     matTooltip="View Documentation"
-    >
-    <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-information" />
   </button>
 </div>
 @if (showDocumentation) {
@@ -32,19 +32,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       Pools are groups of 4096 VLANs, each representing a standard switching
       infrastructure. Each Pool can be sub-divided into Partitions of various
       sizes. Partitions can be assigned to Projects and when a VLAN is requested
-      in a Workspace, it will be pulled from the available VLANs in it's Project's
-      assigned Partition. A system-wide Default Partition can be selected, which
-      will cause VLANs to be allocated from that Partition if no Project or
-      Partition are specified in a request.
+      in a Workspace, it will be pulled from the available VLANs in it's
+      Project's assigned Partition. A system-wide Default Partition can be
+      selected, which will cause VLANs to be allocated from that Partition if no
+      Project or Partition are specified in a request.
     </p>
   </div>
 }
 <div class="container">
-  @for (pool of pools; track pool) {
+  @for (pool of pools(); track pool) {
     <cas-pool-list-item
       [pool]="pool"
-      [canEdit]="canEdit"
+      [canEdit]="canEdit()"
       (poolSelected)="selectPool(pool)"
-    ></cas-pool-list-item>
+    />
   }
 </div>

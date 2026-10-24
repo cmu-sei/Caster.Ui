@@ -6,14 +6,15 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   SimpleChanges,
-  ViewChild,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Theme } from '@cmusei/crucible-common';
@@ -34,6 +35,29 @@ import {
 } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
+import {
+  MatSidenavContainer,
+  MatSidenav,
+  MatSidenavContent,
+} from '@angular/material/sidenav';
+import {
+  ResizableDirective,
+  ResizeHandleDirective,
+} from 'angular-resizable-element';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ModuleListComponent } from '../module-list/module-list.component';
+import { VersionListComponent } from '../version-list/version-list.component';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import { CrucibleHotkeyDirective } from '../../../shared/directives/crucible-hotkey.directive';
+import { MatDivider } from '@angular/material/list';
+import {
+  EditorComponent as EditorComponent_1,
+  DiffEditorComponent,
+} from 'ngx-monaco-editor-v2';
+import { FormsModule } from '@angular/forms';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 const SIDEBAR_MIN_WIDTH = 300;
 
@@ -42,24 +66,55 @@ const SIDEBAR_MIN_WIDTH = 300;
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [
+    MatSidenavContainer,
+    MatSidenav,
+    ResizableDirective,
+    ResizeHandleDirective,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ModuleListComponent,
+    VersionListComponent,
+    MatSidenavContent,
+    MatToolbar,
+    MatToolbarRow,
+    CrucibleHotkeyDirective,
+    MatDivider,
+    EditorComponent_1,
+    FormsModule,
+    DiffEditorComponent,
+    AsyncPipe,
+    DatePipe,
+  ],
 })
 export class EditorComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() fileId: string;
-  @Input() modules: Module[];
+  private moduleService = inject(ModuleService);
+  private moduleQuery = inject(ModuleQuery);
+  private fileQuery = inject(FileQuery);
+  private fileService = inject(FileService);
+  private fileVersionService = inject(FileVersionService);
+  private fileVersionQuery = inject(FileVersionQuery);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private changeDetectorRef = inject(ChangeDetectorRef);
+  private confirmService = inject(CrucibleDialogService);
+  private settingsService = inject(ComnSettingsService);
+
+  readonly fileId = input<string>(undefined);
+  readonly modules = input<Module[]>(undefined);
   @Input() sidebarOpen: boolean;
   @Input() sidebarView: string;
-  @Input() breadcrumb: Breadcrumb[];
+  readonly breadcrumb = input<Breadcrumb[]>(undefined);
   @Input() sidenavWidth: number;
-  @Input() canEdit: boolean;
-  @Input() canAdminLock: boolean;
-  @Input() canManage: boolean;
-  @Output() sidebarChanged = new EventEmitter<boolean>();
-  @Output() sidebarViewChanged = new EventEmitter<string>();
-  @Output() codeChanged = new EventEmitter<string>();
-  @Output() sidenavWidthChanged = new EventEmitter<number>();
-  @ViewChild('sidenav', { read: ElementRef }) sidenav: ElementRef;
-  @ViewChild('sidebar') sidebar: MatButtonToggleGroup;
+  readonly canEdit = input<boolean>(undefined);
+  readonly canAdminLock = input<boolean>(undefined);
+  readonly canManage = input<boolean>(undefined);
+  readonly sidebarChanged = output<boolean>();
+  readonly sidebarViewChanged = output<string>();
+  readonly codeChanged = output<string>();
+  readonly sidenavWidthChanged = output<number>();
+  readonly sidenav = viewChild('sidenav', { read: ElementRef });
+  readonly sidebar = viewChild<MatButtonToggleGroup>('sidebar');
   public ngxEditor: any;
   public selectedVersionForDiff: FileVersion;
   public file: ModelFile;
@@ -84,19 +139,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private editorDomNode: HTMLElement | null = null;
   public breadcrumbString = '';
 
-  constructor(
-    private moduleService: ModuleService,
-    private moduleQuery: ModuleQuery,
-    private fileQuery: FileQuery,
-    private fileService: FileService,
-    private fileVersionService: FileVersionService,
-    private fileVersionQuery: FileVersionQuery,
-    private currentUserQuery: CurrentUserQuery,
-    private changeDetectorRef: ChangeDetectorRef,
-    private confirmService: CrucibleDialogService,
-    private settingsService: ComnSettingsService
-  ) { }
-
   ngOnInit(): void {
     this.selectedVersionForDiff = undefined;
 
@@ -117,7 +159,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       });
 
     this.fileQuery
-      .selectEntity(this.fileId)
+      .selectEntity(this.fileId())
       .pipe(
         tap((f) => {
           if (f) {
@@ -138,22 +180,22 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         }),
         filter((f) => f != null),
         switchMap((f) => this.fileQuery.isEditing(f.id, this.currentUserId)),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((isEditing) => {
         this.isEditing = isEditing;
         this.changeDetectorRef.markForCheck();
       });
 
-    this.fileVersionService.load(this.fileId).pipe(take(1)).subscribe();
+    this.fileVersionService.load(this.fileId()).pipe(take(1)).subscribe();
 
     this.fileQuery
-      .getSelectedVersionId(this.fileId)
+      .getSelectedVersionId(this.fileId())
       .pipe(
         switchMap((versionId: string) =>
-          this.fileVersionQuery.selectEntity(versionId)
+          this.fileVersionQuery.selectEntity(versionId),
         ),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((fileVersion) => {
         if (fileVersion && fileVersion.content) {
@@ -163,7 +205,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
 
-    this.isSaved$ = this.fileQuery.selectIsSaved(this.fileId);
+    this.isSaved$ = this.fileQuery.selectIsSaved(this.fileId());
   }
 
   editorInit(editor: any) {
@@ -259,8 +301,11 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     const dotIndex = this.filename.lastIndexOf('.');
     const ext = dotIndex !== -1 ? this.filename.substring(dotIndex) : '';
     if (!ext) return 'plaintext';
-    return monaco.languages.getLanguages()
-      .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext';
+    return (
+      monaco.languages
+        .getLanguages()
+        .find((l: any) => l.extensions?.includes(ext))?.id ?? 'plaintext'
+    );
   }
 
   updateModelLanguage(): void {
@@ -320,9 +365,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       this.code = changes.file.currentValue.editorContent;
       this.changeDetectorRef.markForCheck();
     }
-    if (this.breadcrumb && this.breadcrumb.length > 0) {
+    const breadcrumb = this.breadcrumb();
+    if (breadcrumb && breadcrumb.length > 0) {
       this.breadcrumbString = '';
-      this.breadcrumb.forEach((bc) => {
+      breadcrumb.forEach((bc) => {
         this.breadcrumbString = this.breadcrumbString + '  >  ' + bc.name;
       });
     }
@@ -477,7 +523,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
   resizeEndFn(event) {
     this.sidenavWidthChanged.emit(
-      Math.max(event.rectangle.width, SIDEBAR_MIN_WIDTH)
+      Math.max(event.rectangle.width, SIDEBAR_MIN_WIDTH),
     );
   }
 
@@ -506,7 +552,11 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         this.editorDomNode.removeEventListener('keydown', this.keydownListener);
       }
       if (this.captureKeydownListener) {
-        this.editorDomNode.removeEventListener('keydown', this.captureKeydownListener, true);
+        this.editorDomNode.removeEventListener(
+          'keydown',
+          this.captureKeydownListener,
+          true,
+        );
       }
     }
 

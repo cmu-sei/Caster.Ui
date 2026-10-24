@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -32,15 +32,15 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminGroupsComponent } from './admin-groups.component';
+import { AdminGroupsDetailComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-detail/admin-groups-detail.component';
 
 @Component({
   selector: 'cas-admin-groups-detail',
   template: '',
-  standalone: false,
 })
 class GroupsDetailStub {
-  @Input() groupId: string;
-  @Input() canEdit: boolean;
+  readonly groupId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 const groups: Group[] = [
@@ -59,7 +59,9 @@ async function renderGroups(grants: PermissionGrants, confirmAnswer?: boolean) {
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(AdminGroupsComponent, {
-    declarations: [GroupsDetailStub],
+    childStubs: [
+      { replace: AdminGroupsDetailComponent, with: GroupsDetailStub },
+    ],
     imports: [
       MatTableModule,
       MatSortModule,
@@ -150,6 +152,25 @@ describe('AdminGroupsComponent', () => {
   });
 
   /**
+   * Verifies: an EditGroup claim alone enables Rename on its group without enabling group creation or deletion.
+   * Interacts with: real PermissionService.canEditGroup and hasPermission, the rendered group table.
+   * Data: exactly one EditGroup claim on g1; no system permissions or other group claims.
+   */
+  it('enables Rename with only an EditGroup claim on that group', async () => {
+    await renderGroups({
+      groups: [{ groupId: 'g1', permissions: [GroupPermission.EditGroup] }],
+    });
+
+    const blue = within(rowOf('Blue Team'));
+    expect(blue.getByRole('button', { name: 'Rename' })).toBeEnabled();
+    expect(blue.getByRole('button', { name: 'Delete Blue Team' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add New Group' })).toBeDisabled();
+    expect(
+      within(rowOf('Red Team')).getByRole('button', { name: 'Rename' }),
+    ).toBeDisabled();
+  });
+
+  /**
    * Verifies: expanding a group passes canEdit true to its detail when the user has a ManageMembership claim on it.
    * Interacts with: PermissionService.canManageGroup (real), the detail stub's canEdit input.
    * Data: a ManageMembership claim on g1; the Blue Team row clicked.
@@ -166,8 +187,8 @@ describe('AdminGroupsComponent', () => {
     const detail: GroupsDetailStub = fixture.debugElement.query(
       By.directive(GroupsDetailStub),
     ).componentInstance;
-    expect(detail.groupId).toBe('g1');
-    expect(detail.canEdit).toBe(true);
+    expect(detail.groupId()).toBe('g1');
+    expect(detail.canEdit()).toBe(true);
   });
 
   /**
@@ -188,7 +209,7 @@ describe('AdminGroupsComponent', () => {
     const detail: GroupsDetailStub = fixture.debugElement.query(
       By.directive(GroupsDetailStub),
     ).componentInstance;
-    expect(detail.canEdit).toBe(false);
+    expect(detail.canEdit()).toBe(false);
   });
 
   /**

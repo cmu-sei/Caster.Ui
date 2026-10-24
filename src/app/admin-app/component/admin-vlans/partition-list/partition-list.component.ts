@@ -8,21 +8,40 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
+  input,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Partition } from 'src/app/generated/caster-api';
 import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatAccordion } from '@angular/material/expansion';
+import { PartitionComponent } from '../partition/partition.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-partition-list',
-    templateUrl: './partition-list.component.html',
-    styleUrls: ['./partition-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-partition-list',
+  templateUrl: './partition-list.component.html',
+  styleUrls: ['./partition-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    MatAccordion,
+    PartitionComponent,
+    AsyncPipe,
+  ],
 })
 export class PartitionListComponent implements OnInit {
+  private vlanService = inject(VlanService);
+  private partitionService = inject(PartitionService);
+  private partitionQuery = inject(PartitionQuery);
+
   @Input()
   set poolId(id: string) {
     this._poolId = id;
@@ -35,15 +54,9 @@ export class PartitionListComponent implements OnInit {
 
   _poolId: string;
 
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
   partitions$: Observable<Partition[]>;
-
-  constructor(
-    private vlanService: VlanService,
-    private partitionService: PartitionService,
-    private partitionQuery: PartitionQuery
-  ) {}
 
   ngOnInit(): void {}
 

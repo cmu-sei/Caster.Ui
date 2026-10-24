@@ -13,7 +13,7 @@ import {
   FileVersionUIState,
 } from './fileVersion.store';
 import { FileVersion } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
+import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export const MODULE_QUERY_TOKEN = new InjectionToken('FileVersionQuery');
@@ -25,11 +25,17 @@ export const MODULE_QUERY_TOKEN = new InjectionToken('FileVersionQuery');
   providedIn: 'root',
 })
 export class FileVersionQuery extends QueryEntity<FileVersionsState> {
+  protected store: FileVersionStore;
+
   ui: EntityUIQuery<FileVersionUIState>;
   isLoading$ = this.select((state) => state.loading);
 
-  constructor(protected store: FileVersionStore) {
+  constructor() {
+    const store = inject(FileVersionStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 

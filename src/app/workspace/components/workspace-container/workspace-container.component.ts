@@ -4,13 +4,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
+  inject,
+  input,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
@@ -36,20 +37,69 @@ import {
 import { ImportResourceComponent } from '../import-resource/import-resource.component';
 import { OutputComponent } from '../output/output.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
+import {
+  MatButtonToggleGroup,
+  MatButtonToggle,
+} from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { CwdTableComponent } from '../../../sei-cwd-common/cwd-table/components/cwd-table/cwd-table.component';
+import { TableActionDirective } from '../../../sei-cwd-common/cwd-table/directives/table-action.directive';
+import { MatButton } from '@angular/material/button';
+import { WorkspaceVersionComponent } from '../workspace-version/workspace-version.component';
+import { TableItemActionDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-action.directive';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
+import { TableItemContentDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-content.directive';
+import { RunComponent } from '../run/run.component';
+import { WorkspaceTopologyComponent } from '../workspace-topology/workspace-topology.component';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe, JsonPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-workspace-container',
-    templateUrl: './workspace-container.component.html',
-    styleUrls: ['./workspace-container.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-workspace-container',
+  templateUrl: './workspace-container.component.html',
+  styleUrls: ['./workspace-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatToolbar,
+    MatToolbarRow,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatIcon,
+    MatTooltip,
+    CwdTableComponent,
+    TableActionDirective,
+    MatButton,
+    WorkspaceVersionComponent,
+    TableItemActionDirective,
+    MatCheckbox,
+    FormsModule,
+    TableItemContentDirective,
+    RunComponent,
+    MatProgressSpinner,
+    ImportResourceComponent,
+    OutputComponent,
+    WorkspaceTopologyComponent,
+    AsyncPipe,
+    JsonPipe,
+  ],
 })
 export class WorkspaceContainerComponent
   implements OnInit, OnDestroy, OnChanges
 {
-  @Input() workspaceId: string;
-  @Input() breadcrumb: Breadcrumb[];
-  @Input() canEdit: boolean;
+  private workspaceService = inject(WorkspaceService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private signalrService = inject(SignalRService);
+  private confirmService = inject(CrucibleDialogService);
+  currentUserQuery = inject(CurrentUserQuery);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+
+  readonly workspaceId = input<string>(undefined);
+  readonly breadcrumb = input<Breadcrumb[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
   workspaceRuns: Run[];
   workspaceResources: Resource[];
   output: string[];
@@ -72,48 +122,38 @@ export class WorkspaceContainerComponent
   resourcesToTarget: string[] = [];
   canImport$: Observable<boolean>;
 
-  @ViewChild('importResourceDialog')
-  importResourceDialog: TemplateRef<ImportResourceComponent>;
+  readonly importResourceDialog = viewChild<
+    TemplateRef<ImportResourceComponent>
+  >('importResourceDialog');
   private importResourceDialogRef: MatDialogRef<ImportResourceComponent>;
 
-  @ViewChild('errorDialog')
-  errorDialog: TemplateRef<OutputComponent>;
+  readonly errorDialog = viewChild<TemplateRef<OutputComponent>>('errorDialog');
   private errorDialogRef: MatDialogRef<OutputComponent>;
   public errorMessage: string;
 
-  constructor(
-    private workspaceService: WorkspaceService,
-    private workspaceQuery: WorkspaceQuery,
-    private signalrService: SignalRService,
-    private confirmService: CrucibleDialogService,
-    public currentUserQuery: CurrentUserQuery,
-    private dialog: MatDialog,
-    private permissionService: PermissionService
-  ) {}
-
   ngOnInit() {
     this.loading$ = this.workspaceQuery.selectLoading().pipe(
-      shareReplay(1)
+      shareReplay(1),
       // share({
       //   connector: () => new ReplaySubject(1),
       // })
     );
-    this.workspace$ = this.workspaceQuery.selectEntity(this.workspaceId);
+    this.workspace$ = this.workspaceQuery.selectEntity(this.workspaceId());
     this.workspaceRuns$ = this.workspaceQuery
-      .workspaceRuns$(this.workspaceId)
+      .workspaceRuns$(this.workspaceId())
       .pipe(tap((runs) => (this.workspaceRuns = runs)));
     this.workspaceResources$ = this.workspaceQuery
-      .workspaceResources$(this.workspaceId)
+      .workspaceResources$(this.workspaceId())
       .pipe(
         tap((resources) => {
           this.workspaceResources = resources;
-        })
+        }),
       );
     this.expandedRunIds$ = this.workspaceQuery
-      .expandedRuns$(this.workspaceId)
+      .expandedRuns$(this.workspaceId())
       .pipe(
         tap(() => console.log(`Updating expandedRunIds`)),
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -123,9 +163,9 @@ export class WorkspaceContainerComponent
         // })
       );
     this.expandedResourceIds$ = this.workspaceQuery
-      .expandedResources$(this.workspaceId)
+      .expandedResources$(this.workspaceId())
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -134,11 +174,13 @@ export class WorkspaceContainerComponent
         //   resetOnRefCountZero: false,
         // })
       );
-    this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(this.workspaceId);
+    this.selectedRunIds$ = this.workspaceQuery.selectedRuns$(
+      this.workspaceId(),
+    );
     this.resourceActionIds$ = this.workspaceQuery
-      .resourceActions$(this.workspaceId)
+      .resourceActions$(this.workspaceId())
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -148,9 +190,9 @@ export class WorkspaceContainerComponent
         // })
       );
     this.resourceAction$ = this.workspaceQuery
-      .resourceAction$(this.workspaceId)
+      .resourceAction$(this.workspaceId())
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -159,13 +201,13 @@ export class WorkspaceContainerComponent
         //   resetOnRefCountZero: false,
         // })
       );
-    this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId);
+    this.statusFilter$ = this.workspaceQuery.filters$(this.workspaceId());
     // This value is used in multiple times in the template. So we use the shareReplay() operator to prevent multiple
     // subscriptions.
     this.workspaceView$ = this.workspaceQuery
-      .getWorkspaceView(this.workspaceId)
+      .getWorkspaceView(this.workspaceId())
       .pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
         // share(
         //   {
         //   connector: () => new ReplaySubject(1),
@@ -175,17 +217,18 @@ export class WorkspaceContainerComponent
         // })
       );
 
-    this.signalrService.joinWorkspace(this.workspaceId);
+    this.signalrService.joinWorkspace(this.workspaceId());
 
     this.canImport$ = this.permissionService.hasPermission(
-      SystemPermission.ImportResources
+      SystemPermission.ImportResources,
     );
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.breadcrumb && this.breadcrumb.length > 0) {
+    const breadcrumb = this.breadcrumb();
+    if (breadcrumb && breadcrumb.length > 0) {
       this.breadcrumbString = '';
-      this.breadcrumb.forEach((bc) => {
+      breadcrumb.forEach((bc) => {
         this.breadcrumbString = this.breadcrumbString + '  >  ' + bc.name;
       });
     }
@@ -199,13 +242,13 @@ export class WorkspaceContainerComponent
     }
     this.workspaceService
       .createPlanRun(
-        this.workspaceId,
+        this.workspaceId(),
         false,
         this.resourcesToReplace,
-        this.resourcesToTarget
+        this.resourcesToTarget,
       )
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -214,9 +257,9 @@ export class WorkspaceContainerComponent
   reject(event: Event, run: Run) {
     event.stopPropagation();
     this.workspaceService
-      .rejectRun(this.workspaceId, run.id)
+      .rejectRun(this.workspaceId(), run.id)
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -238,9 +281,9 @@ export class WorkspaceContainerComponent
       .subscribe((confirmed) => {
         if (confirmed) {
           this.workspaceService
-            .cancelRun(this.workspaceId, run.id, this.forceCancel)
+            .cancelRun(this.workspaceId(), run.id, this.forceCancel)
             .pipe(
-              take(1)
+              take(1),
               // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
             )
             .subscribe();
@@ -251,14 +294,17 @@ export class WorkspaceContainerComponent
   apply(event: Event, run: Run) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
-    this.workspaceService.applyRun(this.workspaceId, run.id).pipe().subscribe();
+    this.workspaceService
+      .applyRun(this.workspaceId(), run.id)
+      .pipe()
+      .subscribe();
   }
 
   destroy(event: Event) {
     event.stopPropagation();
     // TODO: Unsubscribe from this.
     this.workspaceService
-      .createPlanRun(this.workspaceId, true, null, null)
+      .createPlanRun(this.workspaceId(), true, null, null)
       .subscribe();
   }
 
@@ -267,7 +313,7 @@ export class WorkspaceContainerComponent
     this.workspaceService
       .saveState(run.id)
       .pipe(
-        take(1)
+        take(1),
         // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
@@ -276,7 +322,7 @@ export class WorkspaceContainerComponent
   taint(event: Event, item: Resource) {
     event.stopPropagation();
     this.workspaceService
-      .taint(this.workspaceId, item)
+      .taint(this.workspaceId(), item)
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -286,7 +332,7 @@ export class WorkspaceContainerComponent
   untaint(event: Event, item: Resource) {
     event.stopPropagation();
     this.workspaceService
-      .untaint(this.workspaceId, item)
+      .untaint(this.workspaceId(), item)
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -305,7 +351,7 @@ export class WorkspaceContainerComponent
       .subscribe((confirmed) => {
         if (confirmed) {
           this.workspaceService
-            .remove(this.workspaceId, item)
+            .remove(this.workspaceId(), item)
             .pipe(take(1))
             .subscribe((result) => {
               this.showResult(result);
@@ -316,7 +362,7 @@ export class WorkspaceContainerComponent
 
   refreshResources() {
     this.workspaceService
-      .refreshResources(this.workspaceId)
+      .refreshResources(this.workspaceId())
       .pipe(take(1))
       .subscribe((result) => {
         this.showResult(result);
@@ -330,48 +376,51 @@ export class WorkspaceContainerComponent
     this.resourcesToTarget = []; // clear the list after the plan
   }
 
-  markResourceForReplace(event: any, id: string) {
+  markResourceForReplace(event: any, address: string) {
     if (event.checked) {
-      this.resourcesToReplace.push(id);
+      this.resourcesToReplace.push(address);
     } else {
-      const index = this.resourcesToReplace.findIndex((m) => m === id);
+      const index = this.resourcesToReplace.findIndex((m) => m === address);
       if (index >= 0) {
         this.resourcesToReplace.splice(index, 1);
       }
     }
   }
 
-  resourceToReplace(id: string): boolean {
-    return this.resourcesToReplace.includes(id);
+  resourceToReplace(address: string): boolean {
+    return this.resourcesToReplace.includes(address);
   }
 
-  markResourceForTarget(event: any, id: string) {
+  markResourceForTarget(event: any, address: string) {
     if (event.checked) {
-      this.resourcesToTarget.push(id);
+      this.resourcesToTarget.push(address);
     } else {
-      const index = this.resourcesToTarget.findIndex((m) => m === id);
+      const index = this.resourcesToTarget.findIndex((m) => m === address);
       if (index >= 0) {
         this.resourcesToTarget.splice(index, 1);
       }
     }
   }
 
-  resourceToTarget(id: string): boolean {
-    return this.resourcesToTarget.includes(id);
+  resourceToTarget(address: string): boolean {
+    return this.resourcesToTarget.includes(address);
   }
 
   private showResult(result: ResourceCommandResult) {
     if (result.errors.length > 0) {
       this.errorMessage = '';
       result.errors.forEach((e) => (this.errorMessage += `${e}\n`));
-      this.dialog.open(this.errorDialog, { width: '75%' });
+      this.dialog.open(this.errorDialog(), { width: '75%' });
     }
   }
 
   openImportResourceDialog() {
-    this.importResourceDialogRef = this.dialog.open(this.importResourceDialog, {
-      width: '75%',
-    });
+    this.importResourceDialogRef = this.dialog.open(
+      this.importResourceDialog(),
+      {
+        width: '75%',
+      },
+    );
   }
 
   expandRun(event) {
@@ -381,8 +430,9 @@ export class WorkspaceContainerComponent
 
   expandResource(event) {
     const { expand, item } = event;
-    this.workspaceService.loadResource(this.workspaceId, item);
-    this.workspaceService.expandResource(expand, this.workspaceId, item);
+    const workspaceId = this.workspaceId();
+    this.workspaceService.loadResource(workspaceId, item);
+    this.workspaceService.expandResource(expand, workspaceId, item);
   }
 
   enablePlanApply(): boolean {
@@ -445,7 +495,7 @@ export class WorkspaceContainerComponent
   }
 
   filterRuns(filters: StatusFilter[]) {
-    this.workspaceService.setStatusFilters(this.workspaceId, filters);
+    this.workspaceService.setStatusFilters(this.workspaceId(), filters);
   }
 
   setRowStyle = (item: Run | Resource) => {
@@ -465,20 +515,20 @@ export class WorkspaceContainerComponent
       switch (event) {
         case 'runs':
           this.workspaceService
-            .loadRunsByWorkspaceId(this.workspaceId)
+            .loadRunsByWorkspaceId(this.workspaceId())
             .pipe(take(1))
             .subscribe();
           break;
         case 'state':
           this.workspaceService
-            .loadResourcesByWorkspaceId(this.workspaceId)
+            .loadResourcesByWorkspaceId(this.workspaceId())
             .pipe(take(1))
             .subscribe();
           this.resourcesToReplace = []; // reset the list when returning to the state view
           this.resourcesToTarget = []; // reset the list when returning to the state view
           break;
       }
-      this.workspaceService.setWorkspaceView(this.workspaceId, event);
+      this.workspaceService.setWorkspaceView(this.workspaceId(), event);
     }
   }
 
@@ -495,6 +545,6 @@ export class WorkspaceContainerComponent
   }
 
   ngOnDestroy() {
-    this.signalrService.leaveWorkspace(this.workspaceId);
+    this.signalrService.leaveWorkspace(this.workspaceId());
   }
 }

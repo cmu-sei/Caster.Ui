@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   Resource,
@@ -33,7 +34,12 @@ function run(overrides: Partial<Run> = {}): Run {
 
 function setup(workspaces: Workspace[] = []) {
   const store = new WorkspaceStore();
-  const query = new WorkspaceQuery(store);
+  const query = runInInjectionContext(
+    Injector.create({
+      providers: [{ provide: WorkspaceStore, useValue: store }],
+    }),
+    () => new WorkspaceQuery(),
+  );
   store.add(workspaces);
   return { store, query };
 }

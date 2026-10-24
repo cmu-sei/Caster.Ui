@@ -13,11 +13,24 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
-  ViewChild,
+  inject,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Group, SystemPermission } from 'src/app/generated/caster-api';
@@ -26,6 +39,14 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { UserService } from 'src/app/users/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { AdminGroupsDetailComponent } from './admin-groups-detail/admin-groups-detail.component';
+import { AsyncPipe } from '@angular/common';
 
 const NAME_VALUE = 'nameValue';
 
@@ -40,37 +61,57 @@ const NAME_VALUE = 'nameValue';
       state('expanded', style({ height: '*' })),
       transition(
         'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
       ),
     ]),
   ],
-  standalone: false,
+  imports: [
+    MatIcon,
+    MatFormField,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatTooltip,
+    MatCellDef,
+    MatCell,
+    MatSortHeader,
+    AdminGroupsDetailComponent,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+  ],
 })
 export class AdminGroupsComponent implements OnInit, AfterViewInit {
-  @ViewChild(MatSort) sort: MatSort;
+  private groupsService = inject(GroupService);
+  private usersService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+  private confirmService = inject(CrucibleDialogService);
+
+  readonly sort = viewChild(MatSort);
 
   filterString = '';
   displayedColumns: string[] = ['actions', 'name'];
   dataSource: MatTableDataSource<Group> = new MatTableDataSource();
   expandedGroupId: string | null = null;
 
-  constructor(
-    private groupsService: GroupService,
-    private usersService: UserService,
-    private dialog: MatDialog,
-    private permissionService: PermissionService,
-    private confirmService: CrucibleDialogService
-  ) {}
-
   dataSource$ = this.groupsService.groups$.pipe(
     map((x) => {
       this.dataSource.data = x;
       return this.dataSource;
-    })
+    }),
   );
 
   canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageGroups
+    SystemPermission.ManageGroups,
   );
 
   private canManageGroupCache = new Map<string, Observable<boolean>>();
@@ -103,7 +144,7 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
   }
 
   applyFilter(filterValue: string) {
@@ -125,7 +166,7 @@ export class AdminGroupsComponent implements OnInit, AfterViewInit {
         if (result) {
           this.groupsService.create({ name: result[NAME_VALUE] }).subscribe();
         }
-      }
+      },
     );
   }
 

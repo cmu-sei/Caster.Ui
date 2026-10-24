@@ -5,7 +5,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="cssLayoutRowStartCenter">
   <div class="sp-icon">
-    <mat-icon class="mdi-24px" fontIcon="mdi-view-module"></mat-icon>
+    <mat-icon class="mdi-24px" fontIcon="mdi-view-module" />
   </div>
   <mat-form-field style="width: 300px">
     <input
@@ -13,10 +13,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [(ngModel)]="filterString"
       (keyup)="applyFilter($event.target.value)"
       placeholder="Search"
-      />
+    />
     @if (!!filterString) {
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="clearFilter()">
-        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline"></mat-icon>
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearFilter()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
       </button>
     }
   </mat-form-field>
@@ -26,11 +31,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [pageIndex]="0"
       [pageSize]="20"
       [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
-    ></mat-paginator>
+    />
   </div>
 </div>
 
-@if (canEdit) {
+@if (canEdit()) {
   <div class="add-module-row">
     <div class="add-module-cell">
       <mat-form-field>
@@ -39,19 +44,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           placeholder="External Module ID"
           [(ngModel)]="externalModuleId"
           matTooltip="A module source name, or name/subdirectory for one module in it. For a GitLab source, its project ID."
-          />
+        />
       </mat-form-field>
       <button
         mat-icon-button
         (click)="updateModuleFromRepository()"
         aria-label="Add/Update the Modules from this source"
-        [disabled]="!externalModuleId || isLoading"
-        >
+        [disabled]="!externalModuleId || isLoading()"
+      >
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-note-plus"
           matTooltip="Add/Update the Modules from this source"
-        ></mat-icon>
+        />
       </button>
     </div>
     <div class="add-module-cell">
@@ -59,91 +64,87 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         mat-icon-button
         (click)="updateAllModules()"
         aria-label="Add/Update the Modules from every source"
-        [disabled]="isLoading"
-        >
+        [disabled]="isLoading()"
+      >
         <mat-icon
           class="mdi-24px"
           fontIcon="mdi-cloud-download"
           matTooltip="Add/Update the Modules from every source"
-        ></mat-icon>
+        />
       </button>
     </div>
   </div>
 }
 
 <div class="table-container">
-<table mat-table matSort [dataSource]="dataSource">
-  <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-    <td mat-cell *matCellDef="let item">
-      <button
-        mat-icon-button
-        ngxClipboard
-        [cbContent]="item.id"
-        (click)="$event.stopPropagation()"
-        title="Copy:  {{ item.id }}"
-        [attr.aria-label]="'Copy ID of ' + item.name"
-        >
-        <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
-      </button>
-      {{ item.name }}
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="path">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Path</th>
-    <td mat-cell *matCellDef="let item">
-      {{ item.path }}
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="versionsCount">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Versions</th>
-    <td mat-cell *matCellDef="let item">
-      <span
-        [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
-        [matTooltip]="
-          item.versionsCount == 0
-            ? 'This Module will not be able to be added to a Design until at least 1 Version is created in the git repository.'
-            : null
-        "
-        matTooltipShowDelay="0"
-        >{{ item.versionsCount }}</span
-        >
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="dateModified">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
-    <td mat-cell *matCellDef="let item">
-      {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
-      @if (canEdit) {
+  <table mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+      <td mat-cell *matCellDef="let item">
         <button
           mat-icon-button
-          (click)="deleteModule(item); $event.stopPropagation()"
-          title="Delete Module"
-          aria-label="Delete Module"
-          >
-          <mat-icon
-            class="mdi-24px"
-            fontIcon="mdi-trash-can-outline"
-          ></mat-icon>
+          ngxClipboard
+          [cbContent]="item.id"
+          (click)="$event.stopPropagation()"
+          title="Copy:  {{ item.id }}"
+          [attr.aria-label]="'Copy ID of ' + item.name"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
-      }
-    </td>
-  </ng-container>
+        {{ item.name }}
+      </td>
+    </ng-container>
 
-  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-</table>
+    <ng-container matColumnDef="path">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Path</th>
+      <td mat-cell *matCellDef="let item">
+        {{ item.path }}
+      </td>
+    </ng-container>
 
-  @if (isLoading) {
+    <ng-container matColumnDef="versionsCount">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Versions</th>
+      <td mat-cell *matCellDef="let item">
+        <span
+          [ngClass]="item.versionsCount == 0 ? 'tooltip' : null"
+          [matTooltip]="
+            item.versionsCount == 0
+              ? 'This Module will not be able to be added to a Design until at least 1 Version is created in the git repository.'
+              : null
+          "
+          matTooltipShowDelay="0"
+          >{{ item.versionsCount }}</span
+        >
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="dateModified">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
+      <td mat-cell *matCellDef="let item">
+        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
+        @if (canEdit()) {
+          <button
+            mat-icon-button
+            (click)="deleteModule(item); $event.stopPropagation()"
+            title="Delete Module"
+            aria-label="Delete Module"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  @if (isLoading()) {
     <mat-card
       appearance="outlined"
       style="display: flex; justify-content: center; align-items: center"
-      >
-      <mat-progress-spinner color="primary" mode="indeterminate">
-      </mat-progress-spinner>
+    >
+      <mat-progress-spinner color="primary" mode="indeterminate" />
     </mat-card>
   }
 </div>

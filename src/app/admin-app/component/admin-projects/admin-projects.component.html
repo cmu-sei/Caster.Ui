@@ -10,8 +10,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [isLoading]="loading$ | async"
     [manageMode]="true"
     (selectedProjectId)="selectedProjectId = $event"
-    >
-  </cas-project-list>
+  />
 }
 
 @if (selectedProjectId) {
@@ -19,5 +18,5 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [projectId]="selectedProjectId"
     [embedded]="true"
     (goBack)="selectedProjectId = null"
-  ></cas-project-memberships>
+  />
 }

@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -16,13 +16,14 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DirectoryStore } from '../../state/directory.store';
 import { DirectoryEditContainerComponent } from './directory-edit-container.component';
+import { DirectoryEditComponent } from 'src/app/directories/components/directory-edit-container/directory-edit/directory-edit.component';
 
-@Component({ selector: 'cas-directory-edit', template: '', standalone: false })
+@Component({ selector: 'cas-directory-edit', template: '' })
 class DirectoryEditStub {
-  @Input() directory: Directory;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
-  @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
+  readonly directory = input<Directory>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
+  readonly updateDirectory = output<Partial<Directory>>();
 }
 
 async function renderContainer() {
@@ -42,7 +43,7 @@ async function renderContainer() {
   } satisfies ApiStub<DirectoriesService>;
   const editDirectoryComplete = vi.fn<(done: boolean) => void>();
   const view = await renderComponent(DirectoryEditContainerComponent, {
-    declarations: [DirectoryEditStub],
+    childStubs: [{ replace: DirectoryEditComponent, with: DirectoryEditStub }],
     providers: [
       { provide: TerraformService, useValue: terraformApi },
       { provide: DirectoriesService, useValue: directoriesApi },
@@ -69,9 +70,9 @@ describe('DirectoryEditContainerComponent', () => {
   it('feeds the edit form', async () => {
     const { edit } = await renderContainer();
 
-    expect(edit.directory.name).toBe('network');
-    expect(edit.terraformVersions.versions).toEqual(['1.5.7']);
-    expect(edit.maxParallelism).toBe(10);
+    expect(edit.directory().name).toBe('network');
+    expect(edit.terraformVersions().versions).toEqual(['1.5.7']);
+    expect(edit.maxParallelism()).toBe(10);
   });
 
   /**
