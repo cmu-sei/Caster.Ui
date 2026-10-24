@@ -17,7 +17,11 @@ import {
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { FileQuery, isFileContentChanged } from 'src/app/files/state';
-import { Project, ProjectPermission } from 'src/app/generated/caster-api';
+import {
+  Project,
+  ProjectPermission,
+  SystemPermission,
+} from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import {
@@ -99,6 +103,8 @@ export class ProjectCollapseContainerComponent
   public currentUser$: Observable<CurrentUserState>;
   public titleText = 'Caster';
   public theme$: Observable<Theme>;
+  /** The inventory describes the hypervisor, so it needs ViewHosts. */
+  public canViewInventory$: Observable<boolean>;
 
   TopbarView = TopbarView;
 
@@ -106,6 +112,9 @@ export class ProjectCollapseContainerComponent
 
   constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
+    this.canViewInventory$ = this.permissionService.hasPermission(
+      SystemPermission.ViewHosts,
+    );
   }
 
   ngOnInit() {
