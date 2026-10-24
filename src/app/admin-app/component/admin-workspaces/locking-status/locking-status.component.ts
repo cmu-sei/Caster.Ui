@@ -5,21 +5,22 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
 } from '@angular/core';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-locking-status',
-    templateUrl: './locking-status.component.html',
-    styleUrls: ['./locking-status.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-locking-status',
+  templateUrl: './locking-status.component.html',
+  styleUrls: ['./locking-status.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatSlideToggle, MatTooltip],
 })
 export class LockingStatusComponent implements OnInit {
-  @Input() lockingEnabled: boolean;
-  @Output() setLockingEnabled = new EventEmitter<boolean>();
+  readonly lockingEnabled = input<boolean>(undefined);
+  readonly setLockingEnabled = output<boolean>();
 
   constructor() {}
 
@@ -27,6 +28,6 @@ export class LockingStatusComponent implements OnInit {
 
   toggleLocking($event) {
     $event.preventDefault();
-    this.setLockingEnabled.emit(!this.lockingEnabled);
+    this.setLockingEnabled.emit(!this.lockingEnabled());
   }
 }

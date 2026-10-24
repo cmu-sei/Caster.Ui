@@ -10,9 +10,12 @@ import { renderComponent } from '../../../../test-utils/render-component';
 import { CwdToolbarComponent } from '../cwd-toolbar/cwd-toolbar.component';
 import { CwdToolbarNavigationItemComponent } from './cwd-toolbar-navigation-item.component';
 
-// The host's template is set with overrideTemplate in the test, so it is
-// compiled against the test module, where the toolbar components are declared.
-@Component({ template: '', standalone: false })
+// The host's template is set with overrideTemplate in the test. The host
+// imports the toolbar components, so the template compiles against them.
+@Component({
+  template: '',
+  imports: [CwdToolbarComponent, CwdToolbarNavigationItemComponent],
+})
 class ToolbarHost {
   showItem = true;
 }
@@ -32,8 +35,12 @@ describe('CwdToolbarNavigationItemComponent', () => {
    */
   it('portals its content into the toolbar navigation', async () => {
     const { fixture, container } = await renderComponent(ToolbarHost, {
-      declarations: [CwdToolbarComponent, CwdToolbarNavigationItemComponent],
-      imports: [MatToolbarModule, PortalModule],
+      imports: [
+        CwdToolbarComponent,
+        CwdToolbarNavigationItemComponent,
+        MatToolbarModule,
+        PortalModule,
+      ],
       configureTestBed: (testBed) =>
         testBed.overrideTemplate(ToolbarHost, hostTemplate),
     });

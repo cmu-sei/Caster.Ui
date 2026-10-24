@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Order, QueryConfig, QueryEntity } from '@datorama/akita';
 import { PartitionStore, PartitionState } from './partition.store';
 
@@ -13,8 +13,14 @@ import { PartitionStore, PartitionState } from './partition.store';
   sortByOrder: Order.ASC,
 })
 export class PartitionQuery extends QueryEntity<PartitionState> {
-  constructor(protected store: PartitionStore) {
+  protected store: PartitionStore;
+
+  constructor() {
+    const store = inject(PartitionStore);
+
     super(store);
+
+    this.store = store;
   }
 
   selectByPoolId(id: string, excludePartitionId: string = null) {

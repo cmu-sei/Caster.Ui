@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
@@ -15,10 +15,8 @@ import { VlanStore } from './vlan.store';
 
 @Injectable({ providedIn: 'root' })
 export class VlanService {
-  constructor(
-    private vlanStore: VlanStore,
-    private vlansService: VlansService
-  ) {}
+  private vlanStore = inject(VlanStore);
+  private vlansService = inject(VlansService);
 
   loadByPoolId(id: string) {
     this.vlanStore.setLoading(true);
@@ -26,7 +24,7 @@ export class VlanService {
       tap((vlans: Vlan[]) => {
         this.vlanStore.set(vlans);
         this.vlanStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -34,7 +32,7 @@ export class VlanService {
     return this.vlansService.partialEditVlan(id, command).pipe(
       tap((vlan: Vlan) => {
         this.update(id, vlan);
-      })
+      }),
     );
   }
 
@@ -44,7 +42,7 @@ export class VlanService {
       .pipe(
         tap((vlans: Vlan[]) => {
           this.vlanStore.upsertMany(vlans);
-        })
+        }),
       );
   }
 
@@ -54,7 +52,7 @@ export class VlanService {
       .pipe(
         tap((vlans: Vlan[]) => {
           this.vlanStore.upsertMany(vlans);
-        })
+        }),
       );
   }
 
@@ -64,7 +62,7 @@ export class VlanService {
       .pipe(
         tap((vlan: Vlan) => {
           this.update(vlan.id, vlan);
-        })
+        }),
       );
   }
 
@@ -72,7 +70,7 @@ export class VlanService {
     return this.vlansService.releaseVlan(vlan.id).pipe(
       tap((vlan: Vlan) => {
         this.update(vlan.id, vlan);
-      })
+      }),
     );
   }
 
@@ -80,7 +78,7 @@ export class VlanService {
     return this.vlansService.partialEditVlan(vlan.id, { reserved: true }).pipe(
       tap((vlan: Vlan) => {
         this.update(vlan.id, vlan);
-      })
+      }),
     );
   }
 
@@ -88,7 +86,7 @@ export class VlanService {
     return this.vlansService.partialEditVlan(vlan.id, { reserved: false }).pipe(
       tap((vlan: Vlan) => {
         this.update(vlan.id, vlan);
-      })
+      }),
     );
   }
 
@@ -121,7 +119,7 @@ export class VlanService {
     return obs.pipe(
       tap((vlans: Vlan[]) => {
         this.vlanStore.upsertMany(vlans);
-      })
+      }),
     );
   }
 

@@ -3,19 +3,41 @@
 
 import {
   Component,
-  EventEmitter,
   OnInit,
-  ViewChild,
-  Input,
-  Output,
   OnChanges,
   SimpleChanges,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { Module } from '../../../../generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { ClipboardModule } from 'ngx-clipboard';
+import { NgClass, DatePipe } from '@angular/common';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface Action {
   Value: string;
@@ -23,34 +45,66 @@ export interface Action {
 }
 
 @Component({
-    selector: 'cas-admin-module-list',
-    templateUrl: './module-list.component.html',
-    styleUrls: ['./module-list.component.css'],
-    standalone: false
+  selector: 'cas-admin-module-list',
+  templateUrl: './module-list.component.html',
+  styleUrls: ['./module-list.component.css'],
+  imports: [
+    MatIcon,
+    MatFormField,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatPaginator,
+    MatTooltip,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    ClipboardModule,
+    NgClass,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatCard,
+    MatProgressSpinner,
+    DatePipe,
+  ],
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
-  public displayedColumns: string[] = ['name', 'path', 'versionsCount', 'dateModified'];
+  private confirmService = inject(CrucibleDialogService);
+
+  public displayedColumns: string[] = [
+    'name',
+    'path',
+    'versionsCount',
+    'dateModified',
+  ];
   public filterString = '';
   public savedFilterString = '';
   public dataSource = new MatTableDataSource<Module>(new Array<Module>());
   public externalModuleId = '';
 
-  @Input() modules: Module[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
-  @Output() load: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() loadModuleById: EventEmitter<string> = new EventEmitter<string>();
-  @Output() delete: EventEmitter<string> = new EventEmitter<string>();
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
-  @ViewChild(MatSort, { static: true }) sort: MatSort;
-
-  constructor(private confirmService: CrucibleDialogService) {}
+  readonly modules = input<Module[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly load = output<boolean>();
+  readonly loadModuleById = output<string>();
+  readonly delete = output<string>();
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   ngOnInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
+    const paginator = this.paginator();
+    if (paginator) {
+      this.dataSource.paginator = paginator;
     }
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.filterAndSort(this.filterString);
   }
 

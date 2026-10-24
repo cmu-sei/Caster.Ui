@@ -1,8 +1,8 @@
-## CwdTableModule
+## CWD Table
 
 #### Description
 
-The CWD table module provides `cwd-table`, a list with a search field, sortable column headers and a paginator,
+The CWD table provides `cwd-table`, a list with a search field, sortable column headers and a paginator,
 built on Angular Material. Each item is a row in an expansion panel. The host component supplies the table
 actions, the actions of each row and the expanded content of each row through structural directives.
 
@@ -40,16 +40,20 @@ actions, the actions of each row and the expanded content of each row through st
 
 #### Implementation
 
-CWD Table module needs to be imported into the NgModule that declares your component.
+The component and directives are standalone. Import the ones your component uses.
 
 ```typescript
-import { CwdTableModule } from '../sei-cwd-common/cwd-table/cwd-table.module';
+import { CwdTableComponent } from '../sei-cwd-common/cwd-table/components/cwd-table/cwd-table.component';
+import { TableActionDirective } from '../sei-cwd-common/cwd-table/directives/table-action.directive';
+import { TableItemActionDirective } from '../sei-cwd-common/cwd-table/directives/table-item-action.directive';
+import { TableItemContentDirective } from '../sei-cwd-common/cwd-table/directives/table-item-content.directive';
 
-@NgModule({
-  declarations: [WorkspaceContainerComponent],
-  imports: [CommonModule, CwdTableModule],
+@Component({
+  selector: 'cas-workspace-container',
+  templateUrl: './workspace-container.component.html',
+  imports: [CwdTableComponent, TableActionDirective, TableItemActionDirective, TableItemContentDirective],
 })
-export class WorkspaceModule {}
+export class WorkspaceContainerComponent {}
 ```
 
 #### Example
