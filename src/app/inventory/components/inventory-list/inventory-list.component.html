@@ -21,6 +21,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               @if (state.loaded && state.available) {
                 <span class="item-count">{{ (items$ | async)?.length }}</span>
               }
+              @if (state.loaded && state.available && state.stale) {
+                <mat-icon
+                  class="mdi-18px stale-icon"
+                  fontIcon="mdi-clock-alert-outline"
+                  [matTooltip]="staleMessage(state)"
+                ></mat-icon>
+              }
               @if (state.loaded && !state.available) {
                 <mat-icon
                   class="mdi-18px unavailable-icon"
@@ -33,6 +40,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </mat-expansion-panel-header>
 
         <div class="category-body">
+          @if (state.loaded && !state.loading && state.available && state.stale) {
+            <div class="state-row stale">
+              <mat-icon
+                class="mdi-18px"
+                fontIcon="mdi-clock-alert-outline"
+              ></mat-icon>
+              <span class="state-text">{{ staleMessage(state) }}</span>
+            </div>
+          }
           @if (!state.loaded || state.loading) {
             <div class="state-row">
               <mat-spinner diameter="16"></mat-spinner>

@@ -27,6 +27,11 @@ export interface InventoryResponse {
    * `error` carries a human-readable explanation to show the user.
    */
   available: boolean;
+  /**
+   * True when the latest read failed and `items` are from the last read that
+   * succeeded, at `lastUpdated`. `error` says why the latest read failed.
+   */
+  stale: boolean;
   error: string | null;
 }
 

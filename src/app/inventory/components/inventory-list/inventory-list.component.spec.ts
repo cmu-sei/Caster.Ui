@@ -32,6 +32,7 @@ function categoryState(
     items: [],
     lastUpdated: null,
     available: true,
+    stale: false,
     error: null,
     loading: false,
     loaded: true,
@@ -198,6 +199,56 @@ describe('InventoryListComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Nothing found');
+  });
+
+  /**
+   * Verifies: a kept earlier read still lists its items, and says it is stale, from when and why.
+   * Interacts with: the .state-row.stale row and the header's .stale-icon.
+   * Data: ISOs, stale, one ISO, a refused connection.
+   */
+  it('lists a stale category and says why it could not refresh', () => {
+    const iso = {
+      id: 'local:iso/kali.iso',
+      name: 'local:iso/kali.iso',
+      path: 'local:iso/kali.iso',
+      properties: {},
+    };
+    state$.next(
+      categoryState({
+        items: [iso],
+        stale: true,
+        lastUpdated: '2026-10-24T09:30:00Z',
+        error: 'Could not connect to Proxmox: Connection refused',
+      }),
+    );
+    items$.next([iso]);
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.state-row.stale');
+    expect(row.textContent).toContain(
+      'Could not refresh. Showing the list from',
+    );
+    expect(row.textContent).toContain('Connection refused');
+    expect(fixture.nativeElement.querySelector('.stale-icon')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.item-name').textContent,
+    ).toContain('local:iso/kali.iso');
+    expect(
+      fixture.nativeElement.querySelector('.state-row.unavailable'),
+    ).toBeNull();
+  });
+
+  /**
+   * Verifies: a fresh category shows no stale note.
+   * Interacts with: the .state-row.stale row.
+   * Data: ISOs, available, not stale.
+   */
+  it('shows no stale note for a fresh read', () => {
+    state$.next(categoryState({ items: [] }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.state-row.stale')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.stale-icon')).toBeNull();
   });
 
   /**

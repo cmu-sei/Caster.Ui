@@ -4,11 +4,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
   OnInit,
   inject,
   input,
 } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, formatDate } from '@angular/common';
 import { MatIconButton } from '@angular/material/button';
 import {
   MatAccordion,
@@ -62,6 +63,7 @@ export class InventoryListComponent implements OnInit {
   private inventoryQuery = inject(InventoryQuery);
   private inventoryService = inject(InventoryService);
   private snackBar = inject(MatSnackBar);
+  private locale = inject(LOCALE_ID);
 
   readonly descriptor = input<InventoryCategoryDescriptor>(undefined);
 
@@ -94,6 +96,18 @@ export class InventoryListComponent implements OnInit {
 
   onClipboardSuccess(name: string) {
     this.snackBar.open(`Copied ${name} to clipboard`, 'Dismiss');
+  }
+
+  /**
+   * Says the list is kept from an earlier read, from when, and why the latest
+   * read failed. The time matches the panel's "Updated" line.
+   */
+  staleMessage(state: InventoryCategoryState): string {
+    const when = state.lastUpdated
+      ? ` from ${formatDate(state.lastUpdated, 'short', this.locale)}`
+      : '';
+    const why = state.error ? ` ${state.error}` : '';
+    return `Could not refresh. Showing the list${when}.${why}`;
   }
 
   itemLabel(item: InventoryItem): string | null {

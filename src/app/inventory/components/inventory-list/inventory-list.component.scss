@@ -30,6 +30,15 @@
   padding: 4px 0;
 }
 
+.stale-icon {
+  margin-left: 6px;
+  opacity: 0.7;
+}
+
+.state-row.stale {
+  opacity: 0.8;
+}
+
 .state-row.unavailable {
   opacity: 0.8;
 }

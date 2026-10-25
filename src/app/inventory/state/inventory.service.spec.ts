@@ -18,6 +18,7 @@ function response(
     items: [],
     lastUpdated: null,
     available: true,
+    stale: false,
     error: null,
     ...overrides,
   };
@@ -73,7 +74,36 @@ describe('InventoryService', () => {
 
     const state = store.getValue()[InventoryCategory.VmTemplates];
     expect(state.available).toBe(true);
+    expect(state.stale).toBe(false);
     expect(state.loading).toBe(false);
+    expect(state.items.length).toBe(1);
+  });
+
+  /**
+   * Verifies: a stale response keeps its items and is stored as stale with its error.
+   * Interacts with: InventoryApiService.getCategory (stub); InventoryStore.
+   * Data: networks, stale, one network, a refused connection.
+   */
+  it('stores a stale response with its items and error', () => {
+    apiSpy.getCategory.mockReturnValue(
+      of(
+        response({
+          items: [
+            { id: 'vmbr1', name: 'vmbr1', path: 'vmbr1', properties: {} },
+          ],
+          stale: true,
+          lastUpdated: '2026-10-24T09:30:00Z',
+          error: 'Connection refused',
+        }),
+      ),
+    );
+
+    service.load(InventoryCategory.Networks).subscribe();
+
+    const state = store.getValue()[InventoryCategory.Networks];
+    expect(state.available).toBe(true);
+    expect(state.stale).toBe(true);
+    expect(state.error).toBe('Connection refused');
     expect(state.items.length).toBe(1);
   });
 

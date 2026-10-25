@@ -23,6 +23,7 @@ export const initialInventoryCategoryState: InventoryCategoryState = {
   // Optimistic until a load resolves; the panel renders the loading state
   // while `loaded` is false, so this value is never shown on its own.
   available: true,
+  stale: false,
   error: null,
   loading: false,
   loaded: false,

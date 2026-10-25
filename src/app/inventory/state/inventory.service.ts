@@ -36,6 +36,7 @@ export class InventoryService {
           // An explicit `false` is the normal "not configured" case. Absent
           // the flag we assume available so a list still renders.
           available: response?.available !== false,
+          stale: response?.stale === true,
           error: response?.error ?? null,
           loading: false,
           loaded: true,
@@ -47,6 +48,7 @@ export class InventoryService {
           items: [],
           lastUpdated: null,
           available: false,
+          stale: false,
           error: this.describeTransportError(error),
           loading: false,
           loaded: true,
