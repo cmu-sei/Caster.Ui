@@ -19,6 +19,7 @@ import {
 } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 import { MatList, MatListItem } from '@angular/material/list';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -55,6 +56,9 @@ import {
     MatList,
     MatListItem,
     MatIconButton,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     ClipboardModule,
     AsyncPipe,
   ],
@@ -108,6 +112,20 @@ export class InventoryListComponent implements OnInit {
       : '';
     const why = state.error ? ` ${state.error}` : '';
     return `Could not refresh. Showing the list${when}.${why}`;
+  }
+
+  /**
+   * The item's Terraform, one entry per provider in provider order, or null
+   * when it has none.
+   */
+  terraformOf(
+    item: InventoryItem
+  ): { provider: string; snippet: string }[] | null {
+    const snippets = Object.entries(item.terraform ?? {})
+      .filter(([, snippet]) => !!snippet)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([provider, snippet]) => ({ provider, snippet }));
+    return snippets.length ? snippets : null;
   }
 
   itemLabel(item: InventoryItem): string | null {

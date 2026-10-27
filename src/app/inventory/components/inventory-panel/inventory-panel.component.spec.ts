@@ -12,9 +12,10 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ClipboardModule } from 'ngx-clipboard';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import {
+  INVENTORY_CATEGORIES,
   InventoryCategoryDescriptor,
   InventoryQuery,
   InventoryService,
@@ -67,7 +68,12 @@ describe('InventoryPanelComponent', () => {
       providers: [
         {
           provide: InventoryQuery,
-          useValue: { filter$, refreshing$, lastUpdated$: of(null) },
+          useValue: {
+            filter$,
+            refreshing$,
+            lastUpdated$: of(null),
+            categories$: of(INVENTORY_CATEGORIES),
+          },
         },
         { provide: InventoryService, useValue: inventoryServiceSpy },
       ],
@@ -85,16 +91,19 @@ describe('InventoryPanelComponent', () => {
   });
 
   /**
-   * Verifies: the panel shows VM templates, ISOs, networks and datastores, in that order.
-   * Interacts with: InventoryPanelComponent.categories.
-   * Data: none.
+   * Verifies: the panel shows VM templates, ISOs, networks, datastores and the content library, in that order.
+   * Interacts with: InventoryPanelComponent.categories$ from InventoryQuery (stub).
+   * Data: every category applies.
    */
-  it('lists all four inventory categories', () => {
-    expect(component.categories.map((c) => c.category)).toEqual([
+  it('lists every inventory category', async () => {
+    const categories = await firstValueFrom(component.categories$);
+
+    expect(categories.map((c) => c.category)).toEqual([
       'vmTemplates',
       'isos',
       'networks',
       'datastores',
+      'contentLibrary',
     ]);
   });
 

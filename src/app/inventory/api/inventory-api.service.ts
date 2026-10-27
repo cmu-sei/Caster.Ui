@@ -40,6 +40,7 @@ const INVENTORY_ROUTE_SEGMENTS: { [key in InventoryCategory]: string } = {
   [InventoryCategory.Isos]: 'isos',
   [InventoryCategory.Networks]: 'networks',
   [InventoryCategory.Datastores]: 'datastores',
+  [InventoryCategory.ContentLibrary]: 'content-library',
 };
 
 @Injectable({

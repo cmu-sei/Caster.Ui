@@ -60,7 +60,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </button>
     </div>
 
-    @for (descriptor of categories; track descriptor.category) {
+    @for (descriptor of categories$ | async; track descriptor.category) {
       <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
     }
 

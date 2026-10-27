@@ -32,6 +32,7 @@ function categoryState(
     items: [],
     lastUpdated: null,
     available: true,
+    applies: true,
     stale: false,
     error: null,
     loading: false,
@@ -267,6 +268,88 @@ describe('InventoryListComponent', () => {
     expect(tooltip).toBe(
       '/dc/vm/win2019-template · cpuCount: 4 · guestOs: windows2019srv_64Guest',
     );
+  });
+
+  /**
+   * Verifies: an item with Terraform for one provider offers it in one button,
+   *   one with several offers a menu, and one with none offers only its name.
+   * Interacts with: the copy buttons.
+   * Data: a vSphere template; a Proxmox template for bpg and Telmate; a network.
+   */
+  it('offers the Terraform to copy for each provider it was written for', () => {
+    const items: InventoryItem[] = [
+      {
+        id: 'vm-3',
+        name: 'alpine',
+        path: 'Templates/Linux/alpine',
+        properties: {},
+        terraform: { 'hashicorp/vsphere': 'data "vsphere_virtual_machine"' },
+      },
+      {
+        id: 'qemu/105',
+        name: 'ubuntu',
+        path: 'ubuntu',
+        properties: {},
+        terraform: {
+          'Telmate/proxmox': 'clone = "ubuntu"',
+          'bpg/proxmox': 'clone { vm_id = 105 }',
+        },
+      },
+      { id: 'vmbr0', name: 'vmbr0', path: 'vmbr0', properties: {} },
+    ];
+    state$.next(categoryState({ items }));
+    items$.next(items);
+    fixture.detectChanges();
+
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll('.copy-button'),
+    ).map((el: HTMLElement) => el.getAttribute('aria-label'));
+    expect(labels).toEqual([
+      'Copy name of alpine',
+      'Copy Terraform for alpine',
+      'Copy name of ubuntu',
+      'Copy Terraform for ubuntu',
+      'Copy name of vmbr0',
+    ]);
+
+    // one provider copies straight away, several open a menu
+    const [vsphere, proxmox] = Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll(
+        '[aria-label^="Copy Terraform for"]',
+      ),
+    );
+    expect(vsphere.getAttribute('aria-haspopup')).toBeNull();
+    expect(proxmox.getAttribute('aria-haspopup')).toBe('menu');
+
+    proxmox.click();
+    fixture.detectChanges();
+
+    const providers = Array.from(
+      document.querySelectorAll('.mat-mdc-menu-item'),
+    ).map((el) => el.textContent.trim());
+    expect(providers).toEqual(['bpg/proxmox', 'Telmate/proxmox']);
+  });
+
+  /**
+   * Verifies: the providers come out in a stable order, and an empty snippet is not offered.
+   * Interacts with: InventoryListComponent.terraformOf.
+   * Data: Telmate, bpg and an empty entry; then none.
+   */
+  it('lists Terraform by provider and skips empty entries', () => {
+    const item: InventoryItem = {
+      id: 'qemu/105',
+      name: 'ubuntu',
+      path: 'ubuntu',
+      properties: {},
+      terraform: { 'Telmate/proxmox': 't', 'bpg/proxmox': 'b', other: '' },
+    };
+
+    expect(component.terraformOf(item)).toEqual([
+      { provider: 'bpg/proxmox', snippet: 'b' },
+      { provider: 'Telmate/proxmox', snippet: 't' },
+    ]);
+    expect(component.terraformOf({ ...item, terraform: {} })).toBeNull();
+    expect(component.terraformOf({ ...item, terraform: undefined })).toBeNull();
   });
 
   /**

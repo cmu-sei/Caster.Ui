@@ -13,7 +13,7 @@ export type InventoryCategoriesState = {
 export interface InventoryState extends InventoryCategoriesState {
   /** True while a manual refresh (POST /api/inventory/refresh) is in flight. */
   refreshing: boolean;
-  /** Single search term applied across all four categories. */
+  /** Single search term applied across every category. */
   filter: string;
 }
 
@@ -23,6 +23,7 @@ export const initialInventoryCategoryState: InventoryCategoryState = {
   // Optimistic until a load resolves; the panel renders the loading state
   // while `loaded` is false, so this value is never shown on its own.
   available: true,
+  applies: true,
   stale: false,
   error: null,
   loading: false,
@@ -36,6 +37,7 @@ export function createInitialInventoryState(): InventoryState {
     [InventoryCategory.Isos]: { ...initialInventoryCategoryState },
     [InventoryCategory.Networks]: { ...initialInventoryCategoryState },
     [InventoryCategory.Datastores]: { ...initialInventoryCategoryState },
+    [InventoryCategory.ContentLibrary]: { ...initialInventoryCategoryState },
     refreshing: false,
     filter: '',
   };

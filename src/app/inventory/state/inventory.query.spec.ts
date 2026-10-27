@@ -83,4 +83,28 @@ describe('InventoryQuery', () => {
       '2026-10-16T12:05:00Z',
     );
   });
+
+  /**
+   * Verifies: categories$ lists every category until one reports it does not apply, then leaves it out.
+   * Interacts with: InventoryQuery.categories$ over a real InventoryStore.
+   * Data: the initial state, then content library applies false.
+   */
+  it('leaves out a category the provider has none of', async () => {
+    const names = async () =>
+      (await firstValueFrom(query.categories$)).map((d) => d.category);
+
+    expect(await names()).toContain(InventoryCategory.ContentLibrary);
+
+    setCategory(InventoryCategory.ContentLibrary, {
+      available: false,
+      applies: false,
+    });
+
+    expect(await names()).toEqual([
+      InventoryCategory.VmTemplates,
+      InventoryCategory.Isos,
+      InventoryCategory.Networks,
+      InventoryCategory.Datastores,
+    ]);
+  });
 });

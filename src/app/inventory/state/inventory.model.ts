@@ -15,9 +15,15 @@ export interface InventoryItem {
   name: string;
   path: string;
   properties: { [key: string]: string };
+  /**
+   * Terraform that references the item, ready to paste, keyed by the provider
+   * source it is written for, e.g. "bpg/proxmox". Absent or empty for items
+   * that are not referenced this way.
+   */
+  terraform?: { [provider: string]: string };
 }
 
-/** The payload returned by all four inventory GET endpoints. */
+/** The payload returned by every inventory GET endpoint. */
 export interface InventoryResponse {
   items: InventoryItem[];
   lastUpdated: string | null;
@@ -28,6 +34,12 @@ export interface InventoryResponse {
    */
   available: boolean;
   /**
+   * False when the provider has no such kind of object, e.g. content libraries
+   * on Proxmox. The panel leaves such a category out instead of listing it as
+   * unavailable.
+   */
+  applies: boolean;
+  /**
    * True when the latest read failed and `items` are from the last read that
    * succeeded, at `lastUpdated`. `error` says why the latest read failed.
    */
@@ -36,7 +48,7 @@ export interface InventoryResponse {
 }
 
 /**
- * The four inventory kinds. The string values double as keys into
+ * The inventory kinds. The string values double as keys into
  * `InventoryState`, so they must stay in sync with the store shape.
  */
 export enum InventoryCategory {
@@ -44,6 +56,7 @@ export enum InventoryCategory {
   Isos = 'isos',
   Networks = 'networks',
   Datastores = 'datastores',
+  ContentLibrary = 'contentLibrary',
 }
 
 /** Per-category slice of the store. Each category loads and fails on its own. */
@@ -93,6 +106,12 @@ export const INVENTORY_CATEGORIES: InventoryCategoryDescriptor[] = [
     label: 'Datastores',
     icon: 'mdi-database',
     fallbackUnavailableMessage: 'Datastore inventory is not configured.',
+  },
+  {
+    category: InventoryCategory.ContentLibrary,
+    label: 'Content Library',
+    icon: 'mdi-bookshelf',
+    fallbackUnavailableMessage: 'Content library inventory is not configured.',
   },
 ];
 

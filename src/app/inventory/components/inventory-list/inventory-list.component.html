@@ -119,6 +119,51 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                           fontIcon="mdi-content-copy"
                         ></mat-icon>
                       </button>
+                      @if (terraformOf(item); as snippets) {
+                        @if (snippets.length === 1) {
+                          <button
+                            mat-icon-button
+                            class="copy-button"
+                            ngxClipboard
+                            [cbContent]="snippets[0].snippet"
+                            (cbOnSuccess)="onClipboardSuccess('Terraform for ' + item.name)"
+                            (click)="$event.stopPropagation()"
+                            matTooltip="Copy Terraform ({{ snippets[0].provider }})"
+                            [attr.aria-label]="'Copy Terraform for ' + item.name"
+                            >
+                            <mat-icon
+                              class="mdi-18px"
+                              fontIcon="mdi-code-braces"
+                            ></mat-icon>
+                          </button>
+                        } @else {
+                          <button
+                            mat-icon-button
+                            class="copy-button"
+                            [matMenuTriggerFor]="terraformMenu"
+                            (click)="$event.stopPropagation()"
+                            matTooltip="Copy Terraform"
+                            [attr.aria-label]="'Copy Terraform for ' + item.name"
+                            >
+                            <mat-icon
+                              class="mdi-18px"
+                              fontIcon="mdi-code-braces"
+                            ></mat-icon>
+                          </button>
+                          <mat-menu #terraformMenu="matMenu">
+                            @for (s of snippets; track s.provider) {
+                              <button
+                                mat-menu-item
+                                ngxClipboard
+                                [cbContent]="s.snippet"
+                                (cbOnSuccess)="onClipboardSuccess(s.provider + ' Terraform for ' + item.name)"
+                                >
+                                {{ s.provider }}
+                              </button>
+                            }
+                          </mat-menu>
+                        }
+                      }
                     </div>
                   </mat-list-item>
                 }

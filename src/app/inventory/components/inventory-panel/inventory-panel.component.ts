@@ -29,7 +29,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { Observable, Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import {
-  INVENTORY_CATEGORIES,
   InventoryCategoryDescriptor,
   InventoryQuery,
   InventoryService,
@@ -74,9 +73,7 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   private inventoryQuery = inject(InventoryQuery);
   private inventoryService = inject(InventoryService);
 
-  public readonly categories: InventoryCategoryDescriptor[] =
-    INVENTORY_CATEGORIES;
-
+  public categories$: Observable<InventoryCategoryDescriptor[]>;
   public refreshing$: Observable<boolean>;
   public lastUpdated$: Observable<string | null>;
 
@@ -90,6 +87,7 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   // Assigning them later (from a subscribe callback) renders blank under
   // OnPush until something else triggers change detection.
   ngOnInit() {
+    this.categories$ = this.inventoryQuery.categories$;
     this.refreshing$ = this.inventoryQuery.refreshing$;
     this.lastUpdated$ = this.inventoryQuery.lastUpdated$;
 

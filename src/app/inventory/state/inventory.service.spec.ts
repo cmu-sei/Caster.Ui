@@ -7,7 +7,11 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ApiStub } from '../../test-utils/api-stub';
 import { InventoryApiService } from '../api/inventory-api.service';
-import { InventoryCategory, InventoryResponse } from './inventory.model';
+import {
+  INVENTORY_CATEGORIES,
+  InventoryCategory,
+  InventoryResponse,
+} from './inventory.model';
 import { InventoryService } from './inventory.service';
 import { createInitialInventoryState, InventoryStore } from './inventory.store';
 
@@ -18,6 +22,7 @@ function response(
     items: [],
     lastUpdated: null,
     available: true,
+    applies: true,
     stale: false,
     error: null,
     ...overrides,
@@ -180,10 +185,49 @@ describe('InventoryService', () => {
     expect(state.loading).toBe(false);
     expect(state.loaded).toBe(true);
     expect(state.loadFailed).toBe(true);
+    // a failed call says nothing about the provider, so the category stays listed
+    expect(state.applies).toBe(true);
   });
 
   /**
-   * Verifies: a failed refresh still clears refreshing and reloads all four categories.
+   * Verifies: a category the provider has none of is stored as not applying.
+   * Interacts with: InventoryApiService.getCategory (stub); real InventoryStore.
+   * Data: content library on Proxmox, applies false.
+   */
+  it('stores a category that does not apply to the provider', () => {
+    apiSpy.getCategory.mockReturnValue(
+      of(
+        response({
+          available: false,
+          applies: false,
+          error: 'Proxmox has no content libraries.',
+        }),
+      ),
+    );
+
+    service.load(InventoryCategory.ContentLibrary).subscribe();
+
+    const state = store.getValue()[InventoryCategory.ContentLibrary];
+    expect(state.applies).toBe(false);
+    expect(state.available).toBe(false);
+  });
+
+  /**
+   * Verifies: an API that does not send the flag yet leaves the category listed.
+   * Interacts with: InventoryApiService.getCategory (stub); real InventoryStore.
+   * Data: a response without applies.
+   */
+  it('treats a missing applies flag as applying', () => {
+    const { applies: _, ...older } = response();
+    apiSpy.getCategory.mockReturnValue(of(older as InventoryResponse));
+
+    service.load(InventoryCategory.Networks).subscribe();
+
+    expect(store.getValue()[InventoryCategory.Networks].applies).toBe(true);
+  });
+
+  /**
+   * Verifies: a failed refresh still clears refreshing and reloads every category.
    * Interacts with: InventoryApiService.refresh (throws), getCategory (stub); real InventoryStore.
    * Data: refresh HTTP 500; every category unavailable.
    */
@@ -196,7 +240,9 @@ describe('InventoryService', () => {
     service.refresh().subscribe();
 
     expect(store.getValue().refreshing).toBe(false);
-    expect(apiSpy.getCategory).toHaveBeenCalledTimes(4);
+    expect(apiSpy.getCategory).toHaveBeenCalledTimes(
+      INVENTORY_CATEGORIES.length,
+    );
   });
 
   /**

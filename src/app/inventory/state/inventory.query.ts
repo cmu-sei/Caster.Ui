@@ -8,6 +8,7 @@ import { map, shareReplay } from 'rxjs/operators';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
+  InventoryCategoryDescriptor,
   InventoryCategoryState,
   InventoryItem,
   inventoryItemMatches,
@@ -36,6 +37,15 @@ export class InventoryQuery extends Query<InventoryState> {
           oldest === null || Date.parse(t) < Date.parse(oldest) ? t : oldest,
         null
       )
+  );
+
+  /**
+   * The categories to show: all of them, less any the provider has none of,
+   * e.g. content libraries on Proxmox.
+   */
+  readonly categories$: Observable<InventoryCategoryDescriptor[]> = this.select(
+    (state) =>
+      INVENTORY_CATEGORIES.filter((d) => state[d.category].applies !== false)
   );
 
   constructor() {

@@ -23,7 +23,7 @@ export class InventoryService {
 
   /**
    * Loads a single category. Never errors: a transport failure is folded into
-   * that category's slice so the other three still render.
+   * that category's slice so the others still render.
    */
   load(category: InventoryCategory): Observable<InventoryResponse | null> {
     this.patch(category, { loading: true, loadFailed: false });
@@ -36,6 +36,7 @@ export class InventoryService {
           // An explicit `false` is the normal "not configured" case. Absent
           // the flag we assume available so a list still renders.
           available: response?.available !== false,
+          applies: response?.applies !== false,
           stale: response?.stale === true,
           error: response?.error ?? null,
           loading: false,
@@ -48,6 +49,8 @@ export class InventoryService {
           items: [],
           lastUpdated: null,
           available: false,
+          // Unknown, so it stays listed with the error.
+          applies: true,
           stale: false,
           error: this.describeTransportError(error),
           loading: false,
@@ -59,7 +62,7 @@ export class InventoryService {
     );
   }
 
-  /** Loads all four categories in parallel. */
+  /** Loads every category in parallel. */
   loadAll(): Observable<(InventoryResponse | null)[]> {
     return forkJoin(
       INVENTORY_CATEGORIES.map((descriptor) => this.load(descriptor.category))
