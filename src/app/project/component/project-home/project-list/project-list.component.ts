@@ -201,7 +201,7 @@ export class ProjectListComponent implements OnInit, OnChanges {
   }
 
   create() {
-    this.nameDialog('Create New Project?', '', {
+    this.nameDialog('Add Project', '', {
       nameValue: '',
       showDescription: true,
       descriptionValue: '',
@@ -325,8 +325,8 @@ export class ProjectListComponent implements OnInit, OnChanges {
   private proceedWithDelete(project: Project) {
     this.confirmService
       .confirm({
-        title: 'Delete Project?',
-        message: 'Delete Project ' + project.name + '?',
+        title: 'Delete Project',
+        message: `Are you sure that you want to delete ${project.name}?`,
         confirmText: 'Delete',
       })
       .afterClosed()

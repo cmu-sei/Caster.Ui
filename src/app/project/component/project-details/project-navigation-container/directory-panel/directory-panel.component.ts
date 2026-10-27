@@ -259,8 +259,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     // Show confirmation dialog and proceed with deletion
     this.confirmService
       .confirm({
-        title: 'Delete Directory?',
-        message: 'Delete directory ' + dir.name + '?',
+        title: 'Delete Directory',
+        message: `Are you sure that you want to delete ${dir.name}?`,
         confirmText: 'Delete',
       })
       .afterClosed()
@@ -301,7 +301,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   createNewDirectory(dirId?: string) {
-    this.nameDialog('Create New Directory?', '', { nameValue: '' }).subscribe(
+    this.nameDialog('Add Directory', '', { nameValue: '' }).subscribe(
       (result) => {
         if (result) {
           const newDir = {
@@ -330,19 +330,17 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   createFile(dirId: string, workspaceId?: string) {
-    this.nameDialog('Create New File?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (result) {
-          const newFile = {
-            workspaceId: workspaceId ? workspaceId : null,
-            directoryId: dirId,
-            content: '',
-            name: result[NAME_VALUE],
-          } as ModelFile;
-          this.fileService.add(newFile);
-        }
-      },
-    );
+    this.nameDialog('Add File', '', { nameValue: '' }).subscribe((result) => {
+      if (result) {
+        const newFile = {
+          workspaceId: workspaceId ? workspaceId : null,
+          directoryId: dirId,
+          content: '',
+          name: result[NAME_VALUE],
+        } as ModelFile;
+        this.fileService.add(newFile);
+      }
+    });
   }
 
   renameFile(file: ModelFile) {
@@ -358,8 +356,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   deleteFile(file: ModelFile) {
     this.confirmService
       .confirm({
-        title: 'Delete File?',
-        message: 'Delete file ' + file.name + '?',
+        title: 'Delete File',
+        message: `Are you sure that you want to delete ${file.name}?`,
         confirmText: 'Delete',
       })
       .afterClosed()
@@ -382,7 +380,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   createWorkspace() {
-    this.nameDialog('Create New Workspace?', '', {
+    this.nameDialog('Add Workspace', '', {
       nameValue: '',
       validators: [
         {
@@ -493,8 +491,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           // No resources or runs, proceed with normal delete confirmation
           return this.confirmService
             .confirm({
-              title: 'Delete workspace?',
-              message: 'Delete workspace ' + workspace.name + '?',
+              title: 'Delete Workspace',
+              message: `Are you sure that you want to delete ${workspace.name}?`,
               confirmText: 'Delete',
             })
             .afterClosed()
@@ -526,17 +524,15 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   createDesign(dirId: string) {
-    this.nameDialog('Create New Design?', '', { nameValue: '' }).subscribe(
-      (result) => {
-        if (result) {
-          const newDesign = {
-            directoryId: dirId,
-            name: result[NAME_VALUE],
-          } as Design;
-          this.designService.create(newDesign);
-        }
-      },
-    );
+    this.nameDialog('Add Design', '', { nameValue: '' }).subscribe((result) => {
+      if (result) {
+        const newDesign = {
+          directoryId: dirId,
+          name: result[NAME_VALUE],
+        } as Design;
+        this.designService.create(newDesign);
+      }
+    });
   }
 
   renameDesign(design: Design) {
@@ -553,8 +549,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   deleteDesign(design: Design) {
     this.confirmService
       .confirm({
-        title: 'Delete design?',
-        message: 'Delete design ' + design.name + '?',
+        title: 'Delete Design',
+        message: `Are you sure that you want to delete ${design.name}?`,
         confirmText: 'Delete',
       })
       .afterClosed()
