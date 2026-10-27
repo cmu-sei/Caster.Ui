@@ -9,6 +9,7 @@ import {
   Design,
   DirectoriesService,
   Directory,
+  DiskManifest,
   ImportDirectoryResult,
   ModelFile,
   Workspace,
@@ -401,6 +402,8 @@ describe('DirectoryService', () => {
             _id: string,
             _type?: ArchiveType,
             _ids?: boolean,
+            _settings?: boolean,
+            _diskManifest?: boolean,
             _observe?: 'response',
           ) => of(response),
         ),
@@ -415,9 +418,57 @@ describe('DirectoryService', () => {
         'd1',
         'tgz',
         true,
+        undefined,
+        false,
         'response',
       );
       expect(download).toEqual({ blob: response.body, filename: 'root.tgz' });
+    });
+
+    /**
+     * Verifies: export asks for a disk manifest when told to, and
+     *   getDiskManifest returns the directory's manifest preview.
+     * Interacts with: DirectoriesService.exportDirectory ('response' overload)
+     *   and getDirectoryDiskManifest (stubs).
+     * Data: export d1 as tgz with a disk manifest; a manifest listing one ISO.
+     */
+    it('export() can include a disk manifest, and previews it', async () => {
+      const manifest: DiskManifest = {
+        schemaVersion: 1,
+        disks: [{ kind: 'Iso', name: 'local:iso/kali.iso', referencedBy: [] }],
+        warnings: [],
+      };
+      const directoriesApi = {
+        exportDirectory: vi.fn(
+          (
+            _id: string,
+            _type?: ArchiveType,
+            _ids?: boolean,
+            _settings?: boolean,
+            _diskManifest?: boolean,
+            _observe?: 'response',
+          ) => of(downloadResponse('root.tgz')),
+        ),
+        getDirectoryDiskManifest: vi.fn(() => of(manifest)),
+      } satisfies ApiStub<DirectoriesService>;
+      const { service } = setup(directoriesApi);
+
+      await firstValueFrom(service.export('d1', ArchiveType.Tgz, true, true));
+      expect(directoriesApi.exportDirectory).toHaveBeenCalledWith(
+        'd1',
+        'tgz',
+        true,
+        undefined,
+        true,
+        'response',
+      );
+
+      expect(await firstValueFrom(service.getDiskManifest('d1'))).toBe(
+        manifest,
+      );
+      expect(directoriesApi.getDirectoryDiskManifest).toHaveBeenCalledWith(
+        'd1',
+      );
     });
 
     /**
