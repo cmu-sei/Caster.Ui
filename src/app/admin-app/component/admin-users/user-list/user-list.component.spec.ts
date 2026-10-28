@@ -64,17 +64,17 @@ async function renderUserList(canEdit: boolean, confirmAnswer?: boolean) {
     inputs: { users, isLoading: false, canEdit },
     on: { delete: deleteUser },
   });
-  return { ...view, deleteUser, user: userEvent.setup() };
+  return { ...view, deleteUser, confirm, user: userEvent.setup() };
 }
 
 describe('UserListComponent', () => {
   /**
-   * Verifies: with canEdit, Add User and the role select are enabled, and Delete emits the user id once confirmed.
+   * Verifies: with canEdit, Add User and the role select are enabled, and Delete asks "Delete User" / "Are you sure that you want to delete <name>?" and emits the user id once confirmed.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), the delete output, real RoleService.
    * Data: user Ada; canEdit true.
    */
   it('lets an editor add, re-role and delete users when canEdit is true', async () => {
-    const { deleteUser, user } = await renderUserList(true, true);
+    const { deleteUser, confirm, user } = await renderUserList(true, true);
     const table = screen.getByRole('table');
 
     expect(
@@ -88,6 +88,11 @@ describe('UserListComponent', () => {
       within(table).getByRole('button', { name: 'Delete user Ada' }),
     );
 
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete User',
+      message: 'Are you sure that you want to delete Ada?',
+      confirmText: 'Delete',
+    });
     expect(deleteUser).toHaveBeenCalledWith('u1');
   });
 

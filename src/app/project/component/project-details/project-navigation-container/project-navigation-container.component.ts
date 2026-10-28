@@ -209,7 +209,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
 
   createNewDirectory(dirId?: string) {
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.nameDialog('Create New Directory?', '', { nameValue: '' })
+    this.nameDialog('Add Directory', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
         if (result) {

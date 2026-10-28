@@ -139,8 +139,8 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   deleteModule(module: Module) {
     this.confirmService
       .confirm({
-        title: 'Delete ' + module.name + ' ?',
-        message: module.path,
+        title: 'Delete Module',
+        message: `Are you sure that you want to delete ${module.name}?`,
         confirmText: 'Delete',
       })
       .afterClosed()

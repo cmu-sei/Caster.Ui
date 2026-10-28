@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
+import { Provider } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
   Project,
   ProjectPermission,
@@ -24,6 +26,7 @@ import {
   PermissionGrants,
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectListComponent } from './project-list.component';
 
@@ -32,7 +35,11 @@ const projects: Project[] = [
   { id: 'p2', name: 'Bravo', description: 'second' },
 ];
 
-async function renderProjectList(grants: PermissionGrants, manageMode = false) {
+async function renderProjectList(
+  grants: PermissionGrants,
+  manageMode = false,
+  providers: Provider[] = [],
+) {
   const selectedProjectId = vi.fn<(id: string) => void>();
   const view = await renderComponent(ProjectListComponent, {
     imports: [
@@ -48,7 +55,7 @@ async function renderProjectList(grants: PermissionGrants, manageMode = false) {
       MatProgressSpinnerModule,
       MatDialogModule,
     ],
-    providers: [...permissionDataProviders(grants)],
+    providers: [...permissionDataProviders(grants), ...providers],
     inputs: { projects, isLoading: false, manageMode },
     on: { selectedProjectId },
   });
@@ -161,6 +168,54 @@ describe('ProjectListComponent', () => {
       expect(projectsOffering((p) => `Delete ${p.name}`)).toEqual(expected);
     },
   );
+
+  /**
+   * Verifies: Add New Project opens the name dialog titled "Add Project".
+   * Interacts with: the real MatDialog and NameDialogComponent.
+   * Data: system permission CreateProjects.
+   */
+  it('titles the add dialog Add Project', async () => {
+    const { user } = await renderProjectList({
+      system: [SystemPermission.CreateProjects],
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Add New Project' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Add Project' }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: Delete on a project with no workspaces asks "Delete Project" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false), real DirectoryQuery and WorkspaceQuery (empty).
+   * Data: system permission ManageProjects; Alpha deleted.
+   */
+  it('confirms a delete with the standard wording', async () => {
+    const { dialogRef } = dialogRefStub<unknown, boolean>(false);
+    const confirm = vi.fn(() => dialogRef);
+    const { user } = await renderProjectList(
+      { system: [SystemPermission.ManageProjects] },
+      false,
+      [
+        {
+          provide: CrucibleDialogService,
+          useValue: { confirm } satisfies Pick<
+            CrucibleDialogService,
+            'confirm'
+          >,
+        },
+      ],
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete Alpha' }));
+
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Project',
+      message: 'Are you sure that you want to delete Alpha?',
+      confirmText: 'Delete',
+    });
+  });
 
   /**
    * Verifies: in manage mode clicking a project name selects it instead of navigating.
