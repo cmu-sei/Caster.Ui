@@ -65,7 +65,8 @@ export class PoolListItemComponent implements OnInit {
     this.confirmService
       .confirm({
         title: 'Delete Pool',
-        message: `Are you sure you want to delete ${pool.name}?`,
+        message: `Are you sure that you want to delete ${pool.name}?`,
+        confirmText: 'Delete',
       })
       .afterClosed()
       .subscribe((confirmed) => {

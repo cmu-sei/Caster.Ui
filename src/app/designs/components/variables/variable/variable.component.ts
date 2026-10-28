@@ -194,7 +194,8 @@ export class VariableComponent implements OnInit, OnChanges {
     this.confirmDialogService
       .confirm({
         title: 'Delete Variable',
-        message: `Are you sure you want to delete ${this.variable().name}?`,
+        message: `Are you sure that you want to delete ${this.variable().name}?`,
+        confirmText: 'Delete',
       })
       .afterClosed()
       .pipe(take(1))
