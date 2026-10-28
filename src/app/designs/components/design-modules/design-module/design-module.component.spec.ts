@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -29,29 +29,30 @@ import {
 } from 'src/app/test-utils/unhandled-rx-errors';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignModuleComponent } from './design-module.component';
+import { ModuleOutputsComponent } from 'src/app/designs/components/module-outputs/module-outputs.component';
+import { ModuleVariablesComponent } from 'src/app/editor/component/module-variables/module-variables.component';
 
 @Component({
   selector: 'cas-module-variables',
   template: '',
-  standalone: false,
 })
 class ModuleVariablesStub {
-  @Input() selectedModule: Module;
-  @Input() readOnly: boolean;
-  @Input() values: ModuleValue[];
-  @Input() name: string;
-  @Input() selectedVersionName: string;
-  @Input() variables: Variable[];
-  @Input() outputs: unknown[];
-  @Input() isSaving: boolean;
-  @Input() requireValues: boolean;
-  @Output() variablesSelected = new EventEmitter<ModuleVariablesResult>();
+  readonly selectedModule = input<Module>(undefined);
+  readonly readOnly = input<boolean>(undefined);
+  readonly values = input<ModuleValue[]>(undefined);
+  readonly name = input<string>(undefined);
+  readonly selectedVersionName = input<string>(undefined);
+  readonly variables = input<Variable[]>(undefined);
+  readonly outputs = input<unknown[]>(undefined);
+  readonly isSaving = input<boolean>(undefined);
+  readonly requireValues = input<boolean>(undefined);
+  readonly variablesSelected = output<ModuleVariablesResult>();
 }
 
-@Component({ selector: 'cas-module-outputs', template: '', standalone: false })
+@Component({ selector: 'cas-module-outputs', template: '' })
 class ModuleOutputsStub {
-  @Input() moduleName: string;
-  @Input() outputs: ModuleOutput[];
+  readonly moduleName = input<string>(undefined);
+  readonly outputs = input<ModuleOutput[]>(undefined);
 }
 
 const designModule: DesignModule = {
@@ -83,15 +84,18 @@ async function renderDesignModule(
       of<DesignModule>({ ...designModule, enabled: false }),
     ),
     addOrUpdateValuesDesignModule: vi.fn(saveValues),
-    editDesignModule: vi.fn(
-      (_id: string, _command?: EditDesignModuleCommand) => saveEdit(),
+    editDesignModule: vi.fn((_id: string, _command?: EditDesignModuleCommand) =>
+      saveEdit(),
     ),
   } satisfies ApiStub<DesignsModulesService>;
   const modulesApi = {
     getModule: vi.fn((_id: string) => of<Module>(structuredClone(module))),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(DesignModuleComponent, {
-    declarations: [ModuleVariablesStub, ModuleOutputsStub],
+    childStubs: [
+      { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
+      { replace: ModuleOutputsComponent, with: ModuleOutputsStub },
+    ],
     imports: [MatCardModule, MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [
       { provide: DesignsModulesService, useValue: designModulesApi },
@@ -125,8 +129,8 @@ describe('DesignModuleComponent', () => {
     expect(designModulesApi.disableDesignModule).toHaveBeenCalledWith('dm1');
 
     await user.click(screen.getByRole('button', { name: 'Edit' }));
-    expect(variablesEditor()?.readOnly).toBe(false);
-    expect(variablesEditor()?.requireValues).toBe(true);
+    expect(variablesEditor()?.readOnly()).toBe(false);
+    expect(variablesEditor()?.requireValues()).toBe(true);
   });
 
   /**
@@ -159,7 +163,7 @@ describe('DesignModuleComponent', () => {
     expect(screen.getByRole('button', { name: 'Disable' })).toBeDisabled();
 
     await user.click(screen.getByRole('button', { name: 'Edit' }));
-    expect(variablesEditor()?.readOnly).toBe(true);
+    expect(variablesEditor()?.readOnly()).toBe(true);
   });
 
   /**
@@ -177,8 +181,8 @@ describe('DesignModuleComponent', () => {
     const outputs: ModuleOutputsStub = fixture.debugElement.query(
       By.directive(ModuleOutputsStub),
     ).componentInstance;
-    expect(outputs.moduleName).toBe('web');
-    expect(outputs.outputs).toEqual([]);
+    expect(outputs.moduleName()).toBe('web');
+    expect(outputs.outputs()).toEqual([]);
   });
 
   /**
@@ -205,17 +209,18 @@ describe('DesignModuleComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(
-      designModulesApi.addOrUpdateValuesDesignModule,
-    ).toHaveBeenCalledWith('dm1', { values: [{ name: 'size', value: 'large' }] });
-    expect(variablesEditor()?.isSaving).toBe(true);
+    expect(designModulesApi.addOrUpdateValuesDesignModule).toHaveBeenCalledWith(
+      'dm1',
+      { values: [{ name: 'size', value: 'large' }] },
+    );
+    expect(variablesEditor()?.isSaving()).toBe(true);
 
     const failure = new Error('500');
     request.error(failure);
     await flush();
     fixture.detectChanges();
 
-    expect(variablesEditor()?.isSaving).toBe(false);
+    expect(variablesEditor()?.isSaving()).toBe(false);
     // Escapes to the app's ErrorHandler (ErrorService), which shows it.
     expect(errors).toEqual([failure]);
   });
@@ -261,13 +266,13 @@ describe('DesignModuleComponent', () => {
       expect(
         designModulesApi.addOrUpdateValuesDesignModule,
       ).not.toHaveBeenCalled();
-      expect(variablesEditor()?.isSaving).toBe(true);
+      expect(variablesEditor()?.isSaving()).toBe(true);
 
       request.next({ ...designModule, name: moduleName });
       request.complete();
       fixture.detectChanges();
 
-      expect(variablesEditor()?.isSaving).toBe(false);
+      expect(variablesEditor()?.isSaving()).toBe(false);
     },
   );
 });

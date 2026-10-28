@@ -7,8 +7,9 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
   OnChanges,
+  inject,
+  input,
 } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
@@ -25,23 +26,54 @@ import {
 } from 'src/app/generated/caster-api/model/models';
 import { ModuleService } from 'src/app/modules/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardSubtitle,
+  MatCardActions,
+  MatCardContent,
+} from '@angular/material/card';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ModuleVariablesComponent } from '../../../../editor/component/module-variables/module-variables.component';
+import { ModuleOutputsComponent } from '../../module-outputs/module-outputs.component';
 
 @Component({
-    selector: 'cas-design-module',
-    templateUrl: './design-module.component.html',
-    styleUrls: ['./design-module.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-design-module',
+  templateUrl: './design-module.component.html',
+  styleUrls: ['./design-module.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatCard,
+    NgClass,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardActions,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    MatCardContent,
+    ModuleVariablesComponent,
+    ModuleOutputsComponent,
+    AsyncPipe,
+  ],
 })
 export class DesignModuleComponent implements OnInit, OnChanges {
-  @Input()
-  public designModule: DesignModule;
+  private confirmationService = inject(CrucibleDialogService);
+  private designModuleService = inject(DesignModuleService);
+  private moduleService = inject(ModuleService);
+  private variableQuery = inject(VariablesQuery);
+  private designModuleQuery = inject(DesignModuleQuery);
 
-  @Input()
-  public module: Module;
+  public readonly designModule = input<DesignModule>(undefined);
 
-  @Input()
-  canEdit: boolean;
+  public readonly module = input<Module>(undefined);
+
+  readonly canEdit = input<boolean>(undefined);
 
   public isEditing = false;
   public showOutputs = false;
@@ -67,33 +99,22 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     this.savingSubject.next(val);
   }
 
-  constructor(
-    private confirmationService: CrucibleDialogService,
-    private designModuleService: DesignModuleService,
-    private moduleService: ModuleService,
-    private variableQuery: VariablesQuery,
-    private designModuleQuery: DesignModuleQuery
-  ) {}
-
   ngOnInit(): void {
     this.variables$ = this.variableQuery.selectByDesignId(
-      this.designModule.designId
+      this.designModule().designId,
     );
 
     this.designOutputs$ = this.designModuleQuery.getOutputsByDesignId(
-      this.designModule.designId,
-      this.designModule.id
+      this.designModule().designId,
+      this.designModule().id,
     );
   }
 
   ngOnChanges() {
-    if (
-      this.module &&
-      this.module.versions &&
-      this.designModule.moduleVersion
-    ) {
-      const version = this.module.versions.find(
-        (x) => x.name == this.designModule.moduleVersion
+    const module = this.module();
+    if (module && module.versions && this.designModule().moduleVersion) {
+      const version = module.versions.find(
+        (x) => x.name == this.designModule().moduleVersion,
       );
 
       if (version) {
@@ -106,13 +127,13 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     this.confirmationService
       .confirm({
         title: 'Delete Module',
-        message: `Are you sure you want to delete ${this.designModule.name}?`,
+        message: `Are you sure you want to delete ${this.designModule().name}?`,
       })
       .afterClosed()
       .pipe(take(1))
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.designModuleService.delete(this.designModule.id).subscribe();
+          this.designModuleService.delete(this.designModule().id).subscribe();
         }
       });
   }
@@ -124,13 +145,15 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     if (this.isEditing) {
       // wait on first load, otherwise refresh in background
       // in case signalR missed an update
-      if (!this.designModule.values || !this.module.versions) {
+      const designModule = this.designModule();
+      const module = this.module();
+      if (!designModule.values || !module.versions) {
         this.loading = true;
       }
 
       forkJoin({
-        designModule: this.designModuleService.load(this.designModule.id),
-        module: this.moduleService.loadModuleById(this.module.id),
+        designModule: this.designModuleService.load(designModule.id),
+        module: this.moduleService.loadModuleById(module.id),
       }).subscribe(() => {
         this.loading = false;
       });
@@ -143,14 +166,14 @@ export class DesignModuleComponent implements OnInit, OnChanges {
 
     if (this.showOutputs) {
       this.loading = true;
-      this.moduleService.loadModuleById(this.module.id).subscribe(() => {
+      this.moduleService.loadModuleById(this.module().id).subscribe(() => {
         this.loading = false;
       });
     }
   }
 
   toggleEnabled() {
-    this.designModuleService.toggleEnabled(this.designModule);
+    this.designModuleService.toggleEnabled(this.designModule());
   }
 
   onEditComplete(event: ModuleVariablesResult) {
@@ -162,30 +185,28 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     let apiCall: Observable<DesignModule>;
 
     const changedValues = event.variableValues.filter((x) =>
-      event.changedVariables.includes(x.name)
+      event.changedVariables.includes(x.name),
     );
 
     // edit the designModule if any of it's properties changed
+    const designModule = this.designModule();
     if (
-      event.moduleName != this.designModule.name ||
-      event.versionName != this.designModule.moduleVersion
+      event.moduleName != designModule.name ||
+      event.versionName != designModule.moduleVersion
     ) {
       const command = {
-        moduleId: this.module.id,
+        moduleId: this.module().id,
         moduleVersion: event.versionName,
         name: event.moduleName,
         values: changedValues,
       } as EditDesignModuleCommand;
 
-      apiCall = this.designModuleService.edit(this.designModule.id, command);
+      apiCall = this.designModuleService.edit(designModule.id, command);
     } else if (event.changedVariables.length > 0) {
       // only update the designModule's variable values
-      apiCall = this.designModuleService.addOrUpdateValues(
-        this.designModule.id,
-        {
-          values: changedValues,
-        }
-      );
+      apiCall = this.designModuleService.addOrUpdateValues(designModule.id, {
+        values: changedValues,
+      });
     }
 
     if (apiCall) {

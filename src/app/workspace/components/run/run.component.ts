@@ -6,33 +6,40 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
-  Input,
   NgZone,
   OnChanges,
   OnDestroy,
-  Output,
-  ViewChild,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { ISubscription } from '@microsoft/signalr';
 import { Run, RunStatus } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ITerminalOptions, Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
+import { CdkDrag } from '@angular/cdk/drag-drop';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton } from '@angular/material/button';
 
 @Component({
   selector: 'cas-run',
   templateUrl: './run.component.html',
   styleUrls: ['./run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [CdkDrag, MatIcon, MatTooltip, MatIconButton],
 })
 export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
-  @Input() run: Run;
-  @Input() loading: boolean;
-  @Output() planOutput = new EventEmitter<string>();
-  @Output() applyOutput = new EventEmitter<string>();
+  private signalRService = inject(SignalRService);
+  private ngZone = inject(NgZone);
+
+  readonly run = input<Run>(undefined);
+  readonly loading = input<boolean>(undefined);
+  readonly planOutput = output<string>();
+  readonly applyOutput = output<string>();
 
   output = '';
   streamSub: ISubscription<any>;
@@ -44,8 +51,8 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private preventScroll = false;
 
-  @ViewChild('xterm') eleXterm: ElementRef;
-  @ViewChild('dragHandleBottom') dragHandleBottom: ElementRef;
+  readonly eleXterm = viewChild<ElementRef>('xterm');
+  readonly dragHandleBottom = viewChild<ElementRef>('dragHandleBottom');
 
   // there is no infinite scrolling for xterm.  Set number of lines to very large number!
   xtermOptions: ITerminalOptions = {
@@ -55,7 +62,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   xterm: Terminal = new Terminal(this.xtermOptions);
   fitAddon: FitAddon = new FitAddon();
 
-  constructor(private signalRService: SignalRService, private ngZone: NgZone) {
+  constructor() {
     window.addEventListener('wheel', this.scroll, { passive: false });
   }
 
@@ -78,7 +85,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   openTerminal() {
     this.xterm.loadAddon(this.fitAddon);
-    this.xterm.open(this.eleXterm.nativeElement);
+    this.xterm.open(this.eleXterm().nativeElement);
     this.fitAddon.fit();
   }
 
@@ -90,26 +97,29 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.disposeStream();
     this.resetOutput();
 
-    if (this.run.applyId !== null) {
+    const run = this.run();
+    if (run.applyId !== null) {
       this.isApply = true;
 
-      if (this.run.apply != null) {
-        this.addOutput(this.run.apply.output);
+      if (run.apply != null) {
+        this.addOutput(run.apply.output);
         return;
       } else {
         this.signalRService.startConnection().then(() => {
-          this.stream(this.signalRService.streamApplyOutput(this.run.applyId));
+          this.stream(
+            this.signalRService.streamApplyOutput(this.run().applyId),
+          );
         });
       }
-    } else if (this.run.planId !== null) {
+    } else if (run.planId !== null) {
       this.isPlan = true;
 
-      if (this.run.plan != null) {
-        this.addOutput(this.run.plan.output);
+      if (run.plan != null) {
+        this.addOutput(run.plan.output);
         return;
       } else {
         this.signalRService.startConnection().then(() => {
-          this.stream(this.signalRService.streamPlanOutput(this.run.planId));
+          this.stream(this.signalRService.streamPlanOutput(this.run().planId));
         });
       }
     }
@@ -149,23 +159,29 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private setStatus() {
-    this.status = this.run.status == null ? null : this.run.status;
+    const run = this.run();
+    this.status = run.status == null ? null : run.status;
   }
 
   private shouldStartStream(): boolean {
-    if (this.run == null) {
+    const run = this.run();
+    if (run == null) {
       return false;
-    } else if (this.status == null && this.run.status !== RunStatus.Queued && this.run.status !== RunStatus.ApplyQueued) {
+    } else if (
+      this.status == null &&
+      run.status !== RunStatus.Queued &&
+      run.status !== RunStatus.ApplyQueued
+    ) {
       // if we haven't started streaming yet and there is something to stream, start stream
       this.setStatus();
       return true;
-    } else if (this.status === this.run.status) {
+    } else if (this.status === run.status) {
       // if status has not changed, don't restart stream
       this.setStatus();
       return false;
     }
 
-    switch (this.run.status) {
+    switch (run.status) {
       case RunStatus.Planning: {
         this.setStatus();
         return true;
@@ -215,7 +231,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   fullscreen() {
-    const elem = this.eleXterm.nativeElement;
+    const elem = this.eleXterm().nativeElement;
 
     // save current height to restore after fullscreen
     this.height = elem.offsetHeight;
@@ -244,21 +260,21 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
   fullscreenmode() {
     // return to previous height when exiting fullscreen
     if (document.fullscreenElement == null) {
-      this.eleXterm.nativeElement.style.height = this.height + 'px';
+      this.eleXterm().nativeElement.style.height = this.height + 'px';
       this.setAllHandleTransform();
       this.fitAddon.fit();
     }
   }
 
   setAllHandleTransform() {
-    const rect = this.eleXterm.nativeElement.getBoundingClientRect();
-    this.setHandleTransform(this.dragHandleBottom.nativeElement, rect, 'y');
+    const rect = this.eleXterm().nativeElement.getBoundingClientRect();
+    this.setHandleTransform(this.dragHandleBottom().nativeElement, rect, 'y');
   }
 
   setHandleTransform(
     dragHandle: HTMLElement,
     targetRect: ClientRect | DOMRect,
-    position: 'x' | 'y' | 'both'
+    position: 'x' | 'y' | 'both',
   ) {
     const dragRect = dragHandle.getBoundingClientRect();
     const translateX = targetRect.width - dragRect.width;
@@ -279,7 +295,7 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   dragMove(dragHandle: HTMLElement) {
     this.ngZone.runOutsideAngular(() => {
-      this.resize(dragHandle, this.eleXterm.nativeElement);
+      this.resize(dragHandle, this.eleXterm().nativeElement);
     });
 
     this.fitAddon.fit();

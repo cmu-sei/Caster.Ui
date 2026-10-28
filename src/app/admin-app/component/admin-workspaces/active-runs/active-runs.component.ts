@@ -5,26 +5,37 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
 } from '@angular/core';
 import { Run } from 'src/app/generated/caster-api';
+import { CwdTableComponent } from '../../../../sei-cwd-common/cwd-table/components/cwd-table/cwd-table.component';
+import { TableItemContentDirective } from '../../../../sei-cwd-common/cwd-table/directives/table-item-content.directive';
+import { RunComponent } from '../../../../workspace/components/run/run.component';
 
 @Component({
-    selector: 'cas-active-runs',
-    templateUrl: './active-runs.component.html',
-    styleUrls: ['./active-runs.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-active-runs',
+  templateUrl: './active-runs.component.html',
+  styleUrls: ['./active-runs.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CwdTableComponent, TableItemContentDirective, RunComponent],
 })
 export class ActiveRunsComponent implements OnInit {
-  @Input() runs: Run[];
-  @Input() expandedRuns: string[];
+  readonly runs = input<Run[]>(undefined);
+  readonly expandedRuns = input<string[]>(undefined);
 
-  @Output() expandRun = new EventEmitter<{ expand: boolean; item: Run }>();
-  @Output() planUpdated = new EventEmitter<{ output: string; item: Run }>();
-  @Output() applyUpdated = new EventEmitter<{ output: string; item: Run }>();
+  readonly expandRun = output<{
+    expand: boolean;
+    item: Run;
+  }>();
+  readonly planUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
+  readonly applyUpdated = output<{
+    output: string;
+    item: Run;
+  }>();
 
   constructor() {}
 

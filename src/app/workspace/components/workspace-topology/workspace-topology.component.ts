@@ -7,12 +7,21 @@ import {
   Component,
   ElementRef,
   HostListener,
-  Input,
   NgZone,
   OnDestroy,
   OnInit,
-  ViewChild,
+  inject,
+  input,
+  viewChild,
 } from '@angular/core';
+import { DatePipe, KeyValuePipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatOption } from '@angular/material/core';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSelect } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ComnAuthQuery, CrucibleDialogService } from '@cmusei/crucible-common';
 import type {
@@ -99,15 +108,26 @@ const PENDING: RunStatus[] = [
   templateUrl: './workspace-topology.component.html',
   styleUrls: ['./workspace-topology.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  imports: [
+    DatePipe,
+    KeyValuePipe,
+    MatFormField,
+    MatIcon,
+    MatIconButton,
+    MatLabel,
+    MatOption,
+    MatProgressSpinner,
+    MatSelect,
+    MatTooltip,
+  ],
 })
 export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
-  @Input() workspaceId: string;
+  readonly workspaceId = input<string>(undefined);
   /** Whether the reader may save the layout and roles; anyone can still drag nodes about. */
-  @Input() canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
 
-  @ViewChild('graph', { static: true }) graph: ElementRef<HTMLElement>;
-  @ViewChild('root', { static: true }) root: ElementRef<HTMLElement>;
+  readonly graph = viewChild.required<ElementRef<HTMLElement>>('graph');
+  readonly root = viewChild.required<ElementRef<HTMLElement>>('root');
 
   topology: WorkspaceTopology;
   selected: TopologyNode;
@@ -128,16 +148,14 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   private save$ = new Subject<void>();
   private unsubscribe$ = new Subject<void>();
 
-  constructor(
-    private workspacesService: WorkspacesService,
-    private workspaceQuery: WorkspaceQuery,
-    private authQuery: ComnAuthQuery,
-    private changeDetector: ChangeDetectorRef,
-    private zone: NgZone,
-    private host: ElementRef<HTMLElement>,
-    private snackBar: MatSnackBar,
-    private dialogService: CrucibleDialogService
-  ) {}
+  private workspacesService = inject(WorkspacesService);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private authQuery = inject(ComnAuthQuery);
+  private changeDetector = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private snackBar = inject(MatSnackBar);
+  private dialogService = inject(CrucibleDialogService);
 
   ngOnInit() {
     // A run that finishes planning has a new topology, and one that is
@@ -145,7 +163,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     // run's status changes rather than on every output line. Unfiltered, so
     // hiding statuses in the Runs view cannot hide the plan's run.
     const runsChanged$ = this.workspaceQuery
-      .selectEntity(this.workspaceId, (w) => w.runs)
+      .selectEntity(this.workspaceId(), (w) => w.runs)
       .pipe(
         // undefined until the workspace's runs have loaded
         map((runs) => (this.runs = runs ?? [])),
@@ -158,7 +176,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     merge([null], runsChanged$)
       .pipe(
         switchMap(() =>
-          this.workspacesService.getWorkspaceTopology(this.workspaceId)
+          this.workspacesService.getWorkspaceTopology(this.workspaceId())
         ),
         takeUntil(this.unsubscribe$)
       )
@@ -283,7 +301,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       document.exitFullscreen();
       return;
     }
-    this.root.nativeElement
+    this.root().nativeElement
       .requestFullscreen()
       .catch((err) =>
         this.snackBar.open(`Could not go full screen: ${err?.message ?? err}`, 'Dismiss')
@@ -293,7 +311,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   /** Esc leaves full screen without the button, so follow the document rather than the toggle. */
   @HostListener('document:fullscreenchange')
   onFullscreenChange() {
-    this.isFullscreen = document.fullscreenElement === this.root.nativeElement;
+    this.isFullscreen = document.fullscreenElement === this.root().nativeElement;
     this.changeDetector.markForCheck();
     // Cytoscape only notices the window resizing, not its container.
     requestAnimationFrame(() => {
@@ -375,7 +393,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   private fileName(): string {
-    const name = this.workspaceQuery.getEntity(this.workspaceId)?.name;
+    const name = this.workspaceQuery.getEntity(this.workspaceId())?.name;
     return `${name ?? 'workspace'}-topology`;
   }
 
@@ -475,7 +493,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
     this.zone.runOutsideAngular(() => {
       this.cy = cytoscape({
-        container: this.graph.nativeElement,
+        container: this.graph().nativeElement,
         elements,
         // Otherwise cytoscape lays them out in a grid, over the saved
         // positions; layout() below places what has none.
@@ -641,7 +659,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   /** Nodes someone dragged: keep where they are now, and save it if they may. */
   private moved(ids: string[]) {
-    if (!this.canEdit) {
+    if (!this.canEdit()) {
       return;
     }
     const [kx, ky] = POSITION_KEYS[this.layoutStyle];
@@ -688,7 +706,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     this.unsaved.clear();
 
     this.workspacesService
-      .editWorkspaceTopologyLayout(this.workspaceId, { nodes })
+      .editWorkspaceTopologyLayout(this.workspaceId(), { nodes })
       .subscribe({
         error: (err) =>
           this.snackBar.open(

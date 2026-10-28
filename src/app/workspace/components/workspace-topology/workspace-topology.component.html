@@ -65,7 +65,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [fontIcon]="layoutStyle === 'tree' ? 'mdi-graph-outline' : 'mdi-file-tree-outline'"
       ></mat-icon>
     </button>
-    @if (canEdit) {
+    @if (canEdit()) {
     <button
       mat-icon-button
       [matTooltip]="'Reset ' + layoutName + ' layout'"
@@ -144,7 +144,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-label>Role</mat-label>
         <mat-select
           [value]="roleOf(selected)"
-          [disabled]="!canEdit"
+          [disabled]="!canEdit()"
           (selectionChange)="setRole(selected, $event.value)"
         >
           <mat-option [value]="null">None</mat-option>

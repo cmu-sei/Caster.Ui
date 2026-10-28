@@ -4,31 +4,64 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnInit,
-  Output,
   TemplateRef,
-  ViewChild,
   ViewEncapsulation,
+  inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { CreateSnippetCommand, Module } from '../../../generated/caster-api';
 import { ModuleVariablesComponent } from '../module-variables/module-variables.component';
+import {
+  MatCard,
+  MatCardHeader,
+  MatCardTitle,
+  MatCardContent,
+} from '@angular/material/card';
+import {
+  MatFormField,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
-    selector: 'cas-module-list',
-    templateUrl: './module-list.component.html',
-    styleUrls: ['./module-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    encapsulation: ViewEncapsulation.None,
-    standalone: false
+  selector: 'cas-module-list',
+  templateUrl: './module-list.component.html',
+  styleUrls: ['./module-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  imports: [
+    MatCard,
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatIconButton,
+    MatSuffix,
+    MatTooltip,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    ModuleVariablesComponent,
+  ],
 })
 export class ModuleListComponent implements OnInit {
+  dialog = inject(MatDialog);
+
   @Input() set modules(val: Module[]) {
     this._modules = val.filter((x) =>
-      x.versionsCount != null ? x.versionsCount > 0 : true
+      x.versionsCount != null ? x.versionsCount > 0 : true,
     );
     this.updateDataSource();
   }
@@ -37,12 +70,13 @@ export class ModuleListComponent implements OnInit {
     this._selectedModule = val;
     this.updateSelected();
   }
-  @Input() isEditing: boolean;
+  readonly isEditing = input<boolean>(undefined);
 
-  @Output()
-  insertModule: EventEmitter<CreateSnippetCommand> = new EventEmitter<CreateSnippetCommand>();
-  @Output() getModule: EventEmitter<{ id: string; name: string }> =
-    new EventEmitter();
+  readonly insertModule = output<CreateSnippetCommand>();
+  readonly getModule = output<{
+    id: string;
+    name: string;
+  }>();
   private _modules: Module[];
   _selectedModule: Module;
   code: string;
@@ -52,10 +86,8 @@ export class ModuleListComponent implements OnInit {
   variablesDialogRef: MatDialogRef<ModuleVariablesComponent>;
   initialized = false;
 
-  @ViewChild('variablesDialog')
-  variablesTemplate: TemplateRef<ModuleVariablesComponent>;
-
-  constructor(public dialog: MatDialog) {}
+  readonly variablesTemplate =
+    viewChild<TemplateRef<ModuleVariablesComponent>>('variablesDialog');
 
   ngOnInit(): void {
     this.dataSource.data = this._modules;
@@ -103,7 +135,7 @@ export class ModuleListComponent implements OnInit {
       this._selectedModule.versions.length > 0
     ) {
       this.isDialogOpen = true;
-      this.variablesDialogRef = this.dialog.open(this.variablesTemplate, {
+      this.variablesDialogRef = this.dialog.open(this.variablesTemplate(), {
         minWidth: '400px',
         maxWidth: '90vw',
       });

@@ -9,7 +9,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <h3
         class="disabled"
         matTooltip="This Design will not be included in a Workspace until it is enabled"
-        >
+      >
         Disabled
       </h3>
     }
@@ -38,7 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-expansion-panel-header>
 
     <ng-template matExpansionPanelContent>
-      <cas-variables [designId]="designId" [canEdit]="canEdit"></cas-variables>
+      <cas-variables [designId]="designId()" [canEdit]="canEdit()" />
     </ng-template>
   </mat-expansion-panel>
 
@@ -50,9 +50,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </mat-panel-description>
     </mat-expansion-panel-header>
 
-    <cas-design-modules
-      [designId]="designId"
-      [canEdit]="canEdit"
-    ></cas-design-modules>
+    <cas-design-modules [designId]="designId()" [canEdit]="canEdit()" />
   </mat-expansion-panel>
 </div>

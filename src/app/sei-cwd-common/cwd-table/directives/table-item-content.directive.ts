@@ -3,10 +3,7 @@
 
 import { Directive } from '@angular/core';
 
-@Directive({
-    selector: '[cwdTableItemContent]',
-    standalone: false
-})
+@Directive({ selector: '[cwdTableItemContent]' })
 export class TableItemContentDirective {
   constructor() {}
 }

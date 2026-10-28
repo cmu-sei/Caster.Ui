@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -18,18 +18,20 @@ import {
 } from 'src/app/test-utils/unhandled-rx-errors';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { ProjectListContainerComponent } from './project-list-container.component';
+import { ProjectListComponent } from 'src/app/project/component/project-home/project-list/project-list.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
 }
 
-@Component({ selector: 'cas-project-list', template: '', standalone: false })
+@Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
-  @Input() projects: Project[];
-  @Input() isLoading: boolean;
+  readonly projects = input<Project[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
 }
 
 async function renderProjectContainer(
@@ -52,7 +54,10 @@ async function renderProjectContainer(
     ...authOverrides,
   } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
   const view = await renderComponent(ProjectListContainerComponent, {
-    declarations: [TopbarStub, ProjectListStub],
+    childStubs: [
+      { replace: TopbarComponent, with: TopbarStub },
+      { replace: ProjectListComponent, with: ProjectListStub },
+    ],
     providers: [
       { provide: ProjectsService, useValue: projectsApi },
       { provide: ComnAuthService, useValue: auth },
@@ -92,7 +97,7 @@ describe('ProjectListContainerComponent', () => {
     const list: ProjectListStub = fixture.debugElement.query(
       By.directive(ProjectListStub),
     ).componentInstance;
-    expect(list.projects.map((p) => p.id)).toEqual(['p1']);
+    expect(list.projects().map((p) => p.id)).toEqual(['p1']);
     expect(TestBed.inject(CurrentUserQuery).getValue()).toMatchObject({
       id: 'u1',
       name: 'Ada',

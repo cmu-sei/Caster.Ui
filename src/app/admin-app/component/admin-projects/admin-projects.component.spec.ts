@@ -2,31 +2,32 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Project, ProjectsService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminProjectsComponent } from './admin-projects.component';
+import { ProjectListComponent } from 'src/app/project/component/project-home/project-list/project-list.component';
+import { ProjectMembershipsComponent } from 'src/app/project/component/project-memberships/project-memberships/project-memberships.component';
 
-@Component({ selector: 'cas-project-list', template: '', standalone: false })
+@Component({ selector: 'cas-project-list', template: '' })
 class ProjectListStub {
-  @Input() projects: Project[];
-  @Input() isLoading: boolean;
-  @Input() manageMode: boolean;
-  @Output() selectedProjectId = new EventEmitter<string>();
+  readonly projects = input<Project[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly manageMode = input<boolean>(undefined);
+  readonly selectedProjectId = output<string>();
 }
 
 @Component({
   selector: 'cas-project-memberships',
   template: '',
-  standalone: false,
 })
 class ProjectMembershipsStub {
-  @Input() projectId: string;
-  @Input() embedded: boolean;
-  @Output() goBack = new EventEmitter<void>();
+  readonly projectId = input<string>(undefined);
+  readonly embedded = input<boolean>(undefined);
+  readonly goBack = output<void>();
 }
 
 async function renderAdminProjects() {
@@ -36,7 +37,10 @@ async function renderAdminProjects() {
     ),
   } satisfies ApiStub<ProjectsService>;
   const view = await renderComponent(AdminProjectsComponent, {
-    declarations: [ProjectListStub, ProjectMembershipsStub],
+    childStubs: [
+      { replace: ProjectListComponent, with: ProjectListStub },
+      { replace: ProjectMembershipsComponent, with: ProjectMembershipsStub },
+    ],
     providers: [{ provide: ProjectsService, useValue: projectsApi }],
   });
   return { ...view, projectsApi };
@@ -55,8 +59,8 @@ describe('AdminProjectsComponent', () => {
       By.directive(ProjectListStub),
     ).componentInstance;
     expect(projectsApi.getAllProjects).toHaveBeenCalledWith(false);
-    expect(list.manageMode).toBe(true);
-    expect(list.projects.map((p) => p.id)).toEqual(['p1']);
+    expect(list.manageMode()).toBe(true);
+    expect(list.projects().map((p) => p.id)).toEqual(['p1']);
   });
 
   /**
@@ -75,8 +79,8 @@ describe('AdminProjectsComponent', () => {
     const memberships: ProjectMembershipsStub = fixture.debugElement.query(
       By.directive(ProjectMembershipsStub),
     ).componentInstance;
-    expect(memberships.projectId).toBe('p1');
-    expect(memberships.embedded).toBe(true);
+    expect(memberships.projectId()).toBe('p1');
+    expect(memberships.embedded()).toBe(true);
     expect(
       fixture.debugElement.query(By.directive(ProjectListStub)),
     ).toBeNull();

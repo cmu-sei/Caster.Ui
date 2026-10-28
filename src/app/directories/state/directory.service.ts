@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DesignService } from 'src/app/designs/state/design.service';
@@ -26,14 +26,12 @@ import { DirectoryStore } from './directory.store';
   providedIn: 'root',
 })
 export class DirectoryService {
-  constructor(
-    private directoryStore: DirectoryStore,
-    private directoryQuery: DirectoryQuery,
-    private directoriesService: DirectoriesService,
-    private fileService: FileService,
-    private workspaceService: WorkspaceService,
-    private designService: DesignService
-  ) {}
+  private directoryStore = inject(DirectoryStore);
+  private directoryQuery = inject(DirectoryQuery);
+  private directoriesService = inject(DirectoriesService);
+  private fileService = inject(FileService);
+  private workspaceService = inject(WorkspaceService);
+  private designService = inject(DesignService);
 
   loadDirectories(projectId: string): Observable<Directory[]> {
     return this.directoriesService
@@ -58,7 +56,7 @@ export class DirectoryService {
           this.fileService.filesUpdated(files);
           this.workspaceService.setWorkspaces(workspaces);
           this.designService.setDesigns(designs);
-        })
+        }),
       );
   }
 
@@ -90,7 +88,7 @@ export class DirectoryService {
     return this.directoriesService.deleteDirectory(dirId).pipe(
       tap(() => {
         this.deleted(dirId);
-      })
+      }),
     );
   }
 
@@ -107,6 +105,22 @@ export class DirectoryService {
     this.directoryStore.ui.upsert(directoryUI.id, (d) => ({
       isExpanded: isUpdate<DirectoryUI>(d) ? !d.isExpanded : undefined,
     }));
+  }
+
+  // expands a directory and every directory above it, so the directory shows in the project tree
+  expandTo(directoryId: string) {
+    let directory = this.directoryQuery.getEntity(directoryId);
+    let isTarget = true;
+    while (directory) {
+      this.directoryStore.ui.upsert(
+        directory.id,
+        isTarget
+          ? { isExpanded: true, isWorkspacesExpanded: true }
+          : { isExpanded: true, isDirectoriesExpanded: true }
+      );
+      isTarget = false;
+      directory = this.directoryQuery.getEntity(directory.parentId);
+    }
   }
 
   toggleIsFilesExpanded(directoryUI: DirectoryUI) {
@@ -144,7 +158,7 @@ export class DirectoryService {
   export(
     id: string,
     archiveType: ArchiveType,
-    includeIds: boolean
+    includeIds: boolean,
   ): Observable<FileDownload> {
     return this.directoriesService
       .exportDirectory(id, archiveType, includeIds, 'response')
@@ -154,7 +168,7 @@ export class DirectoryService {
             blob: response.body,
             filename: HttpHeaderUtils.getFilename(response.headers),
           };
-        })
+        }),
       );
   }
 
