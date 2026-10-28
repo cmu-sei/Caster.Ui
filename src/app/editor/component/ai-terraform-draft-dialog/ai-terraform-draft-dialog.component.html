@@ -1,0 +1,95 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="data.fileName ? 'Edit ' + data.fileName + ' with AI' : 'Draft Terraform with AI'"
+  [submitLabel]="submitLabel"
+  [loadingLabel]="step === 'prompt' ? 'Drafting the Terraform...' : 'Saving the files...'"
+  [submitDisabled]="submitDisabled"
+  [loading]="loading"
+  [errorMessage]="errorMessage"
+  [guardUnsavedWork]="true"
+  (submit)="submit()"
+  (cancel)="close()"
+>
+  <div crucibleDialogContent>
+    @if (step === 'prompt') {
+      <p class="hint">
+        @if (data.fileName) {
+          Say what to change in {{ data.fileName }}. The draft can also add or change other files in
+          {{ data.directoryName }} when the change needs them.
+        } @else {
+          Describe the Terraform {{ data.directoryName }} needs. The draft sees this directory's files, its parents'
+          files and Designs, and the module catalog.
+        }
+        Nothing is saved until you review the files and select Apply.
+      </p>
+      <mat-form-field class="full-width">
+        <mat-label>{{ data.fileName ? 'What should change?' : 'Describe the infrastructure' }}</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="prompt"
+          rows="6"
+          [disabled]="loading"
+          placeholder="e.g. Add a Kali attacker VM on the red network, and a variable for its template"
+        ></textarea>
+      </mat-form-field>
+    } @else {
+      <div class="review-header">
+        @if (draft.summary) {
+          <p class="summary">{{ draft.summary }}</p>
+        }
+        <button matButton type="button" (click)="startOver()" [disabled]="loading">Edit description</button>
+      </div>
+      @if (draft.warnings?.length) {
+        <ul class="warnings" aria-label="Check before applying">
+          @for (warning of draft.warnings; track $index) {
+            <li>
+              <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline"></mat-icon>
+              <span>{{ warning }}</span>
+            </li>
+          }
+        </ul>
+      }
+      @for (row of rows; track row.file.name) {
+        <mat-expansion-panel class="file" [expanded]="rows.length === 1">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-checkbox
+                [checked]="row.keep"
+                (change)="row.keep = $event.checked"
+                (click)="$event.stopPropagation()"
+                [aria-label]="'Keep ' + row.file.name"
+              ></mat-checkbox>
+              <span class="file-name">{{ row.file.name }}</span>
+              <span class="file-kind">{{ row.file.existingFileId ? 'Replaces' : 'New' }}</span>
+              @if (row.file.purpose) {
+                <span class="file-purpose">{{ row.file.purpose }}</span>
+              }
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <ng-template matExpansionPanelContent></ng-template>
+          <div class="code">
+            @if (row.file.existingFileId) {
+              <ngx-monaco-diff-editor
+                [options]="editorOptions"
+                [originalModel]="{ code: row.file.existingContent ?? '', language: language(row.file.name) }"
+                [modifiedModel]="{ code: row.file.content ?? '', language: language(row.file.name) }"
+              />
+            } @else {
+              <ngx-monaco-editor
+                [options]="editorOptions"
+                [model]="{ value: row.file.content ?? '', language: language(row.file.name) }"
+              />
+            }
+          </div>
+        </mat-expansion-panel>
+      }
+      @if (!rows.length) {
+        <p>The draft changes no files.</p>
+      }
+    }
+  </div>
+</crucible-dialog>

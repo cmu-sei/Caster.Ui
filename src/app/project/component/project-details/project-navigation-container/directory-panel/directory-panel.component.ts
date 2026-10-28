@@ -48,6 +48,10 @@ import { DirectoryEditContainerComponent } from 'src/app/directories/components/
 import { DesignQuery } from 'src/app/designs/state/design.query';
 import { DesignService } from 'src/app/designs/state/design.service';
 import {
+  AiTerraformDraftDialogComponent,
+  AiTerraformDraftDialogData,
+} from 'src/app/editor/component/ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
+import {
   AiDesignDraftDialogComponent,
   AiDesignDraftDialogData,
 } from 'src/app/designs/components/ai-design-draft-dialog/ai-design-draft-dialog.component';
@@ -537,6 +541,22 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         this.designService.create(newDesign);
       }
     });
+  }
+
+  // the saved files go into the store with their content, so an open tab shows them at once
+  draftTerraformWithAi(dir: Directory) {
+    this.dialog
+      .open<AiTerraformDraftDialogComponent, AiTerraformDraftDialogData, ModelFile[]>(
+        AiTerraformDraftDialogComponent,
+        {
+          data: { directoryId: dir.id, directoryName: dir.name },
+          width: '1000px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      )
+      .afterClosed()
+      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
   }
 
   draftDesignWithAi(dir: Directory) {

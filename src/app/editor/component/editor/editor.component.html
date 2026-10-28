@@ -191,6 +191,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
             </button>
           }
+          @if (file && !file.workspaceId && canEdit()) {
+            <button
+              mat-icon-button
+              class="align-self-center"
+              color="primary"
+              (click)="editWithAi()"
+              [disabled]="file.editorContent !== file.content"
+              aria-label="Edit this file with AI"
+              [matTooltip]="
+                file.editorContent !== file.content
+                  ? 'Save or discard your changes before editing with AI'
+                  : 'Edit this file with AI. You review the change before it is saved'
+              "
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-creation" />
+            </button>
+          }
           <mat-divider vertical style="height: 100%" />
           @if (filename.endsWith('.tf')) {
             <div>

@@ -1,0 +1,74 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.full-width {
+  width: 100%;
+}
+
+.hint,
+.summary {
+  margin: 0 0 1rem 0;
+}
+
+.warnings {
+  list-style: none;
+  margin: 0 0 1rem 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.file {
+  margin-bottom: 0.5rem;
+}
+
+mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.file-name {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.file-kind {
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.file-purpose {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.code {
+  height: 360px;
+}
+
+.code ngx-monaco-editor,
+.code ngx-monaco-diff-editor {
+  display: block;
+  height: 100%;
+}
+
+.review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}

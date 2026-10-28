@@ -27,6 +27,12 @@ import {
 import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { MatDialog } from '@angular/material/dialog';
+import { DirectoryQuery } from 'src/app/directories/state/directory.query';
+import {
+  AiTerraformDraftDialogComponent,
+  AiTerraformDraftDialogData,
+} from '../ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
 import { CurrentUserQuery } from 'src/app/users/state';
 import {
   FileQuery,
@@ -93,6 +99,8 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private moduleQuery = inject(ModuleQuery);
   private fileQuery = inject(FileQuery);
   private fileService = inject(FileService);
+  private dialog = inject(MatDialog);
+  private directoryQuery = inject(DirectoryQuery);
   private fileVersionService = inject(FileVersionService);
   private fileVersionQuery = inject(FileVersionQuery);
   private currentUserQuery = inject(CurrentUserQuery);
@@ -525,6 +533,24 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     this.sidenavWidthChanged.emit(
       Math.max(event.rectangle.width, SIDEBAR_MIN_WIDTH),
     );
+  }
+
+  // the designer reviews the change, and other files it needs, before anything is saved
+  editWithAi() {
+    this.dialog
+      .open<AiTerraformDraftDialogComponent, AiTerraformDraftDialogData, ModelFile[]>(AiTerraformDraftDialogComponent, {
+        data: {
+          directoryId: this.file.directoryId,
+          directoryName: this.directoryQuery.getEntity(this.file.directoryId)?.name ?? 'this directory',
+          fileId: this.file.id,
+          fileName: this.file.name,
+        },
+        width: '1000px',
+        maxWidth: '95vw',
+        maxHeight: '90vh',
+      })
+      .afterClosed()
+      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
   }
 
   lockFile() {

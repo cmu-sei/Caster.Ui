@@ -135,6 +135,30 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       </a>
                     </div>
                   </mat-list-item>
+                  <mat-list-item>
+                    <div
+                      class="d-flex flex-row justify-content-start align-items-center"
+                      style="margin-left: 2%"
+                    >
+                      <mat-icon
+                        (click)="draftTerraformWithAi(parentDirectory)"
+                        matTooltip="Draft Terraform for {{
+                          parentDirectory.name
+                        }} from a description"
+                        class="icon-space mdi-18px"
+                        fontIcon="mdi-creation-outline"
+                      />
+                      <a
+                        class="add-link-text"
+                        matTooltip="Draft Terraform for {{
+                          parentDirectory.name
+                        }} from a description"
+                        (click)="draftTerraformWithAi(parentDirectory)"
+                      >
+                        Draft Terraform with AI
+                      </a>
+                    </div>
+                  </mat-list-item>
                 }
               </mat-list>
             </mat-expansion-panel>
