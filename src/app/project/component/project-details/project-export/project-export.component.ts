@@ -13,7 +13,14 @@ import {
 import { ProjectObjectType, ProjectService } from 'src/app/project/state';
 import { DirectoryService } from 'src/app/directories';
 import { FileService } from 'src/app/files/state';
-import { ArchiveType } from 'src/app/generated/caster-api';
+import {
+  ArchiveType,
+  DiskKind,
+  DiskManifest,
+  SystemPermission,
+} from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import {
   UntypedFormGroup,
@@ -31,7 +38,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect, MatOption } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTooltip } from '@angular/material/tooltip';
-import { TitleCasePipe } from '@angular/common';
+import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 @Component({
   selector: 'cas-project-export',
@@ -49,6 +56,7 @@ import { TitleCasePipe } from '@angular/common';
     MatOption,
     MatSlideToggle,
     MatTooltip,
+    AsyncPipe,
     TitleCasePipe,
   ],
 })
@@ -57,6 +65,7 @@ export class ProjectExportComponent implements OnInit {
   private projectService = inject(ProjectService);
   private fileService = inject(FileService);
   private formBuilder = inject(UntypedFormBuilder);
+  private permissionService = inject(PermissionService);
 
   readonly id = input<string>(undefined);
   readonly name = input<string>(undefined);
@@ -74,6 +83,10 @@ export class ProjectExportComponent implements OnInit {
   archiveTypes = Object.keys(ArchiveType);
   typeString: string;
 
+  /** A disk manifest describes the hypervisor, so it needs ViewHosts. */
+  canIncludeDiskManifest$: Observable<boolean>;
+  diskManifest$ = new BehaviorSubject<DiskManifestPreview | null>(null);
+
   private _type: ProjectObjectType;
 
   constructor() {
@@ -82,7 +95,11 @@ export class ProjectExportComponent implements OnInit {
     this.form = formBuilder.group({
       archiveType: [this.archiveTypes[0]],
       includeIds: [false, Validators.required],
+      includeDiskManifest: [false],
     });
+    this.canIncludeDiskManifest$ = this.permissionService.hasPermission(
+      SystemPermission.ViewHosts,
+    );
   }
 
   ngOnInit() {}
@@ -93,8 +110,36 @@ export class ProjectExportComponent implements OnInit {
       this._type,
       this.form.value.archiveType,
       this.form.value.includeIds,
+      this.isArchiveable && this.form.value.includeDiskManifest,
     );
     this.exportComplete.emit(true);
+  }
+
+  /** Previews the manifest the first time it is switched on. */
+  onIncludeDiskManifestChange(checked: boolean) {
+    if (!checked || this.diskManifest$.value) {
+      return;
+    }
+
+    this.diskManifest$.next({ loading: true });
+
+    const manifest$ =
+      this._type === ProjectObjectType.DIRECTORY
+        ? this.directoryService.getDiskManifest(this.id())
+        : this.projectService.getDiskManifest(this.id());
+
+    manifest$
+      .pipe(take(1))
+      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
+      .subscribe({
+        next: (manifest) =>
+          this.diskManifest$.next({ loading: false, manifest }),
+        error: () => this.diskManifest$.next({ loading: false, failed: true }),
+      });
+  }
+
+  diskKindLabel(kind: DiskKind): string {
+    return diskKindLabel(kind);
   }
 
   cancel() {
@@ -106,11 +151,12 @@ export class ProjectExportComponent implements OnInit {
     type: ProjectObjectType,
     archiveType: ArchiveType,
     includeIds: boolean,
+    includeDiskManifest: boolean,
   ) {
     switch (type) {
       case ProjectObjectType.DIRECTORY: {
         this.directoryService
-          .export(id, archiveType, includeIds)
+          .export(id, archiveType, includeIds, includeDiskManifest)
           .pipe(take(1))
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           .subscribe((result) => {
@@ -130,7 +176,7 @@ export class ProjectExportComponent implements OnInit {
       }
       case ProjectObjectType.PROJECT: {
         this.projectService
-          .export(id, archiveType, includeIds)
+          .export(id, archiveType, includeIds, includeDiskManifest)
           .pipe(take(1))
           // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           .subscribe((result) => {
@@ -140,4 +186,14 @@ export class ProjectExportComponent implements OnInit {
       }
     }
   }
+}
+
+interface DiskManifestPreview {
+  loading: boolean;
+  manifest?: DiskManifest;
+  failed?: boolean;
+}
+
+export function diskKindLabel(kind: DiskKind): string {
+  return kind === DiskKind.Iso ? 'ISO' : 'VM template';
 }

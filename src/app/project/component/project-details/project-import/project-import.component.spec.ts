@@ -98,4 +98,56 @@ describe('ProjectImportComponent', () => {
     await user.click(screen.getByRole('button', { name: 'OK' }));
     expect(importComplete).toHaveBeenCalledWith(false);
   });
+
+  /**
+   * Verifies: after an import the archive's VM templates and ISOs are listed
+   *   with missing ones first and counted, alongside the archive's warnings and
+   *   skipped settings.
+   * Interacts with: ProjectsService.importProject (stub).
+   * Data: a found template, a missing ISO and an unchecked template; one
+   *   warning; one skipped setting.
+   */
+  it('lists the disks the archive needs, missing first', async () => {
+    const { upload, user } = await renderImport({
+      lockedFiles: [],
+      skippedSettings: ['Terraform version 0.11.0 is not available'],
+      warnings: ['Ignored __MACOSX/main.tf'],
+      disks: [
+        {
+          kind: 'VmTemplate',
+          name: 'ubuntu-2204',
+          status: 'Present',
+          referencedBy: ['main.tf'],
+        },
+        {
+          kind: 'Iso',
+          name: 'local:iso/kali.iso',
+          status: 'Missing',
+          referencedBy: ['main.tf'],
+        },
+        {
+          kind: 'VmTemplate',
+          name: 'win2019',
+          status: 'Unknown',
+          referencedBy: [],
+        },
+      ],
+    });
+
+    await upload();
+    await user.click(screen.getByRole('button', { name: 'Import' }));
+
+    expect(screen.getByText('Import Successful')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '1 not found on this system.',
+    );
+    const items = screen.getAllByRole('listitem').map((x) => x.textContent);
+    expect(items).toEqual([
+      expect.stringContaining('Terraform version 0.11.0 is not available'),
+      expect.stringContaining('Ignored __MACOSX/main.tf'),
+      expect.stringMatching(/Missing\s*ISO:\s*local:iso\/kali\.iso/),
+      expect.stringMatching(/Not checked\s*VM template:\s*win2019/),
+      expect.stringMatching(/Found\s*VM template:\s*ubuntu-2204/),
+    ]);
+  });
 });
