@@ -92,6 +92,15 @@
   white-space: normal;
 }
 
+.item-usage {
+  margin-top: 2px;
+
+  mat-progress-bar {
+    max-width: 160px;
+    margin-bottom: 1px;
+  }
+}
+
 .copy-button {
   flex-shrink: 0;
 }

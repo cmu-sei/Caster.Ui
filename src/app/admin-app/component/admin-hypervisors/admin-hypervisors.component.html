@@ -1,0 +1,214 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (loading()) {
+  <div class="state-row">
+    <mat-spinner diameter="18"></mat-spinner>
+    <span>Loading&hellip;</span>
+  </div>
+} @else if (error(); as message) {
+  <mat-card appearance="outlined">
+    <div class="state-row">
+      <mat-icon class="mdi-18px" fontIcon="mdi-information-outline"></mat-icon>
+      <span>{{ message }}</span>
+    </div>
+  </mat-card>
+} @else {
+  @for (view of connections(); track view.connection.name) {
+    <mat-card appearance="outlined" class="connection">
+      <div class="connection-header">
+        <h2>{{ view.connection.name }}</h2>
+        <span class="provider">{{
+          providerName(view.connection.provider)
+        }}</span>
+        @if (view.hosts?.lastUpdated; as lastUpdated) {
+          <span class="read-time">Updated {{ readTime(lastUpdated) }}</span>
+        }
+        <button
+          mat-icon-button
+          [disabled]="view.refreshing"
+          (click)="refresh(view.connection.name)"
+          matTooltip="Refresh {{ view.connection.name }}"
+          [attr.aria-label]="'Refresh ' + view.connection.name"
+        >
+          @if (view.refreshing) {
+            <mat-spinner diameter="18"></mat-spinner>
+          } @else {
+            <mat-icon class="mdi-18px" fontIcon="mdi-refresh"></mat-icon>
+          }
+        </button>
+      </div>
+
+      @if (view.loading && !view.hosts && !view.datastores) {
+        <div class="state-row">
+          <mat-spinner diameter="18"></mat-spinner>
+          <span>Loading&hellip;</span>
+        </div>
+      } @else {
+        <h3>Hosts</h3>
+        @if (!view.hosts) {
+          <div class="state-row">
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-information-outline"
+            ></mat-icon>
+            <span>Hosts could not be read right now.</span>
+          </div>
+        } @else if (!view.hosts.available) {
+          <div class="state-row">
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-information-outline"
+            ></mat-icon>
+            <span>{{ view.hosts.error || 'Host use is not available.' }}</span>
+          </div>
+        } @else {
+          @if (view.hosts.stale) {
+            <div class="state-row stale">
+              <mat-icon
+                class="mdi-18px"
+                fontIcon="mdi-clock-alert-outline"
+              ></mat-icon>
+              <span
+                >Could not refresh. Showing the last read.
+                {{ view.hosts.error }}</span
+              >
+            </div>
+          }
+          @if (view.hosts.items.length === 0) {
+            <div class="state-row"><span>No hosts found.</span></div>
+          } @else {
+            <table class="usage-table">
+              <thead>
+                <tr>
+                  <th scope="col">Host</th>
+                  <th scope="col">CPU</th>
+                  <th scope="col">Memory</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of view.hosts.items; track item.id) {
+                  @let host = hostUsage(item);
+                  <tr [class.offline]="!host.online">
+                    <td>
+                      {{ item.name }}
+                      @if (!host.online) {
+                        <span class="badge">{{ host.status }}</span>
+                      }
+                    </td>
+                    <td>
+                      @if (host.cpuPercent !== null) {
+                        <mat-progress-bar
+                          mode="determinate"
+                          [class]="level(host.cpuPercent)"
+                          [value]="host.cpuPercent"
+                          [attr.aria-label]="'CPU on ' + item.name"
+                        ></mat-progress-bar>
+                        <small
+                          >{{ host.cpuPercent }}%
+                          @if (host.cpuCount !== null) {
+                            &middot; {{ host.cpuCount }} CPUs
+                          }
+                        </small>
+                      } @else {
+                        <small class="muted">Not reported</small>
+                      }
+                    </td>
+                    <td>
+                      @if (host.memory; as memory) {
+                        <mat-progress-bar
+                          mode="determinate"
+                          [class]="level(memory.percent)"
+                          [value]="memory.percent"
+                          [attr.aria-label]="'Memory on ' + item.name"
+                        ></mat-progress-bar>
+                        <small
+                          >{{ memory.percent }}% &middot;
+                          {{ formatBytes(memory.used) }} of
+                          {{ formatBytes(memory.total) }}</small
+                        >
+                      } @else {
+                        <small class="muted">Not reported</small>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        }
+
+        <h3>Storage</h3>
+        @if (!view.datastores) {
+          <div class="state-row">
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-information-outline"
+            ></mat-icon>
+            <span>Storage could not be read right now.</span>
+          </div>
+        } @else if (!view.datastores.available) {
+          <div class="state-row">
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-information-outline"
+            ></mat-icon>
+            <span>{{
+              view.datastores.error || 'Storage use is not available.'
+            }}</span>
+          </div>
+        } @else if (view.datastores.items.length === 0) {
+          <div class="state-row"><span>No storage found.</span></div>
+        } @else {
+          <table class="usage-table">
+            <thead>
+              <tr>
+                <th scope="col">Storage</th>
+                <th scope="col">Type</th>
+                <th scope="col">Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of view.datastores.items; track item.id) {
+                <tr>
+                  <td>
+                    {{ item.name }}
+                    @if (item.properties['shared'] === 'true') {
+                      <small class="muted">shared</small>
+                    }
+                  </td>
+                  <td>{{ item.properties['type'] }}</td>
+                  <td>
+                    @if (datastoreUsage(item); as use) {
+                      <mat-progress-bar
+                        mode="determinate"
+                        [class]="level(use.percent)"
+                        [value]="use.percent"
+                        [attr.aria-label]="'Storage ' + item.name"
+                      ></mat-progress-bar>
+                      <small
+                        >{{ use.percent }}% &middot;
+                        {{ formatBytes(use.used) }} of
+                        {{ formatBytes(use.total) }}</small
+                      >
+                    } @else {
+                      <small class="muted">Not reported</small>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      }
+    </mat-card>
+  } @empty {
+    <mat-card appearance="outlined">
+      <div class="state-row">
+        <span>No hypervisor connections are configured.</span>
+      </div>
+    </mat-card>
+  }
+}

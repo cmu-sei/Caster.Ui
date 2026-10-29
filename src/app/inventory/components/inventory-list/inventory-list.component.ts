@@ -20,6 +20,7 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { MatList, MatListItem } from '@angular/material/list';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -27,10 +28,14 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import {
+  datastoreUsage,
+  formatBytes,
+  InventoryCategory,
   InventoryCategoryDescriptor,
   InventoryCategoryState,
   InventoryItem,
   inventoryItemLabel,
+  InventoryUsage,
   InventoryQuery,
   InventoryService,
 } from '../../state';
@@ -53,6 +58,7 @@ import {
     MatIcon,
     MatTooltip,
     MatProgressSpinner,
+    MatProgressBar,
     MatList,
     MatListItem,
     MatIconButton,
@@ -131,6 +137,15 @@ export class InventoryListComponent implements OnInit {
   itemLabel(item: InventoryItem): string | null {
     return inventoryItemLabel(item);
   }
+
+  /** How full a datastore is, or null for anything else. */
+  usageOf(item: InventoryItem): InventoryUsage | null {
+    return this.descriptor().category === InventoryCategory.Datastores
+      ? datastoreUsage(item)
+      : null;
+  }
+
+  readonly formatBytes = formatBytes;
 
   /**
    * Flattens an item's path and extra properties into a tooltip. Joined with
