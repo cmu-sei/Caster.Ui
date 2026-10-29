@@ -26,6 +26,7 @@ import {
   Theme,
 } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
+import { AiDraftGroundingComponent } from 'src/app/shared/components/ai-draft-grounding/ai-draft-grounding.component';
 import {
   AiTerraformDraft,
   AiTerraformFile,
@@ -71,6 +72,7 @@ export interface DraftFileRow {
     MatIcon,
     DiffEditorComponent,
     EditorComponent,
+    AiDraftGroundingComponent,
   ],
 })
 export class AiTerraformDraftDialogComponent {

@@ -1,0 +1,86 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.grounding {
+  margin-bottom: 12px;
+}
+
+.grounding-title,
+.plan-heading {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.grounding-note {
+  margin: 0 0 8px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.unchecked {
+  color: var(--mat-sys-tertiary);
+}
+
+.found {
+  margin: 0 0 8px;
+
+  div {
+    display: flex;
+    gap: 8px;
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.unknown {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  color: var(--mat-sys-tertiary);
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+.plan {
+  margin-bottom: 12px;
+}
+
+.plan-table {
+  width: 100%;
+  margin-bottom: 12px;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 4px 8px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.tag {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.attack-path {
+  margin: 0 0 12px;
+}
