@@ -9,7 +9,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [sidenav]="null"
 />
 
-<div class="content-container" [class.has-background]="backgroundImage" [style.--landing-background]="backgroundImage">
+<div class="content-container" [class.has-background]="backgroundImage()" [style.--landing-background]="backgroundImage()">
   <cas-project-list
     [projects]="projects | async"
     [isLoading]="isLoading$ | async"

@@ -1,6 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
@@ -33,7 +33,7 @@ export class ProjectListContainerComponent implements OnInit {
   public projects: Observable<Project[]>;
   public isLoading$: Observable<boolean>;
   TopbarView = TopbarView;
-  public backgroundImage: string | null = null;
+  readonly backgroundImage = signal<string | null>(null);
 
   ngOnInit() {
     this.projects = this.projectQuery.selectAll();
@@ -46,9 +46,14 @@ export class ProjectListContainerComponent implements OnInit {
     this.titleText = this.settingsService.settings.AppTopBarText;
 
     // An optional image URL from settings, so a site can brand the page
-    // without shipping the image in this repo.
+    // without shipping the image in this repo. Applied only once the image
+    // loads, so a missing image leaves the normal page background.
     const background = this.settingsService.settings.AppLandingBackgroundImage;
-    this.backgroundImage = background ? `url("${background}")` : null;
+    if (background) {
+      const image = new Image();
+      image.onload = () => this.backgroundImage.set(`url("${background}")`);
+      image.src = background;
+    }
 
     this.currentUserQuery.select().subscribe((cu) => {
       this.username = cu.name;
