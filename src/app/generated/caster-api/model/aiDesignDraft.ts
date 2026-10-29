@@ -15,6 +15,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * Do not edit the class manually.
  */
 import { AiDraftModule } from './aiDraftModule';
+import { AiInventoryGrounding } from './aiInventoryGrounding';
+import { AiTopologyPlan } from './aiTopologyPlan';
 
 
 /**
@@ -32,5 +34,7 @@ export interface AiDesignDraft {
      * The Terraform the Design will generate once it is enabled.
      */
     snippet?: string | null;
+    inventory?: AiInventoryGrounding;
+    topology?: AiTopologyPlan;
 }
 

@@ -24,6 +24,8 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { DraftTerraformFromBriefCommand } from '../model/draftTerraformFromBriefCommand';
+// @ts-ignore
 import { DraftTerraformWithAiCommand } from '../model/draftTerraformWithAiCommand';
 // @ts-ignore
 import { ApplyAiTerraformDraftCommand } from '../model/applyAiTerraformDraftCommand';
@@ -542,6 +544,87 @@ export class FilesService {
             {
                 context: localVarHttpContext,
                 body: draftTerraformWithAiCommand,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Draft Terraform for a directory with AI from a structured scenario brief
+     * For an application such as Blueprint that describes the exercise rather than the Terraform: its organizations, network segments and key terrain, critical systems, the attacker's entry point and path, and the participant teams. Returns the same draft as DraftTerraformWithAi. Nothing is saved: the planner reviews the files, then saves them with ApplyAiTerraformDraft.
+     * @param directoryId ID of the directory the files belong to.
+     * @param draftTerraformFromBriefCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public draftTerraformWithAiFromBrief(directoryId: string, draftTerraformFromBriefCommand?: DraftTerraformFromBriefCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<AiTerraformDraft>;
+    public draftTerraformWithAiFromBrief(directoryId: string, draftTerraformFromBriefCommand?: DraftTerraformFromBriefCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<AiTerraformDraft>>;
+    public draftTerraformWithAiFromBrief(directoryId: string, draftTerraformFromBriefCommand?: DraftTerraformFromBriefCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<AiTerraformDraft>>;
+    public draftTerraformWithAiFromBrief(directoryId: string, draftTerraformFromBriefCommand?: DraftTerraformFromBriefCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (directoryId === null || directoryId === undefined) {
+            throw new Error('Required parameter directoryId was null or undefined when calling draftTerraformWithAiFromBrief.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json',
+            'text/json',
+            'application/*+json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/directories/${this.configuration.encodeParam({name: "directoryId", value: directoryId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/files/ai-draft/brief`;
+        return this.httpClient.request<AiTerraformDraft>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: draftTerraformFromBriefCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

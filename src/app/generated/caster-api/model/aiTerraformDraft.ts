@@ -14,7 +14,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { AiInventoryGrounding } from './aiInventoryGrounding';
 import { AiTerraformFile } from './aiTerraformFile';
+import { AiTopologyPlan } from './aiTopologyPlan';
 
 
 /**
@@ -27,5 +29,7 @@ export interface AiTerraformDraft {
      * What was dropped or changed from the model\'s answer, and what still needs a designer\'s attention.
      */
     warnings?: Array<string> | null;
+    inventory?: AiInventoryGrounding;
+    topology?: AiTopologyPlan;
 }
 
