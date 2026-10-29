@@ -1,0 +1,124 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (inventory(); as inv) {
+  <section class="grounding" aria-label="Infrastructure inventory">
+    <h3 class="grounding-title">Infrastructure inventory</h3>
+    @if (inv.checked) {
+      <p class="grounding-note">
+        Checked against {{ checkedAgainst() }}.@if (stale()) { Some of it is from an earlier read and may be out of date.}
+      </p>
+      @if (inv.reason) {
+        <p class="grounding-note">{{ inv.reason }}</p>
+      }
+      @if (found().length) {
+        <dl class="found" aria-label="In the inventory">
+          @for (group of found(); track group.kind) {
+            <div>
+              <dt>{{ group.kind }}</dt>
+              <dd>{{ group.names }}</dd>
+            </div>
+          }
+        </dl>
+      }
+      @if (unknown().length) {
+        <ul class="unknown" aria-label="Not in the inventory">
+          @for (ref of unknown(); track $index) {
+            <li>
+              <mat-icon class="mdi-18px" fontIcon="mdi-help-circle-outline"></mat-icon>
+              <span>{{ kind(ref.kind) }} <strong>{{ ref.name }}</strong> is not in the inventory ({{ ref.where }})</span>
+            </li>
+          }
+        </ul>
+      } @else if (!found().length) {
+        <p class="grounding-note">The draft names no template, network or datastore of its own.</p>
+      }
+    } @else {
+      <p class="grounding-note unchecked">{{ inv.reason }}</p>
+    }
+  </section>
+}
+
+@if (topology(); as plan) {
+  <mat-expansion-panel class="plan">
+    <mat-expansion-panel-header>
+      <mat-panel-title>{{ planTitle() }}</mat-panel-title>
+    </mat-expansion-panel-header>
+    @if (plan.segments?.length) {
+      <table class="plan-table" aria-label="Segments">
+        <thead>
+          <tr>
+            <th>Segment</th>
+            <th>Role</th>
+            <th>CIDR</th>
+            <th>VLAN</th>
+            <th>Network</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (segment of plan.segments; track $index) {
+            <tr>
+              <td>
+                {{ segment.name }}
+                @if (segment.keyTerrain) {
+                  <span class="tag">Key terrain</span>
+                }
+              </td>
+              <td>{{ segmentRole(segment.role) }}</td>
+              <td>{{ segment.cidr }}</td>
+              <td>{{ segment.vlanId }}</td>
+              <td>{{ segment.network }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    @if (plan.machines?.length) {
+      <table class="plan-table" aria-label="Machines">
+        <thead>
+          <tr>
+            <th>Machine</th>
+            <th>Role</th>
+            <th>Segments</th>
+            <th>Template</th>
+            <th>Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (machine of plan.machines; track $index) {
+            <tr>
+              <td>
+                {{ machine.name }}
+                @if (machine.critical) {
+                  <span class="tag">Critical</span>
+                }
+                @if (machine.keyTerrain) {
+                  <span class="tag">Key terrain</span>
+                }
+              </td>
+              <td>{{ machineRole(machine.role) }}{{ machine.team ? ' (' + machine.team + ')' : '' }}</td>
+              <td>{{ interfaces(machine) }}</td>
+              <td>{{ machine.template }}</td>
+              <td>{{ size(machine) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    @if (plan.attackPath?.length) {
+      <h4 class="plan-heading">Attack path</h4>
+      <ol class="attack-path">
+        @for (step of plan.attackPath; track $index) {
+          <li>
+            {{ step.from }} to {{ step.to }}@if (step.technique) { ({{ step.technique }})}@if (step.description) {: {{ step.description }}}
+          </li>
+        }
+      </ol>
+    }
+    @if (totals()) {
+      <p class="grounding-note">In all: {{ totals() }}.</p>
+    }
+  </mat-expansion-panel>
+}

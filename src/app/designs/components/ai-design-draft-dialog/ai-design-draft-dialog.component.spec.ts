@@ -111,6 +111,24 @@ describe('AiDesignDraftDialogComponent', () => {
   });
 
   /**
+   * Verifies: the review says why the draft was not checked against the inventory, as the API puts it.
+   * Interacts with: DesignsService.draftDesignWithAi, the grounding panel.
+   * Data: DRAFT, unchecked for want of ViewHosts.
+   */
+  it('says when the design was not checked against the inventory', async () => {
+    const api = stubApi({
+      ...DRAFT,
+      inventory: { checked: false, reason: 'Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.', connections: [], found: [], unknown: [] },
+    });
+    const { user } = await renderDraftDialog(api);
+
+    await draft(user);
+
+    expect(screen.getByRole('heading', { name: 'Infrastructure inventory' })).toBeInTheDocument();
+    expect(screen.getByText('Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.')).toBeInTheDocument();
+  });
+
+  /**
    * Verifies: an incomplete draft can be created; a blank required value is sent empty for the server to
    * save as a placeholder, and a placeholder is sent as is.
    * Interacts with: createDesign.

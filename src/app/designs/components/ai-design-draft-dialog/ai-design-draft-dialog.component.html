@@ -83,6 +83,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
       }
 
+      <cas-ai-draft-grounding [inventory]="draft?.inventory" [topology]="draft?.topology" />
+
       @for (row of modules; track row) {
         <mat-card appearance="outlined" class="draft-module">
           <div class="module-header">
