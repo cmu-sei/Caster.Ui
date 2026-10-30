@@ -31,6 +31,7 @@ import { ProjectComponent } from 'src/app/project/component/project-details/proj
 import { ProjectNavigationContainerComponent } from 'src/app/project/component/project-details/project-navigation-container/project-navigation-container.component';
 import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
+import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
 
 @Component({
   selector: 'cas-project-navigation',
@@ -59,6 +60,11 @@ class ProjectStub {
 
 @Component({ selector: 'cas-inventory-panel', template: '' })
 class InventoryPanelStub {}
+
+@Component({ selector: 'cas-project-ai-usage', template: '' })
+class ProjectAiUsageStub {
+  readonly projectId = input<string>(undefined);
+}
 
 /**
  * Renders the project page with project p1 Range already active, over the
@@ -96,6 +102,7 @@ async function renderContainer(system: SystemPermission[] = []) {
       { replace: TopbarComponent, with: TopbarStub },
       { replace: ProjectComponent, with: ProjectStub },
       { replace: InventoryPanelComponent, with: InventoryPanelStub },
+      { replace: ProjectAiUsageComponent, with: ProjectAiUsageStub },
     ],
     imports: [
       MatSidenavModule,
@@ -150,6 +157,20 @@ describe('ProjectCollapseContainerComponent', () => {
     ).componentInstance;
     expect(project.project().id).toBe('p1');
     expect(screen.getByRole('heading', { name: 'Caster' })).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the side panel holds the AI usage panel for the active project, which decides for itself whether it has anything to show.
+   * Interacts with: real ProjectStore and ProjectQuery.
+   * Data: active project p1 Range.
+   */
+  it('gives the AI usage panel the active project', async () => {
+    const { fixture } = await renderContainer();
+
+    const usage: ProjectAiUsageStub = fixture.debugElement.query(
+      By.directive(ProjectAiUsageStub),
+    ).componentInstance;
+    expect(usage.projectId()).toBe('p1');
   });
 
   /**

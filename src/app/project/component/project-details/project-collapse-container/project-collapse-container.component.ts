@@ -54,6 +54,7 @@ import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.co
 import { ProjectComponent } from '../project/project.component';
 import { AsyncPipe } from '@angular/common';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
+import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
 
@@ -76,6 +77,7 @@ const LEFT_SIDEBAR_MIN_WIDTH = 250;
     TopbarComponent,
     ProjectComponent,
     InventoryPanelComponent,
+    ProjectAiUsageComponent,
     AsyncPipe,
   ],
 })

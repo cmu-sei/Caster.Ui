@@ -46,6 +46,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-divider />
             <cas-inventory-panel />
           }
+          @if (project) {
+            <cas-project-ai-usage [projectId]="project.id" />
+          }
         </div>
         <mat-divider />
 
