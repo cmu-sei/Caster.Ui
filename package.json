@@ -40,7 +40,7 @@
     "@angular/material": "^21.2.10",
     "@angular/platform-browser": "^21.2.10",
     "@angular/platform-browser-dynamic": "^21.2.10",
-    "@angular/router": "^21.2.10",
+    "@angular/router": "^22.2.3",
     "@cmusei/crucible-common": "0.8.0",
     "@datorama/akita": "^8.0.1",
     "@datorama/akita-ng-router-store": "^8.0.0",
