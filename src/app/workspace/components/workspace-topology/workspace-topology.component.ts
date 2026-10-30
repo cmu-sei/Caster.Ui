@@ -19,6 +19,7 @@ import { MatIconButton } from '@angular/material/button';
 import { MatOption } from '@angular/material/core';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSelect } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -60,6 +61,7 @@ import {
   ROLE_OPTIONS,
   iconImage,
 } from './topology-icons';
+import { topologySvg } from './topology-svg';
 
 /** Border colours for what the plan does to a node; mid tones that read on light and dark. */
 const ACTION_COLORS: Record<string, string> = {
@@ -119,6 +121,9 @@ const PENDING: RunStatus[] = [
     MatProgressSpinner,
     MatSelect,
     MatTooltip,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
   ],
 })
 export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
@@ -332,11 +337,16 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       );
   }
 
-  async downloadImage() {
-    const url = URL.createObjectURL(await this.image());
+  /** Download the graph as a PNG, or as an SVG that stays sharp at any size and can be a Player Map. */
+  async downloadImage(format: 'png' | 'svg' = 'png') {
+    const blob =
+      format === 'svg'
+        ? new Blob([this.inLightStyle(() => topologySvg(this.cy))], { type: 'image/svg+xml' })
+        : await this.image();
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${this.fileName()}.png`;
+    link.download = `${this.fileName()}.${format}`;
     link.click();
     // Not straight away: the browser may not have started reading it yet.
     setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -360,7 +370,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       }`;
     const img = document.createElement('img');
     img.className = 'cas-topology-print';
-    img.src = this.cy.png(this.imageOptions());
+    img.src = this.inLightStyle(() => this.cy.png(this.imageOptions()));
 
     const title = document.title;
     const cleanUp = () => {
@@ -380,7 +390,23 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   }
 
   private image(): Promise<Blob> {
-    return this.cy.png({ ...this.imageOptions(), output: 'blob-promise' });
+    // cytoscape draws the PNG before it returns the promise, so the light style can go straight back
+    return this.inLightStyle(() =>
+      this.cy.png({ ...this.imageOptions(), output: 'blob-promise' })
+    );
+  }
+
+  /**
+   * Run an export with the light theme's colours, whatever theme the reader has on: an image is for a
+   * page, a slide or a Player Map, not for this screen. The reader's theme is put back before returning.
+   */
+  private inLightStyle<T>(draw: () => T): T {
+    this.cy.style(this.stylesheet(true) as any);
+    try {
+      return draw();
+    } finally {
+      this.cy.style(this.stylesheet() as any);
+    }
   }
 
   /** The whole graph, not just what is scrolled into view, on the theme background. */
@@ -388,7 +414,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     return {
       full: true,
       scale: 2,
-      bg: this.themeColor('--mat-sys-surface', '#ffffff'),
+      bg: '#ffffff',
     };
   }
 
@@ -762,9 +788,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private stylesheet(): StylesheetJson {
+  /** The graph's style in the reader's theme, or in the light theme's colours for an export. */
+  private stylesheet(light = false): StylesheetJson {
     const color = (name: string, fallback: string) =>
-      this.themeColor(name, fallback);
+      light ? fallback : this.themeColor(name, fallback);
 
     const text = color('--mat-sys-on-surface', '#1b1b1f');
     const muted = color('--mat-sys-on-surface-variant', '#46464f');
