@@ -1,0 +1,74 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (usage(); as usage) {
+  <mat-divider />
+  <mat-accordion>
+    <mat-expansion-panel class="mat-elevation-z0" (opened)="onExpanded()">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="d-flex flex-row justify-content-start align-items-center">
+            <mat-icon class="mdi-18px" fontIcon="mdi-creation-outline" />
+            <strong>AI USAGE</strong>
+          </div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <p class="hint">
+        {{ usage.calls }} {{ usage.calls === 1 ? 'call' : 'calls' }} to AI
+        models drafted for this project{{
+          hasCost(usage.estimatedCostMicros)
+            ? ', about ' +
+              dollars(usage.estimatedCostMicros) +
+              ' at list prices'
+            : ''
+        }}.
+        @if (usage.refused) {
+          {{ usage.refused }}
+          {{ usage.refused === 1 ? 'was' : 'were' }} declined by the model's
+          safety checks and billed all the same.
+        }
+      </p>
+      <table class="ai-usage-table" aria-label="AI usage by task">
+        <thead>
+          <tr>
+            <th scope="col">Task</th>
+            <th scope="col">Calls</th>
+            <th scope="col">Input tokens</th>
+            <th scope="col">Output tokens</th>
+            <th scope="col">Estimated cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (task of usage.byTask; track task.name) {
+            <tr>
+              <th scope="row">{{ label(task.name) }}</th>
+              <td>{{ task.calls }}</td>
+              <td>{{ task.inputTokens | number }}</td>
+              <td>{{ task.outputTokens | number }}</td>
+              <td>{{ dollars(task.estimatedCostMicros) }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Total</th>
+            <td>{{ usage.calls }}</td>
+            <td>{{ usage.inputTokens | number }}</td>
+            <td>{{ usage.outputTokens | number }}</td>
+            <td>{{ dollars(usage.estimatedCostMicros) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+      @if (usage.unpriced?.length) {
+        <p class="hint">
+          The estimate leaves out {{ usage.unpriced.join(', ') }}, which
+          {{ usage.unpriced.length === 1 ? 'has' : 'have' }} no price set. Add
+          one under Ai:Prices on the Caster API.
+        </p>
+      }
+    </mat-expansion-panel>
+  </mat-accordion>
+}
