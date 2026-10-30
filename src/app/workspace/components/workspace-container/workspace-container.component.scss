@@ -1,6 +1,16 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+// The topology view sizes itself to the tab, so the tab must have a height to give.
+:host {
+  display: block;
+  height: 100%;
+}
+
+.fills-tab {
+  height: 100%;
+}
+
 /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
 mat-button-toggle {
   flex: 1 1 100%;

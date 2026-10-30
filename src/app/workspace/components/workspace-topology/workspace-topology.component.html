@@ -1,0 +1,256 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div #root class="topology">
+  <div class="topology-bar">
+    @if (topology?.runId) {
+    <span>
+      {{ topology.isDestroy ? 'Destroy plan' : 'Plan' }} from
+      {{ topology.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+      @if (!showsChanges) {
+      · {{ planStatus }}
+      }
+    </span>
+    }
+    <div class="spacer"></div>
+    @if (!isEmpty) {
+    <div class="legend">
+      @if (showsChanges) {
+      @for (entry of actionColors | keyvalue; track entry.key) {
+      <span
+        class="legend-item"
+        tabindex="0"
+        [matTooltip]="actionDescriptions[entry.key]"
+      >
+        <span class="swatch" [style.border-color]="entry.value"></span>
+        {{ entry.key }}
+      </span>
+      } } @if (!showsChanges && hasNotCreated) {
+      <span
+        class="legend-item"
+        tabindex="0"
+        matTooltip="The plan creates it, but the apply failed before it did"
+      >
+        <span class="swatch not-created"></span>
+        not created
+      </span>
+      }
+      <span
+        class="legend-item"
+        tabindex="0"
+        matTooltip="A network this workspace connects machines to but does not create"
+      >
+        <span class="swatch external"></span>
+        external
+      </span>
+    </div>
+    <button
+      mat-icon-button
+      matTooltip="Fit to view"
+      aria-label="Fit to view"
+      (click)="fit()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      [matTooltip]="layoutStyle === 'tree' ? 'Tree layout: switch to grouped layout' : 'Grouped layout: switch to tree layout'"
+      [attr.aria-label]="layoutStyle === 'tree' ? 'Switch to grouped layout' : 'Switch to tree layout'"
+      (click)="toggleLayoutStyle()"
+    >
+      <mat-icon
+        class="mdi-24px"
+        [fontIcon]="layoutStyle === 'tree' ? 'mdi-graph-outline' : 'mdi-file-tree-outline'"
+      ></mat-icon>
+    </button>
+    @if (canEdit()) {
+    <button
+      mat-icon-button
+      [matTooltip]="'Reset ' + layoutName + ' layout'"
+      [attr.aria-label]="'Reset ' + layoutName + ' layout'"
+      [disabled]="!hasSavedPositions"
+      (click)="resetLayout()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-restore"></mat-icon>
+    </button>
+    }
+    <button
+      mat-icon-button
+      matTooltip="Copy image"
+      aria-label="Copy image"
+      (click)="copyImage()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      matTooltip="Download image"
+      aria-label="Download image"
+      [matMenuTriggerFor]="downloadMenu"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-download"></mat-icon>
+    </button>
+    <mat-menu #downloadMenu="matMenu">
+      <button mat-menu-item (click)="downloadImage('png')">PNG image</button>
+      <button mat-menu-item (click)="downloadImage('svg')">SVG image</button>
+    </mat-menu>
+    <button
+      mat-icon-button
+      [matTooltip]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      [attr.aria-label]="isFullscreen ? 'Exit full screen' : 'Full screen'"
+      (click)="toggleFullscreen()"
+    >
+      <mat-icon
+        class="mdi-24px"
+        [fontIcon]="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+      ></mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      matTooltip="Print"
+      aria-label="Print"
+      (click)="print()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-printer"></mat-icon>
+    </button>
+    }
+  </div>
+
+  <div class="topology-body">
+    <div #graph class="graph" [class.d-none]="isEmpty"></div>
+
+    @if (loading) {
+    <div class="message">
+      <mat-progress-spinner diameter="40" mode="indeterminate">
+      </mat-progress-spinner>
+    </div>
+    } @else if (error) {
+    <div class="message">Topology unavailable: {{ error }}</div>
+    } @else if (isEmpty) {
+    <div class="message">
+      @if (!topology?.runId) {
+      Run a plan to see the topology.
+      } @else if (!showsChanges) {
+      The workspace's state has no machines or networks Caster knows how to
+      draw.
+      } @else {
+      The latest plan has no machines or networks Caster knows how to draw.
+      }
+    </div>
+    } @if (selected) {
+    <div class="details">
+      <div class="details-title">{{ labelOf(selected) }}</div>
+      <div class="details-address">{{ selected.id }}</div>
+      @if (selected.kind === 'Machine') {
+      <mat-form-field class="role" subscriptSizing="dynamic">
+        <mat-label>Role</mat-label>
+        <mat-select
+          [value]="roleOf(selected)"
+          [disabled]="!canEdit()"
+          (selectionChange)="setRole(selected, $event.value)"
+        >
+          <mat-option [value]="null">None</mat-option>
+          @for (option of roleOptions; track option.role) {
+          <mat-option [value]="option.role">
+            <svg class="role-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path [attr.d]="option.path"></path>
+            </svg>
+            {{ option.label }}
+          </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+      <table>
+        @if (labelOf(selected) !== selected.label) {
+        <tr>
+          <th>Name</th>
+          <td>{{ selected.label }}</td>
+        </tr>
+        } @if (selected.type) {
+        <tr>
+          <th>Type</th>
+          <td>
+            <div>{{ selected.type }}</div>
+            @if (selected.console?.address) {
+            <div>crucible_player_virtual_machine</div>
+            }
+          </td>
+        </tr>
+        } @if (showsChanges && selected.action) {
+        <tr>
+          <th>Action</th>
+          <td>
+            {{ actionOf(selected) }} @if (actionScope(selected); as scope) {
+            <span class="console-guess">{{ scope }} only</span>
+            }
+          </td>
+        </tr>
+        } @if (selected.notCreated) {
+        <tr>
+          <th>Status</th>
+          <td>Not created: the apply failed before it got to it</td>
+        </tr>
+        } @if (selected.external) {
+        <tr>
+          <th>External</th>
+          <td>Not managed by this workspace</td>
+        </tr>
+        } @for (p of propertiesOf(selected); track p.key) {
+        <tr>
+          <th>{{ p.key }}</th>
+          <td>{{ p.value }}</td>
+        </tr>
+        } @if (selected.kind === 'Machine') { @for (n of networksOf(selected);
+        track n.iface) {
+        <tr>
+          <th>nic{{ n.iface }}</th>
+          <td>{{ n.label }}</td>
+        </tr>
+        } } @else { @if (machinesOn(selected).length) {
+        <tr>
+          <th>Machines</th>
+          <td>
+            @for (machine of machinesOn(selected); track $index) {
+            <div>{{ machine }}</div>
+            }
+          </td>
+        </tr>
+        } } @if (selected.console; as console) {
+        <tr>
+          <th>{{ (console.teams?.length ?? 0) > 1 ? 'Teams' : 'Team' }}</th>
+          <td>
+            @for (team of console.teams; track team.id) {
+            <div [title]="team.id">
+              @if (team.name) { {{ team.name }} @if (team.variable) {
+              <span class="console-guess">var.{{ team.variable }}</span>
+              } } @else { {{ team.id }} }
+            </div>
+            } @if (console.teamsUnknown) {
+            <div>Known after apply</div>
+            } @else if (!console.teamIds?.length) {
+            <div>None: not registered in Player</div>
+            } @if (console.match === 'Name') {
+            <div class="console-guess">Matched to its Player record by name only</div>
+            }
+          </td>
+        </tr>
+        @if (console.teamIds?.length || console.teamsUnknown) {
+        <tr>
+          <th>Console</th>
+          <td>
+            @if (console.url) {
+            <a class="console-link" [href]="console.url" target="_blank" rel="noopener">Open console</a>
+            } @else {
+            <span class="console-guess">Available after apply</span>
+            }
+          </td>
+        </tr>
+        } }
+      </table>
+    </div>
+    }
+  </div>
+</div>

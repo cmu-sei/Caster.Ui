@@ -7,6 +7,10 @@ import {
   ErrorHandler,
   importProvidersFrom,
 } from '@angular/core';
+import {
+  FullscreenOverlayContainer,
+  OverlayContainer,
+} from '@angular/cdk/overlay';
 import { environment } from '../environments/environment';
 import { BASE_PATH } from './generated/caster-api';
 import {
@@ -73,6 +77,8 @@ export const appConfig: ApplicationConfig = {
       deps: [ComnSettingsService],
     },
     { provide: ErrorHandler, useClass: ErrorService },
+    // Tooltips, menus and snack bars stay visible over a full-screen element.
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     SystemMessageService,
     { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
     {
