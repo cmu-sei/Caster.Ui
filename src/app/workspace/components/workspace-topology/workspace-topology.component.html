@@ -88,10 +88,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       mat-icon-button
       matTooltip="Download image"
       aria-label="Download image"
-      (click)="downloadImage()"
+      [matMenuTriggerFor]="downloadMenu"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-download"></mat-icon>
     </button>
+    <mat-menu #downloadMenu="matMenu">
+      <button mat-menu-item (click)="downloadImage('png')">PNG image</button>
+      <button mat-menu-item (click)="downloadImage('svg')">SVG image</button>
+    </mat-menu>
     <button
       mat-icon-button
       [matTooltip]="isFullscreen ? 'Exit full screen' : 'Full screen'"
