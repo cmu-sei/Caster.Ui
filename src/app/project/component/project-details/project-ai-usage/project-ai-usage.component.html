@@ -31,6 +31,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           safety checks and billed all the same.
         }
       </p>
+      @if (usage.unpriced?.length) {
+        <!-- said before the table, so a usage shown in tokens only says why -->
+        <p class="hint unpriced" role="note">
+          @if (hasCost(usage.estimatedCostMicros)) {
+            The estimate leaves out {{ usage.unpriced.join(', ') }}, which
+            {{ usage.unpriced.length === 1 ? 'has' : 'have' }} no price set.
+          } @else {
+            There is no cost estimate: {{ usage.unpriced.join(', ') }}
+            {{ usage.unpriced.length === 1 ? 'has' : 'have' }} no price set.
+          }
+          Add one under Ai:Prices on the Caster API.
+        </p>
+      }
       <table class="ai-usage-table" aria-label="AI usage by task">
         <thead>
           <tr>
@@ -48,7 +61,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <td>{{ task.calls }}</td>
               <td>{{ task.inputTokens | number }}</td>
               <td>{{ task.outputTokens | number }}</td>
-              <td>{{ dollars(task.estimatedCostMicros) }}</td>
+              <td>{{ cost(task.estimatedCostMicros, task.calls) }}</td>
             </tr>
           }
         </tbody>
@@ -58,17 +71,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <td>{{ usage.calls }}</td>
             <td>{{ usage.inputTokens | number }}</td>
             <td>{{ usage.outputTokens | number }}</td>
-            <td>{{ dollars(usage.estimatedCostMicros) }}</td>
+            <td>{{ cost(usage.estimatedCostMicros, usage.calls) }}</td>
           </tr>
         </tfoot>
       </table>
-      @if (usage.unpriced?.length) {
-        <p class="hint">
-          The estimate leaves out {{ usage.unpriced.join(', ') }}, which
-          {{ usage.unpriced.length === 1 ? 'has' : 'have' }} no price set. Add
-          one under Ai:Prices on the Caster API.
-        </p>
-      }
     </mat-expansion-panel>
   </mat-accordion>
 }

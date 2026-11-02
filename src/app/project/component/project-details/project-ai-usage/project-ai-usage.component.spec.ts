@@ -160,12 +160,57 @@ describe('ProjectAiUsageComponent', () => {
     await user.click(screen.getByRole('button', { name: /AI USAGE/ }));
 
     expect(screen.queryByText(/at list prices/)).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('row', { name: /Terraform from a scenario brief/ }),
-    ).not.toHaveTextContent('$');
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'There is no cost estimate: local-model has no price set. Add one under Ai:Prices on the Caster API.',
+    );
+    const brief = screen.getByRole('row', {
+      name: /Terraform from a scenario brief/,
+    });
+    expect(brief).not.toHaveTextContent('$');
+    expect(brief).toHaveTextContent('no price');
     expect(
       screen.getByRole('row', { name: /Draft Design with AI/ }),
     ).toHaveTextContent('under $0.01');
+  });
+
+  /**
+   * Verifies: the note naming the unpriced models comes before the table, so usage shown in tokens only says why.
+   * Interacts with: ProjectsService.getProjectAiUsage.
+   * Data: two Ask AI calls on two models, neither priced.
+   */
+  it('says before the table why there is no cost, naming Ask AI calls as such', async () => {
+    const user = userEvent.setup();
+    await renderUsage(() =>
+      of({
+        ...USAGE,
+        calls: 2,
+        refused: 0,
+        estimatedCostMicros: null,
+        unpriced: ['us.anthropic.claude-sonnet-5-5', 'local-model'],
+        byTask: [
+          {
+            name: 'assist',
+            calls: 2,
+            inputTokens: 900,
+            outputTokens: 100,
+            estimatedCostMicros: null,
+          },
+        ],
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: /AI USAGE/ }));
+
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent(
+      'There is no cost estimate: us.anthropic.claude-sonnet-5-5, local-model have no price set.',
+    );
+    expect(
+      note.compareDocumentPosition(screen.getByRole('table')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByRole('row', { name: /Ask AI/ })).toHaveTextContent(
+      'no price',
+    );
   });
 
   /**

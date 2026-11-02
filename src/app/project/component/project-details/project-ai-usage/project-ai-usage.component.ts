@@ -52,6 +52,7 @@ export class ProjectAiUsageComponent {
     design: 'Draft Design with AI',
     terraform: 'Draft or edit Terraform with AI',
     brief: 'Terraform from a scenario brief',
+    assist: 'Ask AI',
   };
 
   constructor() {
@@ -95,6 +96,15 @@ export class ProjectAiUsageComponent {
 
   hasCost(micros: number | null | undefined): boolean {
     return micros !== null && micros !== undefined;
+  }
+
+  // a cell with calls but no estimate says why, rather than standing empty
+  cost(micros: number | null | undefined, calls: number | undefined): string {
+    return this.hasCost(micros)
+      ? this.dollars(micros)
+      : calls
+        ? 'no price'
+        : '';
   }
 
   // the server counts in millionths of a dollar; a planner reads dollars and cents
