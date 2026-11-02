@@ -14,9 +14,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ClipboardModule } from 'ngx-clipboard';
 import { Partition, Vlan, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlanStore } from 'src/app/vlans/state/vlan/vlan.store';
 import { PartitionComponent } from './partition.component';
@@ -42,6 +44,8 @@ async function renderPartition(canEdit: boolean) {
     setDefaultPartition: vi.fn((_id: string) => of<unknown>(null)),
     addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
   } satisfies ApiStub<VlansService>;
+  const { dialogRef } = dialogRefStub<unknown, boolean>(false);
+  const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(PartitionComponent, {
     childStubs: [{ replace: VlanListComponent, with: VlanListStub }],
     imports: [
@@ -53,14 +57,20 @@ async function renderPartition(canEdit: boolean) {
       MatInputModule,
       ClipboardModule,
     ],
-    providers: [{ provide: VlansService, useValue: vlansApi }],
+    providers: [
+      { provide: VlansService, useValue: vlansApi },
+      {
+        provide: CrucibleDialogService,
+        useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
+      },
+    ],
     inputs: { partition, canEdit },
   });
   TestBed.inject(VlanStore).set([
     { id: 'v1', vlanId: 100, partitionId: 'part1', poolId: 'pool1' },
   ]);
   view.fixture.detectChanges();
-  return { ...view, vlansApi, user: userEvent.setup() };
+  return { ...view, vlansApi, confirm, user: userEvent.setup() };
 }
 
 describe('PartitionComponent', () => {
@@ -79,6 +89,23 @@ describe('PartitionComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Set Default' }));
 
     expect(vlansApi.setDefaultPartition).toHaveBeenCalledWith('part1');
+  });
+
+  /**
+   * Verifies: Delete asks "Delete Partition" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false).
+   * Data: partition Range; canEdit true.
+   */
+  it('confirms a delete with the standard wording', async () => {
+    const { confirm, user } = await renderPartition(true);
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Partition',
+      message: 'Are you sure that you want to delete Range?',
+      confirmText: 'Delete',
+    });
   });
 
   /**

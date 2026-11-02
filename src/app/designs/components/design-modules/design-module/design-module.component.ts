@@ -125,7 +125,8 @@ export class DesignModuleComponent implements OnInit, OnChanges {
     this.confirmationService
       .confirm({
         title: 'Delete Module',
-        message: `Are you sure you want to delete ${this.designModule().name}?`,
+        message: `Are you sure that you want to delete ${this.designModule().name}?`,
+        confirmText: 'Delete',
       })
       .afterClosed()
       .pipe(take(1))

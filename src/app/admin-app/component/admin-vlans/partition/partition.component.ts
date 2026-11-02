@@ -102,7 +102,8 @@ export class PartitionComponent implements OnInit {
     this.confirmService
       .confirm({
         title: 'Delete Partition',
-        message: `Are you sure you want to delete ${this.partition.name}?`,
+        message: `Are you sure that you want to delete ${this.partition.name}?`,
+        confirmText: 'Delete',
       })
       .afterClosed()
       .subscribe((confirmed) => {
