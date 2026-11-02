@@ -75,6 +75,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </mat-sidenav>
 
+  @if (project && assistantOpen()) {
+    <!-- stays open beside the tabs while the planner moves between them -->
+    <mat-sidenav
+      class="assistant-sidenav"
+      position="end"
+      mode="side"
+      [opened]="true"
+      [disableClose]="true"
+    >
+      <cas-project-assistant
+        [projectId]="project.id"
+        [directoryId]="assistantScope().directoryId"
+        [workspaceId]="assistantScope().workspaceId"
+        (closePanel)="assistantOpen.set(false)"
+      />
+    </mat-sidenav>
+  }
+
   @if (project) {
     <mat-sidenav-content class="d-flex flex-column">
       <cas-topbar
@@ -84,7 +102,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [projectId]="project.id"
         (sidenavToggle)="sidenav.toggle()"
         (editMemberships)="openEditMemberships()"
-      />
+      >
+        @if (canEditProject$ | async) {
+          <button
+            casTopbarActions
+            mat-button
+            type="button"
+            class="ask-ai"
+            [attr.aria-pressed]="assistantOpen()"
+            (click)="assistantOpen.set(!assistantOpen())"
+          >
+            <mat-icon fontIcon="mdi-creation" />
+            Ask AI
+          </button>
+        }
+      </cas-topbar>
       <cas-project
         class="project-content"
         [loading]="loading$ | async"

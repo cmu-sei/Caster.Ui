@@ -32,6 +32,8 @@ import { ProjectNavigationContainerComponent } from 'src/app/project/component/p
 import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
 import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
+import { ProjectAssistantComponent } from '../project-assistant/project-assistant.component';
+import userEvent from '@testing-library/user-event';
 
 @Component({
   selector: 'cas-project-navigation',
@@ -39,7 +41,11 @@ import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.co
 })
 class ProjectNavigationStub {}
 
-@Component({ selector: 'cas-topbar', template: '' })
+// keeps the page's own actions, as the top bar does
+@Component({
+  selector: 'cas-topbar',
+  template: '<ng-content select="[casTopbarActions]" />',
+})
 class TopbarStub {
   readonly title = input<string>(undefined);
   readonly topbarView = input<TopbarView>(undefined);
@@ -64,6 +70,14 @@ class InventoryPanelStub {}
 @Component({ selector: 'cas-project-ai-usage', template: '' })
 class ProjectAiUsageStub {
   readonly projectId = input<string>(undefined);
+}
+
+@Component({ selector: 'cas-project-assistant', template: '' })
+class ProjectAssistantStub {
+  readonly projectId = input<string>(undefined);
+  readonly directoryId = input<string>(undefined);
+  readonly workspaceId = input<string>(undefined);
+  readonly closePanel = output<void>();
 }
 
 /**
@@ -103,6 +117,7 @@ async function renderContainer(system: SystemPermission[] = []) {
       { replace: ProjectComponent, with: ProjectStub },
       { replace: InventoryPanelComponent, with: InventoryPanelStub },
       { replace: ProjectAiUsageComponent, with: ProjectAiUsageStub },
+      { replace: ProjectAssistantComponent, with: ProjectAssistantStub },
     ],
     imports: [
       MatSidenavModule,
@@ -200,5 +215,46 @@ describe('ProjectCollapseContainerComponent', () => {
     expect(
       fixture.debugElement.query(By.directive(ProjectStub)),
     ).not.toBeNull();
+  });
+
+  /**
+   * Verifies: whoever may edit the project gets Ask AI in the top bar, which opens the panel beside the tabs for the
+   * active project and closes it again from the panel.
+   * Interacts with: PermissionService.canEditProject (real) over stubbed system permissions.
+   * Data: active project p1 Range; system permission EditProjects.
+   */
+  it('opens and closes Ask AI for a user who may edit the project', async () => {
+    const user = userEvent.setup();
+    const { fixture } = await renderContainer([SystemPermission.EditProjects]);
+    const assistant = () =>
+      fixture.debugElement.query(By.directive(ProjectAssistantStub));
+    expect(assistant()).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Ask AI' }));
+    fixture.detectChanges();
+
+    const panel: ProjectAssistantStub = assistant().componentInstance;
+    expect(panel.projectId()).toBe('p1');
+    expect(screen.getByRole('button', { name: 'Ask AI' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    panel.closePanel.emit();
+    fixture.detectChanges();
+    expect(assistant()).toBeNull();
+  });
+
+  /**
+   * Verifies: a user who may only view the project is not offered Ask AI.
+   * Interacts with: PermissionService.canEditProject (real) over stubbed system permissions.
+   * Data: active project p1 Range; system permission ViewProjects only.
+   */
+  it('offers no Ask AI to a viewer', async () => {
+    await renderContainer([SystemPermission.ViewProjects]);
+
+    expect(
+      screen.queryByRole('button', { name: 'Ask AI' }),
+    ).not.toBeInTheDocument();
   });
 });

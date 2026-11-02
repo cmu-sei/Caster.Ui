@@ -1,0 +1,167 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.assistant-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assistant-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.scope {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.scope-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.turns {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.hint {
+  margin: 0 0 0.5rem 0;
+}
+
+.examples,
+.changes,
+.warnings,
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.example {
+  text-align: left;
+  height: auto;
+  white-space: normal;
+  margin-bottom: 0.25rem;
+}
+
+.turn {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+
+  p {
+    margin: 0 0 0.5rem 0;
+  }
+}
+
+.planner {
+  margin-left: 2rem;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.turn.assistant {
+  margin-right: 1rem;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.cause {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-weight: 500;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+}
+
+.change {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  white-space: normal;
+}
+
+.toggle {
+  flex-shrink: 0;
+}
+
+.code {
+  height: 300px;
+  margin: 0.25rem 0 0.5rem 0;
+  white-space: normal;
+}
+
+.code ngx-monaco-editor,
+.code ngx-monaco-diff-editor {
+  display: block;
+  height: 100%;
+}
+
+.warnings li {
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: 0.25rem;
+}
+
+.results li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+// a long result must not squeeze the icon narrower than its glyph
+.results li mat-icon {
+  flex-shrink: 0;
+}
+
+.results li.failed,
+.error-message {
+  color: var(--mat-sys-error);
+}
+
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.prompt {
+  margin-top: 0.5rem;
+}

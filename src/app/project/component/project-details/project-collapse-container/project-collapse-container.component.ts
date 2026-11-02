@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   inject,
+  signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -16,6 +17,8 @@ import {
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { DesignQuery } from 'src/app/designs/state/design.query';
+import { WorkspaceQuery } from 'src/app/workspace/state';
 import { FileQuery, isFileContentChanged } from 'src/app/files/state';
 import {
   Project,
@@ -55,6 +58,8 @@ import { ProjectComponent } from '../project/project.component';
 import { AsyncPipe } from '@angular/common';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
 import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
+import { ProjectAssistantComponent } from '../project-assistant/project-assistant.component';
+import { MatButton } from '@angular/material/button';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
 
@@ -78,6 +83,8 @@ const LEFT_SIDEBAR_MIN_WIDTH = 250;
     ProjectComponent,
     InventoryPanelComponent,
     ProjectAiUsageComponent,
+    ProjectAssistantComponent,
+    MatButton,
     AsyncPipe,
   ],
 })
@@ -91,6 +98,8 @@ export class ProjectCollapseContainerComponent
   private currentUserQuery = inject(CurrentUserQuery);
   private settingsService = inject(ComnSettingsService);
   private fileQuery = inject(FileQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private designQuery = inject(DesignQuery);
   private signalRService = inject(SignalRService);
   private permissionService = inject(PermissionService);
   private router = inject(Router);
@@ -107,6 +116,15 @@ export class ProjectCollapseContainerComponent
   public theme$: Observable<Theme>;
   /** The inventory describes the hypervisor, so it needs ViewHosts. */
   public canViewInventory$: Observable<boolean>;
+  /** Ask AI changes files, so it is offered to whoever may edit the project. */
+  public canEditProject$: Observable<boolean>;
+  /** Whether the Ask AI panel is open; it stays open across the project's tabs. */
+  readonly assistantOpen = signal(false);
+  /** The directory and workspace of the open tab, which Ask AI starts on. */
+  readonly assistantScope = signal<{
+    directoryId?: string;
+    workspaceId?: string;
+  }>({});
 
   TopbarView = TopbarView;
 
@@ -123,9 +141,14 @@ export class ProjectCollapseContainerComponent
     this.loading$ = this.projectQuery.selectLoading();
     this.project$ = this.projectQuery.selectActive();
     this.projectUI$ = this.projectQuery.ui.selectActive();
-    this.projectUI$
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((exUi) => (this.projectUI = exUi));
+    this.projectUI$.pipe(takeUntil(this.unsubscribe$)).subscribe((exUi) => {
+      this.projectUI = exUi;
+      this.assistantScope.set(this.scopeOf(exUi));
+    });
+    this.canEditProject$ = this.project$.pipe(
+      filter((p) => !!p),
+      switchMap((p) => this.permissionService.canEditProject(p.id)),
+    );
 
     this.currentUser$ = this.currentUserQuery.select();
     this.userService.setCurrentUser();
@@ -172,6 +195,27 @@ export class ProjectCollapseContainerComponent
             });
         }
       });
+  }
+
+  // the open tab's directory, and its workspace when it is one
+  private scopeOf(ui: ProjectUI): {
+    directoryId?: string;
+    workspaceId?: string;
+  } {
+    const tab = ui?.openTabs?.[ui.selectedTab];
+    switch (tab?.type) {
+      case ProjectObjectType.FILE:
+        return { directoryId: this.fileQuery.getEntity(tab.id)?.directoryId };
+      case ProjectObjectType.WORKSPACE:
+        return {
+          directoryId: this.workspaceQuery.getEntity(tab.id)?.directoryId,
+          workspaceId: tab.id,
+        };
+      case ProjectObjectType.DESIGN:
+        return { directoryId: this.designQuery.getEntity(tab.id)?.directoryId };
+      default:
+        return {};
+    }
   }
 
   closeTab(id: string) {

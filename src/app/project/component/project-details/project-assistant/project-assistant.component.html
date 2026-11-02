@@ -1,0 +1,242 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="assistant-panel">
+  <div class="assistant-header">
+    <mat-icon class="mdi-24px" fontIcon="mdi-creation" />
+    <h2 class="assistant-title">Ask AI</h2>
+    @if (turns.length) {
+      <button
+        mat-icon-button
+        type="button"
+        title="New conversation"
+        aria-label="New conversation"
+        (click)="newConversation()"
+        [disabled]="isAsking || isApplying"
+      >
+        <mat-icon fontIcon="mdi-message-plus-outline" />
+      </button>
+    }
+    <button
+      mat-icon-button
+      type="button"
+      title="Close Ask AI"
+      aria-label="Close Ask AI"
+      (click)="closePanel.emit()"
+    >
+      <mat-icon fontIcon="mdi-close" />
+    </button>
+  </div>
+
+  <div class="scope">
+    <mat-form-field class="scope-field" subscriptSizing="dynamic">
+      <mat-label>Directory</mat-label>
+      <mat-select
+        [value]="selectedDirectoryId()"
+        (selectionChange)="selectDirectory($event.value)"
+        [disabled]="isAsking || isApplying"
+      >
+        @for (directory of directories(); track directory.id) {
+          <mat-option [value]="directory.id">{{ directory.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    @if (workspaces().length) {
+      <mat-form-field class="scope-field" subscriptSizing="dynamic">
+        <mat-label>Workspace</mat-label>
+        <mat-select
+          [value]="selectedWorkspaceId()"
+          (selectionChange)="selectedWorkspaceId.set($event.value)"
+          [disabled]="isAsking || isApplying"
+        >
+          <mat-option value="">All workspaces</mat-option>
+          @for (workspace of workspaces(); track workspace.id) {
+            <mat-option [value]="workspace.id">{{ workspace.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+
+  <div class="turns" role="log" aria-live="polite">
+    @if (!turns.length) {
+      <p class="hint">
+        Say what to change in this directory. Ask AI sees its files and its
+        parents', its Designs, its workspaces' Terraform versions and the output
+        of the latest failed plan or apply. It can add or edit files and set a
+        workspace's Terraform version; you review every change before it is
+        saved.
+      </p>
+      <ul class="examples">
+        @for (example of examples; track example) {
+          <li>
+            <button
+              matButton
+              type="button"
+              class="example"
+              (click)="ask(example)"
+              [disabled]="isAsking || !selectedDirectoryId()"
+            >
+              {{ example }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @for (turn of turns; track $index) {
+      @if (turn.role === 'planner') {
+        <div class="turn planner">{{ turn.text }}</div>
+      } @else {
+        <div class="turn assistant">
+          @if (turn.cause === 'environment') {
+            <p class="cause" role="note">
+              <mat-icon class="mdi-18px" fontIcon="mdi-server-network-off" />
+              <span>Not a code problem: the cause is outside the files.</span>
+            </p>
+          }
+          @if (turn.text) {
+            <p>{{ turn.text }}</p>
+          }
+          @if (turn.question) {
+            <p class="question">
+              <strong>{{ turn.question }}</strong>
+            </p>
+          }
+          @if (turn.changes?.length) {
+            <ul class="changes" aria-label="Proposed changes">
+              @for (row of turn.changes; track $index) {
+                <li>
+                  <div class="change">
+                    <mat-checkbox
+                      [checked]="row.keep"
+                      (change)="row.keep = $event.checked"
+                      [disabled]="!!turn.results || isApplying"
+                      >{{ row.change.label }}</mat-checkbox
+                    >
+                    @if (isFile(row.change)) {
+                      <button
+                        matButton
+                        type="button"
+                        class="toggle"
+                        [attr.aria-expanded]="row.open"
+                        (click)="row.open = !row.open"
+                      >
+                        {{
+                          row.open
+                            ? 'Hide'
+                            : row.change.op === 'file.edit'
+                              ? 'Show changes'
+                              : 'Show file'
+                        }}
+                      </button>
+                    }
+                  </div>
+                  @if (row.open && isFile(row.change)) {
+                    <div class="code">
+                      @if (row.change.op === 'file.edit') {
+                        <ngx-monaco-diff-editor
+                          [options]="editorOptions"
+                          [originalModel]="{
+                            code: row.change.existingContent ?? '',
+                            language: language(row.change.fileName),
+                          }"
+                          [modifiedModel]="{
+                            code: row.change.content ?? '',
+                            language: language(row.change.fileName),
+                          }"
+                        />
+                      } @else {
+                        <ngx-monaco-editor
+                          [options]="editorOptions"
+                          [model]="{
+                            value: row.change.content ?? '',
+                            language: language(row.change.fileName),
+                          }"
+                        />
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+            @if (!turn.results) {
+              <div class="actions">
+                <button
+                  matButton="filled"
+                  type="button"
+                  (click)="apply(turn)"
+                  [disabled]="!keptChanges(turn).length || isApplying"
+                >
+                  Apply {{ keptChanges(turn).length }}
+                  {{ keptChanges(turn).length === 1 ? 'change' : 'changes' }}
+                </button>
+              </div>
+            }
+          }
+          @if (turn.warnings?.length) {
+            <ul class="warnings" aria-label="Left out or to check">
+              @for (warning of turn.warnings; track $index) {
+                <li>{{ warning }}</li>
+              }
+            </ul>
+          }
+          @if (turn.results) {
+            <ul class="results" aria-label="Results">
+              @for (result of turn.results; track $index) {
+                <li [class.failed]="!result.applied">
+                  <mat-icon
+                    class="mdi-18px"
+                    [fontIcon]="
+                      result.applied ? 'mdi-check' : 'mdi-alert-circle-outline'
+                    "
+                  />
+                  <span
+                    >{{ result.label }}
+                    @if (!result.applied) {
+                      : {{ result.error }}
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+          @if (turn.error) {
+            <p class="error-message" role="alert">{{ turn.error }}</p>
+          }
+        </div>
+      }
+    }
+
+    @if (isAsking) {
+      <div class="thinking">
+        <mat-spinner diameter="24" />
+        <span>Working out the changes...</span>
+      </div>
+    }
+  </div>
+
+  <mat-form-field class="full-width prompt">
+    <mat-label>What should change?</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="prompt"
+      rows="3"
+      (keydown)="onKeydown($event)"
+      [disabled]="isAsking"
+      placeholder="e.g. Fix the errors from the last apply"
+    ></textarea>
+  </mat-form-field>
+  <div class="actions">
+    <button
+      matButton="filled"
+      type="button"
+      (click)="ask()"
+      [disabled]="!canAsk"
+    >
+      Ask
+    </button>
+  </div>
+</div>
