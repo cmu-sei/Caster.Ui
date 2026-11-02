@@ -1,7 +1,8 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { fireEvent, screen } from '@testing-library/angular';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -13,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { DirectoryStore } from 'src/app/directories/state/directory.store';
 import { FileStore } from 'src/app/files/state/file.store';
 import {
@@ -25,6 +27,7 @@ import {
   PermissionGrants,
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DirectoryPanelComponent } from './directory-panel.component';
 
@@ -35,7 +38,10 @@ const directory: Directory = {
   parentId: null,
 };
 
-async function renderPanel(grants: PermissionGrants) {
+async function renderPanel(
+  grants: PermissionGrants,
+  providers: Provider[] = [],
+) {
   const view = await renderComponent(DirectoryPanelComponent, {
     imports: [
       FilesFilterPipe,
@@ -49,7 +55,7 @@ async function renderPanel(grants: PermissionGrants) {
       MatButtonModule,
       MatDialogModule,
     ],
-    providers: [...permissionDataProviders(grants)],
+    providers: [...permissionDataProviders(grants), ...providers],
     inputs: { parentDirectory: directory },
   });
   TestBed.inject(DirectoryStore).set([directory]);
@@ -86,6 +92,80 @@ describe('DirectoryPanelComponent', () => {
       expect(screen.getByText(link)).toBeInTheDocument();
     }
   });
+
+  /**
+   * Verifies: each Add link opens the name dialog titled with its own label ("Add File", "Add Workspace", "Add Directory", "Add Design").
+   * Interacts with: the real MatDialog and NameDialogComponent.
+   * Data: directory network in project p1; an EditProject claim on p1.
+   */
+  it.each(addLinks)('titles the %s dialog with its label', async (link) => {
+    await renderPanel({
+      projects: [
+        { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
+      ],
+    });
+
+    fireEvent.click(screen.getByText(link));
+
+    expect(
+      await screen.findByRole('heading', { name: link }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: deleting a directory, file or design asks "Delete <Type>" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false), real DirectoryQuery and WorkspaceQuery (no workspaces).
+   * Data: directory network, file main.tf, design web; an EditProject claim on p1.
+   */
+  it.each([
+    [
+      'Directory',
+      'network',
+      (c: DirectoryPanelComponent) => c.deleteDirectory(directory),
+    ],
+    [
+      'File',
+      'main.tf',
+      (c: DirectoryPanelComponent) =>
+        c.deleteFile({ id: 'f1', name: 'main.tf', directoryId: 'dir1' }),
+    ],
+    [
+      'Design',
+      'web',
+      (c: DirectoryPanelComponent) =>
+        c.deleteDesign({ id: 'des1', name: 'web', directoryId: 'dir1' }),
+    ],
+  ] as const)(
+    'confirms a %s delete with the standard wording',
+    async (type, name, remove) => {
+      const { dialogRef } = dialogRefStub<unknown, boolean>(false);
+      const confirm = vi.fn(() => dialogRef);
+      const view = await renderPanel(
+        {
+          projects: [
+            { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
+          ],
+        },
+        [
+          {
+            provide: CrucibleDialogService,
+            useValue: { confirm } satisfies Pick<
+              CrucibleDialogService,
+              'confirm'
+            >,
+          },
+        ],
+      );
+
+      remove(view.fixture.componentInstance);
+
+      expect(confirm).toHaveBeenCalledWith({
+        title: `Delete ${type}`,
+        message: `Are you sure that you want to delete ${name}?`,
+        confirmText: 'Delete',
+      });
+    },
+  );
 
   /**
    * Verifies: without EditProjects or an EditProject claim on this project no Add link renders.

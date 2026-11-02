@@ -59,6 +59,7 @@ async function renderModuleList(canEdit: boolean, confirmAnswer?: boolean) {
     load,
     loadModuleById,
     deleteModule,
+    confirm,
     user: userEvent.setup(),
   };
 }
@@ -106,12 +107,12 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, deleting a module asks for confirmation and emits its id once confirmed.
+   * Verifies: with canEdit, deleting a module asks "Delete Module" / "Are you sure that you want to delete <name>?" and emits its id once confirmed.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), the delete output.
    * Data: canEdit true; module mod1.
    */
   it('deletes a module after confirmation when canEdit is true', async () => {
-    const { deleteModule, user } = await renderModuleList(true, true);
+    const { deleteModule, confirm, user } = await renderModuleList(true, true);
 
     await user.click(
       within(screen.getByRole('table')).getByRole('button', {
@@ -119,6 +120,11 @@ describe('AdminModuleListComponent', () => {
       }),
     );
 
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Module',
+      message: 'Are you sure that you want to delete vm?',
+      confirmText: 'Delete',
+    });
     expect(deleteModule).toHaveBeenCalledWith('mod1');
   });
 

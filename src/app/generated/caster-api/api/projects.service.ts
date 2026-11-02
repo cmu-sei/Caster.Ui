@@ -634,7 +634,7 @@ export class ProjectsService {
         }
 
 
-        let localVarPath = `/api/projects/projects/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/actions/export`;
+        let localVarPath = `/api/projects/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/actions/export`;
         return this.httpClient.request('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -1071,7 +1071,7 @@ export class ProjectsService {
             }
         }
 
-        let localVarPath = `/api/projects/projects/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/actions/import`;
+        let localVarPath = `/api/projects/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/actions/import`;
         return this.httpClient.request<ImportProjectResult>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
