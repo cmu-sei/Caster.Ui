@@ -20,6 +20,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </span>
     <span class="view-text">{{ title() }}</span>
     <span class="spacer"></span>
+    <!-- actions of the page the bar heads, such as a project's Ask AI -->
+    <ng-content select="[casTopbarActions]" />
     @if (currentUser$ | async; as currentUser) {
       <div
         class="team-text flex-grow-1 d-flex justify-content-end align-items-center"
