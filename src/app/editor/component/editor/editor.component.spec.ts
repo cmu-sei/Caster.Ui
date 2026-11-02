@@ -4,6 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Component, forwardRef, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { By } from '@angular/platform-browser';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { screen } from '@testing-library/angular';
@@ -422,6 +423,64 @@ describe('EditorComponent', () => {
       }
     },
   );
+
+  /**
+   * Verifies: the editor takes over Monaco's right-click Paste, says why in a snack bar when the clipboard can't be read, and hands the command back when it is destroyed.
+   * Interacts with: editorInit, monaco.editor.registerCommand (fake), MatSnackBar.open (spy), the browser clipboard (refuses).
+   * Data: main.tf locked by the current user u1; clipboard read refused.
+   */
+  it('explains a right-click Paste the browser refuses, and gives the command back on destroy', async () => {
+    const { editor } = fakeMonaco();
+    const dispose = vi.fn();
+    let paste: () => Promise<unknown> = async () => undefined;
+    (window as any).monaco.editor.registerCommand = vi.fn(
+      (_id: string, handler: () => Promise<unknown>) => {
+        paste = handler;
+        return { dispose };
+      },
+    );
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        readText: () =>
+          Promise.reject(
+            new DOMException('Read permission denied.', 'NotAllowedError'),
+          ),
+      },
+    });
+    try {
+      const { fixture } = await renderEditor(
+        { canEdit: true },
+        { lockedById: 'u1' },
+      );
+      const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+      monacoStub(fixture).onInit.emit(editor);
+
+      expect(
+        (window as any).monaco.editor.registerCommand,
+      ).toHaveBeenCalledWith(
+        'editor.action.clipboardPasteAction',
+        expect.any(Function),
+      );
+
+      await paste();
+      expect(open).toHaveBeenCalledWith(
+        expect.stringContaining('Ctrl+V (⌘V on a Mac)'),
+        'Dismiss',
+      );
+
+      fixture.destroy();
+      expect(dispose).toHaveBeenCalled();
+    } finally {
+      if (clipboard) {
+        Object.defineProperty(navigator, 'clipboard', clipboard);
+      } else {
+        delete (navigator as any).clipboard;
+      }
+      delete (window as any).monaco;
+    }
+  });
 
   /**
    * Verifies: when Monaco replaces the content of a file the user is editing (setValue, a flush), the LF line ending is applied again; a flush while read-only is left alone.
