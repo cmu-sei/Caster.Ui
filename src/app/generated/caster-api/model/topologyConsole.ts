@@ -1,5 +1,5 @@
 /*
-Copyright 2026 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -36,7 +36,7 @@ export interface TopologyConsole {
      */
     vmId?: string | null;
     /**
-     * The address of the machine\'s Player record, such as crucible_player_virtual_machine.dc. Null when Caster\'s own Player sync registers it.
+     * The address of the machine\'s Player record, such as `crucible_player_virtual_machine.dc`. Null when Caster\'s own Player sync registers it.
      */
     address?: string | null;
     /**
@@ -48,11 +48,12 @@ export interface TopologyConsole {
      */
     name?: string | null;
     /**
-     * The machine\'s console in Player. Null while VmId is.
+     * The machine\'s console in Player. Null while Caster.Api.Domain.Models.TopologyConsole.VmId is.
      */
     url?: string | null;
     /**
-     * The teams in TeamIds, named where the Terraform names them. Caster does not ask Player.
+     * The teams in Caster.Api.Domain.Models.TopologyConsole.TeamIds, named where the Terraform names them. Caster does not ask Player.
      */
     teams?: Array<TopologyTeam> | null;
 }
+

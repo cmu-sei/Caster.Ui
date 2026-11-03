@@ -1,5 +1,5 @@
 /*
-Copyright 2026 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -15,9 +15,9 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  * Do not edit the class manually.
  */
 import { TopologyNode } from './topologyNode';
-import { TopologyEdge } from './topologyEdge';
-import { TopologySource } from './topologySource';
 import { TopologyNodeLayout } from './topologyNodeLayout';
+import { TopologySource } from './topologySource';
+import { TopologyEdge } from './topologyEdge';
 
 
 /**
@@ -38,7 +38,7 @@ export interface WorkspaceTopology {
     nodes?: Array<TopologyNode> | null;
     edges?: Array<TopologyEdge> | null;
     /**
-     * The position and role saved for each node, by node id. Only nodes in Nodes; a node nobody has moved or given a role is absent.
+     * The position and role saved for each node, by node id. Only nodes in Caster.Api.Features.Workspaces.WorkspaceTopology.Nodes; a node nobody has moved or given a role is absent.
      */
     layout?: { [key: string]: TopologyNodeLayout; } | null;
 }

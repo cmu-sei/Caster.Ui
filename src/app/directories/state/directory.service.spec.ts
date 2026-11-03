@@ -401,6 +401,7 @@ describe('DirectoryService', () => {
             _id: string,
             _type?: ArchiveType,
             _ids?: boolean,
+            _settings?: boolean,
             _observe?: 'response',
           ) => of(response),
         ),
@@ -415,6 +416,7 @@ describe('DirectoryService', () => {
         'd1',
         'tgz',
         true,
+        undefined,
         'response',
       );
       expect(download).toEqual({ blob: response.body, filename: 'root.tgz' });

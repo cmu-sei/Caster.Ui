@@ -16,7 +16,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ImportResources' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules';
+export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ImportResources' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules' | 'ViewEnvironmentSets' | 'ManageEnvironmentSets';
 
 export const SystemPermission = {
     CreateProjects: 'CreateProjects' as SystemPermission,
@@ -39,6 +39,8 @@ export const SystemPermission = {
     ViewHosts: 'ViewHosts' as SystemPermission,
     ManageHosts: 'ManageHosts' as SystemPermission,
     ViewModules: 'ViewModules' as SystemPermission,
-    ManageModules: 'ManageModules' as SystemPermission
+    ManageModules: 'ManageModules' as SystemPermission,
+    ViewEnvironmentSets: 'ViewEnvironmentSets' as SystemPermission,
+    ManageEnvironmentSets: 'ManageEnvironmentSets' as SystemPermission
 };
 

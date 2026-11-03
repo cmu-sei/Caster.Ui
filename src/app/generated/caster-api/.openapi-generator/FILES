@@ -6,6 +6,7 @@ api/applies.service.ts
 api/designs.service.ts
 api/designsModules.service.ts
 api/directories.service.ts
+api/environmentSets.service.ts
 api/files.service.ts
 api/groupPermissions.service.ts
 api/groups.service.ts
@@ -40,6 +41,8 @@ model/cancelRunCommand.ts
 model/createDesignCommand.ts
 model/createDesignModuleCommand.ts
 model/createDirectoryCommand.ts
+model/createEnvironmentSetCommand.ts
+model/createEnvironmentSetEntryCommand.ts
 model/createFileCommand.ts
 model/createGroupCommand.ts
 model/createGroupMembershipCommand.ts
@@ -63,6 +66,8 @@ model/directory.ts
 model/editDesignCommand.ts
 model/editDesignModuleCommand.ts
 model/editDirectoryCommand.ts
+model/editEnvironmentSetCommand.ts
+model/editEnvironmentSetEntryCommand.ts
 model/editFileCommand.ts
 model/editGroupCommand.ts
 model/editGroupMembershipCommand.ts
@@ -75,6 +80,13 @@ model/editSystemRoleCommand.ts
 model/editUserCommand.ts
 model/editVariableCommand.ts
 model/editWorkspaceCommand.ts
+model/editWorkspaceTopologyLayoutCommand.ts
+model/environmentSecrets.ts
+model/environmentSet.ts
+model/environmentSetEntry.ts
+model/environmentSetEntryKind.ts
+model/environmentSetProject.ts
+model/environmentSetValueSource.ts
 model/fileVersion.ts
 model/group.ts
 model/groupMembership.ts
@@ -90,6 +102,7 @@ model/modelFile.ts
 model/models.ts
 model/module.ts
 model/moduleOutput.ts
+model/moduleSource.ts
 model/moduleValue.ts
 model/moduleVariable.ts
 model/moduleVersion.ts
@@ -98,7 +111,6 @@ model/partialEditDirectoryCommandAzureDestroyFailureThreshold.ts
 model/partialEditDirectoryCommandParallelism.ts
 model/partialEditDirectoryCommandParentId.ts
 model/partialEditFileCommand.ts
-model/partialEditFileCommandWorkspaceId.ts
 model/partialEditPartitionCommand.ts
 model/partialEditPoolCommand.ts
 model/partialEditVlanCommand.ts
@@ -111,6 +123,8 @@ model/planStatus.ts
 model/pool.ts
 model/problemDetails.ts
 model/project.ts
+model/projectEnvironmentSet.ts
+model/projectEnvironmentSetEntry.ts
 model/projectMembership.ts
 model/projectPermission.ts
 model/projectPermissionsClaim.ts
@@ -130,10 +144,17 @@ model/systemPermission.ts
 model/systemRole.ts
 model/tagFileCommand.ts
 model/taintResourcesCommand.ts
+model/terraformRunMode.ts
 model/terraformVersionsResult.ts
+model/topologyConsole.ts
+model/topologyConsoleMatch.ts
 model/topologyEdge.ts
 model/topologyNode.ts
 model/topologyNodeKind.ts
+model/topologyNodeLayout.ts
+model/topologyNodeRole.ts
+model/topologySource.ts
+model/topologyTeam.ts
 model/unassignPartitionCommand.ts
 model/user.ts
 model/validationProblemDetails.ts

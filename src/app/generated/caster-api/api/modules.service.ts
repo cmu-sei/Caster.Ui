@@ -562,6 +562,7 @@ export class ModulesService {
     public getModuleSources(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<ModuleSource>>>;
     public getModuleSources(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<ModuleSource>>>;
     public getModuleSources(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;

@@ -22,10 +22,6 @@ export interface CreateWorkspaceCommand {
      */
     name?: string | null;
     /**
-     * The Id of the Directory of the Workspace
-     */
-    directoryId?: string;
-    /**
      * True if this Workspace will be dynamically assigned a Host on first Run
      */
     dynamicHost?: boolean;
@@ -41,5 +37,9 @@ export interface CreateWorkspaceCommand {
      * If set, the number of consecutive failed destroys in an Azure Workspace before Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
      */
     azureDestroyFailureThreshold?: number | null;
+    /**
+     * The Id of the Directory of the Workspace
+     */
+    directoryId?: string;
 }
 
