@@ -13,10 +13,12 @@ import {
   Design,
   DesignModule,
   Directory,
+  EnvironmentSet,
   GroupMembership,
   ModelFile,
   Partition,
   Pool,
+  ProjectEnvironmentSet,
   ProjectMembership,
   QueuePosition,
   Run,
@@ -33,6 +35,7 @@ import { ProjectService } from '../../project/state';
 import { RoleService } from 'src/app/roles/roles.service.service';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
+import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
 
 @Injectable({
   providedIn: 'root',
@@ -53,6 +56,7 @@ export class SignalRService {
   private roleService = inject(RoleService);
   private groupMembershipService = inject(GroupMembershipService);
   private projectMembershipService = inject(ProjectMembershipService);
+  private environmentSetService = inject(EnvironmentSetService);
 
   private hubConnection: signalR.HubConnection;
   private projectId: string;
@@ -63,6 +67,7 @@ export class SignalRService {
   private joinedWorkspacesAdmin = false;
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
+  private joinedEnvironmentSetsAdmin = false;
   private connectionPromise: Promise<void>;
 
   public startConnection(): Promise<void> {
@@ -129,6 +134,10 @@ export class SignalRService {
 
     if (this.projectAdminId) {
       this.joinProjectAdmin(this.projectAdminId);
+    }
+
+    if (this.joinedEnvironmentSetsAdmin) {
+      this.joinEnvironmentSetsAdmin();
     }
   }
 
@@ -259,6 +268,21 @@ export class SignalRService {
     }
   }
 
+  public joinEnvironmentSetsAdmin() {
+    this.joinedEnvironmentSetsAdmin = true;
+
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinEnvironmentSetsAdmin');
+    }
+  }
+
+  public leaveEnvironmentSetsAdmin() {
+    this.joinedEnvironmentSetsAdmin = false;
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('LeaveEnvironmentSetsAdmin');
+    }
+  }
+
   public streamPlanOutput(planId: string) {
     return this.hubConnection.stream('GetPlanOutput', planId);
   }
@@ -281,6 +305,7 @@ export class SignalRService {
     this.addRoleHandlers();
     this.addGroupMembershipHandlers();
     this.addProjectMembershipHandlers();
+    this.addEnvironmentSetHandlers();
   }
 
   private addFileHandlers() {
@@ -542,6 +567,27 @@ export class SignalRService {
     this.hubConnection.on('ProjectMembershipDeleted', (id: string) => {
       this.projectMembershipService.remove(id);
     });
+  }
+
+  private addEnvironmentSetHandlers() {
+    this.hubConnection.on('EnvironmentSetCreated', (set: EnvironmentSet) => {
+      this.environmentSetService.upsert(set);
+    });
+
+    this.hubConnection.on('EnvironmentSetUpdated', (set: EnvironmentSet) => {
+      this.environmentSetService.upsert(set);
+    });
+
+    this.hubConnection.on('EnvironmentSetDeleted', (id: string) => {
+      this.environmentSetService.remove(id);
+    });
+
+    this.hubConnection.on(
+      'ProjectEnvironmentSetsUpdated',
+      (projectId: string, sets: ProjectEnvironmentSet[]) => {
+        this.environmentSetService.projectSetsUpdated(projectId, sets);
+      },
+    );
   }
 
   private getModified(entity: any, modifiedProperties: string[]): any {

@@ -1,0 +1,111 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cssLayoutColumnCenterStart {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.move-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.search-field {
+  min-width: 100px;
+  margin-left: 10px;
+}
+
+.sp-icon {
+  margin-left: 20px;
+  margin-right: 20px;
+  min-width: 30px;
+  color: var(--mat-sys-primary);
+}
+
+.settings {
+  flex-shrink: 0;
+  padding: 0 20px 8px;
+
+  p {
+    margin: 0 0 6px;
+  }
+}
+
+.secret-names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.chip {
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-column-actions {
+  width: 110px;
+  white-space: nowrap;
+}
+
+.mat-column-projects {
+  width: 90px;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+.element-row td {
+  border-bottom-width: 0;
+  cursor: pointer;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ok {
+  color: var(--mat-sys-primary);
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}
+
+.secondary {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty {
+  padding: 0 20px;
+}
