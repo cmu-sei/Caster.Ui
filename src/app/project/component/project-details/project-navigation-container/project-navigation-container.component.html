@@ -31,6 +31,22 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
     <div
       class="nav-background d-flex flex-row justify-content-start align-items-center"
+      (click)="openEnvironmentSets(project)"
+    >
+      <mat-icon
+        title="Environment Sets"
+        class="add-icon mdi-18px icon"
+        fontIcon="mdi-key-variant"
+        matTooltip="Environment Sets assigned to {{ project.name }}"
+      />
+      <a
+        class="add-link"
+        matTooltip="Environment Sets assigned to {{ project.name }}"
+        >Environment Sets</a
+      >
+    </div>
+    <div
+      class="nav-background d-flex flex-row justify-content-start align-items-center"
     >
       <mat-icon
         (click)="exportProject()"
