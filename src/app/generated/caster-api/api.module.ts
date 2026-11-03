@@ -11,6 +11,7 @@ import { AppliesService } from './api/applies.service';
 import { DesignsService } from './api/designs.service';
 import { DesignsModulesService } from './api/designsModules.service';
 import { DirectoriesService } from './api/directories.service';
+import { EnvironmentSetsService } from './api/environmentSets.service';
 import { FilesService } from './api/files.service';
 import { GroupPermissionsService } from './api/groupPermissions.service';
 import { GroupsService } from './api/groups.service';
