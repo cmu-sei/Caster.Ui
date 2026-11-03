@@ -91,8 +91,8 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
       ProjectEnvironmentSetsComponent,
       ProjectEnvironmentSetsData
     >(ProjectEnvironmentSetsComponent, {
-      data: { projectId: project.id, projectName: project.name },
-      width: '720px',
+      data: { projectId: project.id },
+      width: '880px',
       maxWidth: '90vw',
     });
   }

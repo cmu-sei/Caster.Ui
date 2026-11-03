@@ -86,7 +86,7 @@ describe('EnvironmentSetDetailComponent', () => {
 
     expect(screen.getByText('VSPHERE_USER')).toBeInTheDocument();
     expect(screen.getByText('administrator@vsphere.local')).toBeInTheDocument();
-    expect(screen.getByText('TF_VAR_vsphere_password')).toBeInTheDocument();
+    expect(screen.getByText('var.vsphere_password')).toBeInTheDocument();
     expect(
       screen.getByText('CASTER_SECRET_VSPHERE_PASSWORD'),
     ).toBeInTheDocument();

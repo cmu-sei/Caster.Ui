@@ -23,6 +23,11 @@ import {
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
 import { secretTerraformVariableWarning } from 'src/app/environment-sets/environment-set-rules';
 import {
+  deliveredAs,
+  kindLabel,
+  variableLabel,
+} from 'src/app/environment-sets/environment-set-snippets';
+import {
   EnvironmentSetEntryDialogComponent,
   EnvironmentSetEntryDialogData,
 } from '../environment-set-entry-dialog/environment-set-entry-dialog.component';
@@ -50,6 +55,9 @@ export class EnvironmentSetDetailComponent {
 
   readonly Kind = EnvironmentSetEntryKind;
   readonly Source = EnvironmentSetValueSource;
+  readonly variableLabel = variableLabel;
+  readonly deliveredAs = deliveredAs;
+  readonly kindLabel = kindLabel;
 
   warning(entry: EnvironmentSetEntry): string | null {
     return secretTerraformVariableWarning(
@@ -71,7 +79,7 @@ export class EnvironmentSetDetailComponent {
     this.confirmService
       .confirm({
         title: 'Delete Entry',
-        message: `Delete ${entry.targetName} from ${this.set().name}? Runs in its projects will no longer get it.`,
+        message: `Delete ${variableLabel(entry)} from ${this.set().name}? Runs in its projects will no longer get it.`,
         confirmText: 'Delete',
       })
       .afterClosed()

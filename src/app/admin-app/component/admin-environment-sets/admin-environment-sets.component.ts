@@ -35,7 +35,11 @@ import {
   MatRow,
 } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import {
+  MatFormField,
+  MatLabel,
+  MatSuffix,
+} from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -52,6 +56,8 @@ import { PermissionService } from 'src/app/permissions/permission.service';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { EnvironmentSetDetailComponent } from './environment-set-detail/environment-set-detail.component';
+import { EnvironmentSecretsComponent } from './environment-secrets/environment-secrets.component';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 /**
  * Administration > Environment Sets: the sets and their entries, which projects
@@ -77,6 +83,7 @@ import { EnvironmentSetDetailComponent } from './environment-set-detail/environm
     FormsModule,
     MatIcon,
     MatFormField,
+    MatLabel,
     MatInput,
     MatSuffix,
     MatIconButton,
@@ -94,6 +101,9 @@ import { EnvironmentSetDetailComponent } from './environment-set-detail/environm
     MatRowDef,
     MatRow,
     EnvironmentSetDetailComponent,
+    EnvironmentSecretsComponent,
+    MatTabGroup,
+    MatTab,
   ],
 })
 export class AdminEnvironmentSetsComponent
@@ -111,7 +121,8 @@ export class AdminEnvironmentSetsComponent
   filterString = '';
   displayedColumns = ['actions', 'name', 'description', 'status', 'projects'];
   dataSource = new MatTableDataSource<EnvironmentSet>();
-  expandedSetId: string | null = null;
+  expandedSetIds = new Set<string>();
+  showNotes = false;
 
   dataSource$ = this.environmentSetService.sets$.pipe(
     map((sets) => {
@@ -121,6 +132,7 @@ export class AdminEnvironmentSetsComponent
   );
 
   secrets$ = this.environmentSetService.secrets$;
+  sets$ = this.environmentSetService.sets$;
 
   canEdit$: Observable<boolean> = this.permissionService.hasPermission(
     SystemPermission.ManageEnvironmentSets,
@@ -159,8 +171,24 @@ export class AdminEnvironmentSetsComponent
     this.applyFilter('');
   }
 
+  isExpanded(setId: string): boolean {
+    return this.expandedSetIds.has(setId);
+  }
+
   toggleExpand(setId: string): void {
-    this.expandedSetId = this.expandedSetId === setId ? null : setId;
+    if (!this.expandedSetIds.delete(setId)) {
+      this.expandedSetIds.add(setId);
+    }
+  }
+
+  expandAll(): void {
+    this.expandedSetIds = new Set(
+      this.dataSource.filteredData.map((x) => x.id),
+    );
+  }
+
+  collapseAll(): void {
+    this.expandedSetIds = new Set();
   }
 
   projectNames(set: EnvironmentSet): string {
@@ -179,7 +207,7 @@ export class AdminEnvironmentSetsComponent
             name: result.nameValue,
             description: result.descriptionValue,
           })
-          .subscribe((set) => (this.expandedSetId = set.id));
+          .subscribe((set) => this.expandedSetIds.add(set.id));
       }
     });
   }

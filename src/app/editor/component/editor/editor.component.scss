@@ -94,3 +94,9 @@ mat-button-toggle {
   grid-template-columns: 0px 1fr;
   height: 100%;
 }
+
+/* The Environment Sets view scrolls inside the sidebar, with room around its panels. */
+.environment-sets {
+  padding: 0 12px 12px;
+  overflow-y: auto;
+}

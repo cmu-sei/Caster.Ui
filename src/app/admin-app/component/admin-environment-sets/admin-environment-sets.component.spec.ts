@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { of } from 'rxjs';
 import {
@@ -45,7 +46,17 @@ const sets: EnvironmentSet[] = [
     name: 'vSphere',
     description: 'vCenter credentials',
     isComplete: false,
-    entries: [],
+    entries: [
+      {
+        id: 'e1',
+        environmentSetId: 's1',
+        kind: 'EnvironmentVariable',
+        targetName: 'VSPHERE_PASSWORD',
+        valueSource: 'Secret',
+        secretName: 'CASTER_SECRET_VSPHERE_PASSWORD',
+        isAvailable: false,
+      },
+    ],
     projects: [
       { projectId: 'p1', name: 'Range A' },
       { projectId: 'p2', name: 'Range B' },
@@ -87,6 +98,7 @@ async function renderPage(grants: PermissionGrants, confirmAnswer?: boolean) {
       MatIconModule,
       MatTooltipModule,
       MatDialogModule,
+      MatTabsModule,
     ],
     providers: [
       ...permissionDataProviders(grants),
@@ -132,18 +144,58 @@ describe('AdminEnvironmentSetsComponent', () => {
   });
 
   /**
-   * Verifies: the page says how runs execute and lists the secret names, available and missing.
-   * Interacts with: getEnvironmentSecrets (stub).
-   * Data: Kubernetes job mode; one available and one missing name.
+   * Verifies: the Sets tab sums up how runs execute and how many secrets are missing, and the Secrets tab lists every name with its status and the sets using it.
+   * Interacts with: getEnvironmentSecrets (stub); the Secrets tab.
+   * Data: Kubernetes job mode; one available and one missing name; the missing one used by vSphere.
    */
-  it('shows the run mode and the secret names', async () => {
-    await renderPage(manage);
+  it('sums up the run mode and lists the secrets on their own tab', async () => {
+    const { user } = await renderPage(manage);
 
-    expect(screen.getByText('Kubernetes job mode')).toBeInTheDocument();
-    expect(screen.getByText('CASTER_SECRET_AWS_KEY')).toBeInTheDocument();
     expect(
-      screen.getByText('CASTER_SECRET_VSPHERE_PASSWORD'),
+      screen.getByText(/Runs execute as\s+Kubernetes jobs/),
     ).toBeInTheDocument();
+    expect(screen.getByText(/1 missing\s+secret/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Secrets' }));
+
+    const missing = screen
+      .getByText('CASTER_SECRET_VSPHERE_PASSWORD')
+      .closest('tr') as HTMLElement;
+    expect(within(missing).getByText('Missing')).toBeInTheDocument();
+    expect(within(missing).getByText('vSphere')).toBeInTheDocument();
+    const available = screen
+      .getByText('CASTER_SECRET_AWS_KEY')
+      .closest('tr') as HTMLElement;
+    expect(within(available).getByText('Available')).toBeInTheDocument();
+    expect(within(available).getByText('Not used')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: several sets can be expanded at once, and Collapse all closes them.
+   * Interacts with: the row click toggle and the Expand all / Collapse all buttons; the detail stub.
+   * Data: both sets.
+   */
+  it('expands several sets at once', async () => {
+    const { user, fixture } = await renderPage(manage);
+
+    await user.click(screen.getByRole('cell', { name: 'vSphere' }));
+    await user.click(screen.getByRole('cell', { name: 'AWS' }));
+    expect(
+      fixture.nativeElement.querySelectorAll('cas-environment-set-detail')
+        .length,
+    ).toBe(2);
+
+    await user.click(screen.getByRole('button', { name: 'Collapse all' }));
+    expect(
+      fixture.nativeElement.querySelectorAll('cas-environment-set-detail')
+        .length,
+    ).toBe(0);
+
+    await user.click(screen.getByRole('button', { name: 'Expand all' }));
+    expect(
+      fixture.nativeElement.querySelectorAll('cas-environment-set-detail')
+        .length,
+    ).toBe(2);
   });
 
   /**

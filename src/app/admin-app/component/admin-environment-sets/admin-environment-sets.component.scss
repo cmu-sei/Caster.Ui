@@ -25,39 +25,45 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
   flex-shrink: 0;
 }
 
+.tabs {
+  flex: 1;
+  min-height: 0;
+}
+
+.tab-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px 20px 0;
+  box-sizing: border-box;
+}
+
 .search-field {
-  min-width: 100px;
-  margin-left: 10px;
+  width: 320px;
+  max-width: 100%;
+  margin-right: 8px;
 }
 
-.sp-icon {
-  margin-left: 20px;
-  margin-right: 20px;
-  min-width: 30px;
-  color: var(--mat-sys-primary);
-}
-
-.settings {
-  flex-shrink: 0;
-  padding: 0 20px 8px;
-
-  p {
-    margin: 0 0 6px;
-  }
-}
-
-.secret-names {
+.summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  flex-shrink: 0;
+  margin: 8px 0 4px;
 }
 
-.chip {
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--mat-sys-outline-variant);
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+}
+
+.notes {
+  flex-shrink: 0;
+  margin: 0 0 8px;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .table-container {
@@ -107,5 +113,5 @@ tr.detail-row {
 }
 
 .empty {
-  padding: 0 20px;
+  padding: 0 8px;
 }
