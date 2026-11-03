@@ -1,212 +1,273 @@
-<!--
-Copyright 2026 Carnegie Mellon University. All Rights Reserved.
-Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
--->
-
 <div class="cssLayoutColumnCenterStart">
-  <div class="move-container">
-    <div>
-      <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-key-variant" />
-    </div>
-    <mat-form-field class="search-field">
-      <input
-        matInput
-        [(ngModel)]="filterString"
-        (keyup)="applyFilter($event.target.value)"
-        placeholder="Search Environment Sets"
-        aria-label="Search Environment Sets"
-      />
-      @if (filterString) {
-        <button
-          matSuffix
-          mat-icon-button
-          aria-label="Clear"
-          (click)="clearFilter()"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
-        </button>
-      }
-    </mat-form-field>
-  </div>
+  <mat-tab-group class="tabs" animationDuration="0ms" mat-stretch-tabs="false">
+    <mat-tab label="Sets">
+      <div class="tab-body">
+        <div class="move-container">
+          <mat-form-field class="search-field" subscriptSizing="dynamic">
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              [(ngModel)]="filterString"
+              (keyup)="applyFilter($event.target.value)"
+              autocomplete="off"
+            />
+            @if (filterString) {
+              <button
+                matSuffix
+                mat-icon-button
+                aria-label="Clear"
+                (click)="clearFilter()"
+              >
+                <mat-icon
+                  class="mdi-24px"
+                  fontIcon="mdi-close-circle-outline"
+                />
+              </button>
+            }
+          </mat-form-field>
+          <button
+            mat-icon-button
+            aria-label="Expand all"
+            matTooltip="Expand all"
+            (click)="expandAll()"
+          >
+            <mat-icon fontIcon="mdi-arrow-expand-vertical" />
+          </button>
+          <button
+            mat-icon-button
+            aria-label="Collapse all"
+            matTooltip="Collapse all"
+            (click)="collapseAll()"
+          >
+            <mat-icon fontIcon="mdi-arrow-collapse-vertical" />
+          </button>
+        </div>
 
-  @if (secrets$ | async; as secrets) {
-    <section class="settings" aria-label="How Environment Sets reach runs">
-      <p>
-        Runs execute in
-        <strong>{{
-          secrets.runMode === RunMode.Kubernetes
-            ? 'Kubernetes job mode'
-            : 'process mode'
-        }}</strong
-        >.
-        @if (secrets.runMode === RunMode.Kubernetes) {
-          Set values are plain environment variables in each Job spec; keep the
-          jobs namespace admin-only.
-        } @else {
-          Process mode gives no isolation between projects: Terraform runs as
-          the API's user and can read the API's environment.
+        @if (secrets$ | async; as secrets) {
+          <div class="summary">
+            <span>
+              Runs execute as
+              {{
+                secrets.runMode === RunMode.Kubernetes
+                  ? 'Kubernetes jobs'
+                  : 'local processes'
+              }}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>
+              Secret names match
+              @for (
+                pattern of secrets.patterns;
+                track pattern;
+                let last = $last
+              ) {
+                <code>{{ pattern }}</code
+                >{{ last ? '' : ', ' }}
+              } @empty {
+                <span class="warning">no pattern (none are configured)</span>
+              }
+            </span>
+            @if (secrets.missing?.length) {
+              <span aria-hidden="true">·</span>
+              <span class="warning">
+                {{ secrets.missing.length }} missing
+                {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}
+              </span>
+            }
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="About Environment Sets"
+              matTooltip="About Environment Sets"
+              [attr.aria-expanded]="showNotes"
+              (click)="showNotes = !showNotes"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
+            </button>
+          </div>
+          @if (secrets.inheritAll) {
+            <p class="warning banner">
+              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+              InheritAll is on: every API environment variable except secrets
+              reaches every run, including the API's own credentials.
+            </p>
+          }
+          @if (showNotes) {
+            <ul class="notes" role="note">
+              <li>
+                Secrets are API environment variables whose names match the
+                patterns above. Caster never shows their values, and masks them
+                in run output.
+              </li>
+              <li>
+                Only the projects a set is assigned to get its variables, in
+                every workspace. Project editors can read those values through
+                their Terraform, so assign a set only where its editors may hold
+                its credentials.
+              </li>
+              @if (secrets.runMode === RunMode.Kubernetes) {
+                <li>
+                  Values are plain environment variables in each Job spec: keep
+                  the jobs namespace admin-only. Secret Terraform variables also
+                  reach job pod logs.
+                </li>
+              } @else {
+                <li>
+                  Local processes are not isolated: Terraform runs as the API's
+                  user and can read the API's own environment.
+                </li>
+              }
+              <li>
+                The run mode is set when the API starts
+                (Terraform:KubernetesJobs:Enabled).
+              </li>
+            </ul>
+          }
         }
-        Project editors can read the secrets of the sets on their project
-        through their Terraform.
-      </p>
-      @if (secrets.inheritAll) {
-        <p class="warning">
-          <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
-          InheritAll is on: every API environment variable except secrets
-          reaches every run, including the API's own credentials.
-        </p>
-      }
-      <p>
-        Secrets are API environment variables whose names match
-        @for (pattern of secrets.patterns; track pattern; let last = $last) {
-          <code>{{ pattern }}</code
-          >{{ last ? '' : ', ' }}
-        } @empty {
-          <span class="warning">no secret pattern (none are configured)</span>
-        }
-        .
-      </p>
-      <div class="secret-names">
-        <span>Available:</span>
-        @for (name of secrets.available; track name) {
-          <code class="chip">{{ name }}</code>
-        } @empty {
-          <span class="secondary">none</span>
-        }
-      </div>
-      @if (secrets.missing?.length) {
-        <div class="secret-names warning">
-          <span>Missing:</span>
-          @for (name of secrets.missing; track name) {
-            <code class="chip">{{ name }}</code>
+
+        <div class="table-container">
+          <table
+            mat-table
+            [dataSource]="dataSource$ | async"
+            matSort
+            multiTemplateDataRows
+          >
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>
+                <button
+                  mat-icon-button
+                  aria-label="Add Environment Set"
+                  matTooltip="Add Environment Set"
+                  (click)="createSet()"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+                </button>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Delete ' + element.name"
+                  matTooltip="Delete {{ element.name }}"
+                  (click)="$event.stopPropagation(); deleteSet(element)"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+                </button>
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Edit ' + element.name"
+                  matTooltip="Edit {{ element.name }}"
+                  (click)="$event.stopPropagation(); editSet(element)"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon
+                    class="mdi-24px"
+                    fontIcon="mdi-square-edit-outline"
+                  />
+                </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let element" class="secondary">
+                {{ element.description }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="isComplete"
+              >
+                Status
+              </th>
+              <td mat-cell *matCellDef="let element">
+                @if (element.isComplete) {
+                  <span class="status">
+                    <mat-icon class="mdi-18px ok" fontIcon="mdi-check-circle" />
+                    Complete
+                  </span>
+                } @else {
+                  <span class="status warning">
+                    <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
+                    Incomplete
+                  </span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="projects">
+              <th mat-header-cell *matHeaderCellDef>Projects</th>
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [matTooltip]="projectNames(element)"
+                [matTooltipDisabled]="!element.projects?.length"
+              >
+                {{ element.projects?.length ?? 0 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="expandedDetail">
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [attr.colspan]="displayedColumns.length"
+              >
+                <div
+                  [@detailExpand]="
+                    isExpanded(element.id) ? 'expanded' : 'collapsed'
+                  "
+                  (click)="$event.stopPropagation()"
+                >
+                  @if (isExpanded(element.id)) {
+                    <cas-environment-set-detail
+                      [set]="element"
+                      [canEdit]="canEdit$ | async"
+                      [secrets]="secrets$ | async"
+                    />
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              class="element-row"
+              (click)="toggleExpand(row.id)"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: ['expandedDetail']"
+              class="detail-row"
+            ></tr>
+          </table>
+          @if ((dataSource$ | async)?.data?.length === 0) {
+            <p class="secondary empty">No Environment Sets yet.</p>
           }
         </div>
-      }
-    </section>
-  }
-
-  <div class="table-container">
-    <table
-      mat-table
-      [dataSource]="dataSource$ | async"
-      matSort
-      multiTemplateDataRows
-    >
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>
-          <button
-            mat-icon-button
-            aria-label="Add Environment Set"
-            matTooltip="Add Environment Set"
-            (click)="createSet()"
-            [disabled]="!(canEdit$ | async)"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-          </button>
-        </th>
-        <td mat-cell *matCellDef="let element">
-          <button
-            mat-icon-button
-            [attr.aria-label]="'Delete ' + element.name"
-            matTooltip="Delete {{ element.name }}"
-            (click)="$event.stopPropagation(); deleteSet(element)"
-            [disabled]="!(canEdit$ | async)"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
-          </button>
-          <button
-            mat-icon-button
-            [attr.aria-label]="'Edit ' + element.name"
-            matTooltip="Edit {{ element.name }}"
-            (click)="$event.stopPropagation(); editSet(element)"
-            [disabled]="!(canEdit$ | async)"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
-          </button>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef>Description</th>
-        <td mat-cell *matCellDef="let element" class="secondary">
-          {{ element.description }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="isComplete">
-          Status
-        </th>
-        <td mat-cell *matCellDef="let element">
-          @if (element.isComplete) {
-            <span class="status">
-              <mat-icon class="mdi-18px ok" fontIcon="mdi-check-circle" />
-              Complete
-            </span>
-          } @else {
-            <span class="status warning">
-              <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
-              Incomplete
-            </span>
-          }
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="projects">
-        <th mat-header-cell *matHeaderCellDef>Projects</th>
-        <td
-          mat-cell
-          *matCellDef="let element"
-          [matTooltip]="projectNames(element)"
-          [matTooltipDisabled]="!element.projects?.length"
-        >
-          {{ element.projects?.length ?? 0 }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="expandedDetail">
-        <td
-          mat-cell
-          *matCellDef="let element"
-          [attr.colspan]="displayedColumns.length"
-        >
-          <div
-            [@detailExpand]="
-              element.id === expandedSetId ? 'expanded' : 'collapsed'
-            "
-            (click)="$event.stopPropagation()"
-          >
-            @if (element.id === expandedSetId) {
-              <cas-environment-set-detail
-                [set]="element"
-                [canEdit]="canEdit$ | async"
-                [secrets]="secrets$ | async"
-              />
-            }
-          </div>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        class="element-row"
-        (click)="toggleExpand(row.id)"
-      ></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: ['expandedDetail']"
-        class="detail-row"
-      ></tr>
-    </table>
-    @if ((dataSource$ | async)?.data?.length === 0) {
-      <p class="secondary empty">No Environment Sets yet.</p>
-    }
-  </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Secrets">
+      <div class="tab-body">
+        <cas-environment-secrets
+          [secrets]="secrets$ | async"
+          [sets]="sets$ | async"
+        />
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>

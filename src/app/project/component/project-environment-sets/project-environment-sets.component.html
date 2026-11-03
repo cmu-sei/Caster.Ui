@@ -3,84 +3,9 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<crucible-dialog
-  [dialogTitle]="title"
-  [errorMessage]="error()"
-  [hideDefaultActions]="true"
->
+<crucible-dialog dialogTitle="Environment Sets" [hideDefaultActions]="true">
   <div crucibleDialogContent>
-    <p class="secondary">
-      Admins assign Environment Sets to give this project's Terraform runs
-      credentials and values without putting them in files. Secret values are
-      never shown.
-    </p>
-
-    @if (sets$ | async; as sets) {
-      @for (set of sets; track set.environmentSetId) {
-        <section class="set" [attr.aria-label]="set.name">
-          <h3>
-            {{ set.name }}
-            @if (!set.isComplete) {
-              <span class="status missing">
-                <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
-                Incomplete: runs will fail until an admin supplies the missing
-                secrets
-              </span>
-            }
-          </h3>
-          @if (set.description) {
-            <p class="secondary">{{ set.description }}</p>
-          }
-          @if (set.entries?.length) {
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Name in the run</th>
-                  <th scope="col">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (entry of set.entries; track entry.id) {
-                  <tr>
-                    <td>
-                      <code>{{
-                        entry.kind === Kind.TerraformVariable
-                          ? 'TF_VAR_' + entry.targetName
-                          : entry.targetName
-                      }}</code>
-                    </td>
-                    <td>
-                      @if (entry.valueSource === Source.Secret) {
-                        @if (entry.isAvailable) {
-                          <span class="status">
-                            <mat-icon class="mdi-18px ok" fontIcon="mdi-lock" />
-                            Secret, available
-                          </span>
-                        } @else {
-                          <span class="status missing">
-                            <mat-icon
-                              class="mdi-18px"
-                              fontIcon="mdi-alert-circle"
-                            />
-                            Secret, missing
-                          </span>
-                        }
-                      } @else {
-                        <code class="plain-value">{{ entry.value }}</code>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          } @else {
-            <p class="secondary">This set has no entries.</p>
-          }
-        </section>
-      } @empty {
-        <p>No Environment Sets are assigned to this project.</p>
-      }
-    }
+    <cas-project-environment-sets-view [projectId]="data.projectId" />
   </div>
   <div crucibleDialogActions>
     <button matButton="filled" type="button" cdkFocusInitial (click)="close()">

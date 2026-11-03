@@ -47,6 +47,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 }
               </div>
             }
+            @case ('environment') {
+              <div class="environment-sets">
+                @if (projectId()) {
+                  <cas-project-environment-sets-view
+                    [projectId]="projectId()"
+                    [compact]="true"
+                    [canInsert]="isEditing"
+                    (insert)="insertSnippetFn($event)"
+                  />
+                }
+              </div>
+            }
             @case ('versions') {
               <div>
                 <cas-version-list
@@ -207,6 +219,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 matTooltip="Show the module list"
               >
                 <mat-icon class="mdi-24px" fontIcon="mdi-code-tags" />
+              </button>
+              <button
+                mat-icon-button
+                class="align-self-center"
+                color="primary"
+                (click)="
+                  sidebarView = 'environment';
+                  sidebarChangedFn('environment', true)
+                "
+                [disabled]="sidebarView === 'environment'"
+                aria-label="Show the project's Environment Sets"
+                matTooltip="Show the project's Environment Sets"
+              >
+                <mat-icon class="mdi-24px" fontIcon="mdi-key-variant" />
               </button>
               <button
                 mat-icon-button

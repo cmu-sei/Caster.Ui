@@ -19,7 +19,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <table class="entries">
         <thead>
           <tr>
-            <th scope="col">Name in the run</th>
+            <th scope="col">Variable</th>
+            <th scope="col">Kind</th>
             <th scope="col">Value</th>
             <th scope="col">Status</th>
             @if (canEdit()) {
@@ -31,19 +32,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           @for (entry of set().entries; track entry.id) {
             <tr>
               <td>
-                <code>{{
-                  entry.kind === Kind.TerraformVariable
-                    ? 'TF_VAR_' + entry.targetName
-                    : entry.targetName
+                <code [matTooltip]="deliveredAs(entry)">{{
+                  variableLabel(entry)
                 }}</code>
-                <div class="secondary">
-                  {{
-                    entry.kind === Kind.TerraformVariable
-                      ? 'Terraform variable'
-                      : 'Environment variable'
-                  }}
-                </div>
               </td>
+              <td>{{ kindLabel(entry) }}</td>
               <td>
                 @if (entry.valueSource === Source.Secret) {
                   <span
@@ -85,7 +78,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   <button
                     mat-icon-button
                     type="button"
-                    [attr.aria-label]="'Edit ' + entry.targetName"
+                    [attr.aria-label]="'Edit ' + variableLabel(entry)"
                     matTooltip="Edit"
                     (click)="editEntry(entry)"
                   >
@@ -97,7 +90,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   <button
                     mat-icon-button
                     type="button"
-                    [attr.aria-label]="'Delete ' + entry.targetName"
+                    [attr.aria-label]="'Delete ' + variableLabel(entry)"
                     matTooltip="Delete"
                     (click)="deleteEntry(entry)"
                   >
