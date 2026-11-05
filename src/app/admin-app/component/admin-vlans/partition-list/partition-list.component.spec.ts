@@ -54,7 +54,7 @@ async function renderPartitionList(canEdit: boolean) {
 
 describe('PartitionListComponent', () => {
   /**
-   * Verifies: the pool's VLANs and partitions load, the pool-level item plus one item per partition render with canEdit true, and Create a Partition creates one.
+   * Verifies: the pool's VLANs and partitions load, the pool-level item plus one item per partition render with canEdit true, and Add New Partition creates one.
    * Interacts with: VlansService.getVlansByPool, getPartitionsByPool and createPartition (stubs), real PartitionService and PartitionQuery.
    * Data: pool pool1 with partition Range; canEdit true.
    */
@@ -68,25 +68,24 @@ describe('PartitionListComponent', () => {
     ]);
     expect(partitions().map((p) => p.canEdit())).toEqual([true, true]);
 
-    await user.click(
-      screen.getByRole('button', { name: 'Create a Partition' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Add New Partition' }));
     expect(vlansApi.createPartition).toHaveBeenCalledWith('pool1', {
       name: 'New Partition',
     });
   });
 
   /**
-   * Verifies: without canEdit there is no Create a Partition button and every partition item gets canEdit false.
-   * Interacts with: the @if (canEdit) block, the partition stubs' canEdit inputs.
+   * Verifies: without canEdit Add New Partition is disabled (as Add on the other admin pages) and every partition item gets canEdit false.
+   * Interacts with: the [disabled]="!canEdit" binding, the partition stubs' canEdit inputs.
    * Data: pool pool1 with partition Range; canEdit false.
    */
-  it('hides Create a Partition when canEdit is false', async () => {
-    const { partitions } = await renderPartitionList(false);
+  it('disables Add New Partition when canEdit is false', async () => {
+    const { vlansApi, partitions } = await renderPartitionList(false);
 
     expect(
-      screen.queryByRole('button', { name: 'Create a Partition' }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Add New Partition' }),
+    ).toBeDisabled();
     expect(partitions().map((p) => p.canEdit())).toEqual([false, false]);
+    expect(vlansApi.createPartition).not.toHaveBeenCalled();
   });
 });

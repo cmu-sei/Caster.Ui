@@ -6,17 +6,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 <div>
   <div class="header">
     <h1>Partitions</h1>
-    @if (canEdit()) {
-      <button
-        mat-icon-button
-        color="primary"
-        aria-label="Create a Partition"
-        matTooltip="Create a Partition"
-        (click)="createPartition()"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-      </button>
-    }
+    <button
+      mat-icon-button
+      color="primary"
+      aria-label="Add New Partition"
+      matTooltip="Add New Partition"
+      (click)="createPartition()"
+      [disabled]="!canEdit()"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+    </button>
   </div>
   <div class="content">
     <mat-accordion class="accordion" multi>
