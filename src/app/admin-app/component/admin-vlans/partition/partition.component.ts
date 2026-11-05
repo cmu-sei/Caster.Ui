@@ -36,6 +36,7 @@ import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { VlanListComponent } from '../vlan-list/vlan-list.component';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -67,6 +68,7 @@ export class PartitionComponent implements OnInit {
   private confirmService = inject(CrucibleDialogService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private feedback = inject(VlanFeedbackService);
 
   @Input() set partition(partition: Partition) {
     this._partition = partition;
@@ -105,7 +107,14 @@ export class PartitionComponent implements OnInit {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.partitionService.delete(this.partition.id).subscribe();
+          const name = this.partition.name;
+          this.feedback
+            .report(
+              this.partitionService.delete(this.partition.id),
+              `Deleted ${name}`,
+              `Could not delete ${name}`,
+            )
+            .subscribe();
         }
       });
   }
@@ -123,8 +132,14 @@ export class PartitionComponent implements OnInit {
     dialogRef.componentInstance.message = '';
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.partitionService
-          .partialEdit(partition.id, { name: result.nameValue })
+        this.feedback
+          .report(
+            this.partitionService.partialEdit(partition.id, {
+              name: result.nameValue,
+            }),
+            `Renamed ${partition.name} to ${result.nameValue}`,
+            `Could not rename ${partition.name}`,
+          )
           .subscribe();
       }
     });
@@ -133,9 +148,7 @@ export class PartitionComponent implements OnInit {
   setAmount(value: string) {
     const amount = value.trim() === '' ? NaN : Number(value);
     this.amount.set(
-      Number.isInteger(amount) && amount >= 1 && amount <= 4096
-        ? amount
-        : null,
+      Number.isInteger(amount) && amount >= 1 && amount <= 4096 ? amount : null,
     );
   }
 
@@ -145,8 +158,14 @@ export class PartitionComponent implements OnInit {
     if (!amount) {
       return;
     }
-    this.vlanService
-      .addToPartition(this.partition.id, amount)
+    const name = this.partition.name;
+    this.feedback
+      .report(
+        this.vlanService.addToPartition(this.partition.id, amount),
+        (vlans) =>
+          `Added ${VlanFeedbackService.vlans(vlans.length)} to ${name}`,
+        `Could not add VLANs to ${name}`,
+      )
       .subscribe(() => this.clearAmount(input));
   }
 
@@ -156,8 +175,14 @@ export class PartitionComponent implements OnInit {
     if (!amount) {
       return;
     }
-    this.vlanService
-      .removeFromPartition(this.partition.id, amount)
+    const name = this.partition.name;
+    this.feedback
+      .report(
+        this.vlanService.removeFromPartition(this.partition.id, amount),
+        (vlans) =>
+          `Removed ${VlanFeedbackService.vlans(vlans.length)} from ${name}`,
+        `Could not remove VLANs from ${name}`,
+      )
       .subscribe(() => this.clearAmount(input));
   }
 
@@ -169,14 +194,28 @@ export class PartitionComponent implements OnInit {
   unsetDefault($event, id: string) {
     $event.stopPropagation();
     if (this.canEdit()) {
-      this.partitionService.unsetDefault(id).subscribe();
+      const name = this.partition.name;
+      this.feedback
+        .report(
+          this.partitionService.unsetDefault(id),
+          `${name} is no longer the default partition`,
+          `Could not unset ${name} as the default partition`,
+        )
+        .subscribe();
     }
   }
 
   setDefault($event, id: string) {
     $event.stopPropagation();
     if (this.canEdit()) {
-      this.partitionService.setDefault(id).subscribe();
+      const name = this.partition.name;
+      this.feedback
+        .report(
+          this.partitionService.setDefault(id),
+          `${name} is now the default partition`,
+          `Could not make ${name} the default partition`,
+        )
+        .subscribe();
     }
   }
 

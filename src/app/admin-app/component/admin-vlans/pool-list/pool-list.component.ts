@@ -21,6 +21,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { EMPTY } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -52,6 +54,7 @@ import { MatInput } from '@angular/material/input';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { PartitionListComponent } from '../partition-list/partition-list.component';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 
 /** Counts for a pool whose partitions and VLANs are in the stores. */
 export interface PoolCounts {
@@ -107,6 +110,7 @@ export class PoolListComponent {
   private dialog = inject(MatDialog);
   private partitionQuery = inject(PartitionQuery);
   private vlanQuery = inject(VlanQuery);
+  private feedback = inject(VlanFeedbackService);
 
   readonly pools = input<Pool[]>(undefined);
   readonly canEdit = input<boolean>(undefined);
@@ -203,8 +207,12 @@ export class PoolListComponent {
     dialogRef.componentInstance.message = '';
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.poolService
-          .partialEdit(pool.id, { name: result.nameValue })
+        this.feedback
+          .report(
+            this.poolService.partialEdit(pool.id, { name: result.nameValue }),
+            `Renamed ${pool.name} to ${result.nameValue}`,
+            `Could not rename ${pool.name}`,
+          )
           .subscribe();
       }
     });
@@ -220,24 +228,41 @@ export class PoolListComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.poolService.delete(pool.id, false).subscribe(
-            () => {},
-            (error) => {
-              if (error?.status == 409) {
-                this.confirmService
-                  .confirm({
-                    title: 'Delete Failed',
-                    message: `${pool.name} has VLANs that are in use. Do you want to force delete it?`,
-                  })
-                  .afterClosed()
-                  .subscribe((forceConfirmed) => {
-                    if (forceConfirmed) {
-                      this.poolService.delete(pool.id, true).subscribe();
-                    }
-                  });
-              }
-            },
-          );
+          this.poolService
+            .delete(pool.id, false)
+            .pipe(
+              catchError((error) => {
+                if (error?.status == 409) {
+                  this.confirmForceDelete(pool);
+                } else {
+                  this.feedback.show(
+                    `Could not delete ${pool.name}: ${VlanFeedbackService.describe(error)}`,
+                  );
+                }
+                return EMPTY;
+              }),
+            )
+            .subscribe(() => this.feedback.show(`Deleted ${pool.name}`));
+        }
+      });
+  }
+
+  private confirmForceDelete(pool: Pool) {
+    this.confirmService
+      .confirm({
+        title: 'Delete Failed',
+        message: `${pool.name} has VLANs that are in use. Do you want to force delete it?`,
+      })
+      .afterClosed()
+      .subscribe((forceConfirmed) => {
+        if (forceConfirmed) {
+          this.feedback
+            .report(
+              this.poolService.delete(pool.id, true),
+              `Deleted ${pool.name}`,
+              `Could not delete ${pool.name}`,
+            )
+            .subscribe();
         }
       });
   }

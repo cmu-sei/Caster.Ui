@@ -4,7 +4,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -43,8 +45,9 @@ async function renderVlanList(
   confirmAnswer = true,
 ) {
   const vlansApi = {
-    partialEditVlan: vi.fn((id: string, command: { reserved?: boolean }) =>
-      of<Vlan>({ ...vlans[0], id, ...command }),
+    partialEditVlan: vi.fn(
+      (id: string, command: { reserved?: boolean; tag?: string }) =>
+        of<Vlan>({ ...vlans[0], id, ...command }),
     ),
     acquireVlan: vi.fn(() => of<Vlan>({ ...vlans[0], inUse: true })),
   } satisfies ApiStub<VlansService>;
@@ -116,12 +119,69 @@ describe('VlanListComponent', () => {
    */
   it('reserves a VLAN when canEdit is true', async () => {
     const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.click(within(row).getByRole('checkbox', { name: 'Reserved' }));
 
     expect(vlansApi.partialEditVlan).toHaveBeenCalledWith('v1', {
       reserved: true,
     });
+    expect(snack).toHaveBeenCalledWith(
+      'VLAN 100 is now reserved',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: when reserving fails the API's problem shows in a snack bar (not the error dialog) and the Reserved box goes back to unticked.
+   * Interacts with: VlansService.partialEditVlan (stub throwing a 409 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: VLAN 100 not reserved; canEdit true.
+   */
+  it('shows why reserving failed and unticks Reserved', async () => {
+    const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.partialEditVlan.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            error: { title: 'Conflict', detail: 'VLAN 100 is in use.' },
+          }),
+      ),
+    );
+    const reserved = within(row).getByRole('checkbox', { name: 'Reserved' });
+
+    await user.click(reserved);
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not reserve VLAN 100: Conflict VLAN 100 is in use.',
+      'Dismiss',
+      expect.anything(),
+    );
+    expect(reserved).not.toBeChecked();
+  });
+
+  /**
+   * Verifies: Edit Tag then Enter saves the new tag through the API and says so.
+   * Interacts with: VlansService.partialEditVlan (stub), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: VLAN 100 tagged web; new tag db; canEdit true.
+   */
+  it('saves an edited tag', async () => {
+    const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+
+    await user.click(within(row).getByRole('button', { name: 'Edit Tag' }));
+    const tag = within(row).getByRole('textbox');
+    await user.clear(tag);
+    await user.type(tag, 'db{Enter}');
+
+    expect(vlansApi.partialEditVlan).toHaveBeenCalledWith('v1', { tag: 'db' });
+    expect(snack).toHaveBeenCalledWith(
+      'Tagged VLAN 100 "db"',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -151,12 +211,18 @@ describe('VlanListComponent', () => {
    */
   it('acquires a VLAN when In Use is ticked and confirmed', async () => {
     const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
     await user.click(within(row).getByRole('checkbox', { name: 'In Use' }));
 
     expect(vlansApi.acquireVlan).toHaveBeenCalledWith({
       partitionId: 'part1',
       vlanId: 100,
     });
+    expect(snack).toHaveBeenCalledWith(
+      'VLAN 100 is now in use',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -171,7 +237,9 @@ describe('VlanListComponent', () => {
     expect(
       within(row).queryByRole('checkbox', { name: /^Select/ }),
     ).not.toBeInTheDocument();
-    expect(within(row).getByRole('checkbox', { name: 'In Use' })).toBeDisabled();
+    expect(
+      within(row).getByRole('checkbox', { name: 'In Use' }),
+    ).toBeDisabled();
     expect(
       within(row).getByRole('checkbox', { name: 'Reserved' }),
     ).toBeDisabled();

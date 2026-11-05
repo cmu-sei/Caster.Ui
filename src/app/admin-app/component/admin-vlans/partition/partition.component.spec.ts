@@ -7,7 +7,9 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,8 +45,17 @@ const partition: Partition = {
 async function renderPartition(canEdit: boolean) {
   const vlansApi = {
     setDefaultPartition: vi.fn((_id: string) => of<unknown>(null)),
-    addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
-    removeVlansFromPartition: vi.fn((_id: string) => of<Vlan[]>([])),
+    addVlansToPartition: vi.fn((_id: string, command: { vlans?: number }) =>
+      of<Vlan[]>(
+        Array.from({ length: command.vlans }, (_, i) => ({ id: `n${i}` })),
+      ),
+    ),
+    removeVlansFromPartition: vi.fn(
+      (_id: string, command: { vlans?: number }) =>
+        of<Vlan[]>(
+          Array.from({ length: command.vlans }, (_, i) => ({ id: `r${i}` })),
+        ),
+    ),
     partialEditPartition: vi.fn((id: string, command: { name?: string }) =>
       of<Partition>({ ...partition, id, name: command.name }),
     ),
@@ -81,7 +92,7 @@ async function renderPartition(canEdit: boolean) {
 
 describe('PartitionComponent', () => {
   /**
-   * Verifies: with canEdit the partition shows Rename, the VLAN amount controls and Delete, and Set Default calls the API.
+   * Verifies: with canEdit the partition shows Rename, the VLAN amount controls and Delete, and Set Default calls the API and says so in a snack bar.
    * Interacts with: VlansService.setDefaultPartition (stub), real PartitionService.
    * Data: partition Range (not default); canEdit true.
    */
@@ -92,9 +103,15 @@ describe('PartitionComponent', () => {
     expect(screen.getByRole('button', { name: 'Add VLANs' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Remove VLANs' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Delete Range' })).toBeVisible();
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
     await user.click(screen.getByRole('button', { name: 'Set Default' }));
 
     expect(vlansApi.setDefaultPartition).toHaveBeenCalledWith('part1');
+    expect(snack).toHaveBeenCalledWith(
+      'Range is now the default partition',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -115,12 +132,13 @@ describe('PartitionComponent', () => {
   });
 
   /**
-   * Verifies: Rename opens the shared name dialog titled "Rename <name>", and Save renames the partition through the API.
+   * Verifies: Rename opens the shared name dialog titled "Rename <name>", and Save renames the partition through the API with a snack bar.
    * Interacts with: the real MatDialog and NameDialogComponent, VlansService.partialEditPartition (stub), real PartitionService.
    * Data: partition Range; canEdit true; new name Core.
    */
   it('renames the partition through the name dialog', async () => {
     const { vlansApi, user } = await renderPartition(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.click(screen.getByRole('button', { name: 'Rename' }));
     expect(
@@ -134,15 +152,21 @@ describe('PartitionComponent', () => {
     expect(vlansApi.partialEditPartition).toHaveBeenCalledWith('part1', {
       name: 'Core',
     });
+    expect(snack).toHaveBeenCalledWith(
+      'Renamed Range to Core',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
-   * Verifies: with canEdit, Add VLANs sends the typed amount as a number for this partition and then clears the field.
+   * Verifies: with canEdit, Add VLANs sends the typed amount as a number for this partition then clears the field and says how many were added.
    * Interacts with: VlansService.addVlansToPartition (stub), real VlanService.
    * Data: amount 5; canEdit true.
    */
   it('adds the typed number of VLANs when canEdit is true', async () => {
     const { vlansApi, user } = await renderPartition(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     const amount = screen.getByRole('spinbutton', {
       name: 'Number of VLANs to add or remove',
@@ -154,16 +178,22 @@ describe('PartitionComponent', () => {
       vlans: 5,
     });
     expect(amount).toHaveValue(null);
+    expect(snack).toHaveBeenCalledWith(
+      'Added 5 VLANs to Range',
+      'Dismiss',
+      expect.anything(),
+    );
     expect(screen.getByRole('button', { name: 'Add VLANs' })).toBeDisabled();
   });
 
   /**
-   * Verifies: Remove VLANs sends the typed amount as a number for this partition.
+   * Verifies: Remove VLANs sends the typed amount as a number for this partition and says how many were removed.
    * Interacts with: VlansService.removeVlansFromPartition (stub), real VlanService.
    * Data: amount 3; canEdit true.
    */
   it('removes the typed number of VLANs', async () => {
     const { vlansApi, user } = await renderPartition(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.type(screen.getByRole('spinbutton'), '3');
     await user.click(screen.getByRole('button', { name: 'Remove VLANs' }));
@@ -171,6 +201,41 @@ describe('PartitionComponent', () => {
     expect(vlansApi.removeVlansFromPartition).toHaveBeenCalledWith('part1', {
       vlans: 3,
     });
+    expect(snack).toHaveBeenCalledWith(
+      'Removed 3 VLANs from Range',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: when adding fails the API's problem shows in a snack bar (not the error dialog) and the typed amount stays.
+   * Interacts with: VlansService.addVlansToPartition (stub throwing a 400 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: amount 9; the API answers 400 "Not enough VLANs".
+   */
+  it('shows why adding VLANs failed', async () => {
+    const { vlansApi, user } = await renderPartition(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.addVlansToPartition.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { title: 'Bad Request', detail: 'Not enough VLANs.' },
+          }),
+      ),
+    );
+    const amount = screen.getByRole('spinbutton');
+
+    await user.type(amount, '9');
+    await user.click(screen.getByRole('button', { name: 'Add VLANs' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not add VLANs to Range: Bad Request Not enough VLANs.',
+      'Dismiss',
+      expect.anything(),
+    );
+    expect(amount).toHaveValue(9);
   });
 
   /**

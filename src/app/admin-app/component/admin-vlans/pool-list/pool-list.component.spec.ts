@@ -8,6 +8,7 @@ import { By } from '@angular/platform-browser';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -83,9 +84,7 @@ async function renderPoolList(
       view.fixture.nativeElement.querySelectorAll('tr.element-row'),
     ) as HTMLElement[];
   const poolNames = () =>
-    poolRows().map((r) =>
-      within(r).getAllByRole('cell')[1].textContent.trim(),
-    );
+    poolRows().map((r) => within(r).getAllByRole('cell')[1].textContent.trim());
   const partitionLists = (): PartitionListStub[] =>
     view.fixture.debugElement
       .queryAll(By.directive(PartitionListStub))
@@ -206,12 +205,13 @@ describe('PoolListComponent', () => {
   });
 
   /**
-   * Verifies: Delete Main asks "Delete Pool" / "Are you sure that you want to delete <name>?" and deletes the pool without force.
+   * Verifies: Delete Main asks "Delete Pool" / "Are you sure that you want to delete <name>?", deletes the pool without force and says so in a snack bar.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), VlansService.deletePool (stub).
    * Data: pool Main; canEdit true.
    */
   it('deletes a pool after confirmation', async () => {
     const { vlansApi, confirm, poolRows, user } = await renderPoolList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.click(
       within(poolRows()[0]).getByRole('button', { name: 'Delete Main' }),
@@ -223,6 +223,11 @@ describe('PoolListComponent', () => {
       confirmText: 'Delete',
     });
     expect(vlansApi.deletePool).toHaveBeenCalledWith('pool1', { force: false });
+    expect(snack).toHaveBeenCalledWith(
+      'Deleted Main',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
