@@ -1,0 +1,97 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<mat-expansion-panel class="mat-elevation-z0 sources-panel" [expanded]="failing() > 0 || !sources()?.length">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-source-repository" />
+      <span class="panel-title">Module Sources</span>
+      <span class="panel-summary">
+        @if (failing() > 0) {
+          {{ failing() }} of {{ sources().length }} need attention
+        } @else if (sources()?.length) {
+          {{ sources().length }} configured
+        }
+      </span>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <div class="sources-toolbar">
+    @if (canEdit() && sources()?.length) {
+      <button
+        mat-icon-button
+        (click)="refreshAll.emit()"
+        [disabled]="isLoading()"
+        aria-label="Refresh All Sources"
+        matTooltip="Refresh All Sources"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-refresh" />
+      </button>
+    }
+    <button
+      mat-icon-button
+      aria-label="About Module Sources"
+      [matTooltip]="about"
+      matTooltipShowDelay="0"
+    >
+      <mat-icon class="mdi-24px" fontIcon="mdi-information-outline" />
+    </button>
+  </div>
+
+  @if (!listed()) {
+    <p class="sources-empty">This Caster API doesn't report its module sources.</p>
+  } @else if (!sources()?.length) {
+    <p class="sources-empty">
+      No module sources are configured, so there are no Modules to list. An
+      administrator adds them in Caster's settings.
+    </p>
+  } @else {
+    <ul class="sources-list">
+      @for (source of sources(); track source.name) {
+        @let s = status(source);
+        <li
+          class="source-row"
+          [class.failed]="s.kind === 'failed'"
+          [class.warning]="s.kind === 'warning'"
+          [class.empty]="s.kind === 'empty'"
+        >
+          <span class="source-actions">
+            @if (canEdit()) {
+              @if (isGitlab(source)) {
+                <button
+                  mat-icon-button
+                  (click)="addGitlabProject()"
+                  [disabled]="isLoading()"
+                  aria-label="Add a GitLab Project"
+                  matTooltip="Add a GitLab Project by its ID"
+                >
+                  <mat-icon class="mdi-18px" fontIcon="mdi-plus-circle" />
+                </button>
+              } @else {
+                <button
+                  mat-icon-button
+                  (click)="refresh.emit(source.name)"
+                  [disabled]="isLoading()"
+                  [attr.aria-label]="'Refresh ' + source.name"
+                  [matTooltip]="'Refresh ' + source.name"
+                >
+                  <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+                </button>
+              }
+            }
+          </span>
+          <mat-icon class="mdi-18px source-icon" [fontIcon]="s.icon" />
+          <span class="source-text">
+            <span class="source-name">{{ source.name }}</span>
+            @if (source.description) {
+              <span class="source-description">{{ source.description }}</span>
+            }
+            <span class="source-status">{{ s.text }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</mat-expansion-panel>
