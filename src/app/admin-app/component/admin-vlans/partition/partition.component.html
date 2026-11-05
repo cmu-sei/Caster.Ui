@@ -45,18 +45,70 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
-        <span class="name">{{ partition?.name }}</span>
         @if (canEdit()) {
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Rename"
-            matTooltip="Rename"
-            (click)="rename($event)"
+          <!-- Clicks and keys here must not toggle the panel, even on a disabled button. -->
+          <div
+            class="action-buttons"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
           >
-            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
-          </button>
+            <button
+              mat-icon-button
+              color="primary"
+              aria-label="Rename"
+              matTooltip="Rename"
+              (click)="rename($event)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
+            </button>
+            <mat-form-field
+              class="vlan-amount"
+              subscriptSizing="dynamic"
+              matTooltip="Number of VLANs to add or remove"
+            >
+              <input
+                #vlanAmount
+                type="number"
+                matInput
+                min="1"
+                max="4096"
+                step="1"
+                aria-label="Number of VLANs to add or remove"
+                (input)="setAmount(vlanAmount.value)"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              color="primary"
+              aria-label="Remove VLANs"
+              matTooltip="Remove VLANs"
+              [disabled]="!amount()"
+              (click)="removeVlans($event, vlanAmount)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle" />
+            </button>
+            <button
+              mat-icon-button
+              color="primary"
+              aria-label="Add VLANs"
+              matTooltip="Add VLANs"
+              [disabled]="!amount()"
+              (click)="addVlans($event, vlanAmount)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+            </button>
+            <button
+              mat-icon-button
+              color="primary"
+              [attr.aria-label]="'Delete ' + partition.name"
+              matTooltip="Delete {{ partition.name }}"
+              (click)="delete($event)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+            </button>
+          </div>
         }
+        <span class="name">{{ partition?.name }}</span>
       }
       @if (!partition) {
         <span class="name">Unassigned</span>
@@ -67,60 +119,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div>{{ vlans.length }} VLANs</div>
       }
     </mat-panel-description>
-    @if (partition && canEdit()) {
-      <!-- Clicks and keys here must not toggle the panel, even on a disabled button. -->
-      <div
-        class="action-buttons"
-        (click)="$event.stopPropagation()"
-        (keydown)="$event.stopPropagation()"
-      >
-        <mat-form-field
-          class="vlan-amount"
-          subscriptSizing="dynamic"
-          matTooltip="Number of VLANs to add or remove"
-        >
-          <input
-            #vlanAmount
-            type="number"
-            matInput
-            min="1"
-            max="4096"
-            step="1"
-            aria-label="Number of VLANs to add or remove"
-            (input)="setAmount(vlanAmount.value)"
-          />
-        </mat-form-field>
-        <button
-          mat-icon-button
-          color="primary"
-          aria-label="Remove VLANs"
-          matTooltip="Remove VLANs"
-          [disabled]="!amount()"
-          (click)="removeVlans($event, vlanAmount)"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle" />
-        </button>
-        <button
-          mat-icon-button
-          color="primary"
-          aria-label="Add VLANs"
-          matTooltip="Add VLANs"
-          [disabled]="!amount()"
-          (click)="addVlans($event, vlanAmount)"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-        </button>
-        <button
-          mat-icon-button
-          color="primary"
-          [attr.aria-label]="'Delete ' + partition.name"
-          matTooltip="Delete {{ partition.name }}"
-          (click)="delete($event)"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
-        </button>
-      </div>
-    }
   </mat-expansion-panel-header>
   <ng-template matExpansionPanelContent>
     <cas-vlan-list
