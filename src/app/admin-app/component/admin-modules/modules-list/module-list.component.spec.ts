@@ -186,31 +186,6 @@ describe('AdminModuleListComponent', () => {
     expect(screen.getAllByRole('textbox')).toHaveLength(1);
   });
 
-  /**
-   * Verifies: each row shows the Module's source in the Source column next to its Name and Path.
-   * Interacts with: moduleSourceOf through ngOnChanges, the Source column.
-   * Data: vm from local, dns from the GitLab source.
-   */
-  it('shows which source each Module comes from', async () => {
-    await renderModuleList();
-
-    expect(
-      within(screen.getAllByRole('row')[0])
-        .getAllByRole('columnheader')
-        .map((h) => h.textContent.trim()),
-    ).toEqual([
-      '',
-      'Name',
-      'Description',
-      'Source',
-      'Path',
-      'Versions',
-      'Latest Version',
-      'Date Loaded',
-    ]);
-    expect(cells(rowOf('vm'))[3]).toBe('local');
-    expect(cells(rowOf('dns'))[3]).toBe('gitlab');
-  });
 
   /**
    * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title) and its highest version, so an admin can tell an import worked; a Module with no versions shows none.
@@ -220,15 +195,20 @@ describe('AdminModuleListComponent', () => {
   it("shows each Module's description and latest version", async () => {
     await renderModuleList();
 
+    // Path carries a git source's name, so there is no separate Source column.
+    expect(
+      screen.getAllByRole('columnheader').map((h) => h.textContent.trim()),
+    ).not.toContain('Source');
+
     expect(cells(rowOf('vm'))).toEqual(
       expect.arrayContaining(['A vSphere virtual machine', 'v1.10.0']),
     );
     const dns = within(rowOf('dns')).getAllByRole('cell');
     expect(dns[2].textContent.trim()).toBe('A'.repeat(80) + ' ...');
     expect(dns[2]).toHaveAttribute('title', longDescription);
-    expect(dns[6].textContent.trim()).toBe('2.0.0');
+    expect(dns[5].textContent.trim()).toBe('2.0.0');
     expect(
-      within(rowOf('empty')).getAllByRole('cell')[6].textContent.trim(),
+      within(rowOf('empty')).getAllByRole('cell')[5].textContent.trim(),
     ).toBe('');
   });
 
@@ -246,37 +226,7 @@ describe('AdminModuleListComponent', () => {
     expect(screen.queryByRole('row', { name: /\bdns\b/ })).toBeNull();
   });
 
-  /**
-   * Verifies: Search matches the Source column too, case-insensitively.
-   * Interacts with: the Search box, the table's filterPredicate.
-   * Data: "GITLAB" typed; only dns comes from gitlab.
-   */
-  it('searches by source', async () => {
-    const { user } = await renderModuleList();
 
-    await user.type(screen.getByPlaceholderText('Search'), 'GITLAB');
-
-    expect(screen.queryByRole('row', { name: /\bvm\b/ })).toBeNull();
-    expect(rowOf('dns')).toBeInTheDocument();
-  });
-
-  /**
-   * Verifies: sorting by Source orders the rows by source name.
-   * Interacts with: the Source column's mat-sort-header.
-   * Data: vm (local) and dns (gitlab).
-   */
-  it('sorts by source', async () => {
-    const { user } = await renderModuleList();
-
-    await user.click(screen.getByRole('button', { name: 'Source' }));
-
-    const names = screen
-      .getAllByRole('row')
-      .slice(1)
-      .map((row) => cells(row)[1]);
-    expect(names[0]).toBe('dns');
-    expect(names.slice(1).sort()).toEqual(['empty', 'vm']);
-  });
 
   /**
    * Verifies: the sync menu offers All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
