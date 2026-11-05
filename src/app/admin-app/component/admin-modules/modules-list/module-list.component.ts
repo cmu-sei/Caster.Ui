@@ -199,6 +199,11 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     return !!source && !this.isGitlab(source) && !!row.path;
   }
 
+  /** When the Module was last re-read, in the viewer's time zone, e.g. "Nov 5, 2026, 6:15 PM EST". */
+  syncedAt(value: string | null | undefined): string {
+    return value ? formatSyncTime(value) : '';
+  }
+
   /** Refreshing this Module, its whole source, or every source. */
   isRefreshing(row: ModuleRow): boolean {
     const refreshing = this.refreshing();

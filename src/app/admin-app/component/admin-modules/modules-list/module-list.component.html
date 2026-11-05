@@ -128,9 +128,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="dateModified">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
-      <td mat-cell *matCellDef="let item">
-        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="date-cell"
+        matTooltip="When Caster last re-read this Module from its source"
+      >
+        Last Synced
+      </th>
+      <td mat-cell *matCellDef="let item" class="date-cell">
+        {{ syncedAt(item.dateModified) }}
       </td>
     </ng-container>
 
