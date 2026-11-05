@@ -164,24 +164,29 @@ describe('InventoryPanelComponent', () => {
   };
 
   /**
-   * Verifies: the header names the connection being read, and one connection offers no choice.
-   * Interacts with: InventoryQuery.connections$ and connection$ (subjects).
+   * Verifies: with one connection the panel still says which it lists, below the header, with nothing to choose.
+   * Interacts with: InventoryQuery.connections$ and connection$ (subjects); the connection mat-select.
    * Data: dev-proxmox only.
    */
-  it('names the connection in the header and offers no choice with only one', () => {
+  it('shows the only connection without offering a choice', async () => {
     connections$.next([proxmox]);
     connection$.next(proxmox);
     fixture.detectChanges();
+    // mat-select shows the chosen option's text once its options have rendered.
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.connection-name')?.textContent.trim()).toBe(
-      'dev-proxmox (Proxmox)',
-    );
-    expect(el.querySelector('mat-select')).toBeNull();
+    const select = el.querySelector('mat-select');
+    expect(select?.textContent.trim()).toBe('dev-proxmox (Proxmox)');
+    expect(select?.getAttribute('aria-disabled')).toBe('true');
+    expect(
+      el.querySelector('mat-expansion-panel-header')?.textContent,
+    ).not.toContain('dev-proxmox');
   });
 
   /**
-   * Verifies: with several connections a dropdown lists each by name and provider, the header leaves the name to it, a disabled one cannot be chosen, and choosing one switches the lists to it.
+   * Verifies: with several connections a dropdown lists each by name and provider, the header stays short, a disabled one cannot be chosen, and choosing one switches the lists to it.
    * Interacts with: the connection mat-select; InventoryService.selectConnection (stub).
    * Data: dev-proxmox (default), phl-vmc, and a disabled lab connection.
    */
@@ -211,8 +216,10 @@ describe('InventoryPanelComponent', () => {
       'lab (vSphere) - disabled',
     ]);
     expect(options[2].getAttribute('aria-disabled')).toBe('true');
-    // The dropdown names the connection, so the header doesn't repeat it.
-    expect(fixture.nativeElement.querySelector('.connection-name')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('mat-expansion-panel-header')
+        ?.textContent,
+    ).not.toContain('dev-proxmox');
 
     options[1].click();
     fixture.detectChanges();

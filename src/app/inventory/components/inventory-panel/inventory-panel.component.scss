@@ -2,24 +2,23 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 .inventory-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 4px;
   min-width: 0;
   margin-bottom: 4px;
 }
 
-.connection-name {
-  margin-left: 6px;
-  font-size: small;
-  opacity: 0.7;
-}
-
+// Above the search field, in its column, so the two are the same width.
 .connection-field {
+  grid-column: 1;
+  min-width: 0;
   font-size: small;
-  margin-bottom: 4px;
 }
 
 .search-field {
-  flex: 1 1 auto;
+  grid-column: 1;
   min-width: 0;
   font-size: small;
 }
