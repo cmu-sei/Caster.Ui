@@ -181,7 +181,7 @@ describe('VlanListComponent', () => {
   });
 
   /**
-   * Verifies: the ID header sorts the VLANs, and the search field (labelled Search, as on the group member lists) filters them and clears.
+   * Verifies: the ID header sorts the VLANs, and the search field (placeholder Search, as on the other admin lists) filters them and clears.
    * Interacts with: MatSort on the data source, filterControl (debounced 500 ms) and filterPredicate, Clear.
    * Data: VLANs 100 (tag web) and 200 (tag db); canEdit false; search "db".
    */
@@ -202,7 +202,7 @@ describe('VlanListComponent', () => {
     await user.click(screen.getByRole('button', { name: 'ID' }));
     expect(ids()).toEqual(['200', '100']);
 
-    await user.type(screen.getByRole('textbox', { name: 'Search' }), 'db');
+    await user.type(screen.getByPlaceholderText('Search'), 'db');
     await vi.waitFor(() => expect(ids()).toEqual(['200']), { timeout: 2000 });
 
     await user.click(screen.getByRole('button', { name: 'Clear' }));
