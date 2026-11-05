@@ -125,6 +125,18 @@ export interface InventoryConnection {
   lastUpdated: string | null;
 }
 
+/** "Proxmox", "vSphere", or the provider as configured. */
+export function providerName(provider: string): string {
+  switch ((provider ?? '').toLowerCase()) {
+    case 'proxmox':
+      return 'Proxmox';
+    case 'vsphere':
+      return 'vSphere';
+    default:
+      return provider;
+  }
+}
+
 /** How full something is. Sizes are bytes. */
 export interface InventoryUsage {
   used: number;

@@ -4,15 +4,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { ApiStub } from '../../test-utils/api-stub';
 import { InventoryApiService } from '../api/inventory-api.service';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
+  InventoryConnection,
   InventoryResponse,
 } from './inventory.model';
-import { InventoryService } from './inventory.service';
+import {
+  INVENTORY_CONNECTION_KEY,
+  InventoryService,
+} from './inventory.service';
 import { createInitialInventoryState, InventoryStore } from './inventory.store';
 
 function response(
@@ -35,6 +39,9 @@ describe('InventoryService', () => {
   let apiSpy: {
     getCategory: ReturnType<typeof vi.fn<InventoryApiService['getCategory']>>;
     refresh: ReturnType<typeof vi.fn<InventoryApiService['refresh']>>;
+    getConnections: ReturnType<
+      typeof vi.fn<InventoryApiService['getConnections']>
+    >;
   };
 
   beforeEach(() => {
@@ -42,7 +49,11 @@ describe('InventoryService', () => {
     apiSpy = {
       getCategory: vi.fn<InventoryApiService['getCategory']>(),
       refresh: vi.fn<InventoryApiService['refresh']>(() => of(null)),
+      getConnections: vi.fn<InventoryApiService['getConnections']>(() =>
+        of([]),
+      ),
     } satisfies ApiStub<InventoryApiService>;
+    localStorage.removeItem(INVENTORY_CONNECTION_KEY);
 
     TestBed.configureTestingModule({
       providers: [{ provide: InventoryApiService, useValue: apiSpy }],
@@ -253,5 +264,134 @@ describe('InventoryService', () => {
   it('stores the search term', () => {
     service.setFilter('ubuntu');
     expect(store.getValue().filter).toBe('ubuntu');
+  });
+
+  function connection(
+    name: string,
+    overrides: Partial<InventoryConnection> = {},
+  ): InventoryConnection {
+    return {
+      name,
+      provider: 'proxmox',
+      enabled: true,
+      isDefault: false,
+      lastUpdated: null,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Verifies: with no choice remembered, the default connection is read.
+   * Interacts with: InventoryApiService.getConnections (stub); real InventoryStore.
+   * Data: phl-vmc and dev-proxmox (default).
+   */
+  it('reads the default connection when nothing was chosen', () => {
+    apiSpy.getConnections.mockReturnValue(
+      of([
+        connection('dev-proxmox', { isDefault: true }),
+        connection('phl-vmc', { provider: 'vsphere' }),
+      ]),
+    );
+
+    service.loadConnections().subscribe();
+
+    expect(store.getValue().connections.map((c) => c.name)).toEqual([
+      'dev-proxmox',
+      'phl-vmc',
+    ]);
+    expect(store.getValue().connection).toBe('dev-proxmox');
+  });
+
+  /**
+   * Verifies: the connection this browser chose last is read again, unless it is no longer enabled.
+   * Interacts with: localStorage; InventoryApiService.getConnections (stub).
+   * Data: phl-vmc remembered, enabled and then disabled.
+   */
+  it('reads the remembered connection while it is still enabled', () => {
+    localStorage.setItem(INVENTORY_CONNECTION_KEY, 'phl-vmc');
+    apiSpy.getConnections.mockReturnValue(
+      of([connection('dev-proxmox', { isDefault: true }), connection('phl-vmc')]),
+    );
+    service.loadConnections().subscribe();
+    expect(store.getValue().connection).toBe('phl-vmc');
+
+    apiSpy.getConnections.mockReturnValue(
+      of([
+        connection('dev-proxmox', { isDefault: true }),
+        connection('phl-vmc', { enabled: false }),
+      ]),
+    );
+    service.loadConnections().subscribe();
+    expect(store.getValue().connection).toBe('dev-proxmox');
+  });
+
+  /**
+   * Verifies: if the connections can't be listed, none is named, so the lists read the API's default.
+   * Interacts with: InventoryApiService.getConnections (throws).
+   * Data: HTTP 500.
+   */
+  it('names no connection when they cannot be listed', () => {
+    apiSpy.getConnections.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500 })),
+    );
+    const listed = vi.fn();
+
+    service.loadConnections().subscribe(listed);
+
+    expect(listed).toHaveBeenCalledWith([]);
+    expect(store.getValue().connection).toBeNull();
+  });
+
+  /**
+   * Verifies: loads and refresh name the chosen connection.
+   * Interacts with: InventoryApiService.getCategory and refresh (stubs).
+   * Data: phl-vmc chosen.
+   */
+  it('reads and refreshes the chosen connection', () => {
+    store.update({ connection: 'phl-vmc' });
+    apiSpy.getCategory.mockReturnValue(of(response()));
+
+    service.load(InventoryCategory.Networks).subscribe();
+    service.refresh().subscribe();
+
+    expect(apiSpy.getCategory).toHaveBeenCalledWith(
+      InventoryCategory.Networks,
+      'phl-vmc',
+    );
+    expect(apiSpy.refresh).toHaveBeenCalledWith('phl-vmc');
+  });
+
+  /**
+   * Verifies: choosing a connection remembers it, drops the previous connection's lists, and reloads every category from the new one.
+   * Interacts with: localStorage; InventoryApiService.getCategory (stub); real InventoryStore.
+   * Data: dev-proxmox's content library marked as not applying, then phl-vmc chosen.
+   */
+  it('switches every list to a chosen connection and remembers it', () => {
+    store.update({
+      connection: 'dev-proxmox',
+      [InventoryCategory.ContentLibrary]: {
+        ...store.getValue()[InventoryCategory.ContentLibrary],
+        applies: false,
+        loaded: true,
+      },
+    });
+    const pending = new Subject<InventoryResponse>();
+    apiSpy.getCategory.mockReturnValue(pending);
+
+    service.selectConnection('phl-vmc').subscribe();
+
+    expect(localStorage.getItem(INVENTORY_CONNECTION_KEY)).toBe('phl-vmc');
+    expect(store.getValue().connection).toBe('phl-vmc');
+    // Not loaded yet, and no longer hidden by dev-proxmox's answer.
+    expect(store.getValue()[InventoryCategory.ContentLibrary]).toMatchObject({
+      applies: true,
+      loading: true,
+    });
+    expect(apiSpy.getCategory).toHaveBeenCalledTimes(
+      INVENTORY_CATEGORIES.length,
+    );
+    expect(
+      apiSpy.getCategory.mock.calls.every(([, name]) => name === 'phl-vmc'),
+    ).toBe(true);
   });
 });

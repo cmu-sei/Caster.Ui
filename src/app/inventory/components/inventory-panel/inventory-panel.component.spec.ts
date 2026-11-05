@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ClipboardModule } from 'ngx-clipboard';
 import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
@@ -17,6 +18,7 @@ import { renderComponent } from 'src/app/test-utils/render-component';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategoryDescriptor,
+  InventoryConnection,
   InventoryQuery,
   InventoryService,
 } from '../../state';
@@ -33,7 +35,18 @@ describe('InventoryPanelComponent', () => {
 
   let filter$: BehaviorSubject<string>;
   let refreshing$: BehaviorSubject<boolean>;
+  let connections$: BehaviorSubject<InventoryConnection[]>;
+  let connection$: BehaviorSubject<InventoryConnection | null>;
+  let fixture: Awaited<
+    ReturnType<typeof renderComponent<InventoryPanelComponent>>
+  >['fixture'];
   let inventoryServiceSpy: {
+    loadConnections: ReturnType<
+      typeof vi.fn<InventoryService['loadConnections']>
+    >;
+    selectConnection: ReturnType<
+      typeof vi.fn<InventoryService['selectConnection']>
+    >;
     loadAll: ReturnType<typeof vi.fn<InventoryService['loadAll']>>;
     refresh: ReturnType<typeof vi.fn<InventoryService['refresh']>>;
     setFilter: ReturnType<typeof vi.fn<InventoryService['setFilter']>>;
@@ -42,15 +55,23 @@ describe('InventoryPanelComponent', () => {
   beforeEach(async () => {
     filter$ = new BehaviorSubject<string>('');
     refreshing$ = new BehaviorSubject<boolean>(false);
+    connections$ = new BehaviorSubject<InventoryConnection[]>([]);
+    connection$ = new BehaviorSubject<InventoryConnection | null>(null);
 
     // No live API in specs: the query and service are both stubbed.
     inventoryServiceSpy = {
+      loadConnections: vi.fn<InventoryService['loadConnections']>(() =>
+        of([]),
+      ),
+      selectConnection: vi.fn<InventoryService['selectConnection']>(() =>
+        of([]),
+      ),
       loadAll: vi.fn<InventoryService['loadAll']>(() => of([])),
       refresh: vi.fn<InventoryService['refresh']>(() => of([])),
       setFilter: vi.fn<InventoryService['setFilter']>(),
     } satisfies Partial<InventoryService>;
 
-    const { fixture } = await renderComponent(InventoryPanelComponent, {
+    ({ fixture } = await renderComponent(InventoryPanelComponent, {
       childStubs: [
         { replace: InventoryListComponent, with: InventoryListStub },
       ],
@@ -62,6 +83,7 @@ describe('InventoryPanelComponent', () => {
         MatInputModule,
         MatListModule,
         MatProgressSpinnerModule,
+        MatSelectModule,
         MatTooltipModule,
         ClipboardModule,
       ],
@@ -73,11 +95,13 @@ describe('InventoryPanelComponent', () => {
             refreshing$,
             lastUpdated$: of(null),
             categories$: of(INVENTORY_CATEGORIES),
+            connections$,
+            connection$,
           },
         },
         { provide: InventoryService, useValue: inventoryServiceSpy },
       ],
-    });
+    }));
     component = fixture.componentInstance;
   });
 
@@ -113,13 +137,87 @@ describe('InventoryPanelComponent', () => {
    * Data: open, close, open.
    */
   it('loads once, only after the panel is opened', () => {
+    expect(inventoryServiceSpy.loadConnections).not.toHaveBeenCalled();
     expect(inventoryServiceSpy.loadAll).not.toHaveBeenCalled();
 
     component.onExpanded();
     component.onCollapsed();
     component.onExpanded();
 
+    expect(inventoryServiceSpy.loadConnections).toHaveBeenCalledTimes(1);
     expect(inventoryServiceSpy.loadAll).toHaveBeenCalledTimes(1);
+  });
+
+  const proxmox: InventoryConnection = {
+    name: 'dev-proxmox',
+    provider: 'proxmox',
+    enabled: true,
+    isDefault: true,
+    lastUpdated: null,
+  };
+  const vmc: InventoryConnection = {
+    name: 'phl-vmc',
+    provider: 'vsphere',
+    enabled: true,
+    isDefault: false,
+    lastUpdated: null,
+  };
+
+  /**
+   * Verifies: the header names the connection being read, and one connection offers no choice.
+   * Interacts with: InventoryQuery.connections$ and connection$ (subjects).
+   * Data: dev-proxmox only.
+   */
+  it('names the connection in the header and offers no choice with only one', () => {
+    connections$.next([proxmox]);
+    connection$.next(proxmox);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.connection-name')?.textContent.trim()).toBe(
+      'dev-proxmox (Proxmox)',
+    );
+    expect(el.querySelector('mat-select')).toBeNull();
+  });
+
+  /**
+   * Verifies: with several connections a dropdown lists each by name and provider, a disabled one cannot be chosen, and choosing one switches the lists to it.
+   * Interacts with: the connection mat-select; InventoryService.selectConnection (stub).
+   * Data: dev-proxmox (default), phl-vmc, and a disabled lab connection.
+   */
+  it('lets the user switch between several connections', async () => {
+    const disabled: InventoryConnection = {
+      ...vmc,
+      name: 'lab',
+      enabled: false,
+    };
+    connections$.next([proxmox, vmc, disabled]);
+    connection$.next(proxmox);
+    fixture.detectChanges();
+
+    const trigger: HTMLElement = fixture.nativeElement.querySelector(
+      '[aria-label="Infrastructure connection"] .mat-mdc-select-trigger',
+    );
+    trigger.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const options = Array.from<HTMLElement>(
+      document.querySelectorAll('mat-option'),
+    );
+    expect(options.map((o) => o.textContent.trim())).toEqual([
+      'dev-proxmox (Proxmox)',
+      'phl-vmc (vSphere)',
+      'lab (vSphere) - disabled',
+    ]);
+    expect(options[2].getAttribute('aria-disabled')).toBe('true');
+
+    options[1].click();
+    fixture.detectChanges();
+
+    expect(inventoryServiceSpy.selectConnection).toHaveBeenCalledWith(
+      'phl-vmc',
+    );
   });
 
   /**

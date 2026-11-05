@@ -3,7 +3,11 @@
 
 import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
-import { InventoryCategory, InventoryCategoryState } from './inventory.model';
+import {
+  InventoryCategory,
+  InventoryCategoryState,
+  InventoryConnection,
+} from './inventory.model';
 
 /** One slice per category, keyed by the `InventoryCategory` string values. */
 export type InventoryCategoriesState = {
@@ -15,6 +19,13 @@ export interface InventoryState extends InventoryCategoriesState {
   refreshing: boolean;
   /** Single search term applied across every category. */
   filter: string;
+  /** The configured connections, the default first. Empty until listed. */
+  connections: InventoryConnection[];
+  /**
+   * The connection the lists read, by name. Null reads the API's default,
+   * which is also what happens when the connections can't be listed.
+   */
+  connection: string | null;
 }
 
 export const initialInventoryCategoryState: InventoryCategoryState = {
@@ -40,6 +51,8 @@ export function createInitialInventoryState(): InventoryState {
     [InventoryCategory.ContentLibrary]: { ...initialInventoryCategoryState },
     refreshing: false,
     filter: '',
+    connections: [],
+    connection: null,
   };
 }
 

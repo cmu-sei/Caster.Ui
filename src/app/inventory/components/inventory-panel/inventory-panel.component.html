@@ -15,9 +15,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div class="d-flex flex-row justify-content-start align-items-center">
           <mat-icon class="mdi-18px" fontIcon="mdi-server-network"></mat-icon>
           <strong>INFRASTRUCTURE</strong>
+          @if (connection$ | async; as connection) {
+            <span class="connection-name">{{ connectionLabel(connection) }}</span>
+          }
         </div>
       </mat-panel-title>
     </mat-expansion-panel-header>
+
+    @if ((connections$ | async)?.length > 1) {
+      <mat-form-field class="connection-field w-100" subscriptSizing="dynamic">
+        <mat-select
+          [value]="(connection$ | async)?.name"
+          (selectionChange)="selectConnection($event.value)"
+          aria-label="Infrastructure connection"
+          >
+          @for (c of connections$ | async; track c.name) {
+            <mat-option [value]="c.name" [disabled]="!c.enabled">
+              {{ connectionLabel(c) }}{{ c.enabled ? '' : ' - disabled' }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
 
     <div class="inventory-toolbar d-flex flex-row align-items-center w-100">
       <mat-form-field class="search-field" subscriptSizing="dynamic">
