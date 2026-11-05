@@ -27,6 +27,15 @@ export interface SourceStatus {
   text: string;
 }
 
+/** What each status icon means, for its tooltip and screen readers. */
+export const STATUS_LABELS: Record<SourceStatus['kind'], string> = {
+  ok: 'Read successfully',
+  empty: 'No Modules yet',
+  warning: 'Needs attention',
+  failed: "Couldn't be read",
+  pending: 'Not read yet',
+};
+
 /**
  * The module sources the Modules come from, with how each one's last read
  * went. Sources are configured in Caster's settings, so this is where an
@@ -81,6 +90,10 @@ export class ModuleSourcesComponent {
   isRefreshing(name: string): boolean {
     const refreshing = this.refreshing();
     return refreshing.has(name) || refreshing.has('*');
+  }
+
+  statusLabel(status: SourceStatus): string {
+    return STATUS_LABELS[status.kind];
   }
 
   isGitlab(source: ModuleSource): boolean {
