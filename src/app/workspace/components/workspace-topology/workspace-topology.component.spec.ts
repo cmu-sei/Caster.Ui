@@ -855,8 +855,46 @@ describe('WorkspaceTopologyComponent', () => {
       );
 
       await user.click(screen.getByRole('button', { name: 'Download image' }));
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'PNG image' }),
+      );
 
       await waitFor(() => expect(click).toHaveBeenCalled());
+    });
+
+    /**
+     * Verifies: Download image > SVG image saves the graph as a self-contained SVG named after the workspace.
+     * Interacts with: the Download image menu, URL.createObjectURL (fake, keeping the Blob), the link it clicks.
+     * Data: workspace dev.
+     */
+    it('downloads the graph as an SVG', async () => {
+      const blobs: Blob[] = [];
+      const createObjectURL = URL.createObjectURL;
+      URL.createObjectURL = vi.fn((blob: Blob) => {
+        blobs.push(blob);
+        return 'blob:topology';
+      }) as typeof URL.createObjectURL;
+      URL.revokeObjectURL ??= () => {};
+      onTestFinished(() => {
+        URL.createObjectURL = createObjectURL;
+      });
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(function (this: HTMLAnchorElement) {
+          expect(this.download).toBe('dev-topology.svg');
+        });
+      const { user } = await renderTopology(topology());
+
+      await user.click(screen.getByRole('button', { name: 'Download image' }));
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'SVG image' }),
+      );
+
+      await waitFor(() => expect(click).toHaveBeenCalled());
+      expect(blobs[0].type).toBe('image/svg+xml');
+      const svg = await blobs[0].text();
+      expect(svg).toMatch(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+      expect(svg).not.toContain('<image');
     });
 
     /**

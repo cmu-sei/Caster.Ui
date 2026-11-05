@@ -115,6 +115,110 @@ export const INVENTORY_CATEGORIES: InventoryCategoryDescriptor[] = [
   },
 ];
 
+/** A configured connection, as `GET /api/inventory/connections` lists it. */
+export interface InventoryConnection {
+  name: string;
+  provider: string;
+  enabled: boolean;
+  /** True for the connection the top-level Infrastructure settings configure. */
+  isDefault: boolean;
+  lastUpdated: string | null;
+}
+
+/** How full something is. Sizes are bytes. */
+export interface InventoryUsage {
+  used: number;
+  total: number;
+  /** 0 to 100, rounded. */
+  percent: number;
+}
+
+/** A hypervisor host's state and use, read from its properties. */
+export interface InventoryHostUsage {
+  status: string | null;
+  /** False for a host that reports itself offline; it has no figures. */
+  online: boolean;
+  cpuCount: number | null;
+  /** Cpu use across all cores, 0 to 100, or null when not reported. */
+  cpuPercent: number | null;
+  memory: InventoryUsage | null;
+}
+
+function numberProperty(item: InventoryItem, key: string): number | null {
+  const raw = item.properties?.[key];
+  if (raw === undefined || raw === null || raw === '') {
+    return null;
+  }
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function usage(used: number | null, total: number | null): InventoryUsage | null {
+  if (used === null || total === null || total <= 0) {
+    return null;
+  }
+  return {
+    used,
+    total,
+    percent: Math.min(100, Math.max(0, Math.round((used / total) * 100))),
+  };
+}
+
+/**
+ * A datastore's use, from the `capacity` and `freeSpace` properties both
+ * providers set. Null when the provider did not report them.
+ */
+export function datastoreUsage(item: InventoryItem): InventoryUsage | null {
+  const capacity = numberProperty(item, 'capacity');
+  const free = numberProperty(item, 'freeSpace');
+  return usage(
+    capacity === null || free === null ? null : capacity - free,
+    capacity
+  );
+}
+
+/** Host states that mean the host is not serving VMs. */
+const OFFLINE_STATES = ['offline', 'disconnected', 'notresponding'];
+
+/**
+ * A host's use, from the properties `GET /api/inventory/hosts` sets in the same
+ * units for both providers: `cpu` as a fraction of `maxcpu` cores, and `mem`
+ * and `maxmem` in bytes. A Proxmox node reports `status`; an ESXi host
+ * reports `connectionState` instead.
+ */
+export function hostUsage(item: InventoryItem): InventoryHostUsage {
+  const status =
+    item.properties?.['status'] || item.properties?.['connectionState'] || null;
+  const cpu = numberProperty(item, 'cpu');
+
+  return {
+    status,
+    online: status === null || !OFFLINE_STATES.includes(status.toLowerCase()),
+    cpuCount: numberProperty(item, 'maxcpu'),
+    cpuPercent:
+      cpu === null ? null : Math.min(100, Math.max(0, Math.round(cpu * 100))),
+    memory: usage(numberProperty(item, 'mem'), numberProperty(item, 'maxmem')),
+  };
+}
+
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+/**
+ * Bytes in binary units, the way vCenter and Proxmox show sizes, e.g.
+ * 45558530048 is "42.4 GB".
+ */
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return '0 B';
+  }
+  const unit = Math.min(
+    BYTE_UNITS.length - 1,
+    Math.floor(Math.log(bytes) / Math.log(1024))
+  );
+  const value = bytes / Math.pow(1024, unit);
+  return `${unit === 0 ? value : value.toFixed(1)} ${BYTE_UNITS[unit]}`;
+}
+
 /**
  * A readable name for an item whose name is an id, e.g. a Proxmox vnet's alias
  * or a bridge's comment. Null when there is none, or it only repeats the name.

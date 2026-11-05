@@ -103,6 +103,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         @if (item.path && item.path !== item.name) {
                           <div class="item-path">{{ item.path }}</div>
                         }
+                        @if (usageOf(item); as use) {
+                          <div class="item-usage">
+                            <mat-progress-bar
+                              mode="determinate"
+                              [value]="use.percent"
+                              [attr.aria-label]="item.name + ' used'"
+                            ></mat-progress-bar>
+                            <span class="item-path"
+                              >{{ formatBytes(use.total - use.used) }} free of
+                              {{ formatBytes(use.total) }}</span
+                            >
+                          </div>
+                        }
                       </div>
                       <div class="d-flex flex-row align-items-start item-actions">
                         <button

@@ -1,0 +1,95 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+mat-card {
+  margin: 2em;
+  padding: 1em 1.5em;
+}
+
+.connection-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+
+  h2 {
+    margin: 0;
+  }
+
+  .provider,
+  .read-time {
+    opacity: 0.7;
+  }
+
+  button {
+    margin-left: auto;
+  }
+}
+
+h3 {
+  margin: 1em 0 0.25em;
+}
+
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0;
+
+  &.stale {
+    color: var(--mat-sys-tertiary, #b26a00);
+  }
+}
+
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    font-weight: 500;
+    opacity: 0.7;
+  }
+
+  th,
+  td {
+    padding: 0.4em 1em 0.4em 0;
+    vertical-align: top;
+  }
+
+  td:nth-child(n + 2) {
+    width: 30%;
+  }
+
+  tbody tr + tr td {
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+  }
+
+  tr.offline {
+    opacity: 0.6;
+  }
+
+  mat-progress-bar {
+    margin: 0.35em 0 0.15em;
+  }
+}
+
+.muted {
+  opacity: 0.65;
+}
+
+.badge {
+  margin-left: 0.5em;
+  padding: 0 0.4em;
+  border-radius: 4px;
+  font-size: smaller;
+  background: rgba(128, 128, 128, 0.25);
+}
+
+// Material progress bars take their color from these tokens.
+mat-progress-bar.warn {
+  --mat-progress-bar-active-indicator-color: #f9a825;
+}
+
+mat-progress-bar.high {
+  --mat-progress-bar-active-indicator-color: #d32f2f;
+}

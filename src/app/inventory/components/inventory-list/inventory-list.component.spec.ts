@@ -191,6 +191,48 @@ describe('InventoryListComponent', () => {
   });
 
   /**
+   * Verifies: a datastore with capacity and free space shows how much is free;
+   *   one without them shows nothing extra, and other categories never do.
+   * Interacts with: the .item-usage line and its progress bar.
+   * Data: local-lvm, 42.4 GB of which 0.9 GB used; nfs with no figures; then
+   *   the same items under ISOs.
+   */
+  it('shows how full each datastore is', () => {
+    const items: InventoryItem[] = [
+      {
+        id: 'local-lvm',
+        name: 'local-lvm',
+        path: 'local-lvm',
+        properties: { capacity: '45558530048', freeSpace: '44556242387' },
+      },
+      { id: 'nfs', name: 'nfs', path: 'nfs', properties: {} },
+    ];
+    fixture.componentRef.setInput(
+      'descriptor',
+      INVENTORY_CATEGORIES.find(
+        (d) => d.category === InventoryCategory.Datastores,
+      ),
+    );
+    state$.next(categoryState({ items }));
+    items$.next(items);
+    fixture.detectChanges();
+
+    const usage = Array.from(
+      fixture.nativeElement.querySelectorAll('.item-usage'),
+    ) as HTMLElement[];
+    expect(
+      usage.map((el) => el.textContent.replace(/\s+/g, ' ').trim()),
+    ).toEqual(['41.5 GB free of 42.4 GB']);
+    expect(
+      usage[0].querySelector('mat-progress-bar').getAttribute('aria-valuenow'),
+    ).toBe('2');
+
+    fixture.componentRef.setInput('descriptor', isosDescriptor);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.item-usage')).toBeNull();
+  });
+
+  /**
    * Verifies: a readable category with no items says 'Nothing found' instead of unavailable.
    * Interacts with: the list's empty state.
    * Data: ISOs, available, no items.
