@@ -45,7 +45,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
-        <h4>{{ partition?.name }}</h4>
+        <span class="name">{{ partition?.name }}</span>
         @if (canEdit()) {
           <button
             mat-icon-button
@@ -59,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         }
       }
       @if (!partition) {
-        <h4>Unassigned</h4>
+        <span class="name">Unassigned</span>
       }
     </mat-panel-title>
     <mat-panel-description class="header-description">
