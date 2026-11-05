@@ -5,11 +5,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div>
   <mat-form-field
-    matTooltip="Search for vlans by comma-separated list of id, range of ids, and/or tag e.g. 10,11,20-30,mytag"
+    class="search-field"
+    matTooltip="Search by VLAN ID, a range of IDs, or a tag. Separate several with commas, e.g. 10, 20-30, mytag"
+    matTooltipShowDelay="0"
   >
-    <mat-label>Search</mat-label>
-    <mat-icon matPrefix svgIcon="ic_magnify_search" />
-    <input matInput [formControl]="filterControl" #input autocomplete="off" />
+    <input
+      matInput
+      [formControl]="filterControl"
+      #input
+      placeholder="Search"
+      autocomplete="off"
+    />
     @if (input.value) {
       <button
         matSuffix
