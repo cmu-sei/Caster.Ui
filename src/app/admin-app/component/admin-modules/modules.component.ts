@@ -15,7 +15,9 @@ import { EMPTY, Observable } from 'rxjs';
 import { catchError, finalize, map, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import {
   AdminModuleListComponent,
   formatSyncTime,
@@ -26,7 +28,7 @@ import { AsyncPipe } from '@angular/common';
   selector: 'cas-admin-modules',
   templateUrl: './modules.component.html',
   styleUrls: ['./modules.component.css'],
-  imports: [MatIcon, AdminModuleListComponent, AsyncPipe],
+  imports: [MatIcon, MatIconButton, MatTooltip, AdminModuleListComponent, AsyncPipe],
 })
 export class AdminModulesComponent implements OnInit {
   zone = inject(NgZone);
@@ -43,6 +45,13 @@ export class AdminModulesComponent implements OnInit {
   public sources: ModuleSource[] = [];
   public failedSources: ModuleSource[] = [];
   public noSources = false;
+
+  /**
+   * Dismissed warnings, by source name, with the error each one said. A
+   * warning comes back when its source fails differently, or when the user
+   * syncs again.
+   */
+  private dismissed = new Map<string, string>();
 
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageWorkspaces,
@@ -95,6 +104,9 @@ export class AdminModulesComponent implements OnInit {
       .subscribe({
         next: (sources) => {
           this.sources = sources;
+          if (userRequested) {
+            this.dismissed.clear();
+          }
           this.failedSources = sources.filter((s) => s.error);
           this.noSources = !sources.length;
           if (userRequested && this.failedSources.length) {
@@ -109,6 +121,17 @@ export class AdminModulesComponent implements OnInit {
           this.noSources = false;
         },
       });
+  }
+
+  /** The failed sources whose warning has not been dismissed. */
+  get shownFailures(): ModuleSource[] {
+    return this.failedSources.filter(
+      (s) => this.dismissed.get(s.name) !== s.error,
+    );
+  }
+
+  dismissFailure(source: ModuleSource) {
+    this.dismissed.set(source.name, source.error);
   }
 
   /** One snack bar for every failed source; the warnings above the list have the details. */

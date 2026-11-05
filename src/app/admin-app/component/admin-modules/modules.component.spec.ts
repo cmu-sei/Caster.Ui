@@ -2,6 +2,9 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import userEvent from '@testing-library/user-event';
 import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -83,7 +86,7 @@ async function renderModules(
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(AdminModulesComponent, {
     childStubs: [{ replace: AdminModuleListComponent, with: ModuleListStub }],
-    imports: [MatIconModule],
+    imports: [MatIconModule, MatButtonModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),
       { provide: ModulesService, useValue: modulesApi },
@@ -203,6 +206,65 @@ describe('AdminModulesComponent', () => {
     });
 
     /**
+     * Verifies: each source's warning can be dismissed on its own, and stays dismissed while that source keeps failing the same way.
+     * Interacts with: the warning's Dismiss button; ModulesService.getModuleSources (stub).
+     * Data: gitlab and mirror failed; gitlab dismissed, then the sources listed again unchanged.
+     */
+    it('dismisses one source warning and keeps the others', async () => {
+      const user = userEvent.setup();
+      const { fixture } = await renderModules(
+        {},
+        { sources: () => of([healthy, gitlab, mirror]) },
+      );
+
+      await user.click(
+        screen.getByRole('button', { name: 'Dismiss the gitlab warning' }),
+      );
+      fixture.detectChanges();
+
+      expect(screen.getAllByRole('alert').map(text)).toEqual([
+        'Module source mirror failed to sync. Showing the Modules already stored. clone failed',
+      ]);
+
+      fixture.componentInstance.load();
+      fixture.detectChanges();
+      expect(screen.getAllByRole('alert')).toHaveLength(1);
+    });
+
+    /**
+     * Verifies: a dismissed warning comes back when its source fails with a different error, or when the user syncs again.
+     * Interacts with: the Dismiss button; the list stub's syncAll output; ModulesService.getModuleSources (stub).
+     * Data: gitlab dismissed at 401; then 403; then dismissed again and a requested sync still failing.
+     */
+    it('brings a dismissed warning back on a new error or a requested sync', async () => {
+      const user = userEvent.setup();
+      let current: ModuleSource = gitlab;
+      const { fixture, list } = await renderModules(
+        {},
+        { sources: () => of([current]) },
+      );
+      const dismiss = () =>
+        user.click(
+          screen.getByRole('button', { name: 'Dismiss the gitlab warning' }),
+        );
+
+      await dismiss();
+      fixture.detectChanges();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+      current = { ...gitlab, error: '403 Forbidden' };
+      fixture.componentInstance.load();
+      fixture.detectChanges();
+      expect(screen.getByRole('alert')).toHaveTextContent('403 Forbidden');
+
+      await dismiss();
+      fixture.detectChanges();
+      list.syncAll.emit();
+      fixture.detectChanges();
+      expect(screen.getByRole('alert')).toHaveTextContent('403 Forbidden');
+    });
+
+    /**
      * Verifies: with no source configured the page says no modules can be synced, and shows no failure warning.
      * Interacts with: ModulesService.getModuleSources (stub returning []).
      * Data: no sources.
@@ -290,7 +352,9 @@ describe('AdminModulesComponent', () => {
         expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
         expect(await screen.findByText(message)).toBeInTheDocument();
         // The snack bar's content stays aria-hidden until it is announced.
-        expect(screen.getByText('Dismiss')).toBeInTheDocument();
+        expect(
+          document.querySelector('.mat-mdc-snack-bar-container'),
+        ).toHaveTextContent('Dismiss');
         expect(screen.getAllByRole('alert')).toHaveLength(failed.length);
       },
     );
@@ -405,7 +469,9 @@ describe('AdminModulesComponent', () => {
 
         expect(await screen.findByText(message)).toBeInTheDocument();
         // The snack bar's content stays aria-hidden until it is announced.
-        expect(screen.getByText('Dismiss')).toBeInTheDocument();
+        expect(
+          document.querySelector('.mat-mdc-snack-bar-container'),
+        ).toHaveTextContent('Dismiss');
         expect(list.isLoading()).toBe(false);
         expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
         expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);

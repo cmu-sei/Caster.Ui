@@ -20,6 +20,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   color: var(--mat-sys-on-error-container);
 }
 
+.source-message {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dismiss-button {
+  flex-shrink: 0;
+  margin: -8px -8px -8px 0;
+  color: inherit;
+}
+
 .source-error {
   display: block;
   font-family: monospace;
