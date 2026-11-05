@@ -57,7 +57,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               }
             </button>
           } @else {
-            <span class="action-placeholder"></span>
+            <span
+              class="disabled-action"
+              matTooltip="A GitLab Module is refreshed from the GitLab source in Module Sources"
+            >
+              <button
+                mat-icon-button
+                disabled
+                [attr.aria-label]="'Refresh ' + item.name + ' (not available for GitLab Modules)'"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+              </button>
+            </span>
           }
         }
         @if (terraformSource(item); as source) {
@@ -72,7 +83,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
           </button>
         } @else {
-          <span class="action-placeholder"></span>
+          <span class="disabled-action" matTooltip="No version to copy yet">
+            <button
+              mat-icon-button
+              disabled
+              [attr.aria-label]="'Copy the Terraform source of ' + item.name + ' (no version yet)'"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
+            </button>
+          </span>
         }
         @if (canEdit() && canDelete(item)) {
           <button
