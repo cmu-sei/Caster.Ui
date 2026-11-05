@@ -24,14 +24,17 @@ import {
 } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Observable, Subject } from 'rxjs';
-import { take, takeUntil } from 'rxjs/operators';
+import { switchMap, take, takeUntil } from 'rxjs/operators';
 import {
   InventoryCategoryDescriptor,
+  InventoryConnection,
   InventoryQuery,
   InventoryService,
+  providerName,
 } from '../../state';
 import { InventoryListComponent } from '../inventory-list/inventory-list.component';
 
@@ -60,6 +63,8 @@ import { InventoryListComponent } from '../inventory-list/inventory-list.compone
     MatPrefix,
     MatSuffix,
     MatInput,
+    MatSelect,
+    MatOption,
     FormsModule,
     MatIconButton,
     MatTooltip,
@@ -76,6 +81,8 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   public categories$: Observable<InventoryCategoryDescriptor[]>;
   public refreshing$: Observable<boolean>;
   public lastUpdated$: Observable<string | null>;
+  public connections$: Observable<InventoryConnection[]>;
+  public connection$: Observable<InventoryConnection | null>;
 
   public expanded = false;
   public filterString = '';
@@ -90,6 +97,8 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
     this.categories$ = this.inventoryQuery.categories$;
     this.refreshing$ = this.inventoryQuery.refreshing$;
     this.lastUpdated$ = this.inventoryQuery.lastUpdated$;
+    this.connections$ = this.inventoryQuery.connections$;
+    this.connection$ = this.inventoryQuery.connection$;
 
     this.inventoryQuery.filter$
       .pipe(takeUntil(this.unsubscribe$))
@@ -103,7 +112,13 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
       return;
     }
     this.loaded = true;
-    this.inventoryService.loadAll().pipe(take(1)).subscribe();
+    this.inventoryService
+      .loadConnections()
+      .pipe(
+        switchMap(() => this.inventoryService.loadAll()),
+        take(1)
+      )
+      .subscribe();
   }
 
   onCollapsed() {
@@ -113,6 +128,15 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   refresh() {
     this.loaded = true;
     this.inventoryService.refresh().pipe(take(1)).subscribe();
+  }
+
+  selectConnection(name: string) {
+    this.inventoryService.selectConnection(name).pipe(take(1)).subscribe();
+  }
+
+  /** "dev-proxmox (Proxmox)". */
+  connectionLabel(connection: InventoryConnection): string {
+    return `${connection.name} (${providerName(connection.provider)})`;
   }
 
   applyFilter(filter: string) {

@@ -28,6 +28,7 @@ import {
   InventoryItem,
   InventoryResponse,
   InventoryUsage,
+  providerName,
 } from 'src/app/inventory/state';
 
 /** One connection's hosts and datastores, as the page shows them. */
@@ -144,14 +145,7 @@ export class AdminHypervisorsComponent implements OnInit {
 
   /** "Proxmox", "vSphere", or the provider as configured. */
   providerName(provider: string): string {
-    switch ((provider ?? '').toLowerCase()) {
-      case 'proxmox':
-        return 'Proxmox';
-      case 'vsphere':
-        return 'vSphere';
-      default:
-        return provider;
-    }
+    return providerName(provider);
   }
 
   /**

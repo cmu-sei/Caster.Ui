@@ -10,6 +10,7 @@ import {
   InventoryCategory,
   InventoryCategoryDescriptor,
   InventoryCategoryState,
+  InventoryConnection,
   InventoryItem,
   inventoryItemMatches,
 } from './inventory.model';
@@ -21,6 +22,19 @@ import { InventoryState, InventoryStore } from './inventory.store';
 export class InventoryQuery extends Query<InventoryState> {
   readonly filter$: Observable<string> = this.select('filter');
   readonly refreshing$: Observable<boolean> = this.select('refreshing');
+
+  /** The configured connections, the default first. */
+  readonly connections$: Observable<InventoryConnection[]> =
+    this.select('connections');
+
+  /**
+   * The connection the lists read. Null until the connections are listed, or
+   * when they can't be, in which case the lists read the API's default.
+   */
+  readonly connection$: Observable<InventoryConnection | null> = this.select(
+    (state) =>
+      state.connections.find((c) => c.name === state.connection) ?? null
+  );
 
   /**
    * When the inventory was last read, shown once for every category. They are

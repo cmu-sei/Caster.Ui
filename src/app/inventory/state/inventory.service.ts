@@ -4,15 +4,23 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, finalize, switchMap, tap } from 'rxjs/operators';
+import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { InventoryApiService } from '../api/inventory-api.service';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
   InventoryCategoryState,
+  InventoryConnection,
   InventoryResponse,
 } from './inventory.model';
-import { InventoryState, InventoryStore } from './inventory.store';
+import {
+  initialInventoryCategoryState,
+  InventoryState,
+  InventoryStore,
+} from './inventory.store';
+
+/** Where the panel remembers the chosen connection, per browser. */
+export const INVENTORY_CONNECTION_KEY = 'caster.inventory.connection';
 
 @Injectable({
   providedIn: 'root',
@@ -27,8 +35,9 @@ export class InventoryService {
    */
   load(category: InventoryCategory): Observable<InventoryResponse | null> {
     this.patch(category, { loading: true, loadFailed: false });
+    const connection = this.inventoryStore.getValue().connection ?? undefined;
 
-    return this.inventoryApiService.getCategory(category).pipe(
+    return this.inventoryApiService.getCategory(category, connection).pipe(
       tap((response) => {
         this.patch(category, {
           items: response?.items ?? [],
@@ -75,12 +84,57 @@ export class InventoryService {
    */
   refresh(): Observable<(InventoryResponse | null)[]> {
     this.inventoryStore.update({ refreshing: true });
+    const connection = this.inventoryStore.getValue().connection ?? undefined;
 
-    return this.inventoryApiService.refresh().pipe(
+    return this.inventoryApiService.refresh(connection).pipe(
       catchError(() => of(null)),
       switchMap(() => this.loadAll()),
       finalize(() => this.inventoryStore.update({ refreshing: false }))
     );
+  }
+
+  /**
+   * Lists the connections and picks the one to read: the one this browser
+   * chose last if it is still enabled, otherwise the default. Never errors: if
+   * the list can't be read, no connection is named and the lists read the
+   * API's default.
+   */
+  loadConnections(): Observable<InventoryConnection[]> {
+    return this.inventoryApiService.getConnections().pipe(
+      catchError(() => of([] as InventoryConnection[])),
+      map((connections) => connections ?? []),
+      tap((connections) => {
+        const enabled = connections.filter((c) => c.enabled);
+        const remembered = readRememberedConnection();
+        const chosen =
+          enabled.find((c) => c.name === remembered) ??
+          enabled.find((c) => c.isDefault) ??
+          enabled[0] ??
+          null;
+        this.inventoryStore.update({
+          connections,
+          connection: chosen?.name ?? null,
+        });
+      })
+    );
+  }
+
+  /**
+   * Switches the lists to another connection, remembers it for this browser,
+   * and reloads every category from it.
+   */
+  selectConnection(name: string): Observable<(InventoryResponse | null)[]> {
+    rememberConnection(name);
+    this.inventoryStore.update({
+      connection: name,
+      ...Object.fromEntries(
+        INVENTORY_CATEGORIES.map((d) => [
+          d.category,
+          { ...initialInventoryCategoryState },
+        ])
+      ),
+    } as Partial<InventoryState>);
+    return this.loadAll();
   }
 
   setFilter(filter: string) {
@@ -104,5 +158,21 @@ export class InventoryService {
       return 'Inventory is not available on this Caster API.';
     }
     return 'Inventory could not be read right now.';
+  }
+}
+
+function readRememberedConnection(): string | null {
+  try {
+    return localStorage.getItem(INVENTORY_CONNECTION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberConnection(name: string) {
+  try {
+    localStorage.setItem(INVENTORY_CONNECTION_KEY, name);
+  } catch {
+    // Storage can be off; the choice then lasts until the page reloads.
   }
 }
