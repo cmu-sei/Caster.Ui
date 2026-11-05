@@ -106,14 +106,14 @@ afterEach(() => {
 
 describe('AdminModulesComponent', () => {
   /**
-   * Verifies: the page loads the modules with version counts and passes them, with loading cleared, to the list.
+   * Verifies: the page loads the modules with their versions and version counts and passes them, with loading cleared, to the list.
    * Interacts with: ModulesService.getAllModules (stub), real ModuleService and ModuleQuery.
    * Data: one module; no permissions.
    */
   it('loads the modules into the list', async () => {
     const { list, modulesApi } = await renderModules({});
 
-    expect(modulesApi.getAllModules).toHaveBeenCalledWith(false, true, false);
+    expect(modulesApi.getAllModules).toHaveBeenCalledWith(true, true, false);
     expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
     expect(list.isLoading()).toBe(false);
   });
@@ -307,8 +307,8 @@ describe('AdminModulesComponent', () => {
       fixture.detectChanges();
 
       expect(modulesApi.getAllModules.mock.calls).toStrictEqual([
-        [false, true, false],
-        [false, true, true],
+        [true, true, false],
+        [true, true, true],
       ]);
     });
 
