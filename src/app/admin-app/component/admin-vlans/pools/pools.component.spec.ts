@@ -25,7 +25,7 @@ class PoolListStub {
   readonly poolSelected = output<Pool>();
 }
 
-@Component({ selector: 'cas-partition-list', template: '' })
+@Component({ selector: 'cas-partition-list', template: '<ng-content />' })
 class PartitionListStub {
   readonly poolId = input<string>(undefined);
   readonly canEdit = input<boolean>(undefined);

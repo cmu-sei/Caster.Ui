@@ -13,8 +13,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 }
 
 @if (selectedPool$ | async; as selectedPool) {
-  <div>
-    <div class="header">
+  <cas-partition-list [poolId]="selectedPool.id" [canEdit]="canEdit()">
+    <div class="sp-icon">
       <button
         mat-icon-button
         color="primary"
@@ -24,8 +24,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       >
         <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return" />
       </button>
-      <h1>Pool - {{ selectedPool.name }}</h1>
     </div>
-    <cas-partition-list [poolId]="selectedPool.id" [canEdit]="canEdit()" />
-  </div>
+    <h2 class="pool-name">Pool - {{ selectedPool.name }}</h2>
+  </cas-partition-list>
 }
