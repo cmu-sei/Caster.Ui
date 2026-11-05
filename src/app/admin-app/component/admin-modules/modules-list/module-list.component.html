@@ -43,6 +43,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         @if (canEdit()) {
           <button
             mat-icon-button
+            (click)="addModule()"
+            [disabled]="isLoading()"
+            aria-label="Add New Module"
+            matTooltip="Add New Module"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+          </button>
+          <button
+            mat-icon-button
             [matMenuTriggerFor]="syncMenu"
             [disabled]="isLoading()"
             aria-label="Sync Modules"
@@ -162,11 +171,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 </div>
 
 <mat-menu #syncMenu="matMenu">
-  <button mat-menu-item (click)="addModule()">
-    <mat-icon class="mdi-24px" fontIcon="mdi-note-plus" />
-    <span>Add Module&hellip;</span>
-  </button>
-  <mat-divider />
   <button mat-menu-item (click)="syncAll.emit()">
     <mat-icon class="mdi-24px" fontIcon="mdi-cloud-sync" />
     <span>All sources</span>

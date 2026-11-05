@@ -279,7 +279,7 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: the sync menu offers Add Module, All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
+   * Verifies: the sync menu offers All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
    * Interacts with: the header Sync Modules button and mat-menu, statusText, the syncAll output.
    * Data: TZ UTC; sources local (synced), mirror (failed), fresh (never synced), gitlab.
    */
@@ -294,7 +294,6 @@ describe('AdminModuleListComponent', () => {
         .getAllByRole('menuitem')
         .map((item) => item.textContent.replace(/\s+/g, ' ').trim()),
     ).toEqual([
-      'Add Module…',
       'All sources',
       'local Synced Oct 14, 2026, 12:30 PM UTC',
       'mirror Failed Oct 14, 2026, 1:00 PM UTC',
@@ -342,20 +341,24 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: Add Module, first in the sync menu, asks for an External Module ID and emits it, as the old box did; cancelling emits nothing.
-   * Interacts with: the sync menu, MatDialog.open (stub closing with the ID or nothing), the sync output.
+   * Verifies: the Add New Module button, left of Sync Modules, asks for an External Module ID and emits it, as the old box did; cancelling emits nothing.
+   * Interacts with: the actions header, MatDialog.open (stub closing with the ID or nothing), the sync output.
    * Data: proxmox/vm (one Module from a source), or the dialog cancelled.
    */
   it.each([
     { label: 'an entered External Module ID', projectId: 'proxmox/vm', calls: [['proxmox/vm']] },
     { label: 'nothing when cancelled', projectId: undefined, calls: [] },
-  ])('adds $label from Add Module', async ({ projectId, calls }) => {
+  ])('adds $label from Add New Module', async ({ projectId, calls }) => {
     const { sync, open, user } = await renderModuleList({ projectId });
 
-    await user.click(screen.getByRole('button', { name: 'Sync Modules' }));
-    const items = screen.getAllByRole('menuitem');
-    expect(items[0]).toHaveTextContent('Add Module…');
-    await user.click(items[0]);
+    const header = screen.getByRole('button', { name: 'Sync Modules' })
+      .parentElement!;
+    expect(
+      Array.from(header.querySelectorAll('button')).map((b) =>
+        b.getAttribute('aria-label'),
+      ),
+    ).toEqual(['Add New Module', 'Sync Modules']);
+    await user.click(screen.getByRole('button', { name: 'Add New Module' }));
 
     expect(open).toHaveBeenCalledWith(AddModuleDialogComponent, {
       width: '480px',
@@ -408,7 +411,7 @@ describe('AdminModuleListComponent', () => {
    * Interacts with: the @if (canEdit) blocks in the template.
    * Data: canEdit false.
    */
-  it('hides the sync and delete controls when canEdit is false', async () => {
+  it('hides the add, sync and delete controls when canEdit is false', async () => {
     await renderModuleList({ canEdit: false });
 
     expect(within(rowOf('vm')).getByText('local/vm')).toBeInTheDocument();
@@ -417,6 +420,9 @@ describe('AdminModuleListComponent', () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Sync Modules' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Add New Module' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /^(Sync|Delete) / }),
