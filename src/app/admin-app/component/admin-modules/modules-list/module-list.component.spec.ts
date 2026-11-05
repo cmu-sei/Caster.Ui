@@ -21,6 +21,7 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { Module, ModuleSource } from 'src/app/generated/caster-api';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import { AddModuleDialogComponent } from '../add-module-dialog/add-module-dialog.component';
 import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-project-dialog.component';
 import {
   AdminModuleListComponent,
@@ -278,7 +279,7 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: the sync menu offers All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
+   * Verifies: the sync menu offers Add Module, All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
    * Interacts with: the header Sync Modules button and mat-menu, statusText, the syncAll output.
    * Data: TZ UTC; sources local (synced), mirror (failed), fresh (never synced), gitlab.
    */
@@ -293,6 +294,7 @@ describe('AdminModuleListComponent', () => {
         .getAllByRole('menuitem')
         .map((item) => item.textContent.replace(/\s+/g, ' ').trim()),
     ).toEqual([
+      'Add Module…',
       'All sources',
       'local Synced Oct 14, 2026, 12:30 PM UTC',
       'mirror Failed Oct 14, 2026, 1:00 PM UTC',
@@ -335,6 +337,28 @@ describe('AdminModuleListComponent', () => {
 
     expect(open).toHaveBeenCalledWith(GitlabProjectDialogComponent, {
       width: '400px',
+    });
+    expect(sync.mock.calls).toStrictEqual(calls);
+  });
+
+  /**
+   * Verifies: Add Module, first in the sync menu, asks for an External Module ID and emits it, as the old box did; cancelling emits nothing.
+   * Interacts with: the sync menu, MatDialog.open (stub closing with the ID or nothing), the sync output.
+   * Data: proxmox/vm (one Module from a source), or the dialog cancelled.
+   */
+  it.each([
+    { label: 'an entered External Module ID', projectId: 'proxmox/vm', calls: [['proxmox/vm']] },
+    { label: 'nothing when cancelled', projectId: undefined, calls: [] },
+  ])('adds $label from Add Module', async ({ projectId, calls }) => {
+    const { sync, open, user } = await renderModuleList({ projectId });
+
+    await user.click(screen.getByRole('button', { name: 'Sync Modules' }));
+    const items = screen.getAllByRole('menuitem');
+    expect(items[0]).toHaveTextContent('Add Module…');
+    await user.click(items[0]);
+
+    expect(open).toHaveBeenCalledWith(AddModuleDialogComponent, {
+      width: '480px',
     });
     expect(sync.mock.calls).toStrictEqual(calls);
   });

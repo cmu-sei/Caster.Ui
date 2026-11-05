@@ -41,6 +41,7 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { NgClass, DatePipe } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AddModuleDialogComponent } from '../add-module-dialog/add-module-dialog.component';
 import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-project-dialog.component';
 
 /** The provider name of the legacy GitLab source. */
@@ -219,6 +220,25 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     return source.lastSuccess
       ? `Synced ${formatSyncTime(source.lastSuccess)}`
       : 'Not synced yet';
+  }
+
+  /**
+   * Adds or updates Modules from an External Module ID, as the box above the
+   * list used to: a source name, name/subdirectory for one Module, or a GitLab
+   * project ID.
+   */
+  addModule() {
+    this.dialog
+      .open<AddModuleDialogComponent, unknown, string>(
+        AddModuleDialogComponent,
+        { width: '480px' },
+      )
+      .afterClosed()
+      .subscribe((externalModuleId) => {
+        if (externalModuleId) {
+          this.sync.emit(externalModuleId);
+        }
+      });
   }
 
   /**
