@@ -11,6 +11,7 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
@@ -32,6 +33,7 @@ import { MatIcon } from '@angular/material/icon';
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { VlanListComponent } from '../vlan-list/vlan-list.component';
 import { AsyncPipe } from '@angular/common';
 
@@ -63,6 +65,7 @@ export class PartitionComponent implements OnInit {
   private vlanQuery = inject(VlanQuery);
   private confirmService = inject(CrucibleDialogService);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
 
   @Input() set poolId(poolId: string) {
     this.vlans$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
@@ -89,8 +92,6 @@ export class PartitionComponent implements OnInit {
 
   _partition: Partition;
 
-  editing: boolean;
-
   vlans$: Observable<Vlan[]>;
   otherPartitions$: Observable<Partition[]>;
 
@@ -113,12 +114,24 @@ export class PartitionComponent implements OnInit {
       });
   }
 
-  rename($event, target) {
+  rename($event) {
     $event.stopPropagation();
 
-    this.partitionService
-      .partialEdit(this.partition.id, { name: target.value })
-      .subscribe(() => (this.editing = false));
+    const partition = this.partition;
+    const dialogRef = this.dialog.open(NameDialogComponent, {
+      data: { nameValue: partition.name },
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
+    dialogRef.componentInstance.title = 'Rename ' + partition.name;
+    dialogRef.componentInstance.message = '';
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.partitionService
+          .partialEdit(partition.id, { name: result.nameValue })
+          .subscribe();
+      }
+    });
   }
 
   addVlans($event, vlans) {

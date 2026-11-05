@@ -45,49 +45,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>
-        @if (!editing) {
-          <h4>{{ partition?.name }}</h4>
-          @if (canEdit()) {
-            <button
-              mat-icon-button
-              color="primary"
-              aria-label="Edit Name"
-              matTooltip="Edit Name"
-              (click)="editing = true"
-              (click)="$event.stopPropagation()"
-            >
-              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
-            </button>
-          }
-        }
-        @if (editing) {
-          <mat-form-field (keydown.Space)="$event.stopPropagation()">
-            <input
-              #nameInput
-              matInput
-              [value]="partition?.name"
-              (keydown.enter)="rename($event, $event.target)"
-              (click)="$event.stopPropagation()"
-            />
-          </mat-form-field>
+        <h4>{{ partition?.name }}</h4>
+        @if (canEdit()) {
           <button
             mat-icon-button
             color="primary"
             aria-label="Rename"
             matTooltip="Rename"
-            (click)="rename($event, nameInput)"
+            (click)="rename($event)"
           >
-            <mat-icon class="mdi-24px" fontIcon="mdi-check" />
-          </button>
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Cancel"
-            matTooltip="Cancel"
-            (click)="editing = false"
-            (click)="$event.stopPropagation()"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
           </button>
         }
       }
@@ -137,8 +104,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
-          aria-label="Delete"
-          matTooltip="Delete"
+          [attr.aria-label]="'Delete ' + partition.name"
+          matTooltip="Delete {{ partition.name }}"
           (click)="delete($event)"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />

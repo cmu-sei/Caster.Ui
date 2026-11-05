@@ -7,9 +7,8 @@ import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { Pool, VlansService } from 'src/app/generated/caster-api';
@@ -36,8 +35,7 @@ async function renderItem(canEdit: boolean, confirmAnswer?: boolean) {
       MatButtonModule,
       MatIconModule,
       MatTooltipModule,
-      MatFormFieldModule,
-      MatInputModule,
+      MatDialogModule,
     ],
     providers: [
       { provide: VlansService, useValue: vlansApi },
@@ -54,17 +52,21 @@ async function renderItem(canEdit: boolean, confirmAnswer?: boolean) {
 
 describe('PoolListItemComponent', () => {
   /**
-   * Verifies: with canEdit, Edit Name opens an input whose Enter renames the pool through the API.
-   * Interacts with: VlansService.partialEditPool (stub), real PoolService.
+   * Verifies: with canEdit, Rename opens the shared name dialog titled "Rename <name>", and Save renames the pool through the API.
+   * Interacts with: the real MatDialog and NameDialogComponent, VlansService.partialEditPool (stub), real PoolService.
    * Data: pool Main; canEdit true; new name Core.
    */
   it('renames the pool when canEdit is true', async () => {
     const { vlansApi, user } = await renderItem(true);
 
-    await user.click(screen.getByRole('button', { name: 'Edit Name' }));
-    const input = screen.getByRole('textbox');
-    await user.clear(input);
-    await user.type(input, 'Core{Enter}');
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Rename Main' }),
+    ).toBeInTheDocument();
+    const name = screen.getByRole('textbox', { name: 'Name' });
+    await user.clear(name);
+    await user.type(name, 'Core');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(vlansApi.partialEditPool).toHaveBeenCalledWith('pool1', {
       name: 'Core',
@@ -72,14 +74,14 @@ describe('PoolListItemComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, Delete asks "Delete Pool" / "Are you sure that you want to delete <name>?" and deletes the pool without force.
+   * Verifies: with canEdit, Delete Main asks "Delete Pool" / "Are you sure that you want to delete <name>?" and deletes the pool without force.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), VlansService.deletePool (stub).
    * Data: pool Main; canEdit true.
    */
   it('deletes the pool after confirmation when canEdit is true', async () => {
     const { vlansApi, confirm, user } = await renderItem(true, true);
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete Main' }));
 
     expect(confirm).toHaveBeenCalledWith({
       title: 'Delete Pool',
@@ -90,7 +92,7 @@ describe('PoolListItemComponent', () => {
   });
 
   /**
-   * Verifies: without canEdit neither Edit Name nor Delete renders, while Open still selects the pool.
+   * Verifies: without canEdit neither Rename nor Delete Main renders, while Open Main still selects the pool.
    * Interacts with: the @if (canEdit) blocks, the poolSelected output.
    * Data: pool Main; canEdit false.
    */
@@ -98,12 +100,12 @@ describe('PoolListItemComponent', () => {
     const { poolSelected, user } = await renderItem(false);
 
     expect(
-      screen.queryByRole('button', { name: 'Edit Name' }),
+      screen.queryByRole('button', { name: 'Rename' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Delete' }),
+      screen.queryByRole('button', { name: 'Delete Main' }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(screen.getByRole('button', { name: 'Open Main' }));
     expect(poolSelected).toHaveBeenCalledWith(pool);
   });
 });

@@ -5,69 +5,33 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <mat-card appearance="outlined">
   <mat-card-title class="flex">
-    @if (!editing) {
-      <h4 class="header">{{ pool()?.name }}</h4>
-    }
-    @if (editing) {
-      <mat-form-field class="header">
-        <input
-          #nameInput
-          matInput
-          [value]="pool()?.name"
-          (keydown.enter)="rename($event.target)"
-          (keydown.esc)="editing = false"
-          autocomplete="off"
-        />
-      </mat-form-field>
-    }
+    <h4 class="header">{{ pool()?.name }}</h4>
     @if (pool()?.isDefault) {
       <mat-icon
         class="mdi-24px icon"
         fontIcon="mdi-check-circle"
         color="primary"
-        matTooltip="Contains The Default Partition"
+        matTooltip="Contains the Default Partition"
       />
     }
   </mat-card-title>
   <mat-card-actions class="flex">
     @if (canEdit()) {
-      @if (!editing) {
-        <button
-          mat-icon-button
-          color="primary"
-          aria-label="Edit Name"
-          matTooltip="Edit Name"
-          (click)="editing = !editing"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
-        </button>
-      }
-      @if (editing) {
-        <button
-          mat-icon-button
-          color="primary"
-          aria-label="Rename"
-          matTooltip="Rename"
-          (click)="rename(nameInput().nativeElement)"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-check" />
-        </button>
-        <button
-          mat-icon-button
-          color="primary"
-          aria-label="Cancel"
-          matTooltip="Cancel"
-          (click)="editing = false"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
-        </button>
-      }
+      <button
+        mat-icon-button
+        color="primary"
+        aria-label="Rename"
+        matTooltip="Rename"
+        (click)="rename()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
+      </button>
     }
     <button
       mat-icon-button
       color="primary"
-      aria-label="Open"
-      matTooltip="Open"
+      [attr.aria-label]="'Open ' + pool()?.name"
+      matTooltip="Open {{ pool()?.name }}"
       (click)="selectPool(pool())"
     >
       <mat-icon class="mdi-24px" fontIcon="mdi-launch" />
@@ -77,8 +41,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           color="primary"
-          aria-label="Delete"
-          matTooltip="Delete"
+          [attr.aria-label]="'Delete ' + pool()?.name"
+          matTooltip="Delete {{ pool()?.name }}"
           (click)="deletePool(pool())"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />

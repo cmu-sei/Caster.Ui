@@ -5,21 +5,17 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import {
   Component,
-  OnInit,
   ChangeDetectionStrategy,
-  Input,
-  ElementRef,
   inject,
   input,
   output,
-  viewChild,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { Pool } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { MatCard, MatCardTitle, MatCardActions } from '@angular/material/card';
-import { MatFormField } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIconButton } from '@angular/material/button';
@@ -32,33 +28,38 @@ import { MatIconButton } from '@angular/material/button';
   imports: [
     MatCard,
     MatCardTitle,
-    MatFormField,
-    MatInput,
     MatIcon,
     MatTooltip,
     MatCardActions,
     MatIconButton,
   ],
 })
-export class PoolListItemComponent implements OnInit {
+export class PoolListItemComponent {
   private confirmService = inject(CrucibleDialogService);
   private poolService = inject(PoolService);
+  private dialog = inject(MatDialog);
 
   readonly pool = input<Pool>(undefined);
   readonly canEdit = input<boolean>(undefined);
 
   readonly poolSelected = output<Pool>();
 
-  readonly nameInput = viewChild<ElementRef<Input>>('nameInput');
-
-  editing: boolean;
-
-  ngOnInit(): void {}
-
-  rename(target) {
-    this.poolService
-      .partialEdit(this.pool().id, { name: target.value })
-      .subscribe(() => (this.editing = false));
+  rename() {
+    const pool = this.pool();
+    const dialogRef = this.dialog.open(NameDialogComponent, {
+      data: { nameValue: pool.name },
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
+    dialogRef.componentInstance.title = 'Rename ' + pool.name;
+    dialogRef.componentInstance.message = '';
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.poolService
+          .partialEdit(pool.id, { name: result.nameValue })
+          .subscribe();
+      }
+    });
   }
 
   deletePool(pool: Pool) {

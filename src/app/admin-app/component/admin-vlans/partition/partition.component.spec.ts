@@ -14,6 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ClipboardModule } from 'ngx-clipboard';
 import { Partition, Vlan, VlansService } from 'src/app/generated/caster-api';
@@ -43,6 +44,9 @@ async function renderPartition(canEdit: boolean) {
   const vlansApi = {
     setDefaultPartition: vi.fn((_id: string) => of<unknown>(null)),
     addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
+    partialEditPartition: vi.fn((id: string, command: { name?: string }) =>
+      of<Partition>({ ...partition, id, name: command.name }),
+    ),
   } satisfies ApiStub<VlansService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(false);
   const confirm = vi.fn(() => dialogRef);
@@ -56,6 +60,7 @@ async function renderPartition(canEdit: boolean) {
       MatFormFieldModule,
       MatInputModule,
       ClipboardModule,
+      MatDialogModule,
     ],
     providers: [
       { provide: VlansService, useValue: vlansApi },
@@ -75,36 +80,58 @@ async function renderPartition(canEdit: boolean) {
 
 describe('PartitionComponent', () => {
   /**
-   * Verifies: with canEdit the partition shows Edit Name, the VLAN amount controls and Delete, and Set Default calls the API.
+   * Verifies: with canEdit the partition shows Rename, the VLAN amount controls and Delete, and Set Default calls the API.
    * Interacts with: VlansService.setDefaultPartition (stub), real PartitionService.
    * Data: partition Range (not default); canEdit true.
    */
   it('offers the partition controls when canEdit is true', async () => {
     const { vlansApi, user } = await renderPartition(true);
 
-    expect(screen.getByRole('button', { name: 'Edit Name' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Rename' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Add VLANs' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Remove VLANs' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Delete' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Delete Range' })).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Set Default' }));
 
     expect(vlansApi.setDefaultPartition).toHaveBeenCalledWith('part1');
   });
 
   /**
-   * Verifies: Delete asks "Delete Partition" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Verifies: Delete Range asks "Delete Partition" / "Are you sure that you want to delete <name>?" with a Delete button.
    * Interacts with: CrucibleDialogService.confirm (stub answering false).
    * Data: partition Range; canEdit true.
    */
   it('confirms a delete with the standard wording', async () => {
     const { confirm, user } = await renderPartition(true);
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete Range' }));
 
     expect(confirm).toHaveBeenCalledWith({
       title: 'Delete Partition',
       message: 'Are you sure that you want to delete Range?',
       confirmText: 'Delete',
+    });
+  });
+
+  /**
+   * Verifies: Rename opens the shared name dialog titled "Rename <name>", and Save renames the partition through the API.
+   * Interacts with: the real MatDialog and NameDialogComponent, VlansService.partialEditPartition (stub), real PartitionService.
+   * Data: partition Range; canEdit true; new name Core.
+   */
+  it('renames the partition through the name dialog', async () => {
+    const { vlansApi, user } = await renderPartition(true);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Rename Range' }),
+    ).toBeInTheDocument();
+    const name = screen.getByRole('textbox', { name: 'Name' });
+    await user.clear(name);
+    await user.type(name, 'Core');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(vlansApi.partialEditPartition).toHaveBeenCalledWith('part1', {
+      name: 'Core',
     });
   });
 
@@ -127,7 +154,7 @@ describe('PartitionComponent', () => {
   });
 
   /**
-   * Verifies: without canEdit the partition hides Edit Name, the VLAN amount controls and Delete, and Set Default does not call the API.
+   * Verifies: without canEdit the partition hides Rename, the VLAN amount controls and Delete, and Set Default does not call the API.
    * Interacts with: the canEdit checks in the template and in setDefault().
    * Data: partition Range; canEdit false.
    */
@@ -136,13 +163,13 @@ describe('PartitionComponent', () => {
 
     expect(screen.getByText('Range')).toBeVisible();
     expect(
-      screen.queryByRole('button', { name: 'Edit Name' }),
+      screen.queryByRole('button', { name: 'Rename' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Add VLANs' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Delete' }),
+      screen.queryByRole('button', { name: 'Delete Range' }),
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Set Default' }));
     expect(vlansApi.setDefaultPartition).not.toHaveBeenCalled();
