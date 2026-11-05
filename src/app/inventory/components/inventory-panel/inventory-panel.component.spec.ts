@@ -181,7 +181,7 @@ describe('InventoryPanelComponent', () => {
   });
 
   /**
-   * Verifies: with several connections a dropdown lists each by name and provider, a disabled one cannot be chosen, and choosing one switches the lists to it.
+   * Verifies: with several connections a dropdown lists each by name and provider, the header leaves the name to it, a disabled one cannot be chosen, and choosing one switches the lists to it.
    * Interacts with: the connection mat-select; InventoryService.selectConnection (stub).
    * Data: dev-proxmox (default), phl-vmc, and a disabled lab connection.
    */
@@ -211,6 +211,8 @@ describe('InventoryPanelComponent', () => {
       'lab (vSphere) - disabled',
     ]);
     expect(options[2].getAttribute('aria-disabled')).toBe('true');
+    // The dropdown names the connection, so the header doesn't repeat it.
+    expect(fixture.nativeElement.querySelector('.connection-name')).toBeNull();
 
     options[1].click();
     fixture.detectChanges();
