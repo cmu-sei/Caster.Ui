@@ -312,6 +312,20 @@ describe('InventoryListComponent', () => {
       'Copy name of vmbr0',
     ]);
 
+    // Copy name sits right beside Copy Terraform, in one group at the row's end
+    const groups = Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll('.item-row > .item-actions'),
+    ).map((group) =>
+      Array.from(group.querySelectorAll('.copy-button')).map((el) =>
+        el.getAttribute('aria-label'),
+      ),
+    );
+    expect(groups).toEqual([
+      ['Copy name of alpine', 'Copy Terraform for alpine'],
+      ['Copy name of ubuntu', 'Copy Terraform for ubuntu'],
+      ['Copy name of vmbr0'],
+    ]);
+
     // one provider copies straight away, several open a menu
     const [vsphere, proxmox] = Array.from<HTMLElement>(
       fixture.nativeElement.querySelectorAll(
