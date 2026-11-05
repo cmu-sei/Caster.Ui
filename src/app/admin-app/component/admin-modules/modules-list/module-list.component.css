@@ -88,3 +88,9 @@ table {
   color: red;
   text-decoration: underline;
 }
+
+/* The full date and time fit on one line. */
+.date-cell {
+  white-space: nowrap;
+  min-width: 190px;
+}
