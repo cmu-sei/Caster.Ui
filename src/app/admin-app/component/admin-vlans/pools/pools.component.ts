@@ -17,6 +17,7 @@ import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 import { PoolListComponent } from '../pool-list/pool-list.component';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { PartitionListComponent } from '../partition-list/partition-list.component';
 import { AsyncPipe } from '@angular/common';
 
@@ -29,6 +30,7 @@ import { AsyncPipe } from '@angular/common';
     PoolListComponent,
     MatIconButton,
     MatIcon,
+    MatTooltip,
     PartitionListComponent,
     AsyncPipe,
   ],
@@ -40,6 +42,7 @@ export class PoolsComponent implements OnInit {
   readonly canEdit = input<boolean>(undefined);
 
   public pools$ = this.poolQuery.selectAll();
+  public isLoading$ = this.poolQuery.selectLoading();
 
   public showPools = true;
   public selectedPool$: Observable<Pool>;

@@ -3,48 +3,73 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="header">
-  <h1>Pools</h1>
-  @if (canEdit()) {
-    <button
-      mat-icon-button
-      color="primary"
-      (click)="createPool()"
-      aria-label="Create a Pool"
-      matTooltip="Create a Pool"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-    </button>
-  }
+<div class="cssLayoutRowStartCenter">
+  <div class="sp-icon">
+    <mat-icon class="mdi-24px" fontIcon="mdi-lan" />
+  </div>
+  <mat-form-field class="search-field">
+    <input
+      matInput
+      [ngModel]="filterString()"
+      (ngModelChange)="filterString.set($event)"
+      placeholder="Search"
+      autocomplete="off"
+    />
+    @if (filterString()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearFilter()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
+      </button>
+    }
+  </mat-form-field>
   <button
     mat-icon-button
     color="primary"
-    (click)="toggleDocumentation()"
-    aria-label="View Documentation"
-    matTooltip="View Documentation"
+    aria-label="Add New Pool"
+    matTooltip="Add New Pool"
+    (click)="createPool()"
+    [disabled]="!canEdit()"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+  </button>
+  <button
+    mat-icon-button
+    color="primary"
+    aria-label="About pools"
+    [matTooltip]="aboutPools"
+    matTooltipShowDelay="0"
   >
     <mat-icon class="mdi-24px" fontIcon="mdi-information" />
   </button>
 </div>
-@if (showDocumentation) {
-  <div>
-    <p>
-      Pools are groups of 4096 VLANs, each representing a standard switching
-      infrastructure. Each Pool can be sub-divided into Partitions of various
-      sizes. Partitions can be assigned to Projects and when a VLAN is requested
-      in a Workspace, it will be pulled from the available VLANs in it's
-      Project's assigned Partition. A system-wide Default Partition can be
-      selected, which will cause VLANs to be allocated from that Partition if no
-      Project or Partition are specified in a request.
-    </p>
+
+@if (isLoading()) {
+  <mat-card
+    appearance="outlined"
+    style="display: flex; justify-content: center; align-items: center"
+  >
+    <mat-progress-spinner color="primary" mode="indeterminate" />
+  </mat-card>
+} @else {
+  <div class="container">
+    @for (pool of filteredPools(); track pool.id) {
+      <cas-pool-list-item
+        [pool]="pool"
+        [canEdit]="canEdit()"
+        (poolSelected)="selectPool(pool)"
+      />
+    } @empty {
+      <p class="empty">
+        @if (filterString()) {
+          No data matching the filter "{{ filterString() }}"
+        } @else {
+          There are currently no Pools
+        }
+      </p>
+    }
   </div>
 }
-<div class="container">
-  @for (pool of pools(); track pool) {
-    <cas-pool-list-item
-      [pool]="pool"
-      [canEdit]="canEdit()"
-      (poolSelected)="selectPool(pool)"
-    />
-  }
-</div>

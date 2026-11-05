@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 import { Pool, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -20,6 +21,7 @@ import { PoolListComponent } from 'src/app/admin-app/component/admin-vlans/pool-
 class PoolListStub {
   readonly pools = input<Pool[]>(undefined);
   readonly canEdit = input<boolean>(undefined);
+  readonly isLoading = input<boolean>(undefined);
   readonly poolSelected = output<Pool>();
 }
 
@@ -38,7 +40,7 @@ async function renderPools(canEdit: boolean) {
       { replace: PoolListComponent, with: PoolListStub },
       { replace: PartitionListComponent, with: PartitionListStub },
     ],
-    imports: [MatButtonModule, MatIconModule],
+    imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [{ provide: VlansService, useValue: vlansApi }],
     inputs: { canEdit },
   });
@@ -64,10 +66,11 @@ describe('PoolsComponent', () => {
     const list = stubOf(fixture, PoolListStub);
     expect(list?.pools().map((p) => p.id)).toEqual(['pool1']);
     expect(list?.canEdit()).toBe(true);
+    expect(list?.isLoading()).toBe(false);
   });
 
   /**
-   * Verifies: selecting a pool shows its partitions with the same canEdit, and Back returns to the pool list.
+   * Verifies: selecting a pool shows its partitions with the same canEdit, and Back (tooltip Back to pools) returns to the pool list.
    * Interacts with: the pool-list stub's poolSelected output, the partition-list stub.
    * Data: pool Main selected; canEdit true.
    */
@@ -84,7 +87,13 @@ describe('PoolsComponent', () => {
     expect(partitions?.poolId()).toBe('pool1');
     expect(partitions?.canEdit()).toBe(true);
 
-    await user.click(screen.getByRole('button', { name: 'Back to pools' }));
+    const back = screen.getByRole('button', { name: 'Back to pools' });
+    expect(
+      fixture.debugElement
+        .query(By.css('button[aria-label="Back to pools"]'))
+        .injector.get(MatTooltip).message,
+    ).toBe('Back to pools');
+    await user.click(back);
     expect(stubOf(fixture, PoolListStub)).toBeDefined();
     expect(stubOf(fixture, PartitionListStub)).toBeUndefined();
   });

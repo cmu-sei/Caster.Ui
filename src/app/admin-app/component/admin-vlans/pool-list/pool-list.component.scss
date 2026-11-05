@@ -9,7 +9,25 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   gap: 5% 1%;
 }
 
-.header {
+.cssLayoutRowStartCenter {
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.sp-icon {
+  width: 5%;
+  color: var(--mat-sys-primary);
+  text-align: center;
+  min-width: 30px;
+}
+
+.search-field {
+  width: 300px;
+}
+
+.empty {
+  grid-column: 1 / -1;
 }

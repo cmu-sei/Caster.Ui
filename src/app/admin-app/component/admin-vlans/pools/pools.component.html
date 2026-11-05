@@ -6,6 +6,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 @if (showPools) {
   <cas-pool-list
     [pools]="pools$ | async"
+    [isLoading]="isLoading$ | async"
     [canEdit]="canEdit()"
     (poolSelected)="selectPool($event)"
   />
@@ -18,6 +19,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         mat-icon-button
         color="primary"
         aria-label="Back to pools"
+        matTooltip="Back to pools"
         (click)="deselectPool()"
       >
         <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return" />
