@@ -3,6 +3,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { Component, input } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -14,6 +15,7 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import { ProjectStore } from 'src/app/project/state/project-store.service';
 import { VlansComponent } from './vlans.component';
 import { PoolsComponent } from 'src/app/admin-app/component/admin-vlans/pools/pools.component';
 import { ProjectVlansComponent } from 'src/app/admin-app/component/admin-vlans/project-vlans/project-vlans.component';
@@ -27,6 +29,7 @@ class PoolsStub {
 class ProjectVlansStub {
   readonly projects = input<Project[]>(undefined);
   readonly canEdit = input<boolean>(undefined);
+  readonly isLoading = input<boolean>(undefined);
 }
 
 async function renderVlans(grants: PermissionGrants) {
@@ -109,4 +112,26 @@ describe('VlansComponent', () => {
       expect(projectVlans.canEdit()).toBe(canEdit);
     },
   );
+
+  /**
+   * Verifies: the Projects tab gets the project store's loading flag, so it can show the admin spinner until the projects arrive.
+   * Interacts with: ProjectQuery.selectLoading (real store), the project-vlans stub's isLoading input.
+   * Data: ManageVlans; store loading on, then off.
+   */
+  it('passes the projects loading state to the Projects tab', async () => {
+    const { fixture, user } = await renderVlans(manage);
+    const store = TestBed.inject(ProjectStore);
+    store.setLoading(true);
+
+    await user.click(screen.getByRole('tab', { name: 'Projects' }));
+    await fixture.whenStable();
+    const projectVlans: ProjectVlansStub = fixture.debugElement.query(
+      By.directive(ProjectVlansStub),
+    ).componentInstance;
+    expect(projectVlans.isLoading()).toBe(true);
+
+    store.setLoading(false);
+    fixture.detectChanges();
+    expect(projectVlans.isLoading()).toBe(false);
+  });
 });
