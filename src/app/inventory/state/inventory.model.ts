@@ -177,21 +177,27 @@ export function datastoreUsage(item: InventoryItem): InventoryUsage | null {
   );
 }
 
-/** A host's use, from the properties `GET /api/inventory/hosts` sets. */
+/** Host states that mean the host is not serving VMs. */
+const OFFLINE_STATES = ['offline', 'disconnected', 'notresponding'];
+
+/**
+ * A host's use, from the properties `GET /api/inventory/hosts` sets in the same
+ * units for both providers: `cpu` as a fraction of `maxcpu` cores, and `mem`
+ * and `maxmem` in bytes. A Proxmox node reports `status`; an ESXi host
+ * reports `connectionState` instead.
+ */
 export function hostUsage(item: InventoryItem): InventoryHostUsage {
-  const status = item.properties?.['status'] || null;
-  const cpu = numberProperty(item, 'cpuUsage');
+  const status =
+    item.properties?.['status'] || item.properties?.['connectionState'] || null;
+  const cpu = numberProperty(item, 'cpu');
 
   return {
     status,
-    online: status === null || status.toLowerCase() !== 'offline',
-    cpuCount: numberProperty(item, 'cpuCount'),
+    online: status === null || !OFFLINE_STATES.includes(status.toLowerCase()),
+    cpuCount: numberProperty(item, 'maxcpu'),
     cpuPercent:
       cpu === null ? null : Math.min(100, Math.max(0, Math.round(cpu * 100))),
-    memory: usage(
-      numberProperty(item, 'memoryUsed'),
-      numberProperty(item, 'memoryTotal')
-    ),
+    memory: usage(numberProperty(item, 'mem'), numberProperty(item, 'maxmem')),
   };
 }
 

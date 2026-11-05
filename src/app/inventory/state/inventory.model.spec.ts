@@ -60,10 +60,10 @@ describe('inventory usage helpers', () => {
       hostUsage(
         item({
           status: 'online',
-          cpuCount: '4',
-          cpuUsage: '0.1',
-          memoryTotal: '8327024640',
-          memoryUsed: '2351816704',
+          maxcpu: '4',
+          cpu: '0.1',
+          maxmem: '8327024640',
+          mem: '2351816704',
         }),
       ),
     ).toEqual({
@@ -87,5 +87,33 @@ describe('inventory usage helpers', () => {
       cpuPercent: null,
       memory: null,
     });
+  });
+
+  /**
+   * Verifies: an ESXi host is read in the same units, and its connection state stands in for a status.
+   * Data: a vSphere host as GET /api/inventory/hosts returns it, connected and then disconnected.
+   */
+  it('reads an ESXi host from the same properties, using its connection state', () => {
+    expect(
+      hostUsage(
+        item({
+          connectionState: 'connected',
+          powerState: 'poweredOn',
+          maxcpu: '16',
+          cpu: '0.25',
+          maxmem: '68719476736',
+          mem: '17179869184',
+        }),
+      ),
+    ).toEqual({
+      status: 'connected',
+      online: true,
+      cpuCount: 16,
+      cpuPercent: 25,
+      memory: { used: 17179869184, total: 68719476736, percent: 25 },
+    });
+    expect(
+      hostUsage(item({ connectionState: 'disconnected' })).online,
+    ).toBe(false);
   });
 });

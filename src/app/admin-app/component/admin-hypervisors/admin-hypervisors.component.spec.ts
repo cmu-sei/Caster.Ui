@@ -52,10 +52,10 @@ const pveHosts = response({
       path: 'pve',
       properties: {
         status: 'online',
-        cpuCount: '4',
-        cpuUsage: '0.1',
-        memoryTotal: '8327024640',
-        memoryUsed: '2351816704',
+        maxcpu: '4',
+        cpu: '0.1',
+        maxmem: '8327024640',
+        mem: '2351816704',
       },
     },
     {
