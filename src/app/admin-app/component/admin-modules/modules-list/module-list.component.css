@@ -64,9 +64,9 @@ table {
 }
 
 /* Keeps Copy and Delete aligned on rows that have no Sync button. */
-.action-placeholder {
+/* Holds a disabled button's tooltip, which a disabled button can't show. */
+.disabled-action {
   display: inline-block;
-  width: 48px;
 }
 
 .source-item {
