@@ -38,8 +38,6 @@ import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatFormField,
-  MatLabel,
-  MatPrefix,
   MatSuffix,
 } from '@angular/material/form-field';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -62,9 +60,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
   imports: [
     MatFormField,
     MatTooltip,
-    MatLabel,
     MatIcon,
-    MatPrefix,
     MatInput,
     FormsModule,
     ReactiveFormsModule,
