@@ -18,5 +18,16 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 .accordion {
   display: block;
-  padding-bottom: 20px;
+}
+
+// A plain line, not a partition panel.
+.unassigned {
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.unassigned-vlans {
+  display: block;
+  padding: 0 16px 20px;
 }

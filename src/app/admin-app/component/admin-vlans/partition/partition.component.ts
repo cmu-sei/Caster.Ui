@@ -68,14 +68,6 @@ export class PartitionComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
 
-  @Input() set poolId(poolId: string) {
-    this.vlans$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
-    this.otherPartitions$ = this.partitionQuery.selectByPoolId(
-      poolId,
-      this.partition?.id,
-    );
-  }
-
   @Input() set partition(partition: Partition) {
     this._partition = partition;
     this.vlans$ = this.vlanQuery.selectByPartitionId(partition.id);

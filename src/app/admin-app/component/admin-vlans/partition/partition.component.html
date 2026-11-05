@@ -110,9 +110,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         }
         <span class="name">{{ partition?.name }}</span>
       }
-      @if (!partition) {
-        <span class="name">Unassigned</span>
-      }
     </mat-panel-title>
     <mat-panel-description class="header-description">
       @if (vlans$ | async; as vlans) {
@@ -122,7 +119,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-expansion-panel-header>
   <ng-template matExpansionPanelContent>
     <cas-vlan-list
-      [showUnassigned]="this.partition ? true : false"
+      [showUnassigned]="true"
       [vlans]="vlans$ | async"
       [partitions]="otherPartitions$ | async"
       [canEdit]="canEdit()"
