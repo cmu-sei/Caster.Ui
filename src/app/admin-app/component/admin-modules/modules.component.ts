@@ -16,7 +16,10 @@ import { catchError, finalize, map, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatIcon } from '@angular/material/icon';
-import { AdminModuleListComponent } from './modules-list/module-list.component';
+import {
+  AdminModuleListComponent,
+  formatSyncTime,
+} from './modules-list/module-list.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -37,6 +40,7 @@ export class AdminModulesComponent implements OnInit {
   public isLoading$: Observable<boolean>;
   public matcher = new ModuleErrorStateMatcher();
   public isLinear = false;
+  public sources: ModuleSource[] = [];
   public failedSources: ModuleSource[] = [];
   public noSources = false;
 
@@ -58,9 +62,9 @@ export class AdminModulesComponent implements OnInit {
    * went once it is done. When the user asked for the sync, also say in a snack
    * bar which sources failed.
    */
-  load(userRequested = false) {
+  load(userRequested = false, forceUpdate = false) {
     this.moduleService
-      .load(false, true)
+      .load(false, true, forceUpdate)
       .pipe(
         take(1),
         finalize(() => this.loadSources(userRequested)),
@@ -69,16 +73,17 @@ export class AdminModulesComponent implements OnInit {
       .subscribe();
   }
 
+  /**
+   * Sync every source, re-reading every version, so a moved tag or a changed
+   * caster.json without a new tag is picked up too.
+   */
+  syncAll() {
+    this.load(true, true);
+  }
+
   /** When an API instance last synced a source, in the viewer's time zone. */
   syncTime(value: string): string {
-    return new Date(value).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short',
-    });
+    return formatSyncTime(value);
   }
 
   private loadSources(userRequested = false) {
@@ -88,6 +93,7 @@ export class AdminModulesComponent implements OnInit {
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe({
         next: (sources) => {
+          this.sources = sources;
           this.failedSources = sources.filter((s) => s.error);
           this.noSources = !sources.length;
           if (userRequested && this.failedSources.length) {
@@ -97,6 +103,7 @@ export class AdminModulesComponent implements OnInit {
         // An API that does not report its sources yet: show no warning
         // rather than an error.
         error: () => {
+          this.sources = [];
           this.failedSources = [];
           this.noSources = false;
         },

@@ -18,6 +18,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   flex-shrink: 0;
 }
 
+.sp-icon {
+  margin-left: 10px;
+  color: var(--mat-sys-primary);
+}
+
+.search-field {
+  min-width: 100px;
+  margin-left: 10px;
+}
+
+.nator-div {
+  min-width: 220px;
+}
+
 .table-container {
   flex: 1;
   overflow: auto;
@@ -26,7 +40,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 table {
   width: 100%;
-  --mat-table-row-item-container-height: auto;
+}
+
+.mat-mdc-header-row {
+  min-height: 56px;
+}
+
+.mat-mdc-row {
+  min-height: 48px;
 }
 
 .mat-mdc-cell,
@@ -34,39 +55,32 @@ table {
   overflow: hidden;
   word-wrap: break-word;
   padding-right: 10px;
-  padding-top: 2px;
-  padding-bottom: 2px;
   vertical-align: middle;
-
-  button[mat-icon-button] {
-    vertical-align: middle;
-  }
 }
 
-.button-end {
-  margin-left: 100px;
+.mat-column-actions {
+  width: 140px;
+  white-space: nowrap;
 }
 
-.sp-icon {
-  width: 5%;
-  color: var(--mat-sys-primary);
-  text-align: center;
-  min-width: 30px;
+/* Keeps Copy and Delete aligned on rows that have no Sync button. */
+.action-placeholder {
+  display: inline-block;
+  width: 48px;
 }
 
-.add-module-row {
+.source-item {
   display: flex;
-  align-items: center;
-  padding: 0 24px;
-  min-height: 48px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  flex-direction: column;
 }
 
-.add-module-cell {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
+.source-status {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.source-failed {
+  color: var(--mat-sys-error);
 }
 
 .tooltip {
