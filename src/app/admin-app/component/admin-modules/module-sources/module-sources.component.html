@@ -84,7 +84,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </span>
           <mat-icon class="mdi-18px source-icon" [fontIcon]="s.icon" />
           <span class="source-text">
-            <span class="source-name">{{ source.name }}</span>
+            <span class="source-name">
+              {{ source.name }}
+              @if (repositoryLink(source); as link) {
+                <a
+                  class="source-link"
+                  [href]="link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [attr.aria-label]="'View the ' + source.name + ' repository'"
+                  >View repository<mat-icon
+                    class="mdi-18px"
+                    fontIcon="mdi-open-in-new"
+                /></a>
+              } @else if (repositoryUrl(source); as url) {
+                <span class="source-url">{{ url }}</span>
+              }
+            </span>
             @if (source.description) {
               <span class="source-description">{{ source.description }}</span>
             }

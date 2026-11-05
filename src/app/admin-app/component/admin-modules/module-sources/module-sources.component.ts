@@ -114,6 +114,24 @@ export class ModuleSourcesComponent {
       : { kind: 'pending', icon: 'mdi-clock-outline', text: 'Not read yet' };
   }
 
+  /** The source's clone URL, when the API reports it (credentials already removed). */
+  repositoryUrl(source: ModuleSource): string | null {
+    return (source as ModuleSource & { url?: string | null }).url || null;
+  }
+
+  /**
+   * Where a browser can open the repository: an https clone URL without its
+   * ".git". Null for ssh and file URLs, whose web address can't be told
+   * reliably from the clone URL.
+   */
+  repositoryLink(source: ModuleSource): string | null {
+    const url = this.repositoryUrl(source);
+    if (!url || !/^https?:\/\//i.test(url)) {
+      return null;
+    }
+    return url.replace(/\.git\/?$/i, '');
+  }
+
   /** A GitLab source adds one project at a time, by its ID. */
   addGitlabProject() {
     this.dialog
