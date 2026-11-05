@@ -88,24 +88,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 </button>
               }
             }
-            @if (repositoryLink(source); as link) {
-              <a
-                mat-icon-button
-                [href]="link"
-                target="_blank"
-                rel="noopener noreferrer"
-                [attr.aria-label]="'Open the ' + source.name + ' repository'"
-                [matTooltip]="'Open the ' + source.name + ' repository'"
-              >
-                <mat-icon class="mdi-18px" fontIcon="mdi-open-in-new" />
-              </a>
-            } @else if (repositoryUrl(source); as url) {
+            @if (repositoryUrl(source); as url) {
               <button
                 mat-icon-button
                 ngxClipboard
                 [cbContent]="url"
                 [attr.aria-label]="'Copy the ' + source.name + ' repository URL'"
-                [matTooltip]="'Copy: ' + url"
+                [matTooltip]="'Copy repository URL: ' + url"
               >
                 <mat-icon class="mdi-18px" fontIcon="mdi-content-copy" />
               </button>
