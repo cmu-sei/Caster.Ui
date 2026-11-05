@@ -218,6 +218,36 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     this.refresh.emit(row.path);
   }
 
+  /**
+   * The value for a module block's source argument, for the latest version, as
+   * the API writes it, e.g. git::https://git.example.com/org/repo.git//vm?ref=v1.2.0.
+   */
+  terraformSource(row: ModuleRow): string | null {
+    // The API lists a Module's versions highest first.
+    return row.versions?.[0]?.urlLink || null;
+  }
+
+  /** When the Module stopped being found in its source, for the viewer, or null while it is still there. */
+  missingSince(row: ModuleRow): string | null {
+    const since = (row as ModuleRow & { missingSince?: string | null })
+      .missingSince;
+    return since ? formatSyncTime(since) : null;
+  }
+
+  /**
+   * Delete is for leftovers: a Module no longer in its source, or a GitLab
+   * Module, which is added by hand. A Module still in its source would come
+   * back on the next read, so it has no Delete. An API that doesn't report
+   * missingSince yet leaves Delete on every row, as before.
+   */
+  canDelete(row: ModuleRow): boolean {
+    if (!('missingSince' in row)) {
+      return true;
+    }
+    const source = this.sources()?.find((s) => s.name === row.source);
+    return !!this.missingSince(row) || (!!source && this.isGitlab(source));
+  }
+
   deleteModule(module: Module) {
     this.confirmService
       .confirm({
