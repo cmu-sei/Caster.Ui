@@ -1,0 +1,92 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.sources-panel {
+  margin: 0 10px 8px;
+}
+
+.sp-icon {
+  color: var(--mat-sys-primary);
+  margin-right: 8px;
+}
+
+.panel-title {
+  font-weight: 500;
+}
+
+.panel-summary {
+  margin-left: 12px;
+  opacity: 0.7;
+  font-size: small;
+}
+
+.sources-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.sources-empty {
+  margin: 0 0 8px 8px;
+}
+
+.sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.source-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.source-row.failed .source-icon,
+.source-row.failed .source-status {
+  color: var(--mat-sys-error);
+}
+
+.source-row.warning .source-icon,
+.source-row.warning .source-status {
+  color: var(--mat-sys-tertiary);
+}
+
+.source-row.empty .source-icon,
+.source-row.empty .source-status {
+  opacity: 0.7;
+}
+
+.source-actions {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.source-icon {
+  margin-top: 11px;
+  flex-shrink: 0;
+}
+
+.source-text {
+  display: flex;
+  flex-direction: column;
+  padding-top: 9px;
+  min-width: 0;
+}
+
+.source-name {
+  font-weight: 500;
+}
+
+.source-description,
+.source-status {
+  font-size: small;
+  word-break: break-word;
+}
+
+.source-description {
+  opacity: 0.7;
+}

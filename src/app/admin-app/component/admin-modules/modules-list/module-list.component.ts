@@ -34,15 +34,10 @@ import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { ClipboardModule } from 'ngx-clipboard';
 import { NgClass, DatePipe } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { AddModuleDialogComponent } from '../add-module-dialog/add-module-dialog.component';
-import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-project-dialog.component';
 
 /** The provider name of the legacy GitLab source. */
 export const GITLAB_PROVIDER = 'gitlab';
@@ -108,10 +103,6 @@ export function moduleSourceOf(
     MatSuffix,
     MatPaginator,
     MatTooltip,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
-    MatDivider,
     MatTable,
     MatSort,
     MatColumnDef,
@@ -133,7 +124,6 @@ export function moduleSourceOf(
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
   private confirmService = inject(CrucibleDialogService);
-  private dialog = inject(MatDialog);
 
   public displayedColumns: string[] = [
     'actions',
@@ -151,10 +141,8 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   readonly sources = input<ModuleSource[]>([]);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  /** Sync every configured source, re-reading every version. */
-  readonly syncAll = output<void>();
-  /** Sync one source by name, one Module by Path, or one GitLab project by ID. */
-  readonly sync = output<string>();
+  /** Re-read one Module from its source, by its Path. */
+  readonly refresh = output<string>();
   readonly delete = output<string>();
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
@@ -200,81 +188,17 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     return isGitlabSource(source);
   }
 
-  /** The icon for how a source's last sync went. */
-  statusIcon(source: ModuleSource): string {
-    if (source.error) {
-      return 'mdi-alert-circle-outline';
-    }
-    return source.lastSuccess
-      ? 'mdi-check-circle-outline'
-      : 'mdi-clock-outline';
-  }
-
-  /** How a source's last sync went, in words, for its sync menu entry. */
-  statusText(source: ModuleSource): string {
-    if (source.error) {
-      return source.lastAttempt
-        ? `Failed ${formatSyncTime(source.lastAttempt)}`
-        : 'Failed';
-    }
-    return source.lastSuccess
-      ? `Synced ${formatSyncTime(source.lastSuccess)}`
-      : 'Not synced yet';
-  }
-
   /**
-   * Adds or updates Modules from an External Module ID, as the box above the
-   * list used to: a source name, name/subdirectory for one Module, or a GitLab
-   * project ID.
+   * A git Module is re-read by its Path. A GitLab Module would need its project
+   * ID, which Caster does not store, so it has no Refresh.
    */
-  addModule() {
-    this.dialog
-      .open<AddModuleDialogComponent, unknown, string>(
-        AddModuleDialogComponent,
-        { width: '480px' },
-      )
-      .afterClosed()
-      .subscribe((externalModuleId) => {
-        if (externalModuleId) {
-          this.sync.emit(externalModuleId);
-        }
-      });
-  }
-
-  /**
-   * A git source is synced by its name. The GitLab source is synced one
-   * project at a time, so ask for the project's ID.
-   */
-  syncSource(source: ModuleSource) {
-    if (!this.isGitlab(source)) {
-      this.sync.emit(source.name);
-      return;
-    }
-
-    this.dialog
-      .open<GitlabProjectDialogComponent, unknown, string>(
-        GitlabProjectDialogComponent,
-        { width: '400px' },
-      )
-      .afterClosed()
-      .subscribe((projectId) => {
-        if (projectId) {
-          this.sync.emit(projectId);
-        }
-      });
-  }
-
-  /**
-   * A git Module is synced by its Path. A GitLab Module would need its project
-   * ID, which Caster does not store, so it has no per-row sync.
-   */
-  canSyncModule(row: ModuleRow): boolean {
+  canRefreshModule(row: ModuleRow): boolean {
     const source = this.sources()?.find((s) => s.name === row.source);
     return !!source && !this.isGitlab(source) && !!row.path;
   }
 
-  syncModule(row: ModuleRow) {
-    this.sync.emit(row.path);
+  refreshModule(row: ModuleRow) {
+    this.refresh.emit(row.path);
   }
 
   deleteModule(module: Module) {

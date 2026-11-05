@@ -3,43 +3,20 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-@if (noSources) {
-  <div class="source-warning" role="status">
-    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
-    <span>No module source is configured, so no Modules can be synced.</span>
-  </div>
-}
-@for (source of shownFailures; track source.name) {
-  <div class="source-warning" role="alert">
-    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
-    <span class="source-message">
-      Module source <strong>{{ source.name }}</strong> failed to sync.
-      @if (source.lastSuccess) {
-        Showing its Modules from the last successful sync,
-        {{ syncTime(source.lastSuccess) }}.
-      } @else {
-        Showing the Modules already stored.
-      }
-      <span class="source-error">{{ source.error }}</span>
-    </span>
-    <button
-      mat-icon-button
-      class="dismiss-button"
-      (click)="dismissFailure(source)"
-      [attr.aria-label]="'Dismiss the ' + source.name + ' warning'"
-      matTooltip="Dismiss"
-    >
-      <mat-icon class="mdi-18px" fontIcon="mdi-close" />
-    </button>
-  </div>
-}
+<cas-module-sources
+  [sources]="sources"
+  [listed]="sourcesListed"
+  [canEdit]="canEdit$ | async"
+  [isLoading]="isLoading$ | async"
+  (refreshAll)="refreshAll()"
+  (refresh)="refresh($event)"
+/>
 
 <cas-admin-module-list
   [modules]="modules$ | async"
   [sources]="sources"
   [isLoading]="isLoading$ | async"
   [canEdit]="canEdit$ | async"
-  (syncAll)="syncAll()"
-  (sync)="createOrUpdateById($event)"
+  (refresh)="refresh($event)"
   (delete)="deleteModule($event)"
 />
