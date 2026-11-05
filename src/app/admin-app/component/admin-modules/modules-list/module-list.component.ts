@@ -48,8 +48,9 @@ import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-pr
 export const GITLAB_PROVIDER = 'gitlab';
 
 /**
- * A Module as the table shows it: with the name of the source it came from
- * and the name of its highest version.
+ * A Module as the table shows it: with the name of its highest version, and
+ * the source it came from, which decides whether its row can be synced. The
+ * source is not a column: a git source's name already starts the Path.
  */
 export interface ModuleRow extends Module {
   source: string;
@@ -138,7 +139,6 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
     'actions',
     'name',
     'description',
-    'source',
     'path',
     'versionsCount',
     'latestVersion',
@@ -161,7 +161,7 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
 
   constructor() {
     this.dataSource.filterPredicate = (row, filter) =>
-      [row.name, row.description, row.source, row.path, row.latestVersion]
+      [row.name, row.description, row.path, row.latestVersion]
         .filter((value) => !!value)
         .some((value) => value.toLowerCase().includes(filter));
   }
