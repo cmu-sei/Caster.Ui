@@ -92,6 +92,10 @@
   white-space: normal;
 }
 
+.item-actions {
+  flex-shrink: 0;
+}
+
 .copy-button {
   flex-shrink: 0;
 }
