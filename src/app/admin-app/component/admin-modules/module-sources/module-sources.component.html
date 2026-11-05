@@ -100,7 +100,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               </button>
             }
           </span>
-          <mat-icon class="mdi-18px source-icon" [fontIcon]="s.icon" />
+          <mat-icon
+            class="mdi-18px source-icon"
+            [fontIcon]="s.icon"
+            [matTooltip]="statusLabel(s)"
+            role="img"
+            [attr.aria-label]="statusLabel(s)"
+          />
           <span class="source-text">
             <span class="source-name">
               {{ source.name }}
