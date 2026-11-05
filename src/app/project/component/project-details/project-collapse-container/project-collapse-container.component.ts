@@ -114,7 +114,7 @@ export class ProjectCollapseContainerComponent
   public currentUser$: Observable<CurrentUserState>;
   public titleText = 'Caster';
   public theme$: Observable<Theme>;
-  /** The inventory describes the hypervisor, so it needs ViewHosts. */
+  /** The inventory describes the hypervisor, so it needs ViewInfrastructure. */
   public canViewInventory$: Observable<boolean>;
   /** Ask AI changes files, so it is offered to whoever may edit the project. */
   public canEditProject$: Observable<boolean>;
@@ -133,7 +133,7 @@ export class ProjectCollapseContainerComponent
   constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
     this.canViewInventory$ = this.permissionService.hasPermission(
-      SystemPermission.ViewHosts,
+      SystemPermission.ViewInfrastructure,
     );
   }
 

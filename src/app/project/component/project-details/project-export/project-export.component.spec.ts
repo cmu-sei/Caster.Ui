@@ -133,11 +133,11 @@ describe('ProjectExportComponent', () => {
   });
 
   /**
-   * Verifies: without ViewHosts the dialog offers no disk manifest.
+   * Verifies: without ViewInfrastructure the dialog offers no disk manifest.
    * Interacts with: PermissionService.hasPermission over stubbed permissions.
    * Data: project Range; no system permissions.
    */
-  it('hides Include Disk Manifest without ViewHosts', async () => {
+  it('hides Include Disk Manifest without ViewInfrastructure', async () => {
     await renderExport(ProjectObjectType.PROJECT);
 
     expect(
@@ -146,17 +146,17 @@ describe('ProjectExportComponent', () => {
   });
 
   /**
-   * Verifies: with ViewHosts, switching Include Disk Manifest on previews the
+   * Verifies: with ViewInfrastructure, switching Include Disk Manifest on previews the
    *   VM templates, ISOs and warnings once, and the export asks for the manifest.
    * Interacts with: ProjectsService.getProjectDiskManifest and exportProject
    *   (stubs); PermissionService over stubbed permissions.
-   * Data: project Range; ViewHosts; a manifest with template ubuntu-2204, ISO
+   * Data: project Range; ViewInfrastructure; a manifest with template ubuntu-2204, ISO
    *   local:iso/kali.iso and one warning; the switch is turned on, off, on.
    */
-  it('previews and exports the disk manifest for a ViewHosts holder', async () => {
+  it('previews and exports the disk manifest for a ViewInfrastructure holder', async () => {
     const { projectsApi, user } = await renderExport(
       ProjectObjectType.PROJECT,
-      [SystemPermission.ViewHosts],
+      [SystemPermission.ViewInfrastructure],
     );
 
     const toggle = screen.getByRole('switch', {
@@ -188,12 +188,12 @@ describe('ProjectExportComponent', () => {
   });
 
   /**
-   * Verifies: a file export never offers a disk manifest, even with ViewHosts.
+   * Verifies: a file export never offers a disk manifest, even with ViewInfrastructure.
    * Interacts with: the isArchiveable flag set by the type input.
-   * Data: type File; ViewHosts.
+   * Data: type File; ViewInfrastructure.
    */
   it('offers no disk manifest for a file', async () => {
-    await renderExport(ProjectObjectType.FILE, [SystemPermission.ViewHosts]);
+    await renderExport(ProjectObjectType.FILE, [SystemPermission.ViewInfrastructure]);
 
     expect(
       screen.queryByRole('switch', { name: 'Include Disk Manifest' }),
