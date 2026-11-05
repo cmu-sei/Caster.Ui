@@ -141,6 +141,8 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   readonly sources = input<ModuleSource[]>([]);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
+  /** What is being refreshed: Module Paths, source names, or '*' for all. */
+  readonly refreshing = input<Set<string>>(new Set());
   /** Re-read one Module from its source, by its Path. */
   readonly refresh = output<string>();
   readonly delete = output<string>();
@@ -195,6 +197,16 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   canRefreshModule(row: ModuleRow): boolean {
     const source = this.sources()?.find((s) => s.name === row.source);
     return !!source && !this.isGitlab(source) && !!row.path;
+  }
+
+  /** Refreshing this Module, its whole source, or every source. */
+  isRefreshing(row: ModuleRow): boolean {
+    const refreshing = this.refreshing();
+    return (
+      refreshing.has(row.path) ||
+      (!!row.source && refreshing.has(row.source)) ||
+      refreshing.has('*')
+    );
   }
 
   refreshModule(row: ModuleRow) {

@@ -19,6 +19,9 @@ import { AdminModuleListComponent } from './modules-list/module-list.component';
 import { ModuleSourcesComponent } from './module-sources/module-sources.component';
 import { AsyncPipe } from '@angular/common';
 
+/** The refreshing key for Refresh All Sources. */
+export const ALL_SOURCES = '*';
+
 @Component({
   selector: 'cas-admin-modules',
   templateUrl: './modules.component.html',
@@ -40,6 +43,11 @@ export class AdminModulesComponent implements OnInit {
   public sources: ModuleSource[] = [];
   /** False when the API could not list its sources. */
   public sourcesListed = true;
+  /**
+   * What is being refreshed: source names, Module Paths, GitLab project IDs,
+   * or ALL_SOURCES. Only those buttons wait, not every Refresh on the page.
+   */
+  public refreshing = new Set<string>();
 
   /** Syncing and deleting Modules need ManageModules, as the API requires. */
   public canEdit$ = this.permissionService.hasPermission(
@@ -60,13 +68,18 @@ export class AdminModulesComponent implements OnInit {
    * went once it is done. When the user asked for the refresh, also say in a
    * snack bar which sources failed.
    */
-  load(userRequested = false, forceUpdate = false) {
+  load(userRequested = false, forceUpdate = false, done?: string) {
     // With the versions, so the list can show each Module's latest one.
     this.moduleService
       .load(true, true, forceUpdate)
       .pipe(
         take(1),
-        finalize(() => this.loadSources(userRequested)),
+        finalize(() => {
+          if (done) {
+            this.stopRefreshing(done);
+          }
+          this.loadSources(userRequested);
+        }),
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
@@ -77,7 +90,8 @@ export class AdminModulesComponent implements OnInit {
    * caster.json without a new tag is picked up too.
    */
   refreshAll() {
-    this.load(true, true);
+    this.refreshing = new Set([...this.refreshing, ALL_SOURCES]);
+    this.load(true, true, ALL_SOURCES);
   }
 
   private loadSources(userRequested = false) {
@@ -126,6 +140,7 @@ export class AdminModulesComponent implements OnInit {
    * project by its ID, then reload the list.
    */
   refresh(id: string) {
+    this.refreshing = new Set([...this.refreshing, id]);
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService
       .createOrUpdateModuleById(id)
@@ -143,8 +158,15 @@ export class AdminModulesComponent implements OnInit {
           });
           return EMPTY;
         }),
+        finalize(() => this.stopRefreshing(id)),
       )
       .subscribe(() => this.load());
+  }
+
+  private stopRefreshing(id: string) {
+    const next = new Set(this.refreshing);
+    next.delete(id);
+    this.refreshing = next;
   }
 
   deleteModule(id: string) {

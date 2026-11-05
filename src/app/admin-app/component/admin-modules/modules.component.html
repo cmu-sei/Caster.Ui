@@ -7,7 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [sources]="sources"
   [listed]="sourcesListed"
   [canEdit]="canEdit$ | async"
-  [isLoading]="isLoading$ | async"
+  [refreshing]="refreshing"
   (refreshAll)="refreshAll()"
   (refresh)="refresh($event)"
 />
@@ -17,6 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [sources]="sources"
   [isLoading]="isLoading$ | async"
   [canEdit]="canEdit$ | async"
+  [refreshing]="refreshing"
   (refresh)="refresh($event)"
   (delete)="deleteModule($event)"
 />
