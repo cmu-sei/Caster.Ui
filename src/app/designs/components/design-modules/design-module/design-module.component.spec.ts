@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ModuleVariablesResult } from 'src/app/editor/component/module-variables/module-variables.models';
 import {
   DesignModule,
@@ -27,6 +28,7 @@ import {
   captureUnhandledRxErrors,
   flush,
 } from 'src/app/test-utils/unhandled-rx-errors';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignModuleComponent } from './design-module.component';
 import { ModuleOutputsComponent } from 'src/app/designs/components/module-outputs/module-outputs.component';
@@ -90,6 +92,8 @@ async function renderDesignModule(
   const modulesApi = {
     getModule: vi.fn((_id: string) => of<Module>(structuredClone(module))),
   } satisfies ApiStub<ModulesService>;
+  const { dialogRef } = dialogRefStub<unknown, boolean>(false);
+  const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(DesignModuleComponent, {
     childStubs: [
       { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
@@ -99,6 +103,10 @@ async function renderDesignModule(
     providers: [
       { provide: DesignsModulesService, useValue: designModulesApi },
       { provide: ModulesService, useValue: modulesApi },
+      {
+        provide: CrucibleDialogService,
+        useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
+      },
     ],
     inputs: { designModule, module, canEdit },
   });
@@ -109,6 +117,7 @@ async function renderDesignModule(
     ...view,
     designModulesApi,
     variablesEditor,
+    confirm,
     user: userEvent.setup(),
   };
 }
@@ -256,4 +265,21 @@ describe('DesignModuleComponent', () => {
       expect(variablesEditor()?.isSaving()).toBe(false);
     },
   );
+
+  /**
+   * Verifies: Delete asks "Delete Module" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false).
+   * Data: design module web; canEdit true.
+   */
+  it('confirms a delete with the standard wording', async () => {
+    const { confirm, user } = await renderDesignModule(true);
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Module',
+      message: 'Are you sure that you want to delete web?',
+      confirmText: 'Delete',
+    });
+  });
 });

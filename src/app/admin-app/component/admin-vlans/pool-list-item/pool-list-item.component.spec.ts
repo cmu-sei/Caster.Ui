@@ -49,7 +49,7 @@ async function renderItem(canEdit: boolean, confirmAnswer?: boolean) {
     inputs: { pool, canEdit },
     on: { poolSelected },
   });
-  return { ...view, vlansApi, poolSelected, user: userEvent.setup() };
+  return { ...view, vlansApi, poolSelected, confirm, user: userEvent.setup() };
 }
 
 describe('PoolListItemComponent', () => {
@@ -72,15 +72,20 @@ describe('PoolListItemComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, Delete asks for confirmation and deletes the pool without force.
+   * Verifies: with canEdit, Delete asks "Delete Pool" / "Are you sure that you want to delete <name>?" and deletes the pool without force.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), VlansService.deletePool (stub).
    * Data: pool Main; canEdit true.
    */
   it('deletes the pool after confirmation when canEdit is true', async () => {
-    const { vlansApi, user } = await renderItem(true, true);
+    const { vlansApi, confirm, user } = await renderItem(true, true);
 
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Pool',
+      message: 'Are you sure that you want to delete Main?',
+      confirmText: 'Delete',
+    });
     expect(vlansApi.deletePool).toHaveBeenCalledWith('pool1', { force: false });
   });
 

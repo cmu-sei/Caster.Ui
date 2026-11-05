@@ -131,6 +131,9 @@ model/systemRole.ts
 model/tagFileCommand.ts
 model/taintResourcesCommand.ts
 model/terraformVersionsResult.ts
+model/topologyEdge.ts
+model/topologyNode.ts
+model/topologyNodeKind.ts
 model/unassignPartitionCommand.ts
 model/user.ts
 model/validationProblemDetails.ts
@@ -139,5 +142,6 @@ model/variableType.ts
 model/variableValue.ts
 model/vlan.ts
 model/workspace.ts
+model/workspaceTopology.ts
 param.ts
 variables.ts

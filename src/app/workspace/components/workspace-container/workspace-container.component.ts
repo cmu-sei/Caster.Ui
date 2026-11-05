@@ -53,6 +53,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { TableItemContentDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-content.directive';
 import { RunComponent } from '../run/run.component';
+import { WorkspaceTopologyComponent } from '../workspace-topology/workspace-topology.component';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AsyncPipe, JsonPipe } from '@angular/common';
 
@@ -80,6 +81,7 @@ import { AsyncPipe, JsonPipe } from '@angular/common';
     MatProgressSpinner,
     ImportResourceComponent,
     OutputComponent,
+    WorkspaceTopologyComponent,
     AsyncPipe,
     JsonPipe,
   ],

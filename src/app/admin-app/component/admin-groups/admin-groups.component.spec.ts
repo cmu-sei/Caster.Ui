@@ -163,8 +163,12 @@ describe('AdminGroupsComponent', () => {
 
     const blue = within(rowOf('Blue Team'));
     expect(blue.getByRole('button', { name: 'Rename' })).toBeEnabled();
-    expect(blue.getByRole('button', { name: 'Delete Blue Team' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Add New Group' })).toBeDisabled();
+    expect(
+      blue.getByRole('button', { name: 'Delete Blue Team' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Add New Group' }),
+    ).toBeDisabled();
     expect(
       within(rowOf('Red Team')).getByRole('button', { name: 'Rename' }),
     ).toBeDisabled();
@@ -213,7 +217,7 @@ describe('AdminGroupsComponent', () => {
   });
 
   /**
-   * Verifies: confirming Delete calls the API and drops the group from the table.
+   * Verifies: Delete asks "Delete Group" / "Are you sure that you want to delete <name>?"; confirming calls the API and drops the group from the table.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), GroupsService.deleteGroup (stub), real GroupService.
    * Data: system permission ManageGroups; Red Team deleted.
    */
@@ -226,9 +230,31 @@ describe('AdminGroupsComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Delete Red Team' }));
 
     expect(confirm).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Group',
+      message: 'Are you sure that you want to delete Red Team?',
+      confirmText: 'Delete',
+    });
     expect(groupsApi.deleteGroup).toHaveBeenCalledWith('g2');
     expect(
       screen.queryByRole('cell', { name: 'Red Team' }),
     ).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: Add New Group opens the name dialog titled "Add Group".
+   * Interacts with: the real MatDialog and NameDialogComponent.
+   * Data: system permission ManageGroups.
+   */
+  it('titles the add dialog Add Group', async () => {
+    const { user } = await renderGroups({
+      system: [SystemPermission.ManageGroups],
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Add New Group' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Add Group' }),
+    ).toBeInTheDocument();
   });
 });
