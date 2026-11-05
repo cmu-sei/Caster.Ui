@@ -50,9 +50,26 @@ const gitlab: ModuleSource = {
   error: null,
 };
 
+const longDescription = 'A'.repeat(90);
 const modules: Module[] = [
-  { id: 'mod1', name: 'vm', path: 'local/vm', versionsCount: 2 },
-  { id: 'mod2', name: 'dns', path: 'group/dns', versionsCount: 1 },
+  {
+    id: 'mod1',
+    name: 'vm',
+    path: 'local/vm',
+    description: 'A vSphere virtual machine',
+    versionsCount: 2,
+    // The API lists versions highest first.
+    versions: [{ name: 'v1.10.0' }, { name: 'v1.9.0' }],
+  },
+  {
+    id: 'mod2',
+    name: 'dns',
+    path: 'group/dns',
+    description: longDescription,
+    versionsCount: 1,
+    versions: [{ name: '2.0.0' }],
+  },
+  { id: 'mod3', name: 'empty', path: 'local/empty', versionsCount: 0 },
 ];
 
 interface Options {
@@ -180,13 +197,52 @@ describe('AdminModuleListComponent', () => {
       within(screen.getAllByRole('row')[0])
         .getAllByRole('columnheader')
         .map((h) => h.textContent.trim()),
-    ).toEqual(['', 'Name', 'Source', 'Path', 'Versions', 'Date Loaded']);
-    expect(cells(rowOf('vm')).slice(1, 4)).toEqual(['vm', 'local', 'local/vm']);
-    expect(cells(rowOf('dns')).slice(1, 4)).toEqual([
-      'dns',
-      'gitlab',
-      'group/dns',
+    ).toEqual([
+      '',
+      'Name',
+      'Description',
+      'Source',
+      'Path',
+      'Versions',
+      'Latest Version',
+      'Date Loaded',
     ]);
+    expect(cells(rowOf('vm'))[3]).toBe('local');
+    expect(cells(rowOf('dns'))[3]).toBe('gitlab');
+  });
+
+  /**
+   * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title) and its highest version, so an admin can tell an import worked; a Module with no versions shows none.
+   * Interacts with: the Description and Latest Version columns.
+   * Data: vm (v1.10.0 above v1.9.0), dns (a 90-character description, 2.0.0), empty (no versions).
+   */
+  it("shows each Module's description and latest version", async () => {
+    await renderModuleList();
+
+    expect(cells(rowOf('vm'))).toEqual(
+      expect.arrayContaining(['A vSphere virtual machine', 'v1.10.0']),
+    );
+    const dns = within(rowOf('dns')).getAllByRole('cell');
+    expect(dns[2].textContent.trim()).toBe('A'.repeat(80) + ' ...');
+    expect(dns[2]).toHaveAttribute('title', longDescription);
+    expect(dns[6].textContent.trim()).toBe('2.0.0');
+    expect(
+      within(rowOf('empty')).getAllByRole('cell')[6].textContent.trim(),
+    ).toBe('');
+  });
+
+  /**
+   * Verifies: Search matches the latest version and the description.
+   * Interacts with: the Search box, the table's filterPredicate.
+   * Data: "v1.10" matches only vm's version; "vsphere" only vm's description.
+   */
+  it.each(['v1.10', 'vsphere'])('searches by %s', async (term) => {
+    const { user } = await renderModuleList();
+
+    await user.type(screen.getByPlaceholderText('Search'), term);
+
+    expect(rowOf('vm')).toBeInTheDocument();
+    expect(screen.queryByRole('row', { name: /\bdns\b/ })).toBeNull();
   });
 
   /**
@@ -217,7 +273,8 @@ describe('AdminModuleListComponent', () => {
       .getAllByRole('row')
       .slice(1)
       .map((row) => cells(row)[1]);
-    expect(names).toEqual(['dns', 'vm']);
+    expect(names[0]).toBe('dns');
+    expect(names.slice(1).sort()).toEqual(['empty', 'vm']);
   });
 
   /**

@@ -46,9 +46,13 @@ import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-pr
 /** The provider name of the legacy GitLab source. */
 export const GITLAB_PROVIDER = 'gitlab';
 
-/** A Module as the table shows it: with the name of the source it came from. */
+/**
+ * A Module as the table shows it: with the name of the source it came from
+ * and the name of its highest version.
+ */
 export interface ModuleRow extends Module {
   source: string;
+  latestVersion: string;
 }
 
 /** When an API instance last synced a source, in the viewer's time zone. */
@@ -132,9 +136,11 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   public displayedColumns: string[] = [
     'actions',
     'name',
+    'description',
     'source',
     'path',
     'versionsCount',
+    'latestVersion',
     'dateModified',
   ];
   public filterString = '';
@@ -154,7 +160,7 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
 
   constructor() {
     this.dataSource.filterPredicate = (row, filter) =>
-      [row.name, row.source, row.path]
+      [row.name, row.description, row.source, row.path, row.latestVersion]
         .filter((value) => !!value)
         .some((value) => value.toLowerCase().includes(filter));
   }
@@ -174,6 +180,8 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
       this.dataSource.data = (this.modules() ?? []).map((module) => ({
         ...module,
         source: moduleSourceOf(module, sources)?.name ?? '',
+        // The API lists a Module's versions highest first.
+        latestVersion: module.versions?.[0]?.name ?? '',
       }));
     }
   }

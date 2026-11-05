@@ -63,8 +63,9 @@ export class AdminModulesComponent implements OnInit {
    * bar which sources failed.
    */
   load(userRequested = false, forceUpdate = false) {
+    // With the versions, so the list can show each Module's latest one.
     this.moduleService
-      .load(false, true, forceUpdate)
+      .load(true, true, forceUpdate)
       .pipe(
         take(1),
         finalize(() => this.loadSources(userRequested)),
