@@ -11,12 +11,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   margin-left: auto;
 }
 
-.header {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.icon {
-  height: auto;
+// Plain text, padded like the panel and table text on the other admin pages.
+.title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 16px 0;
+  font: inherit;
 }

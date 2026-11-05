@@ -4,8 +4,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <mat-card appearance="outlined">
-  <mat-card-title class="flex">
-    <h4 class="header">{{ pool()?.name }}</h4>
+  <mat-card-title class="title">
+    <span>{{ pool()?.name }}</span>
     @if (pool()?.isDefault) {
       <mat-icon
         class="mdi-24px icon"

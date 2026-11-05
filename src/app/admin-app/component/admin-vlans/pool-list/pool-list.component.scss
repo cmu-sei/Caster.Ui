@@ -6,7 +6,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 .container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 5% 1%;
+  gap: 16px;
+  padding-bottom: 20px;
 }
 
 .cssLayoutRowStartCenter {
@@ -30,4 +31,5 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 .empty {
   grid-column: 1 / -1;
+  padding: 0 16px;
 }
