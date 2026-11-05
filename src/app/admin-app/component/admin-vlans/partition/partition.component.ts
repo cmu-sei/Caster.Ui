@@ -159,6 +159,9 @@ export class PartitionComponent implements OnInit {
   }
 
   onClipboardSuccess() {
-    this.snackBar.open('Copied partition_id', 'Dismiss');
+    this.snackBar.open(
+      `Copied the partition_id of ${this.partition.name}`,
+      'Dismiss',
+    );
   }
 }
