@@ -112,7 +112,7 @@ describe('ProjectVlansComponent', () => {
         .map((row) => within(row).getAllByRole('cell')[0].textContent.trim());
 
     expect(names()).toEqual(['Range', 'Zulu', 'Alpha']);
-    await user.click(screen.getByRole('button', { name: 'Name' }));
+    await user.click(screen.getByRole('button', { name: /Name$/ }));
     expect(names()).toEqual(['Alpha', 'Range', 'Zulu']);
     await user.click(screen.getByRole('button', { name: 'Partition' }));
     expect(names()).toEqual(['Alpha', 'Zulu', 'Range']);
