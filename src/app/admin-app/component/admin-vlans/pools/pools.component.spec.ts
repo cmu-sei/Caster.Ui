@@ -26,9 +26,7 @@ async function renderPools(canEdit: boolean) {
     getPools: vi.fn(() => of<Pool[]>([{ id: 'pool1', name: 'Main' }])),
   } satisfies ApiStub<VlansService>;
   const view = await renderComponent(PoolsComponent, {
-    childStubs: [
-      { replace: PoolListComponent, with: PoolListStub },
-    ],
+    childStubs: [{ replace: PoolListComponent, with: PoolListStub }],
     imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [{ provide: VlansService, useValue: vlansApi }],
     inputs: { canEdit },

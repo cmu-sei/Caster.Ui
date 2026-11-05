@@ -117,14 +117,20 @@ describe('PartitionListComponent', () => {
   it('shows the unassigned VLANs on request', async () => {
     const { vlanList, user } = await renderPartitionList(true);
 
-    expect(
-      screen.getByText("2 VLANs aren't in any partition"),
-    ).toBeVisible();
+    expect(screen.getByText("2 VLANs aren't in any partition")).toBeVisible();
     expect(vlanList()).toBeUndefined();
 
     await user.click(screen.getByRole('button', { name: 'Show' }));
-    expect(vlanList()?.vlans().map((v) => v.vlanId)).toEqual([1, 2]);
-    expect(vlanList()?.partitions().map((p) => p.id)).toEqual(['part1']);
+    expect(
+      vlanList()
+        ?.vlans()
+        .map((v) => v.vlanId),
+    ).toEqual([1, 2]);
+    expect(
+      vlanList()
+        ?.partitions()
+        .map((p) => p.id),
+    ).toEqual(['part1']);
     expect(vlanList()?.showUnassigned()).toBe(false);
     expect(vlanList()?.canEdit()).toBe(true);
 

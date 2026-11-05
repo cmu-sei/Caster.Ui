@@ -80,12 +80,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="vlan-table-viewport"
   [style.height]="tableHeight"
 >
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    class="full-width"
-    matSort
-  >
+  <table mat-table [dataSource]="dataSource" class="full-width" matSort>
     <!-- Checkbox Column -->
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
