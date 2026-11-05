@@ -206,7 +206,7 @@ export class VlanListComponent implements OnInit, OnChanges {
     this.filterControl.setValue('');
   }
 
-  toggleInUse(vlan: Vlan) {
+  toggleInUse(vlan: Vlan, checkbox?: MatCheckbox) {
     this.confirmService
       .confirm({
         title: 'Confirm VLAN',
@@ -218,19 +218,34 @@ export class VlanListComponent implements OnInit, OnChanges {
       .subscribe((confirmed) => {
         if (confirmed) {
           if (vlan.inUse) {
-            this.execute(vlan, this.vlanService.release(vlan));
+            this.execute(vlan, this.vlanService.release(vlan), () =>
+              this.resetCheckbox(checkbox, vlan.inUse),
+            );
           } else {
-            this.execute(vlan, this.vlanService.acquire(vlan));
+            this.execute(vlan, this.vlanService.acquire(vlan), () =>
+              this.resetCheckbox(checkbox, vlan.inUse),
+            );
           }
+        } else {
+          this.resetCheckbox(checkbox, vlan.inUse);
         }
       });
   }
 
-  toggleReserved(vlan: Vlan) {
+  toggleReserved(vlan: Vlan, checkbox?: MatCheckbox) {
+    const onError = () => this.resetCheckbox(checkbox, vlan.reserved);
     if (vlan.reserved) {
-      this.execute(vlan, this.vlanService.unreserve(vlan));
+      this.execute(vlan, this.vlanService.unreserve(vlan), onError);
     } else {
-      this.execute(vlan, this.vlanService.reserve(vlan));
+      this.execute(vlan, this.vlanService.reserve(vlan), onError);
+    }
+  }
+
+  /** Put a toggled checkbox back when its change was cancelled or failed. */
+  private resetCheckbox(checkbox: MatCheckbox | undefined, checked: boolean) {
+    if (checkbox) {
+      checkbox.checked = checked;
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -345,11 +360,12 @@ export class VlanListComponent implements OnInit, OnChanges {
     this.tableHeight = `${height}px`;
   }
 
-  private execute(vlan: Vlan, sub: Observable<any>) {
+  private execute(vlan: Vlan, sub: Observable<any>, onError?: () => void) {
     this.loading.set(vlan.id, true);
     sub
       .pipe(
         take(1),
+        tap({ error: () => onError?.() }),
         finalize(() => {
           this.loading.set(vlan.id, false);
           this.changeDetector.markForCheck();

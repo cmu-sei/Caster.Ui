@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div>
+<div class="cssLayoutRowStartCenter">
   <mat-form-field
     class="search-field"
     matTooltip="Search by VLAN ID, a range of IDs, or a tag. Separate several with commas, e.g. 10, 20-30, mytag"
@@ -29,12 +29,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-form-field>
   <button
     class="mx-2"
-    mat-raised-button
-    color="primary"
+    mat-button
     [matMenuTriggerFor]="selectionMenu"
     [disabled]="!canEdit()"
   >
     {{ selection.selected.length }} Selected
+    <mat-icon iconPositionEnd fontIcon="mdi-menu-down" />
   </button>
   <mat-menu #selectionMenu="matMenu">
     <button
@@ -83,13 +83,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <table
     mat-table
     [dataSource]="dataSource"
-    class="mat-elevation-z8 full-width"
+    class="full-width"
     matSort
   >
     <!-- Checkbox Column -->
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
+          aria-label="Select all VLANs"
           (change)="$event ? toggleAllRows() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
@@ -97,6 +98,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </th>
       <td mat-cell *matCellDef="let row">
         <mat-checkbox
+          [aria-label]="'Select VLAN ' + row.vlanId"
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row.id) : null"
           [checked]="selection.isSelected(row.id)"
@@ -120,26 +122,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             : ''
         "
       >
-        <button
-          mat-button
-          [color]="element.inUse ? 'warn' : 'basic'"
-          (click)="toggleInUse(element)"
+        <mat-checkbox
+          aria-label="In Use"
+          [checked]="element.inUse"
+          (change)="toggleInUse(element, $event.source)"
           [disabled]="
             !element.partitionId || loading.get(element.id) || !canEdit()
           "
-        >
-          {{ element.inUse }}
-        </button>
+        />
       </td>
     </ng-container>
 
     <ng-container matColumnDef="reserved">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Reserved</th>
       <td mat-cell *matCellDef="let element">
-        <button
-          mat-button
-          [color]="element.reserved ? 'warn' : 'basic'"
-          (click)="toggleReserved(element)"
+        <mat-checkbox
+          aria-label="Reserved"
+          [checked]="element.reserved"
+          (change)="toggleReserved(element, $event.source)"
           [disabled]="
             loading.get(element.id) || !canEdit() || !element.reservedEditable
           "
@@ -148,9 +148,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               ? 'Reservation status not editable. Ask an Administrator to update the application settings if this should be changed'
               : ''
           "
-        >
-          {{ element.reserved }}
-        </button>
+        />
       </td>
     </ng-container>
 

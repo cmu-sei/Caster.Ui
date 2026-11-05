@@ -15,8 +15,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { Partition, Vlan, VlansService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { VlanListComponent } from './vlan-list.component';
 
@@ -38,12 +40,16 @@ async function renderVlanList(
   canEdit: boolean,
   shownVlans: Vlan[] = vlans,
   showUnassigned = true,
+  confirmAnswer = true,
 ) {
   const vlansApi = {
     partialEditVlan: vi.fn((id: string, command: { reserved?: boolean }) =>
       of<Vlan>({ ...vlans[0], id, ...command }),
     ),
+    acquireVlan: vi.fn(() => of<Vlan>({ ...vlans[0], inUse: true })),
   } satisfies ApiStub<VlansService>;
+  const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
+  const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(VlanListComponent, {
     imports: [
       ScrollingModule,
@@ -57,7 +63,13 @@ async function renderVlanList(
       MatFormFieldModule,
       MatInputModule,
     ],
-    providers: [{ provide: VlansService, useValue: vlansApi }],
+    providers: [
+      { provide: VlansService, useValue: vlansApi },
+      {
+        provide: CrucibleDialogService,
+        useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
+      },
+    ],
     inputs: { vlans: shownVlans, partitions, canEdit, showUnassigned },
   });
   // The rows render inside a cdk-virtual-scroll-viewport, which computes its
@@ -67,7 +79,7 @@ async function renderVlanList(
         'tr',
       ) as HTMLElement)
     : undefined;
-  return { ...view, vlansApi, row, user: userEvent.setup() };
+  return { ...view, vlansApi, confirm, row, user: userEvent.setup() };
 }
 
 describe('VlanListComponent', () => {
@@ -80,12 +92,15 @@ describe('VlanListComponent', () => {
     const { row } = await renderVlanList(true);
 
     expect(screen.getByRole('button', { name: '0 Selected' })).toBeEnabled();
-    expect(within(row).getByRole('checkbox')).toBeInTheDocument();
-    const [inUse, reserved] = within(row).getAllByRole('button', {
-      name: 'false',
-    });
+    expect(
+      within(row).getByRole('checkbox', { name: 'Select VLAN 100' }),
+    ).toBeInTheDocument();
+    const inUse = within(row).getByRole('checkbox', { name: 'In Use' });
+    const reserved = within(row).getByRole('checkbox', { name: 'Reserved' });
     expect(inUse).toBeEnabled();
+    expect(inUse).not.toBeChecked();
     expect(reserved).toBeEnabled();
+    expect(reserved).not.toBeChecked();
     expect(within(row).getByRole('button', { name: 'Edit Tag' })).toBeVisible();
     expect(
       within(row).getByRole('button', {
@@ -95,17 +110,14 @@ describe('VlanListComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, clicking Reserved reserves the VLAN through the API.
+   * Verifies: with canEdit, ticking Reserved reserves the VLAN through the API.
    * Interacts with: VlansService.partialEditVlan (stub), real VlanService.
    * Data: VLAN 100 not reserved; canEdit true.
    */
   it('reserves a VLAN when canEdit is true', async () => {
     const { vlansApi, row, user } = await renderVlanList(true);
 
-    const [, reservedButton] = within(row).getAllByRole('button', {
-      name: 'false',
-    });
-    await user.click(reservedButton);
+    await user.click(within(row).getByRole('checkbox', { name: 'Reserved' }));
 
     expect(vlansApi.partialEditVlan).toHaveBeenCalledWith('v1', {
       reserved: true,
@@ -113,7 +125,42 @@ describe('VlanListComponent', () => {
   });
 
   /**
-   * Verifies: without canEdit the selection menu, In Use and Reserved buttons are disabled, and no checkbox, Edit Tag or Remove control renders.
+   * Verifies: ticking In Use asks first, and cancelling leaves the box unticked and calls no API.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false), VlansService.acquireVlan (stub).
+   * Data: VLAN 100 in partition part1, not in use; canEdit true.
+   */
+  it('puts In Use back when the confirm is cancelled', async () => {
+    const { confirm, vlansApi, row, user } = await renderVlanList(
+      true,
+      vlans,
+      true,
+      false,
+    );
+    const inUse = within(row).getByRole('checkbox', { name: 'In Use' });
+    await user.click(inUse);
+
+    expect(confirm).toHaveBeenCalled();
+    expect(inUse).not.toBeChecked();
+    expect(vlansApi.acquireVlan).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies: ticking In Use and confirming acquires the VLAN through the API.
+   * Interacts with: CrucibleDialogService.confirm (stub answering true), VlansService.acquireVlan (stub), real VlanService.
+   * Data: VLAN 100 in partition part1, not in use; canEdit true.
+   */
+  it('acquires a VLAN when In Use is ticked and confirmed', async () => {
+    const { vlansApi, row, user } = await renderVlanList(true);
+    await user.click(within(row).getByRole('checkbox', { name: 'In Use' }));
+
+    expect(vlansApi.acquireVlan).toHaveBeenCalledWith({
+      partitionId: 'part1',
+      vlanId: 100,
+    });
+  });
+
+  /**
+   * Verifies: without canEdit the selection menu, In Use and Reserved checkboxes are disabled, and no checkbox, Edit Tag or Remove control renders.
    * Interacts with: the canEdit bindings and recalculateDisplayedColumns().
    * Data: VLAN 100 in partition part1; canEdit false.
    */
@@ -121,12 +168,13 @@ describe('VlanListComponent', () => {
     const { row } = await renderVlanList(false);
 
     expect(screen.getByRole('button', { name: '0 Selected' })).toBeDisabled();
-    expect(within(row).queryByRole('checkbox')).not.toBeInTheDocument();
-    for (const toggle of within(row).getAllByRole('button', {
-      name: 'false',
-    })) {
-      expect(toggle).toBeDisabled();
-    }
+    expect(
+      within(row).queryByRole('checkbox', { name: /^Select/ }),
+    ).not.toBeInTheDocument();
+    expect(within(row).getByRole('checkbox', { name: 'In Use' })).toBeDisabled();
+    expect(
+      within(row).getByRole('checkbox', { name: 'Reserved' }),
+    ).toBeDisabled();
     expect(
       within(row).queryByRole('button', { name: 'Edit Tag' }),
     ).not.toBeInTheDocument();
