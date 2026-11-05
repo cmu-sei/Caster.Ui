@@ -53,8 +53,9 @@ export class AdminModulesComponent implements OnInit {
    */
   private dismissed = new Map<string, string>();
 
+  /** Syncing and deleting Modules need ManageModules, as the API requires. */
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageWorkspaces,
+    SystemPermission.ManageModules,
   );
 
   /**

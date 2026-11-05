@@ -136,33 +136,29 @@ describe('AdminModulesComponent', () => {
   });
 
   /**
-   * Verifies: the ManageWorkspaces system permission makes the module list editable (current behavior).
+   * Verifies: ManageModules, which the API requires to sync and delete Modules, makes the module list editable.
    * Interacts with: PermissionService.hasPermission (real), the list stub's canEdit input.
-   * Data: system permission ManageWorkspaces.
+   * Data: system permission ManageModules.
    */
-  it('passes canEdit true with ManageWorkspaces', async () => {
+  it('passes canEdit true with ManageModules', async () => {
     const { list } = await renderModules({
-      system: [SystemPermission.ManageWorkspaces],
+      system: [SystemPermission.ManageModules],
     });
 
     expect(list.canEdit()).toBe(true);
   });
 
   /**
-   * Verifies: without ManageWorkspaces the module list is read-only, also for a user who holds ManageModules (current behavior).
+   * Verifies: without ManageModules the module list is read-only, including for ManageWorkspaces, which the page used to check by mistake.
    * Interacts with: PermissionService.hasPermission (real), the list stub's canEdit input.
-   * Data: near misses: ViewWorkspaces, and ManageModules plus ViewModules.
+   * Data: near misses: ViewModules, and ManageWorkspaces.
    */
   it.each([
-    { label: 'ViewWorkspaces', system: [SystemPermission.ViewWorkspaces] },
-    {
-      label: 'ManageModules',
-      system: [SystemPermission.ManageModules, SystemPermission.ViewModules],
-    },
+    { label: 'ViewModules', system: [SystemPermission.ViewModules] },
+    { label: 'ManageWorkspaces', system: [SystemPermission.ManageWorkspaces] },
   ])('passes canEdit false with $label only', async ({ system }) => {
     const { list } = await renderModules({ system });
 
-    // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
     expect(list.canEdit()).toBe(false);
   });
 
