@@ -4,7 +4,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div class="cssLayoutRowStartCenter header">
-  <ng-content />
   <button
     mat-icon-button
     color="primary"
@@ -15,6 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
     <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
   </button>
+  <span>Partitions</span>
 </div>
 <mat-accordion class="accordion" multi>
   <cas-partition [poolId]="poolId" [canEdit]="canEdit()" />
