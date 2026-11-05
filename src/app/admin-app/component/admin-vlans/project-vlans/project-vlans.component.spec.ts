@@ -23,7 +23,10 @@ import { ProjectVlansComponent } from './project-vlans.component';
 
 const projects: Project[] = [{ id: 'p1', name: 'Range', partitionId: null }];
 
-async function renderProjectVlans(canEdit: boolean) {
+async function renderProjectVlans(
+  canEdit: boolean,
+  shownProjects: Project[] = projects,
+) {
   const projectsApi = {
     getAllProjects: vi.fn((_onlyMine?: boolean) =>
       of<Project[]>(structuredClone(projects)),
@@ -32,7 +35,10 @@ async function renderProjectVlans(canEdit: boolean) {
   const vlansApi = {
     getPools: vi.fn(() => of<Pool[]>([{ id: 'pool1', name: 'Main' }])),
     getPartitions: vi.fn(() =>
-      of<Partition[]>([{ id: 'part1', name: 'Blue', poolId: 'pool1' }]),
+      of<Partition[]>([
+        { id: 'part1', name: 'Blue', poolId: 'pool1' },
+        { id: 'part2', name: 'Amber', poolId: 'pool1' },
+      ]),
     ),
     assignPartition: vi.fn((_id: string) =>
       of<Project>({ id: 'p1', name: 'Range', partitionId: 'part1' }),
@@ -50,7 +56,7 @@ async function renderProjectVlans(canEdit: boolean) {
       { provide: ProjectsService, useValue: projectsApi },
       { provide: VlansService, useValue: vlansApi },
     ],
-    inputs: { projects, canEdit },
+    inputs: { projects: shownProjects, canEdit },
   });
   return { ...view, vlansApi, user: userEvent.setup() };
 }
@@ -86,5 +92,29 @@ describe('ProjectVlansComponent', () => {
       'aria-disabled',
       'true',
     );
+  });
+
+  /**
+   * Verifies: the Name and Partition headers sort the table, Partition by the assigned partition's name.
+   * Interacts with: MatSort wired to the data source, the partition sortingDataAccessor, real PartitionQuery.
+   * Data: projects Range (Blue), Zulu (Amber) and Alpha (none); pool Main with partitions Blue and Amber.
+   */
+  it('sorts the projects by name and by partition name', async () => {
+    const { user } = await renderProjectVlans(true, [
+      { id: 'p1', name: 'Range', partitionId: 'part1' },
+      { id: 'p2', name: 'Zulu', partitionId: 'part2' },
+      { id: 'p3', name: 'Alpha', partitionId: null },
+    ]);
+    const names = () =>
+      within(screen.getByRole('table'))
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => within(row).getAllByRole('cell')[0].textContent.trim());
+
+    expect(names()).toEqual(['Range', 'Zulu', 'Alpha']);
+    await user.click(screen.getByRole('button', { name: 'Name' }));
+    expect(names()).toEqual(['Alpha', 'Range', 'Zulu']);
+    await user.click(screen.getByRole('button', { name: 'Partition' }));
+    expect(names()).toEqual(['Alpha', 'Zulu', 'Range']);
   });
 });

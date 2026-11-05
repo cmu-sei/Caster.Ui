@@ -4,12 +4,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import {
+  AfterViewInit,
   Component,
   OnInit,
   ChangeDetectionStrategy,
   Input,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import {
   MatTableDataSource,
@@ -74,7 +76,7 @@ import { AsyncPipe, KeyValuePipe } from '@angular/common';
     KeyValuePipe,
   ],
 })
-export class ProjectVlansComponent implements OnInit {
+export class ProjectVlansComponent implements OnInit, AfterViewInit {
   private projectService = inject(ProjectService);
   private poolService = inject(PoolService);
   private partitionService = inject(PartitionService);
@@ -105,6 +107,17 @@ export class ProjectVlansComponent implements OnInit {
 
   displayedColumns: string[] = ['name', 'partition'];
 
+  readonly sort = viewChild(MatSort);
+
+  constructor() {
+    // The Partition column holds a select, so sort it by the assigned
+    // partition's name rather than by its id.
+    this.dataSource.sortingDataAccessor = (project, column) =>
+      column === 'partition'
+        ? (this.partitionQuery.getEntity(project.partitionId)?.name ?? '')
+        : project[column];
+  }
+
   ngOnInit(): void {
     forkJoin([
       this.projectService.loadProjects(false),
@@ -127,6 +140,10 @@ export class ProjectVlansComponent implements OnInit {
         return map;
       }),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort();
   }
 
   updatePartition(projectId: string, partitionId: string) {
