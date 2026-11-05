@@ -166,7 +166,12 @@ describe('AdminContainerComponent', () => {
     ['ManageWorkspaces', { system: [SystemPermission.ManageWorkspaces] }, []],
     ['ViewVlans', { system: [SystemPermission.ViewVlans] }, ['VLANs']],
     ['ManageVlans', { system: [SystemPermission.ManageVlans] }, []],
-    ['ViewHosts', { system: [SystemPermission.ViewHosts] }, ['Hypervisors']],
+    ['ViewHosts', { system: [SystemPermission.ViewHosts] }, []],
+    [
+      'ViewInfrastructure',
+      { system: [SystemPermission.ViewInfrastructure] },
+      ['Hypervisors'],
+    ],
     ['ManageHosts', { system: [SystemPermission.ManageHosts] }, []],
     ['ViewModules', { system: [SystemPermission.ViewModules] }, ['Modules']],
     ['ManageModules', { system: [SystemPermission.ManageModules] }, []],
@@ -199,7 +204,7 @@ describe('AdminContainerComponent', () => {
   /**
    * Verifies: a user with every View permission and ManageProjects sees all eight sections in order.
    * Interacts with: PermissionService.permissions$ and canViewGroupsAdmin (real).
-   * Data: ManageProjects plus the View permissions for workspaces, VLANs, hosts, modules, users, roles and groups.
+   * Data: ManageProjects plus the View permissions for workspaces, VLANs, infrastructure, modules, users, roles and groups.
    */
   it('lists every section for a full administrator', async () => {
     await renderContainer({
@@ -207,7 +212,7 @@ describe('AdminContainerComponent', () => {
         SystemPermission.ManageProjects,
         SystemPermission.ViewWorkspaces,
         SystemPermission.ViewVlans,
-        SystemPermission.ViewHosts,
+        SystemPermission.ViewInfrastructure,
         SystemPermission.ViewModules,
         SystemPermission.ViewUsers,
         SystemPermission.ViewRoles,
@@ -279,7 +284,7 @@ describe('AdminContainerComponent', () => {
     {
       section: 'Hypervisors',
       page: 'cas-admin-hypervisors',
-      permission: SystemPermission.ViewHosts,
+      permission: SystemPermission.ViewInfrastructure,
     },
     {
       section: 'Modules',

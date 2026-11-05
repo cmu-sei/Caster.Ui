@@ -78,7 +78,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
-        @if (permissions.includes(SystemPermission.ViewHosts)) {
+        @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoHypervisors()">
             <mat-icon
               matListItemIcon
@@ -211,7 +211,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           }
           @if (
             showStatus === hypervisorsText &&
-            permissions.includes(SystemPermission.ViewHosts)
+            permissions.includes(SystemPermission.ViewInfrastructure)
           ) {
             <cas-admin-hypervisors />
           }

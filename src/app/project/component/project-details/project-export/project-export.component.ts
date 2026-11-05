@@ -83,7 +83,7 @@ export class ProjectExportComponent implements OnInit {
   archiveTypes = Object.keys(ArchiveType);
   typeString: string;
 
-  /** A disk manifest describes the hypervisor, so it needs ViewHosts. */
+  /** A disk manifest describes the hypervisor, so it needs ViewInfrastructure. */
   canIncludeDiskManifest$: Observable<boolean>;
   diskManifest$ = new BehaviorSubject<DiskManifestPreview | null>(null);
 
@@ -98,7 +98,7 @@ export class ProjectExportComponent implements OnInit {
       includeDiskManifest: [false],
     });
     this.canIncludeDiskManifest$ = this.permissionService.hasPermission(
-      SystemPermission.ViewHosts,
+      SystemPermission.ViewInfrastructure,
     );
   }
 
