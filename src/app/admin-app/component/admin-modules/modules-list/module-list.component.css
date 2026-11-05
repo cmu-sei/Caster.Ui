@@ -94,3 +94,13 @@ table {
   white-space: nowrap;
   min-width: 190px;
 }
+
+.not-in-source {
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: x-small;
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  white-space: nowrap;
+}
