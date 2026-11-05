@@ -90,6 +90,12 @@ export class PartitionComponent implements OnInit {
   vlans$: Observable<Vlan[]>;
   otherPartitions$: Observable<Partition[]>;
 
+  get defaultTooltip(): string {
+    return this.partition?.isDefault
+      ? 'Stop using this as the Default Partition'
+      : 'Make this the Default Partition: Projects without a partition take VLANs from it';
+  }
+
   /** The VLAN count to add or remove: a whole number from 1 to 4096, else null. */
   readonly amount = signal<number | null>(null);
 

@@ -92,7 +92,7 @@ async function renderPartition(canEdit: boolean) {
 
 describe('PartitionComponent', () => {
   /**
-   * Verifies: with canEdit the partition shows Rename, the VLAN amount controls and Delete, and Set Default calls the API and says so in a snack bar.
+   * Verifies: with canEdit the partition shows Rename, the VLAN amount controls and Delete, and Set Default (its tooltip explains the Default Partition) calls the API and says so in a snack bar.
    * Interacts with: VlansService.setDefaultPartition (stub), real PartitionService.
    * Data: partition Range (not default); canEdit true.
    */
@@ -104,7 +104,11 @@ describe('PartitionComponent', () => {
     expect(screen.getByRole('button', { name: 'Remove VLANs' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Delete Range' })).toBeVisible();
     const snack = vi.spyOn(MatSnackBar.prototype, 'open');
-    await user.click(screen.getByRole('button', { name: 'Set Default' }));
+    await user.click(
+      screen.getByRole('button', {
+        name: /^Make this the Default Partition: Projects without a partition/,
+      }),
+    );
 
     expect(vlansApi.setDefaultPartition).toHaveBeenCalledWith('part1');
     expect(snack).toHaveBeenCalledWith(
@@ -297,7 +301,11 @@ describe('PartitionComponent', () => {
     expect(
       screen.queryByRole('button', { name: 'Delete Range' }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Set Default' }));
+    await user.click(
+      screen.getByRole('button', {
+        name: /^Make this the Default Partition: Projects without a partition/,
+      }),
+    );
     expect(vlansApi.setDefaultPartition).not.toHaveBeenCalled();
   });
 

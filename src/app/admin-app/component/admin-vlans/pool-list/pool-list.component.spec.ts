@@ -102,7 +102,7 @@ async function renderPoolList(
 
 describe('PoolListComponent', () => {
   /**
-   * Verifies: the table has the actions, Pool Name, Default, Partitions and VLANs In Use columns, a row per pool, and the default pool is marked.
+   * Verifies: the table has the actions, Pool Name, Default, Partitions and VLANs In Use columns with tooltips on Default, Partitions and VLANs In Use, a row per pool, and the default pool is marked.
    * Interacts with: the mat-table columns and the isDefault icon.
    * Data: pools Main (default) and Lab; canEdit true.
    */
@@ -116,6 +116,15 @@ describe('PoolListComponent', () => {
         .slice(1),
     ).toEqual(['Pool Name', 'Default', 'Partitions', 'VLANs In Use']);
     expect(poolNames()).toEqual(['Main', 'Lab']);
+    expect(
+      screen.getByRole('columnheader', { name: /^Default/ }),
+    ).toHaveAccessibleDescription('Holds the system Default Partition');
+    expect(
+      screen.getByRole('columnheader', { name: 'Partitions' }),
+    ).toHaveAccessibleDescription(/^Partitions in the Pool/);
+    expect(
+      screen.getByRole('columnheader', { name: 'VLANs In Use' }),
+    ).toHaveAccessibleDescription(/^VLANs handed out/);
     expect(
       within(poolRows()[0]).getByLabelText('Contains the Default Partition'),
     ).toBeInTheDocument();

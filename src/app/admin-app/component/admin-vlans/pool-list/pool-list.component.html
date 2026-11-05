@@ -20,6 +20,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         matSuffix
         mat-icon-button
         aria-label="Clear"
+        matTooltip="Clear"
         (click)="clearFilter()"
       >
         <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
@@ -91,7 +92,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="isDefault">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Default</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Holds the system Default Partition"
+      >
+        Default
+      </th>
       <td mat-cell *matCellDef="let pool">
         @if (pool.isDefault) {
           <mat-icon
@@ -106,7 +114,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="partitions">
-      <th mat-header-cell *matHeaderCellDef>Partitions</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        matTooltip="Partitions in the Pool, counted once the Pool is opened"
+      >
+        Partitions
+      </th>
       <td mat-cell *matCellDef="let pool">
         @if (counts().get(pool.id); as c) {
           {{ c.partitions }}
@@ -117,7 +131,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="vlans">
-      <th mat-header-cell *matHeaderCellDef>VLANs In Use</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        matTooltip="VLANs handed out / all VLANs in the Pool, counted once the Pool is opened"
+      >
+        VLANs In Use
+      </th>
       <td mat-cell *matCellDef="let pool">
         @if (counts().get(pool.id); as c) {
           {{ c.vlansInUse }} / {{ c.vlans }}

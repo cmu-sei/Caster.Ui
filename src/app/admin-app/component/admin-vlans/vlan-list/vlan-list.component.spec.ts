@@ -254,12 +254,33 @@ describe('VlanListComponent', () => {
   });
 
   /**
-   * Verifies: the column headers read ID / In Use / Reserved / Tag with a blank actions header, as on the other admin tables.
+   * Verifies: the column headers read ID / In Use / Reserved / Tag with a blank actions header, as on the other admin tables, each header and the selection menu explain themselves in a tooltip, and select-all is named.
    * Interacts with: the header row of the VLAN table.
    * Data: VLAN 100; canEdit true.
    */
   it('labels the columns like the other admin tables', async () => {
     await renderVlanList(true);
+    const headerTip = (name: string) =>
+      screen.getByRole('columnheader', { name: new RegExp(`^${name}`) });
+
+    expect(headerTip('ID')).toHaveAccessibleDescription(
+      'The VLAN number, 0–4095',
+    );
+    expect(headerTip('In Use')).toHaveAccessibleDescription(
+      'Handed out to a Terraform run; released when the run is destroyed',
+    );
+    expect(headerTip('Reserved')).toHaveAccessibleDescription(
+      'Never handed out by Caster',
+    );
+    expect(headerTip('Tag')).toHaveAccessibleDescription(
+      'A label Terraform can ask for by name',
+    );
+    expect(
+      screen.getByRole('button', { name: '0 Selected' }),
+    ).toHaveAccessibleDescription('Actions for the selected VLANs');
+    expect(
+      screen.getByRole('checkbox', { name: 'Select all VLANs' }),
+    ).toBeInTheDocument();
 
     const headers = screen
       .getAllByRole('columnheader')

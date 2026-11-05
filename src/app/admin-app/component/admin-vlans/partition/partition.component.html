@@ -9,10 +9,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       @if (partition) {
         <button
           mat-icon-button
-          [attr.aria-label]="
-            partition?.isDefault ? 'Unset Default' : 'Set Default'
-          "
-          [matTooltip]="partition?.isDefault ? 'Unset Default' : 'Set Default'"
+          [attr.aria-label]="defaultTooltip"
+          [matTooltip]="defaultTooltip"
           (click)="
             partition?.isDefault
               ? unsetDefault($event, partition.id)
