@@ -81,6 +81,32 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   font-weight: 500;
 }
 
+.source-link,
+.source-url {
+  margin-left: 8px;
+  font-weight: normal;
+  font-size: small;
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--mat-sys-primary);
+}
+
+.source-link mat-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+}
+
+.source-url {
+  opacity: 0.7;
+  font-family: monospace;
+  word-break: break-all;
+}
+
 .source-description,
 .source-status {
   font-size: small;
