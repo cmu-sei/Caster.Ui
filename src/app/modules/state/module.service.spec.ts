@@ -46,6 +46,23 @@ const boom = () => throwError(() => new Error('boom'));
 describe('ModuleService', () => {
   describe('load and loadByDesignId', () => {
     /**
+     * Verifies: load passes forceUpdate through, so the sources are re-read
+     *   even when they look unchanged.
+     * Interacts with: ModulesService.getAllModules (stub).
+     * Data: an empty module list.
+     */
+    it('load() forwards forceUpdate to the API', () => {
+      const api = {
+        getAllModules: vi.fn(() => of<Module[]>([])),
+      } satisfies ApiStub<ModulesService>;
+      const { service } = setup(api);
+
+      recordEmissions(service.load(false, true, true));
+
+      expect(api.getAllModules).toHaveBeenCalledWith(false, true, true);
+    });
+
+    /**
      * Verifies: load turns loading on immediately, asks for all modules with
      *   the given flags, upserts them with their versions and clears loading.
      * Interacts with: ModulesService.getAllModules (Subject stub); upsertMany.
@@ -62,7 +79,7 @@ describe('ModuleService', () => {
       const load$ = service.load(true, true);
       expect(query.getValue().loading).toBe(true);
       recordEmissions(load$);
-      expect(api.getAllModules).toHaveBeenCalledWith(true, true);
+      expect(api.getAllModules).toHaveBeenCalledWith(true, true, false);
 
       response$.next([
         mod({ versions: [{ id: 'v1' }, { id: 'v2' }], versionsCount: 2 }),

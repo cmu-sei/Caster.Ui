@@ -30,10 +30,11 @@ import { AdminModuleListComponent } from 'src/app/admin-app/component/admin-modu
 })
 class ModuleListStub {
   readonly modules = input<Module[]>(undefined);
+  readonly sources = input<ModuleSource[]>([]);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  readonly load = output<boolean>();
-  readonly loadModuleById = output<string>();
+  readonly syncAll = output<void>();
+  readonly sync = output<string>();
   readonly delete = output<string>();
 }
 
@@ -112,9 +113,23 @@ describe('AdminModulesComponent', () => {
   it('loads the modules into the list', async () => {
     const { list, modulesApi } = await renderModules({});
 
-    expect(modulesApi.getAllModules).toHaveBeenCalledWith(false, true);
+    expect(modulesApi.getAllModules).toHaveBeenCalledWith(false, true, false);
     expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
     expect(list.isLoading()).toBe(false);
+  });
+
+  /**
+   * Verifies: the configured sources reach the list, for its Source column and sync menu.
+   * Interacts with: ModulesService.getModuleSources (stub), the list stub's sources input.
+   * Data: sources local and gitlab.
+   */
+  it('passes the module sources to the list', async () => {
+    const { list } = await renderModules(
+      {},
+      { sources: () => of([healthy, gitlab]) },
+    );
+
+    expect(list.sources().map((s) => s.name)).toEqual(['local', 'gitlab']);
   });
 
   /**
@@ -219,7 +234,7 @@ describe('AdminModulesComponent', () => {
 
     /**
      * Verifies: when a requested sync cannot list the sources, the warning shown on page load is cleared rather than kept, no snack bar opens and no error is logged.
-     * Interacts with: the list stub's load output, ModulesService.getModuleSources (stub answering, then throwing), MatSnackBar (real); test-setup fails any console.error.
+     * Interacts with: the list stub's syncAll output, ModulesService.getModuleSources (stub answering, then throwing), MatSnackBar (real); test-setup fails any console.error.
      * Data: gitlab failed on page load; the requested sync's getModuleSources fails with a 403.
      */
     it('clears the source warning when a later source listing fails', async () => {
@@ -231,7 +246,7 @@ describe('AdminModulesComponent', () => {
       expect(screen.getAllByRole('alert')).toHaveLength(1);
 
       sources = () => throwError(() => new Error('403'));
-      list.load.emit(true);
+      list.syncAll.emit();
       fixture.detectChanges();
 
       // Read right away: whenStable() would wait out a snack bar's duration.
@@ -243,7 +258,7 @@ describe('AdminModulesComponent', () => {
 
     /**
      * Verifies: when the user asks the list to update every source, the page reloads the modules and the sources, and one snack bar with Dismiss names every failed source; the warnings follow the new answer.
-     * Interacts with: the list stub's load output, ModulesService.getAllModules and getModuleSources (stubs), MatSnackBar (real).
+     * Interacts with: the list stub's syncAll output, ModulesService.getAllModules and getModuleSources (stubs), MatSnackBar (real).
      * Data: healthy sources on page load; after the update, the sources in the row.
      */
     it.each([
@@ -268,7 +283,7 @@ describe('AdminModulesComponent', () => {
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
         answer = [healthy, ...failed];
-        list.load.emit(true);
+        list.syncAll.emit();
         fixture.detectChanges();
 
         expect(modulesApi.getAllModules).toHaveBeenCalledTimes(2);
@@ -281,8 +296,25 @@ describe('AdminModulesComponent', () => {
     );
 
     /**
+     * Verifies: syncing every source forces the API to re-read every version, unlike the page load.
+     * Interacts with: the list stub's syncAll output, ModulesService.getAllModules (stub).
+     * Data: healthy sources.
+     */
+    it('forces the update when every source is synced', async () => {
+      const { fixture, list, modulesApi } = await renderModules({});
+
+      list.syncAll.emit();
+      fixture.detectChanges();
+
+      expect(modulesApi.getAllModules.mock.calls).toStrictEqual([
+        [false, true, false],
+        [false, true, true],
+      ]);
+    });
+
+    /**
      * Verifies: a requested sync in which every source synced opens no snack bar, and clears an earlier warning.
-     * Interacts with: the list stub's load output, ModulesService.getModuleSources (stub), MatSnackBar (real).
+     * Interacts with: the list stub's syncAll output, ModulesService.getModuleSources (stub), MatSnackBar (real).
      * Data: gitlab failed on page load; healthy sources after the update.
      */
     it('opens no snack bar when a requested sync succeeds', async () => {
@@ -294,7 +326,7 @@ describe('AdminModulesComponent', () => {
       expect(screen.getAllByRole('alert')).toHaveLength(1);
 
       answer = [healthy];
-      list.load.emit(true);
+      list.syncAll.emit();
       fixture.detectChanges();
 
       // Read right away: whenStable() would wait out a snack bar's duration.
@@ -304,7 +336,7 @@ describe('AdminModulesComponent', () => {
 
     /**
      * Verifies: syncing one source or module sends its id, keeps loading on until the API answers, then reloads the modules and the sources, showing the new warnings without a snack bar.
-     * Interacts with: the list stub's loadModuleById output and isLoading input, ModulesService.createTerrraformModuleFromRepository (Subject stub), getAllModules and getModuleSources (stubs), MatSnackBar (real).
+     * Interacts with: the list stub's sync output and isLoading input, ModulesService.createTerrraformModuleFromRepository (Subject stub), getAllModules and getModuleSources (stubs), MatSnackBar (real).
      * Data: id gitlab; the sources answer gitlab failed after the sync.
      */
     it('syncs the entered source and reloads the modules', async () => {
@@ -315,7 +347,7 @@ describe('AdminModulesComponent', () => {
         { sources: () => of(answer), sync: () => request },
       );
 
-      list.loadModuleById.emit('gitlab');
+      list.sync.emit('gitlab');
       fixture.detectChanges();
 
       expect(
@@ -341,7 +373,7 @@ describe('AdminModulesComponent', () => {
 
     /**
      * Verifies: a failed sync of one source shows the API's problem title, else the error message, else a generic message, in a snack bar; loading clears, nothing is reloaded and no error escapes.
-     * Interacts with: the list stub's loadModuleById output and isLoading input, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
+     * Interacts with: the list stub's sync output and isLoading input, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
      * Data: id web; the error in the row.
      */
     it.each([
@@ -368,7 +400,7 @@ describe('AdminModulesComponent', () => {
           { sync: () => throwError(() => error) },
         );
 
-        list.loadModuleById.emit('web');
+        list.sync.emit('web');
         fixture.detectChanges();
 
         expect(await screen.findByText(message)).toBeInTheDocument();

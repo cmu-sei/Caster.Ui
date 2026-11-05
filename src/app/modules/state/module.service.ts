@@ -21,13 +21,18 @@ export class ModuleService {
   private moduleStore = inject(ModuleStore);
   private modulesService = inject(ModulesService);
 
+  /**
+   * Loads every Module. Listing them syncs the module sources first; pass
+   * forceUpdate to re-read every version even when a source looks unchanged.
+   */
   load(
     includeVersions: boolean,
     includeVerionsCount: boolean,
+    forceUpdate = false,
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     return this.modulesService
-      .getAllModules(includeVersions, includeVerionsCount)
+      .getAllModules(includeVersions, includeVerionsCount, forceUpdate)
       .pipe(
         tap((modules: Module[]) => {
           this.upsertMany(modules, includeVersions);

@@ -27,9 +27,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <cas-admin-module-list
   [modules]="modules$ | async"
+  [sources]="sources"
   [isLoading]="isLoading$ | async"
   [canEdit]="canEdit$ | async"
-  (load)="load($event)"
-  (loadModuleById)="createOrUpdateById($event)"
+  (syncAll)="syncAll()"
+  (sync)="createOrUpdateById($event)"
   (delete)="deleteModule($event)"
 />
