@@ -1,33 +1,26 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  MONACO_PASTE_COMMAND,
-  MenuPasteEditor,
   MenuPasteEnvironment,
   MenuPasteFailure,
-  MenuPasteRead,
+  MenuPasteListener,
+  describeClipboardRefusal,
   menuPasteFailureMessage,
-  readClipboardForMenuPaste,
-  registerMenuPaste,
+  watchMenuPaste,
 } from './editor-menu-paste';
 
-const refused = () =>
-  Promise.reject(
-    new DOMException('Read permission denied.', 'NotAllowedError'),
-  );
+const denied = () =>
+  new DOMException('Read permission denied.', 'NotAllowedError');
 
 function environment(
   overrides: Partial<MenuPasteEnvironment> = {},
 ): MenuPasteEnvironment {
   return {
-    isSecureContext: true,
     framed: false,
     clipboard: { readText: () => Promise.resolve('terraform') },
-    permissions: {
-      query: () => Promise.resolve({ state: 'granted' } as PermissionStatus),
-    },
+    permissions: permission('granted'),
     ...overrides,
   };
 }
@@ -38,63 +31,54 @@ function permission(
   return { query: () => Promise.resolve({ state } as PermissionStatus) };
 }
 
-describe('readClipboardForMenuPaste', () => {
-  /**
-   * Verifies: a readable clipboard returns its text.
-   * Interacts with: clipboard.readText (fake).
-   * Data: "terraform" on the clipboard.
-   */
-  it('returns the clipboard text when the browser allows it', async () => {
-    expect(await readClipboardForMenuPaste(environment())).toEqual({
-      text: 'terraform',
-    });
-  });
+/** A clipboard whose readText the browser refuses, as with a policy block. */
+function refusingClipboard() {
+  return { readText: () => Promise.reject(denied()) };
+}
 
+const watches: { dispose(): void }[] = [];
+
+function watch(onFailure: MenuPasteListener, env: MenuPasteEnvironment) {
+  const w = watchMenuPaste(onFailure, env);
+  watches.push(w);
+  return w;
+}
+
+afterEach(() => {
+  watches.splice(0).forEach((w) => w.dispose());
+});
+
+describe('describeClipboardRefusal', () => {
   /**
    * Verifies: each way the browser refuses is told apart, so the message can say why.
-   * Interacts with: clipboard.readText (rejects), permissions.query, the frame's permissions policy.
+   * Interacts with: permissions.query, the frame's permissions policy.
    * Data: one environment per cause.
    */
   it.each<[MenuPasteFailure, Partial<MenuPasteEnvironment>]>([
-    ['insecure', { isSecureContext: false }],
-    ['unsupported', { clipboard: undefined }],
-    [
-      'frame',
-      {
-        framed: true,
-        frameAllowsClipboardRead: false,
-        clipboard: { readText: refused },
-      },
-    ],
-    [
-      'denied',
-      { clipboard: { readText: refused }, permissions: permission('denied') },
-    ],
-    [
-      'dismissed',
-      { clipboard: { readText: refused }, permissions: permission('prompt') },
-    ],
-    [
-      'other',
-      { clipboard: { readText: refused }, permissions: permission('granted') },
-    ],
+    ['frame', { framed: true, frameAllowsClipboardRead: false }],
+    ['denied', { permissions: permission('denied') }],
+    ['dismissed', { permissions: permission('prompt') }],
+    ['other', { permissions: permission('granted') }],
   ])('reports %s', async (failure, overrides) => {
-    const read = await readClipboardForMenuPaste(environment(overrides));
+    const read = await describeClipboardRefusal(
+      denied(),
+      environment(overrides),
+    );
 
-    expect(read).toMatchObject({ failure });
+    expect(read).toEqual({ failure, detail: 'Read permission denied.' });
   });
 
   /**
    * Verifies: a framed page whose policy allows clipboard reading is judged by its permission, not as a frame problem.
-   * Interacts with: clipboard.readText (rejects), permissions.query.
+   * Interacts with: permissions.query.
    * Data: framed, policy allows, permission denied.
    */
   it('blames the permission, not the frame, when the frame allows clipboard reading', async () => {
-    const read = await readClipboardForMenuPaste(
+    const read = await describeClipboardRefusal(
+      denied(),
       environment({
         framed: true,
         frameAllowsClipboardRead: true,
-        clipboard: { readText: refused },
         permissions: permission('denied'),
       }),
     );
@@ -104,13 +88,13 @@ describe('readClipboardForMenuPaste', () => {
 
   /**
    * Verifies: a browser that refuses to query clipboard-read (Firefox) is reported as other, with the browser's reason.
-   * Interacts with: clipboard.readText (rejects), permissions.query (rejects).
+   * Interacts with: permissions.query (rejects).
    * Data: NotAllowedError "Read permission denied.".
    */
   it('falls back to the browser reason when the permission cannot be queried', async () => {
-    const read = await readClipboardForMenuPaste(
+    const read = await describeClipboardRefusal(
+      denied(),
       environment({
-        clipboard: { readText: refused },
         permissions: {
           query: () =>
             Promise.reject(new TypeError('clipboard-read is not a permission')),
@@ -132,8 +116,6 @@ describe('menuPasteFailureMessage', () => {
    * Data: each failure.
    */
   it.each<[MenuPasteFailure, RegExp]>([
-    ['insecure', /served over HTTPS/],
-    ['unsupported', /doesn't let web pages read the clipboard/],
     ['frame', /page that embeds Caster/],
     ['denied', /site's settings or by your organization's policy/],
     ['dismissed', /permission prompt was dismissed/],
@@ -149,147 +131,117 @@ describe('menuPasteFailureMessage', () => {
   });
 });
 
-describe('registerMenuPaste', () => {
-  function editor(focused = true) {
-    return {
-      hasTextFocus: () => focused,
-      trigger: vi.fn<MenuPasteEditor['trigger']>(),
-      focus: vi.fn<MenuPasteEditor['focus']>(),
-    } satisfies MenuPasteEditor;
-  }
-
-  function monaco(editors: MenuPasteEditor[] = []) {
-    let handler: (...args: unknown[]) => unknown = () => undefined;
-    const dispose = vi.fn();
-    const api = {
-      editor: {
-        registerCommand: vi.fn(
-          (_id: string, h: (...args: unknown[]) => unknown) => {
-            handler = h;
-            return { dispose };
-          },
-        ),
-        getEditors: () => editors,
-      },
-    };
-    return { api, run: () => handler(), dispose };
-  }
-
+describe('watchMenuPaste', () => {
   /**
-   * Verifies: the command takes over Monaco's Paste id, and disposing it gives the id back.
-   * Interacts with: monaco.editor.registerCommand (fake).
-   * Data: none.
+   * Verifies: a readable clipboard reads through the wrap unchanged and reports nothing.
+   * Interacts with: clipboard.readText (fake).
+   * Data: "terraform" on the clipboard.
    */
-  it("takes over Monaco's Paste command until disposed", () => {
-    const { api, dispose } = monaco();
-
-    const registration = registerMenuPaste(
-      api,
-      () => null,
-      vi.fn(),
-      async () => ({ text: '' }),
-    );
-    registration.dispose();
-
-    expect(api.editor.registerCommand).toHaveBeenCalledWith(
-      MONACO_PASTE_COMMAND,
-      expect.any(Function),
-    );
-    expect(dispose).toHaveBeenCalled();
-  });
-
-  /**
-   * Verifies: a readable clipboard is pasted into the focused editor through Monaco's paste handler.
-   * Interacts with: editor.trigger, editor.focus (fakes).
-   * Data: "terraform"; one focused and one unfocused editor.
-   */
-  it('pastes into the focused editor', async () => {
-    const focused = editor(true);
-    const other = editor(false);
-    const { api, run } = monaco([other, focused]);
+  it('passes a successful read through untouched', async () => {
+    const env = environment();
     const onFailure = vi.fn();
-    registerMenuPaste(
-      api,
-      () => other,
-      onFailure,
-      async () => ({ text: 'terraform' }),
-    );
+    watch(onFailure, env);
 
-    await run();
-
-    expect(focused.trigger).toHaveBeenCalledWith('keyboard', 'paste', {
-      text: 'terraform',
-    });
-    expect(other.trigger).not.toHaveBeenCalled();
+    expect(await env.clipboard!.readText()).toBe('terraform');
     expect(onFailure).not.toHaveBeenCalled();
   });
 
   /**
-   * Verifies: with no editor focused, the component's own editor is used.
-   * Interacts with: the fallback.
-   * Data: "x"; no focused editor.
+   * Verifies: a refused read says why and still fails the same way, so Monaco's Paste behaves as before.
+   * Interacts with: clipboard.readText (refuses), permissions.query.
+   * Data: permission denied.
    */
-  it("falls back to the component's editor when none has focus", async () => {
-    const own = editor(false);
-    const { api, run } = monaco([own]);
-    registerMenuPaste(
-      api,
-      () => own,
-      vi.fn(),
-      async () => ({ text: 'x' }),
-    );
-
-    await run();
-
-    expect(own.trigger).toHaveBeenCalledWith('keyboard', 'paste', {
-      text: 'x',
+  it('says why a read was refused, then rethrows the same error', async () => {
+    const env = environment({
+      clipboard: refusingClipboard(),
+      permissions: permission('denied'),
     });
-  });
+    const onFailure = vi.fn<MenuPasteListener>();
+    watch(onFailure, env);
 
-  /**
-   * Verifies: a refused read pastes nothing and reports the reason.
-   * Interacts with: the onFailure callback.
-   * Data: failure denied.
-   */
-  it('reports why instead of pasting when the browser refuses', async () => {
-    const focused = editor(true);
-    const { api, run } = monaco([focused]);
-    const onFailure = vi.fn<(message: string, read: MenuPasteRead) => void>();
-    registerMenuPaste(
-      api,
-      () => focused,
-      onFailure,
-      async () => ({ failure: 'denied' }),
-    );
-
-    await run();
-
-    expect(focused.trigger).not.toHaveBeenCalled();
+    await expect(env.clipboard!.readText()).rejects.toMatchObject({
+      name: 'NotAllowedError',
+    });
     expect(onFailure).toHaveBeenCalledWith(
       expect.stringContaining("organization's policy"),
-      { failure: 'denied' },
+      { failure: 'denied', detail: 'Read permission denied.' },
     );
   });
 
   /**
-   * Verifies: an empty clipboard pastes nothing and reports nothing.
-   * Interacts with: editor.trigger, the onFailure callback.
-   * Data: "".
+   * Verifies: a cause is reported once while the wrap is in place, since a block refuses every time.
+   * Interacts with: clipboard.readText (refuses twice).
+   * Data: permission denied.
    */
-  it('does nothing with an empty clipboard', async () => {
-    const focused = editor(true);
-    const { api, run } = monaco([focused]);
+  it('reports each cause once', async () => {
+    const env = environment({
+      clipboard: refusingClipboard(),
+      permissions: permission('denied'),
+    });
     const onFailure = vi.fn();
-    registerMenuPaste(
-      api,
-      () => focused,
-      onFailure,
-      async () => ({ text: '' }),
+    watch(onFailure, env);
+
+    await env.clipboard!.readText().catch(() => undefined);
+    await env.clipboard!.readText().catch(() => undefined);
+
+    expect(onFailure).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * Verifies: with two editors open, closing one keeps the wrap for the other, and closing the last restores the browser's readText.
+   * Interacts with: two watches over one clipboard.
+   * Data: permission prompt dismissed.
+   */
+  it('keeps the wrap until the last editor closes', async () => {
+    const clipboard = refusingClipboard();
+    const original = clipboard.readText;
+    const env = environment({ clipboard, permissions: permission('prompt') });
+    const first = vi.fn();
+    const second = vi.fn();
+    const a = watch(first, env);
+    const b = watch(second, env);
+
+    b.dispose();
+    await clipboard.readText().catch(() => undefined);
+    expect(first).toHaveBeenCalledWith(
+      expect.stringContaining('permission prompt was dismissed'),
+      expect.anything(),
     );
+    expect(second).not.toHaveBeenCalled();
 
-    await run();
+    a.dispose();
+    expect(clipboard.readText).toBe(original);
+  });
 
-    expect(focused.trigger).not.toHaveBeenCalled();
-    expect(onFailure).not.toHaveBeenCalled();
+  /**
+   * Verifies: the most recently opened editor shows the message.
+   * Interacts with: two watches over one clipboard.
+   * Data: permission denied.
+   */
+  it('reports to the most recently opened editor', async () => {
+    const env = environment({
+      clipboard: refusingClipboard(),
+      permissions: permission('denied'),
+    });
+    const older = vi.fn();
+    const newer = vi.fn();
+    watch(older, env);
+    watch(newer, env);
+
+    await env.clipboard!.readText().catch(() => undefined);
+
+    expect(newer).toHaveBeenCalledTimes(1);
+    expect(older).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies: without a clipboard API (plain http) there is nothing to wrap, and disposing is harmless.
+   * Interacts with: watchMenuPaste.
+   * Data: no clipboard.
+   */
+  it('does nothing without a clipboard API', () => {
+    const w = watch(vi.fn(), environment({ clipboard: undefined }));
+
+    expect(() => w.dispose()).not.toThrow();
   });
 });

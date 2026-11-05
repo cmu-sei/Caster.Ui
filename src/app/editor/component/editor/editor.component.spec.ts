@@ -425,53 +425,41 @@ describe('EditorComponent', () => {
   );
 
   /**
-   * Verifies: the editor takes over Monaco's right-click Paste, says why in a snack bar when the clipboard can't be read, and hands the command back when it is destroyed.
-   * Interacts with: editorInit, monaco.editor.registerCommand (fake), MatSnackBar.open (spy), the browser clipboard (refuses).
+   * Verifies: while the editor is open, a clipboard read the browser refuses (Monaco's right-click Paste) says why in a snack bar and still fails as before; destroying the editor restores the browser's readText.
+   * Interacts with: editorInit, navigator.clipboard.readText (refuses), MatSnackBar.open (spy).
    * Data: main.tf locked by the current user u1; clipboard read refused.
    */
-  it('explains a right-click Paste the browser refuses, and gives the command back on destroy', async () => {
+  it('explains a clipboard read the browser refuses, and stops watching on destroy', async () => {
     const { editor } = fakeMonaco();
-    const dispose = vi.fn();
-    let paste: () => Promise<unknown> = async () => undefined;
-    (window as any).monaco.editor.registerCommand = vi.fn(
-      (_id: string, handler: () => Promise<unknown>) => {
-        paste = handler;
-        return { dispose };
-      },
+    const refuse = () =>
+      Promise.reject(
+        new DOMException('Read permission denied.', 'NotAllowedError'),
+      );
+    const fakeClipboard = { readText: refuse };
+    const { fixture } = await renderEditor(
+      { canEdit: true },
+      { lockedById: 'u1' },
     );
+    // After rendering, which installs its own clipboard stub.
     const clipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
-      value: {
-        readText: () =>
-          Promise.reject(
-            new DOMException('Read permission denied.', 'NotAllowedError'),
-          ),
-      },
+      value: fakeClipboard,
     });
     try {
-      const { fixture } = await renderEditor(
-        { canEdit: true },
-        { lockedById: 'u1' },
-      );
       const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
       monacoStub(fixture).onInit.emit(editor);
 
-      expect(
-        (window as any).monaco.editor.registerCommand,
-      ).toHaveBeenCalledWith(
-        'editor.action.clipboardPasteAction',
-        expect.any(Function),
-      );
-
-      await paste();
+      await expect(navigator.clipboard.readText()).rejects.toMatchObject({
+        name: 'NotAllowedError',
+      });
       expect(open).toHaveBeenCalledWith(
         expect.stringContaining('Ctrl+V (⌘V on a Mac)'),
         'Dismiss',
       );
 
       fixture.destroy();
-      expect(dispose).toHaveBeenCalled();
+      expect(fakeClipboard.readText).toBe(refuse);
     } finally {
       if (clipboard) {
         Object.defineProperty(navigator, 'clipboard', clipboard);

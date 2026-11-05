@@ -29,7 +29,7 @@ import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
-import { registerMenuPaste } from '../../editor-menu-paste';
+import { watchMenuPaste } from '../../editor-menu-paste';
 import {
   FileQuery,
   FileService,
@@ -276,15 +276,10 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     }
     // Right-click Paste fails silently when the browser blocks clipboard
     // reading; say why instead.
-    const monaco = (window as any).monaco;
-    if (typeof monaco?.editor?.registerCommand === 'function') {
-      this.menuPaste?.dispose();
-      this.menuPaste = registerMenuPaste(
-        monaco,
-        () => this.ngxEditor,
-        (message) => this.snackBar.open(message, 'Dismiss'),
-      );
-    }
+    this.menuPaste?.dispose();
+    this.menuPaste = watchMenuPaste((message) =>
+      this.snackBar.open(message, 'Dismiss'),
+    );
     this.updateModelLanguage();
     // setValue (isFlush) re-detects the line ending from the new content
     editor.onDidChangeModelContent((e: any) => {

@@ -8,23 +8,23 @@
  * appears to do nothing. Keyboard paste is unaffected: the browser hands the
  * text to the page itself, with no permission needed.
  *
- * This replaces the command behind that menu item with one that does the same
- * read, and on failure says why, so the user knows what to do instead.
+ * Monaco has no hook for this, and its Paste command can't be replaced without
+ * losing what it saves at copy time (whole-line and multi-cursor copies). So
+ * this watches the read instead: while an editor is open, a refused
+ * readText() says why, then fails exactly as before, and Monaco's Paste is
+ * left untouched.
  */
 
-/** Monaco's id for its Paste action, used by the editor's context menu. */
-export const MONACO_PASTE_COMMAND = 'editor.action.clipboardPasteAction';
-
 /** Why the browser would not let Caster read the clipboard. */
-export type MenuPasteFailure =
-  'insecure' | 'unsupported' | 'frame' | 'denied' | 'dismissed' | 'other';
+export type MenuPasteFailure = 'frame' | 'denied' | 'dismissed' | 'other';
 
-export type MenuPasteRead =
-  { text: string } | { failure: MenuPasteFailure; detail?: string };
+export interface MenuPasteRefusal {
+  failure: MenuPasteFailure;
+  detail?: string;
+}
 
 /** The parts of the browser the read depends on, so tests can supply their own. */
 export interface MenuPasteEnvironment {
-  isSecureContext: boolean;
   /** True when Caster is in a frame, e.g. embedded in another app's page. */
   framed: boolean;
   clipboard?: Pick<Clipboard, 'readText'>;
@@ -41,7 +41,6 @@ export function browserMenuPasteEnvironment(): MenuPasteEnvironment {
   ).featurePolicy;
 
   return {
-    isSecureContext: window.isSecureContext,
     framed: window.top !== window.self,
     clipboard: navigator.clipboard,
     permissions: navigator.permissions,
@@ -49,61 +48,41 @@ export function browserMenuPasteEnvironment(): MenuPasteEnvironment {
   };
 }
 
-/** Reads the clipboard the way Monaco does, and works out why when it cannot. */
-export async function readClipboardForMenuPaste(
-  env: MenuPasteEnvironment = browserMenuPasteEnvironment(),
-): Promise<MenuPasteRead> {
-  // Over plain http the clipboard API does not exist at all.
-  if (!env.isSecureContext) {
-    return { failure: 'insecure' };
+/** Works out why the browser refused a clipboard read. */
+export async function describeClipboardRefusal(
+  error: unknown,
+  env: MenuPasteEnvironment,
+): Promise<MenuPasteRefusal> {
+  // A DOMException is not always an instanceof Error, so read its message directly.
+  const message = (error as { message?: unknown } | null)?.message;
+  const detail = typeof message === 'string' ? message : String(error);
+
+  if (env.framed && env.frameAllowsClipboardRead === false) {
+    return { failure: 'frame', detail };
   }
 
-  if (typeof env.clipboard?.readText !== 'function') {
-    return { failure: 'unsupported' };
+  // Firefox refuses to query clipboard-read, which reads as unknown here.
+  const state = await env.permissions
+    ?.query({ name: 'clipboard-read' as PermissionName })
+    .then(
+      (status) => status.state,
+      () => undefined,
+    );
+
+  if (state === 'denied') {
+    return { failure: 'denied', detail };
   }
-
-  try {
-    return { text: await env.clipboard.readText() };
-  } catch (error) {
-    // A DOMException is not always an instanceof Error, so read its message directly.
-    const message = (error as { message?: unknown } | null)?.message;
-    const detail = typeof message === 'string' ? message : String(error);
-
-    if (env.framed && env.frameAllowsClipboardRead === false) {
-      return { failure: 'frame', detail };
-    }
-
-    // Firefox refuses to query clipboard-read, which reads as unknown here.
-    const state = await env.permissions
-      ?.query({ name: 'clipboard-read' as PermissionName })
-      .then(
-        (status) => status.state,
-        () => undefined,
-      );
-
-    if (state === 'denied') {
-      return { failure: 'denied', detail };
-    }
-
-    if (state === 'prompt') {
-      return { failure: 'dismissed', detail };
-    }
-
-    return { failure: 'other', detail };
+  if (state === 'prompt') {
+    return { failure: 'dismissed', detail };
   }
+  return { failure: 'other', detail };
 }
 
 const USE_KEYBOARD = 'Use Ctrl+V (⌘V on a Mac) to paste instead.';
 
 /** What to tell the user, in the order they would act on it. */
-export function menuPasteFailureMessage(
-  read: Extract<MenuPasteRead, { failure: MenuPasteFailure }>,
-): string {
+export function menuPasteFailureMessage(read: MenuPasteRefusal): string {
   switch (read.failure) {
-    case 'insecure':
-      return `Paste from the menu needs Caster to be served over HTTPS. ${USE_KEYBOARD}`;
-    case 'unsupported':
-      return `This browser doesn't let web pages read the clipboard, so Paste from the menu can't work. ${USE_KEYBOARD}`;
     case 'frame':
       return `The page that embeds Caster doesn't allow it to read the clipboard. ${USE_KEYBOARD}`;
     case 'denied':
@@ -115,56 +94,88 @@ export function menuPasteFailureMessage(
   }
 }
 
-/** The editor surface the command needs: Monaco's ICodeEditor, narrowed for tests. */
-export interface MenuPasteEditor {
-  hasTextFocus(): boolean;
-  trigger(source: string, handlerId: string, payload: unknown): void;
-  focus(): void;
-}
+export type MenuPasteListener = (
+  message: string,
+  read: MenuPasteRefusal,
+) => void;
 
-/** The Monaco API surface the command needs: monaco.editor, narrowed for tests. */
-export interface MenuPasteMonaco {
-  editor: {
-    registerCommand(
-      id: string,
-      handler: (...args: unknown[]) => unknown,
-    ): { dispose(): void };
-    getEditors?(): MenuPasteEditor[];
+/**
+ * One wrap for every open editor: the first watch installs it, and closing the
+ * last restores the browser's own readText. Each cause is reported once while
+ * the wrap is in place, since a blocked clipboard refuses every time.
+ */
+let wrap: {
+  listeners: MenuPasteListener[];
+  reported: Set<MenuPasteFailure>;
+  restore(): void;
+} | null = null;
+
+function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
+  const clipboard = env.clipboard!;
+  const own = Object.getOwnPropertyDescriptor(clipboard, 'readText');
+  const original = clipboard.readText;
+  const state: NonNullable<typeof wrap> = {
+    listeners: [],
+    reported: new Set(),
+    restore: () => {
+      if (own) {
+        Object.defineProperty(clipboard, 'readText', own);
+      } else {
+        delete (clipboard as { readText?: unknown }).readText;
+      }
+    },
   };
+
+  Object.defineProperty(clipboard, 'readText', {
+    configurable: true,
+    writable: true,
+    value: async () => {
+      try {
+        return await original.call(clipboard);
+      } catch (error) {
+        const read = await describeClipboardRefusal(error, env);
+        const listener = state.listeners[state.listeners.length - 1];
+        if (listener && !state.reported.has(read.failure)) {
+          state.reported.add(read.failure);
+          listener(menuPasteFailureMessage(read), read);
+        }
+        throw error;
+      }
+    },
+  });
+
+  return state;
 }
 
 /**
- * Takes over Monaco's Paste command. The latest registration of a command id
- * wins, and disposing it restores Monaco's own. Pastes into whichever editor
- * has text focus, or `fallback` when none does.
+ * Says why a clipboard read failed while the returned watch is open; the most
+ * recently opened editor shows the message. Does nothing where the browser has
+ * no clipboard API, as over plain http.
  */
-export function registerMenuPaste(
-  monacoApi: MenuPasteMonaco,
-  fallback: () => MenuPasteEditor | null | undefined,
-  onFailure: (message: string, read: MenuPasteRead) => void,
-  read: () => Promise<MenuPasteRead> = () => readClipboardForMenuPaste(),
+export function watchMenuPaste(
+  onFailure: MenuPasteListener,
+  env: MenuPasteEnvironment = browserMenuPasteEnvironment(),
 ): { dispose(): void } {
-  return monacoApi.editor.registerCommand(MONACO_PASTE_COMMAND, async () => {
-    const editor =
-      monacoApi.editor
-        .getEditors?.()
-        .find((candidate) => candidate.hasTextFocus()) ?? fallback();
+  if (typeof env.clipboard?.readText !== 'function') {
+    return { dispose: () => undefined };
+  }
 
-    if (!editor) {
-      return;
-    }
+  wrap ??= install(env);
+  const state = wrap;
+  state.listeners.push(onFailure);
 
-    const result = await read();
-
-    if ('text' in result) {
-      if (result.text) {
-        // The same handler Monaco's own paste ends in.
-        editor.trigger('keyboard', 'paste', { text: result.text });
+  let disposed = false;
+  return {
+    dispose: () => {
+      if (disposed) {
+        return;
       }
-      editor.focus();
-      return;
-    }
-
-    onFailure(menuPasteFailureMessage(result), result);
-  });
+      disposed = true;
+      state.listeners.splice(state.listeners.indexOf(onFailure), 1);
+      if (state.listeners.length === 0 && wrap === state) {
+        state.restore();
+        wrap = null;
+      }
+    },
+  };
 }
