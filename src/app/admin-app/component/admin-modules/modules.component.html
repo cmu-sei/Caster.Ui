@@ -9,10 +9,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <span>No module source is configured, so no Modules can be synced.</span>
   </div>
 }
-@for (source of failedSources; track source.name) {
+@for (source of shownFailures; track source.name) {
   <div class="source-warning" role="alert">
     <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
-    <span>
+    <span class="source-message">
       Module source <strong>{{ source.name }}</strong> failed to sync.
       @if (source.lastSuccess) {
         Showing its Modules from the last successful sync,
@@ -22,6 +22,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
       <span class="source-error">{{ source.error }}</span>
     </span>
+    <button
+      mat-icon-button
+      class="dismiss-button"
+      (click)="dismissFailure(source)"
+      [attr.aria-label]="'Dismiss the ' + source.name + ' warning'"
+      matTooltip="Dismiss"
+    >
+      <mat-icon class="mdi-18px" fontIcon="mdi-close" />
+    </button>
   </div>
 }
 
