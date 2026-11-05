@@ -44,6 +44,7 @@ async function renderPartition(canEdit: boolean) {
   const vlansApi = {
     setDefaultPartition: vi.fn((_id: string) => of<unknown>(null)),
     addVlansToPartition: vi.fn((_id: string) => of<Vlan[]>([])),
+    removeVlansFromPartition: vi.fn((_id: string) => of<Vlan[]>([])),
     partialEditPartition: vi.fn((id: string, command: { name?: string }) =>
       of<Partition>({ ...partition, id, name: command.name }),
     ),
@@ -136,21 +137,81 @@ describe('PartitionComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, Add VLANs sends the typed amount for this partition.
+   * Verifies: with canEdit, Add VLANs sends the typed amount as a number for this partition and then clears the field.
    * Interacts with: VlansService.addVlansToPartition (stub), real VlanService.
    * Data: amount 5; canEdit true.
    */
   it('adds the typed number of VLANs when canEdit is true', async () => {
     const { vlansApi, user } = await renderPartition(true);
 
-    const amount = screen.getByRole('spinbutton');
-    await user.clear(amount);
+    const amount = screen.getByRole('spinbutton', {
+      name: 'Number of VLANs to add or remove',
+    });
     await user.type(amount, '5');
     await user.click(screen.getByRole('button', { name: 'Add VLANs' }));
 
     expect(vlansApi.addVlansToPartition).toHaveBeenCalledWith('part1', {
-      vlans: '5',
+      vlans: 5,
     });
+    expect(amount).toHaveValue(null);
+    expect(screen.getByRole('button', { name: 'Add VLANs' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: Remove VLANs sends the typed amount as a number for this partition.
+   * Interacts with: VlansService.removeVlansFromPartition (stub), real VlanService.
+   * Data: amount 3; canEdit true.
+   */
+  it('removes the typed number of VLANs', async () => {
+    const { vlansApi, user } = await renderPartition(true);
+
+    await user.type(screen.getByRole('spinbutton'), '3');
+    await user.click(screen.getByRole('button', { name: 'Remove VLANs' }));
+
+    expect(vlansApi.removeVlansFromPartition).toHaveBeenCalledWith('part1', {
+      vlans: 3,
+    });
+  });
+
+  /**
+   * Verifies: Add and Remove VLANs stay disabled for a blank, zero, negative, fractional or too large amount, so nothing is sent.
+   * Interacts with: setAmount() and the [disabled]="!amount()" bindings.
+   * Data: amounts "", 0, -2, 1.5 and 5000; canEdit true.
+   */
+  it.each(['', '0', '-2', '1.5', '5000'])(
+    'refuses the amount "%s"',
+    async (typed) => {
+      const { vlansApi, user } = await renderPartition(true);
+      const amount = screen.getByRole('spinbutton');
+
+      if (typed) {
+        await user.type(amount, typed);
+      }
+      expect(screen.getByRole('button', { name: 'Add VLANs' })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Remove VLANs' }),
+      ).toBeDisabled();
+      expect(vlansApi.addVlansToPartition).not.toHaveBeenCalled();
+    },
+  );
+
+  /**
+   * Verifies: typing in the amount field (including space and Enter) and clicking it or the action area around the disabled buttons leave the panel closed.
+   * Interacts with: the stopPropagation on the header's action area, MatExpansionPanelHeader's click and keydown toggles.
+   * Data: partition Range; canEdit true; keys "2", space, Enter.
+   */
+  it('keeps the panel closed while the amount is used', async () => {
+    const { user } = await renderPartition(true);
+    const header = screen.getByRole('button', { expanded: false });
+    const amount = screen.getByRole('spinbutton');
+
+    await user.click(amount);
+    await user.type(amount, '2 {Enter}');
+    await user.clear(amount);
+    // A disabled button passes the click to its parent, the action area.
+    await user.click(amount.closest('.action-buttons') as HTMLElement);
+
+    expect(header).toHaveAttribute('aria-expanded', 'false');
   });
 
   /**

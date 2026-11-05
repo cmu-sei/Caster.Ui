@@ -68,7 +68,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
     </mat-panel-description>
     @if (partition && canEdit()) {
-      <div class="action-buttons">
+      <!-- Clicks and keys here must not toggle the panel, even on a disabled button. -->
+      <div
+        class="action-buttons"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+      >
         <mat-form-field
           class="vlan-amount"
           subscriptSizing="dynamic"
@@ -78,9 +83,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             #vlanAmount
             type="number"
             matInput
-            [max]="4096"
-            value="0"
-            (click)="$event.stopPropagation()"
+            min="1"
+            max="4096"
+            step="1"
+            aria-label="Number of VLANs to add or remove"
+            (input)="setAmount(vlanAmount.value)"
           />
         </mat-form-field>
         <button
@@ -88,7 +95,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           color="primary"
           aria-label="Remove VLANs"
           matTooltip="Remove VLANs"
-          (click)="removeVlans($event, vlanAmount.value)"
+          [disabled]="!amount()"
+          (click)="removeVlans($event, vlanAmount)"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-minus-circle" />
         </button>
@@ -97,7 +105,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           color="primary"
           aria-label="Add VLANs"
           matTooltip="Add VLANs"
-          (click)="addVlans($event, vlanAmount.value)"
+          [disabled]="!amount()"
+          (click)="addVlans($event, vlanAmount)"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
         </button>

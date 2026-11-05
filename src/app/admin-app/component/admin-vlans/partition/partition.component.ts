@@ -10,6 +10,7 @@ import {
   Input,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -95,6 +96,9 @@ export class PartitionComponent implements OnInit {
   vlans$: Observable<Vlan[]>;
   otherPartitions$: Observable<Partition[]>;
 
+  /** The VLAN count to add or remove: a whole number from 1 to 4096, else null. */
+  readonly amount = signal<number | null>(null);
+
   ngOnInit(): void {}
 
   delete($event) {
@@ -134,14 +138,40 @@ export class PartitionComponent implements OnInit {
     });
   }
 
-  addVlans($event, vlans) {
-    $event.stopPropagation();
-    this.vlanService.addToPartition(this.partition.id, vlans).subscribe();
+  setAmount(value: string) {
+    const amount = value.trim() === '' ? NaN : Number(value);
+    this.amount.set(
+      Number.isInteger(amount) && amount >= 1 && amount <= 4096
+        ? amount
+        : null,
+    );
   }
 
-  removeVlans($event, vlans) {
+  addVlans($event: Event, input: HTMLInputElement) {
     $event.stopPropagation();
-    this.vlanService.removeFromPartition(this.partition.id, vlans).subscribe();
+    const amount = this.amount();
+    if (!amount) {
+      return;
+    }
+    this.vlanService
+      .addToPartition(this.partition.id, amount)
+      .subscribe(() => this.clearAmount(input));
+  }
+
+  removeVlans($event: Event, input: HTMLInputElement) {
+    $event.stopPropagation();
+    const amount = this.amount();
+    if (!amount) {
+      return;
+    }
+    this.vlanService
+      .removeFromPartition(this.partition.id, amount)
+      .subscribe(() => this.clearAmount(input));
+  }
+
+  private clearAmount(input: HTMLInputElement) {
+    input.value = '';
+    this.amount.set(null);
   }
 
   unsetDefault($event, id: string) {
