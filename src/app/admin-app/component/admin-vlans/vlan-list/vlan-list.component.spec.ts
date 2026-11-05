@@ -179,4 +179,35 @@ describe('VlanListComponent', () => {
     );
     expect(cell).toHaveAttribute('colspan', '4');
   });
+
+  /**
+   * Verifies: the ID header sorts the VLANs, and the search field (labelled Search, as on the group member lists) filters them and clears.
+   * Interacts with: MatSort on the data source, filterControl (debounced 500 ms) and filterPredicate, Clear.
+   * Data: VLANs 100 (tag web) and 200 (tag db); canEdit false; search "db".
+   */
+  it('sorts by ID and filters by tag', async () => {
+    await renderVlanList(false, [
+      vlans[0],
+      { ...vlans[0], id: 'v2', vlanId: 200, tag: 'db' },
+    ]);
+    const user = userEvent.setup();
+    const ids = () =>
+      screen
+        .getAllByRole('row')
+        .slice(1)
+        .map((r) => within(r).getAllByRole('cell')[0].textContent.trim());
+
+    expect(ids()).toEqual(['100', '200']);
+    await user.click(screen.getByRole('button', { name: 'ID' }));
+    await user.click(screen.getByRole('button', { name: 'ID' }));
+    expect(ids()).toEqual(['200', '100']);
+
+    await user.type(screen.getByRole('textbox', { name: 'Search' }), 'db');
+    await vi.waitFor(() => expect(ids()).toEqual(['200']), { timeout: 2000 });
+
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    await vi.waitFor(() => expect(ids()).toEqual(['200', '100']), {
+      timeout: 2000,
+    });
+  });
 });

@@ -9,16 +9,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   >
     <mat-label>Search</mat-label>
     <mat-icon matPrefix svgIcon="ic_magnify_search" />
-    <input
-      matInput
-      [formControl]="filterControl"
-      placeholder="Search"
-      #input
-      autocomplete="off"
-    />
+    <input matInput [formControl]="filterControl" #input autocomplete="off" />
     @if (input.value) {
       <button
-        color="primary"
         matSuffix
         mat-icon-button
         aria-label="Clear"
