@@ -15,7 +15,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div class="d-flex flex-row justify-content-start align-items-center">
           <mat-icon class="mdi-18px" fontIcon="mdi-server-network"></mat-icon>
           <strong>INFRASTRUCTURE</strong>
-          @if (connection$ | async; as connection) {
+          <!-- With several connections the dropdown below names the one shown. -->
+          @if ((connections$ | async)?.length <= 1 && (connection$ | async); as connection) {
             <span class="connection-name">{{ connectionLabel(connection) }}</span>
           }
         </div>
