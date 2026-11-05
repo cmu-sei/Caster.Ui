@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Component, computed, inject, input, output } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
+import { MatIconAnchor, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import {
   MatExpansionPanel,
@@ -10,7 +10,9 @@ import {
   MatExpansionPanelTitle,
 } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltip } from '@angular/material/tooltip';
+import { ClipboardModule } from 'ngx-clipboard';
 import { ModuleSource } from 'src/app/generated/caster-api';
 import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-project-dialog.component';
 import {
@@ -41,6 +43,9 @@ export interface SourceStatus {
     MatExpansionPanelTitle,
     MatIcon,
     MatIconButton,
+    MatIconAnchor,
+    ClipboardModule,
+    MatProgressSpinner,
     MatTooltip,
   ],
 })
@@ -51,7 +56,8 @@ export class ModuleSourcesComponent {
   /** False when the API could not list its sources at all. */
   readonly listed = input<boolean>(true);
   readonly canEdit = input<boolean>(false);
-  readonly isLoading = input<boolean>(false);
+  /** What is being refreshed: source names, GitLab project IDs, or '*' for all. */
+  readonly refreshing = input<Set<string>>(new Set());
 
   /** Re-read every source. */
   readonly refreshAll = output<void>();
@@ -71,6 +77,12 @@ export class ModuleSourcesComponent {
     'Caster reads every source when this page opens and lists each Module it finds. ' +
     "To add a Module, add it to a source's repository with a variables.tf.json and a version tag, " +
     'such as v1.0.0, then Refresh that source.';
+
+  /** Refreshing this source, or every source at once. */
+  isRefreshing(name: string): boolean {
+    const refreshing = this.refreshing();
+    return refreshing.has(name) || refreshing.has('*');
+  }
 
   isGitlab(source: ModuleSource): boolean {
     return isGitlabSource(source);

@@ -46,11 +46,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               (click)="refreshModule(item); $event.stopPropagation()"
-              [disabled]="isLoading()"
+              [disabled]="isRefreshing(item)"
               [attr.aria-label]="'Refresh ' + item.name"
               [matTooltip]="'Re-read ' + item.name + ' from ' + item.source"
             >
-              <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+              @if (isRefreshing(item)) {
+                <mat-spinner diameter="16" />
+              } @else {
+                <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+              }
             </button>
           } @else {
             <span class="action-placeholder"></span>

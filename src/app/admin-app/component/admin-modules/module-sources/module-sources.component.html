@@ -23,11 +23,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <button
         mat-icon-button
         (click)="refreshAll.emit()"
-        [disabled]="isLoading()"
+        [disabled]="isRefreshing('*')"
         aria-label="Refresh All Sources"
         matTooltip="Refresh All Sources"
       >
-        <mat-icon class="mdi-24px" fontIcon="mdi-refresh" />
+        @if (isRefreshing('*')) {
+          <mat-spinner diameter="20" />
+        } @else {
+          <mat-icon class="mdi-24px" fontIcon="mdi-refresh" />
+        }
       </button>
     }
     <button
@@ -63,7 +67,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <button
                   mat-icon-button
                   (click)="addGitlabProject()"
-                  [disabled]="isLoading()"
                   aria-label="Add a GitLab Project"
                   matTooltip="Add a GitLab Project by its ID"
                 >
@@ -73,33 +76,45 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <button
                   mat-icon-button
                   (click)="refresh.emit(source.name)"
-                  [disabled]="isLoading()"
+                  [disabled]="isRefreshing(source.name)"
                   [attr.aria-label]="'Refresh ' + source.name"
                   [matTooltip]="'Refresh ' + source.name"
                 >
-                  <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+                  @if (isRefreshing(source.name)) {
+                    <mat-spinner diameter="16" />
+                  } @else {
+                    <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+                  }
                 </button>
               }
+            }
+            @if (repositoryLink(source); as link) {
+              <a
+                mat-icon-button
+                [href]="link"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'Open the ' + source.name + ' repository'"
+                [matTooltip]="'Open the ' + source.name + ' repository'"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-open-in-new" />
+              </a>
+            } @else if (repositoryUrl(source); as url) {
+              <button
+                mat-icon-button
+                ngxClipboard
+                [cbContent]="url"
+                [attr.aria-label]="'Copy the ' + source.name + ' repository URL'"
+                [matTooltip]="'Copy: ' + url"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-content-copy" />
+              </button>
             }
           </span>
           <mat-icon class="mdi-18px source-icon" [fontIcon]="s.icon" />
           <span class="source-text">
             <span class="source-name">
               {{ source.name }}
-              @if (repositoryLink(source); as link) {
-                <a
-                  class="source-link"
-                  [href]="link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  [attr.aria-label]="'View the ' + source.name + ' repository'"
-                  >View repository<mat-icon
-                    class="mdi-18px"
-                    fontIcon="mdi-open-in-new"
-                /></a>
-              } @else if (repositoryUrl(source); as url) {
-                <span class="source-url">{{ url }}</span>
-              }
             </span>
             @if (source.description) {
               <span class="source-description">{{ source.description }}</span>
