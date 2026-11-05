@@ -10,15 +10,9 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Pool } from 'src/app/generated/caster-api';
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 import { PoolListComponent } from '../pool-list/pool-list.component';
-import { MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
-import { PartitionListComponent } from '../partition-list/partition-list.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -26,14 +20,7 @@ import { AsyncPipe } from '@angular/common';
   templateUrl: './pools.component.html',
   styleUrls: ['./pools.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    PoolListComponent,
-    MatIconButton,
-    MatIcon,
-    MatTooltip,
-    PartitionListComponent,
-    AsyncPipe,
-  ],
+  imports: [PoolListComponent, AsyncPipe],
 })
 export class PoolsComponent implements OnInit {
   private poolService = inject(PoolService);
@@ -44,20 +31,7 @@ export class PoolsComponent implements OnInit {
   public pools$ = this.poolQuery.selectAll();
   public isLoading$ = this.poolQuery.selectLoading();
 
-  public showPools = true;
-  public selectedPool$: Observable<Pool>;
-
   ngOnInit(): void {
     this.poolService.load().subscribe();
-  }
-
-  selectPool(pool: Pool) {
-    this.showPools = false;
-    this.selectedPool$ = this.poolQuery.selectEntity(pool.id);
-  }
-
-  deselectPool() {
-    this.showPools = true;
-    this.selectedPool$ = of(null);
   }
 }

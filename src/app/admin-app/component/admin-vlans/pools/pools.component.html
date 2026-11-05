@@ -3,28 +3,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-@if (showPools) {
-  <cas-pool-list
-    [pools]="pools$ | async"
-    [isLoading]="isLoading$ | async"
-    [canEdit]="canEdit()"
-    (poolSelected)="selectPool($event)"
-  />
-}
-
-@if (selectedPool$ | async; as selectedPool) {
-  <cas-partition-list [poolId]="selectedPool.id" [canEdit]="canEdit()">
-    <div class="sp-icon">
-      <button
-        mat-icon-button
-        color="primary"
-        aria-label="Back to pools"
-        matTooltip="Back to pools"
-        (click)="deselectPool()"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-keyboard-return" />
-      </button>
-    </div>
-    <h2 class="pool-name">Pool - {{ selectedPool.name }}</h2>
-  </cas-partition-list>
-}
+<cas-pool-list
+  [pools]="pools$ | async"
+  [isLoading]="isLoading$ | async"
+  [canEdit]="canEdit()"
+/>

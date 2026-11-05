@@ -3,14 +3,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-.sp-icon {
-  width: 5%;
-  text-align: center;
-  min-width: 30px;
-}
-
-// Read as plain text like the rest of the admin toolbars, not a page heading.
-.pool-name {
-  margin: 0 8px 0 0;
-  font: inherit;
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
