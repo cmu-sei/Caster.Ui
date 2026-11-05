@@ -106,7 +106,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="vlanId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Id</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
       <td mat-cell *matCellDef="let element">{{ element.vlanId }}</td>
     </ng-container>
 
@@ -206,7 +206,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     ></ng-container>
 
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <th mat-header-cell *matHeaderCellDef></th>
       <td
         mat-cell
         *matCellDef="let element"
@@ -232,8 +232,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
     <!-- Row shown when there is no matching data. -->
     <tr class="mat-mdc-row" *matNoDataRow>
-      <td class="mat-mdc-cell" colspan="4">
-        No data matching the filter "{{ input.value }}"
+      <td class="mat-mdc-cell" [attr.colspan]="displayedColumns.length">
+        @if (input.value) {
+          No data matching the filter "{{ input.value }}"
+        } @else if (showUnassigned()) {
+          This Partition currently has no VLANs
+        } @else {
+          There are currently no unassigned VLANs
+        }
       </td>
     </tr>
   </table>

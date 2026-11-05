@@ -34,7 +34,11 @@ const vlans: Vlan[] = [
 ];
 const partitions: Partition[] = [{ id: 'part2', name: 'Red', poolId: 'pool1' }];
 
-async function renderVlanList(canEdit: boolean) {
+async function renderVlanList(
+  canEdit: boolean,
+  shownVlans: Vlan[] = vlans,
+  showUnassigned = true,
+) {
   const vlansApi = {
     partialEditVlan: vi.fn((id: string, command: { reserved?: boolean }) =>
       of<Vlan>({ ...vlans[0], id, ...command }),
@@ -54,13 +58,15 @@ async function renderVlanList(canEdit: boolean) {
       MatInputModule,
     ],
     providers: [{ provide: VlansService, useValue: vlansApi }],
-    inputs: { vlans, partitions, canEdit },
+    inputs: { vlans: shownVlans, partitions, canEdit, showUnassigned },
   });
   // The rows render inside a cdk-virtual-scroll-viewport, which computes its
   // rendered range after the first render; findByRole waits for them.
-  const row = (await screen.findByRole('cell', { name: '100' })).closest(
-    'tr',
-  ) as HTMLElement;
+  const row = shownVlans.length
+    ? ((await screen.findByRole('cell', { name: '100' })).closest(
+        'tr',
+      ) as HTMLElement)
+    : undefined;
   return { ...view, vlansApi, row, user: userEvent.setup() };
 }
 
@@ -129,5 +135,48 @@ describe('VlanListComponent', () => {
         name: 'Remove VLAN from this Partition',
       }),
     ).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the column headers read ID / In Use / Reserved / Tag with a blank actions header, as on the other admin tables.
+   * Interacts with: the header row of the VLAN table.
+   * Data: VLAN 100; canEdit true.
+   */
+  it('labels the columns like the other admin tables', async () => {
+    await renderVlanList(true);
+
+    const headers = screen
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent.trim());
+    expect(headers).toEqual(['', 'ID', 'In Use', 'Reserved', 'Tag', '']);
+  });
+
+  /**
+   * Verifies: an empty partition says it has no VLANs (not 'No data matching the filter ""'), across every column.
+   * Interacts with: the matNoDataRow, showUnassigned and displayedColumns.
+   * Data: no VLANs; showUnassigned true (a partition's list); canEdit true.
+   */
+  it('says an empty partition has no VLANs', async () => {
+    await renderVlanList(true, [], true);
+
+    const cell = await screen.findByText(
+      'This Partition currently has no VLANs',
+    );
+    expect(cell).toHaveAttribute('colspan', '6');
+    expect(screen.queryByText(/No data matching/)).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the Unassigned list says there are no unassigned VLANs when empty.
+   * Interacts with: the matNoDataRow and showUnassigned.
+   * Data: no VLANs; showUnassigned false (the Unassigned panel); canEdit false.
+   */
+  it('says when there are no unassigned VLANs', async () => {
+    await renderVlanList(false, [], false);
+
+    const cell = await screen.findByText(
+      'There are currently no unassigned VLANs',
+    );
+    expect(cell).toHaveAttribute('colspan', '4');
   });
 });
