@@ -31,3 +31,29 @@
   color: var(--mat-sys-error);
   margin: 0;
 }
+
+// The archive's disk manifest, checked against this system's inventory.
+.disk-manifest {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.disk-list {
+  padding-left: 20px;
+}
+
+.disk-status {
+  display: inline-block;
+  min-width: 88px;
+  opacity: 0.7;
+}
+
+// The word "Missing" carries the meaning; the color only reinforces it.
+.disk-missing {
+  color: var(--mat-sys-error);
+  opacity: 1;
+}
+
+.disk-kind {
+  font-weight: 500;
+}

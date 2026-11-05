@@ -4,12 +4,39 @@
 // Dialog title, content, and action spacing are inherited from the shared
 // dialog styles in src/styles/_dialogs.scss.
 
-// Lay the toggle and its label on one row. Replaces ad-hoc bootstrap
+// One toggle per row, its label after it. Replaces ad-hoc bootstrap
 // d-flex/gap utilities; this is layout for content, not dialog chrome.
 .toggle-row {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 8px;
   min-height: 48px;
+}
+
+// The disk manifest preview: what the archive will list, for the planner to
+// copy to the target hypervisor.
+.disk-manifest {
+  max-height: 240px;
+  overflow-y: auto;
+
+  p {
+    margin: 0 0 8px;
+  }
+}
+
+.disk-list {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.disk-kind {
+  font-weight: 500;
+}
+
+.disk-connection,
+.disk-manifest-warning {
+  opacity: 0.7;
+}
+
+.disk-manifest-error {
+  color: var(--mat-sys-error);
 }

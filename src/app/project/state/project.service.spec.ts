@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import {
   ArchiveType,
+  DiskManifest,
   ImportProjectResult,
   ModelFile,
   Project,
@@ -596,6 +597,8 @@ describe('ProjectService', () => {
             _id: string,
             _type?: ArchiveType,
             _ids?: boolean,
+            _settings?: boolean,
+            _diskManifest?: boolean,
             _observe?: 'response',
           ) => of(response),
         ),
@@ -614,12 +617,59 @@ describe('ProjectService', () => {
         'p1',
         'zip',
         false,
+        undefined,
+        false,
         'response',
       );
       expect(await firstValueFrom(service.import('p1', true, archive))).toBe(
         result,
       );
       expect(api.importProject).toHaveBeenCalledWith('p1', true, archive);
+    });
+
+    /**
+     * Verifies: export asks for a disk manifest when told to, and
+     *   getDiskManifest returns the project's manifest preview.
+     * Interacts with: ProjectsService.exportProject ('response' overload) and
+     *   getProjectDiskManifest (stubs).
+     * Data: export p1 as zip with a disk manifest; a manifest listing one VM
+     *   template.
+     */
+    it('exports with a disk manifest and previews it', async () => {
+      const manifest: DiskManifest = {
+        schemaVersion: 1,
+        disks: [{ kind: 'VmTemplate', name: 'ubuntu-2204', referencedBy: [] }],
+        warnings: [],
+      };
+      const api = {
+        exportProject: vi.fn(
+          (
+            _id: string,
+            _type?: ArchiveType,
+            _ids?: boolean,
+            _settings?: boolean,
+            _diskManifest?: boolean,
+            _observe?: 'response',
+          ) => of(downloadResponse('Project.zip')),
+        ),
+        getProjectDiskManifest: vi.fn(() => of(manifest)),
+      } satisfies ApiStub<ProjectsService>;
+      const { service } = setup({ projects: api });
+
+      await firstValueFrom(service.export('p1', ArchiveType.Zip, false, true));
+      expect(api.exportProject).toHaveBeenCalledWith(
+        'p1',
+        'zip',
+        false,
+        undefined,
+        true,
+        'response',
+      );
+
+      expect(await firstValueFrom(service.getDiskManifest('p1'))).toBe(
+        manifest,
+      );
+      expect(api.getProjectDiskManifest).toHaveBeenCalledWith('p1');
     });
 
     /**

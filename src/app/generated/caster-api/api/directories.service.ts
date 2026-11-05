@@ -30,6 +30,8 @@ import { CreateDirectoryCommand } from '../model/createDirectoryCommand';
 // @ts-ignore
 import { Directory } from '../model/directory';
 // @ts-ignore
+import { DiskManifest } from '../model/diskManifest';
+// @ts-ignore
 import { EditDirectoryCommand } from '../model/editDirectoryCommand';
 // @ts-ignore
 import { ImportDirectoryResult } from '../model/importDirectoryResult';
@@ -347,13 +349,15 @@ export class DirectoriesService {
      * @param id ID of a directory.
      * @param archiveType 
      * @param includeIds If true, Directory Ids will be appended to their names to be optionally preserved on Import
+     * @param includeSettings If true, Directory and Workspace settings are included in the archive so that they can be restored on Import. Set to false when the archive will be imported by an older instance of Caster that does not understand them.
+     * @param includeDiskManifest If true, the archive lists the VM templates and ISOs its Terraform refers to, as found in the infrastructure inventory, so they can be copied to the target hypervisor. Requires the ViewHosts permission.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, includeDiskManifest?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, includeDiskManifest?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, includeDiskManifest?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, includeDiskManifest?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling exportDirectory.');
         }
@@ -366,6 +370,14 @@ export class DirectoriesService {
         if (includeIds !== undefined && includeIds !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>includeIds, 'IncludeIds');
+        }
+        if (includeSettings !== undefined && includeSettings !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>includeSettings, 'IncludeSettings');
+        }
+        if (includeDiskManifest !== undefined && includeDiskManifest !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>includeDiskManifest, 'IncludeDiskManifest');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -728,6 +740,73 @@ export class DirectoriesService {
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * The VM templates and ISOs an export of a directory would list in its disk manifest.
+     * @param id ID of a directory.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getDirectoryDiskManifest(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DiskManifest>;
+    public getDirectoryDiskManifest(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DiskManifest>>;
+    public getDirectoryDiskManifest(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DiskManifest>>;
+    public getDirectoryDiskManifest(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling getDirectoryDiskManifest.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/directories/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/disk-manifest`;
+        return this.httpClient.request<DiskManifest>('get', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

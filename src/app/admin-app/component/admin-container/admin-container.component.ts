@@ -28,6 +28,7 @@ import { UsersComponent } from '../admin-users/users.component';
 import { AdminModulesComponent } from '../admin-modules/modules.component';
 import { AdminWorkspacesComponent } from '../admin-workspaces/admin-workspaces.component';
 import { VlansComponent } from '../admin-vlans/vlans.component';
+import { AdminHypervisorsComponent } from '../admin-hypervisors/admin-hypervisors.component';
 import { AdminRolesComponent } from '../admin-roles/admin-roles.component';
 import { AdminGroupsComponent } from '../admin-groups/admin-groups.component';
 import { AdminProjectsComponent } from '../admin-projects/admin-projects.component';
@@ -53,6 +54,7 @@ import { AsyncPipe } from '@angular/common';
     AdminModulesComponent,
     AdminWorkspacesComponent,
     VlansComponent,
+    AdminHypervisorsComponent,
     AdminRolesComponent,
     AdminGroupsComponent,
     AdminProjectsComponent,
@@ -76,6 +78,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
   public vlansText = 'VLANs';
+  public hypervisorsText = 'Hypervisors';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
   public projectsText = 'Projects';
@@ -154,6 +157,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoVlans(): void {
     this.navigateToSection(this.vlansText);
+  }
+
+  /**
+   * Sets the display to Hypervisors
+   */
+  adminGotoHypervisors(): void {
+    this.navigateToSection(this.hypervisorsText);
   }
 
   /**

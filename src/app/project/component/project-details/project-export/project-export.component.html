@@ -26,11 +26,59 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
 
     <div class="toggle-row">
-      <mat-label>Include Ids</mat-label>
       <mat-slide-toggle
         formControlName="includeIds"
         matTooltip="Append Ids to Directory names to be optionally preserved on import"
-      />
+        >Include Ids</mat-slide-toggle
+      >
     </div>
+
+    @if (isArchiveable && (canIncludeDiskManifest$ | async)) {
+      <div class="toggle-row">
+        <mat-slide-toggle
+          formControlName="includeDiskManifest"
+          matTooltip="List the VM templates and ISOs this Terraform uses, so they can be copied to the target hypervisor"
+          (change)="onIncludeDiskManifestChange($event.checked)"
+          >Include Disk Manifest</mat-slide-toggle
+        >
+      </div>
+
+      @if (form.value.includeDiskManifest) {
+        @if (diskManifest$ | async; as preview) {
+          <div class="disk-manifest" aria-live="polite">
+            @if (preview.loading) {
+              <p>Finding VM templates and ISOs...</p>
+            } @else if (preview.failed) {
+              <p role="alert" class="disk-manifest-error">
+                Could not list the VM templates and ISOs.
+              </p>
+            } @else {
+              @if (preview.manifest.disks?.length) {
+                <ul class="disk-list">
+                  @for (disk of preview.manifest.disks; track $index) {
+                    <li [matTooltip]="disk.path">
+                      <span class="disk-kind"
+                        >{{ diskKindLabel(disk.kind) }}:</span
+                      >
+                      {{ disk.name }}
+                      @if (disk.connection) {
+                        <span class="disk-connection"
+                          >({{ disk.connection }})</span
+                        >
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p>No VM templates or ISOs found.</p>
+              }
+              @for (warning of preview.manifest.warnings; track $index) {
+                <p class="disk-manifest-warning">{{ warning }}</p>
+              }
+            }
+          </div>
+        }
+      }
+    }
   </div>
 </crucible-dialog>
