@@ -86,16 +86,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Pool Name</th>
       <td mat-cell *matCellDef="let pool">
-        <button
-          mat-icon-button
-          ngxClipboard
-          [cbContent]="pool.id"
-          (click)="$event.stopPropagation()"
-          title="Copy:  {{ pool.id }}"
-          [attr.aria-label]="'Copy ID of ' + pool.name"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
-        </button>
         {{ pool.name }}
       </td>
     </ng-container>

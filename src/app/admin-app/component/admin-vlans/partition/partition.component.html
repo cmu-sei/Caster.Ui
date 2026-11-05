@@ -37,11 +37,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <button
           mat-icon-button
           ngxClipboard
-          [cbContent]="partition.id"
+          [cbContent]="'partition_id = &quot;' + partition.id + '&quot;'"
           (cbOnSuccess)="onClipboardSuccess()"
           (click)="$event.stopPropagation()"
-          title="Copy:  {{ partition.id }}"
-          [attr.aria-label]="'Copy ID of ' + partition.name"
+          [matTooltip]="'Copy partition_id for crucible_vlan: ' + partition.id"
+          [attr.aria-label]="'Copy the partition_id of ' + partition.name"
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
         </button>

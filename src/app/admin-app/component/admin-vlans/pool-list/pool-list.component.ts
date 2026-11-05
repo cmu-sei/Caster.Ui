@@ -39,7 +39,6 @@ import {
   MatNoDataRow,
 } from '@angular/material/table';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
-import { ClipboardModule } from 'ngx-clipboard';
 import { Pool } from 'src/app/generated/caster-api';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
@@ -78,7 +77,6 @@ export interface PoolCounts {
   ],
   imports: [
     FormsModule,
-    ClipboardModule,
     MatIconButton,
     MatTooltip,
     MatIcon,

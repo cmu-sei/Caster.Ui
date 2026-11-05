@@ -123,9 +123,10 @@ describe('PoolListComponent', () => {
     expect(
       within(poolRows()[1]).queryByLabelText('Contains the Default Partition'),
     ).not.toBeInTheDocument();
+    // A pool's ID is only an output of crucible_vlan, so it has no copy button.
     expect(
-      within(poolRows()[0]).getByRole('button', { name: 'Copy ID of Main' }),
-    ).toBeInTheDocument();
+      within(poolRows()[0]).queryByRole('button', { name: /^Copy/ }),
+    ).not.toBeInTheDocument();
   });
 
   /**
