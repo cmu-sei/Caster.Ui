@@ -9,8 +9,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatDialog } from '@angular/material/dialog';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule } from '@angular/material/sort';
@@ -21,8 +19,6 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { Module, ModuleSource } from 'src/app/generated/caster-api';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { AddModuleDialogComponent } from '../add-module-dialog/add-module-dialog.component';
-import { GitlabProjectDialogComponent } from '../gitlab-project-dialog/gitlab-project-dialog.component';
 import {
   AdminModuleListComponent,
   moduleSourceOf,
@@ -35,14 +31,6 @@ const local: ModuleSource = {
   lastSuccess: '2026-10-14T12:30:00Z',
   error: null,
 };
-const mirror: ModuleSource = {
-  name: 'mirror',
-  provider: 'git',
-  lastAttempt: '2026-10-14T13:00:00Z',
-  lastSuccess: null,
-  error: 'clone failed',
-};
-const fresh: ModuleSource = { name: 'fresh', provider: 'git' };
 const gitlab: ModuleSource = {
   name: 'gitlab',
   provider: 'gitlab',
@@ -51,6 +39,7 @@ const gitlab: ModuleSource = {
   error: null,
 };
 
+const vmSource = 'git::https://git.example.com/org/local.git//vm?ref=v1.10.0';
 const longDescription = 'A'.repeat(90);
 const modules: Module[] = [
   {
@@ -59,8 +48,12 @@ const modules: Module[] = [
     path: 'local/vm',
     description: 'A vSphere virtual machine',
     versionsCount: 2,
+    dateModified: '2026-10-14T12:30:00Z',
     // The API lists versions highest first.
-    versions: [{ name: 'v1.10.0' }, { name: 'v1.9.0' }],
+    versions: [
+      { name: 'v1.10.0', urlLink: vmSource },
+      { name: 'v1.9.0', urlLink: 'old' },
+    ],
   },
   {
     id: 'mod2',
@@ -68,7 +61,7 @@ const modules: Module[] = [
     path: 'group/dns',
     description: longDescription,
     versionsCount: 1,
-    versions: [{ name: '2.0.0' }],
+    versions: [{ name: '2.0.0', urlLink: 'git::https://gitlab/dns?ref=2.0.0' }],
   },
   { id: 'mod3', name: 'empty', path: 'local/empty', versionsCount: 0 },
 ];
@@ -77,30 +70,27 @@ interface Options {
   canEdit?: boolean;
   confirmAnswer?: boolean;
   sources?: ModuleSource[];
-  /** What the GitLab project dialog closes with. */
-  projectId?: string;
+  rows?: Module[];
+  refreshing?: Set<string>;
 }
 
 async function renderModuleList({
   canEdit = true,
   confirmAnswer,
-  sources = [local, mirror, fresh, gitlab],
-  projectId,
+  sources = [local, gitlab],
+  rows = modules,
+  refreshing = new Set<string>(),
 }: Options = {}) {
-  const syncAll = vi.fn<() => void>();
-  const sync = vi.fn<(id: string) => void>();
+  const refresh = vi.fn<(path: string) => void>();
   const deleteModule = vi.fn<(id: string) => void>();
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
-  const { dialogRef: projectRef } = dialogRefStub<unknown, string>(projectId);
-  const open = vi.fn(() => projectRef);
   const view = await renderComponent(AdminModuleListComponent, {
     imports: [
       MatFormFieldModule,
       MatInputModule,
       MatButtonModule,
       MatIconModule,
-      MatMenuModule,
       MatPaginatorModule,
       MatTableModule,
       MatSortModule,
@@ -114,18 +104,15 @@ async function renderModuleList({
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
       },
-      { provide: MatDialog, useValue: { open } },
     ],
-    inputs: { modules, sources, isLoading: false, canEdit },
-    on: { syncAll, sync, delete: deleteModule },
+    inputs: { modules: rows, sources, isLoading: false, canEdit, refreshing },
+    on: { refresh, delete: deleteModule },
   });
   return {
     ...view,
-    syncAll,
-    sync,
+    refresh,
     deleteModule,
     confirm,
-    open,
     user: userEvent.setup(),
   };
 }
@@ -149,7 +136,7 @@ describe('moduleSourceOf', () => {
   /**
    * Verifies: a git source owns the Modules whose Path is its name or starts with its name and a slash, the longest matching name wins, and any other Module is the GitLab source's when one is configured, else no source's.
    * Interacts with: nothing; a pure function.
-   * Data: sources local, local-extra and gitlab; paths in the row.
+   * Data: sources local, local/extra and gitlab; paths in the row.
    */
   it.each([
     { path: 'local', sources: [local, gitlab], expected: 'local' },
@@ -171,7 +158,7 @@ describe('moduleSourceOf', () => {
 
 describe('AdminModuleListComponent', () => {
   /**
-   * Verifies: the page has one toolbar row (icon, Search, paginator), with no External Module ID box and no second row of buttons.
+   * Verifies: the page has one toolbar row (icon, Search, paginator) with no add box or Sync menu; sources are refreshed from Module Sources.
    * Interacts with: the toolbar template.
    * Data: canEdit true.
    */
@@ -180,28 +167,33 @@ describe('AdminModuleListComponent', () => {
 
     expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
     expect(screen.getByText('Items per page:')).toBeInTheDocument();
-    expect(
-      screen.queryByPlaceholderText('External Module ID'),
-    ).not.toBeInTheDocument();
     expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(
+      screen.queryByRole('button', { name: /^(Sync Modules|Add New Module)$/ }),
+    ).not.toBeInTheDocument();
   });
 
-
   /**
-   * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title) and its highest version, so an admin can tell an import worked; a Module with no versions shows none.
-   * Interacts with: the Description and Latest Version columns.
-   * Data: vm (v1.10.0 above v1.9.0), dns (a 90-character description, 2.0.0), empty (no versions).
+   * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title), its highest version, and Last Synced in the viewer's zone; a Module with no versions shows none; there is no Source column.
+   * Interacts with: the Description, Latest Version and Last Synced columns.
+   * Data: TZ UTC; vm (v1.10.0 above v1.9.0), dns (a 90-character description), empty (no versions).
    */
-  it("shows each Module's description and latest version", async () => {
+  it("shows each Module's description, latest version and last sync", async () => {
+    vi.stubEnv('TZ', 'UTC');
     await renderModuleList();
 
-    // Path carries a git source's name, so there is no separate Source column.
-    expect(
-      screen.getAllByRole('columnheader').map((h) => h.textContent.trim()),
-    ).not.toContain('Source');
+    const headers = screen
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent.trim());
+    expect(headers).not.toContain('Source');
+    expect(headers).toContain('Last Synced');
 
     expect(cells(rowOf('vm'))).toEqual(
-      expect.arrayContaining(['A vSphere virtual machine', 'v1.10.0']),
+      expect.arrayContaining([
+        'A vSphere virtual machine',
+        'v1.10.0',
+        'Oct 14, 2026, 12:30 PM UTC',
+      ]),
     );
     const dns = within(rowOf('dns')).getAllByRole('cell');
     expect(dns[2].textContent.trim()).toBe('A'.repeat(80) + ' ...');
@@ -226,112 +218,120 @@ describe('AdminModuleListComponent', () => {
     expect(screen.queryByRole('row', { name: /\bdns\b/ })).toBeNull();
   });
 
-
-
   /**
-   * Verifies: the sync menu offers All sources, then each configured source with its status (last sync time in the viewer's zone, failure time, or not synced yet); All sources emits syncAll.
-   * Interacts with: the header Sync Modules button and mat-menu, statusText, the syncAll output.
-   * Data: TZ UTC; sources local (synced), mirror (failed), fresh (never synced), gitlab.
-   */
-  it('lists every source in the sync menu and syncs them all', async () => {
-    vi.stubEnv('TZ', 'UTC');
-    const { syncAll, user } = await renderModuleList();
-
-    await user.click(screen.getByRole('button', { name: 'Sync Modules' }));
-
-    expect(
-      screen
-        .getAllByRole('menuitem')
-        .map((item) => item.textContent.replace(/\s+/g, ' ').trim()),
-    ).toEqual([
-      'All sources',
-      'local Synced Oct 14, 2026, 12:30 PM UTC',
-      'mirror Failed Oct 14, 2026, 1:00 PM UTC',
-      'fresh Not synced yet',
-      'gitlab (by GitLab Project ID) Synced Oct 14, 2026, 1:00 PM UTC',
-    ]);
-
-    await user.click(screen.getByRole('menuitem', { name: 'All sources' }));
-    expect(syncAll).toHaveBeenCalledTimes(1);
-  });
-
-  /**
-   * Verifies: picking a git source in the sync menu emits its name, without asking for anything.
-   * Interacts with: the sync menu, the sync output, MatDialog.open (spy).
-   * Data: source mirror.
-   */
-  it('syncs one git source by name from the sync menu', async () => {
-    const { sync, open, user } = await renderModuleList();
-
-    await user.click(screen.getByRole('button', { name: 'Sync Modules' }));
-    await user.click(screen.getByRole('menuitem', { name: /^mirror/ }));
-
-    expect(sync).toHaveBeenCalledWith('mirror');
-    expect(open).not.toHaveBeenCalled();
-  });
-
-  /**
-   * Verifies: picking the GitLab source asks for a project ID and emits it; cancelling emits nothing.
-   * Interacts with: the sync menu, MatDialog.open (stub closing with the ID or nothing), the sync output.
-   * Data: project ID 42, or the dialog cancelled.
-   */
-  it.each([
-    { label: 'an entered project ID', projectId: '42', calls: [['42']] },
-    { label: 'nothing when cancelled', projectId: undefined, calls: [] },
-  ])('syncs $label for the GitLab source', async ({ projectId, calls }) => {
-    const { sync, open, user } = await renderModuleList({ projectId });
-
-    await user.click(screen.getByRole('button', { name: 'Sync Modules' }));
-    await user.click(screen.getByRole('menuitem', { name: /^gitlab/ }));
-
-    expect(open).toHaveBeenCalledWith(GitlabProjectDialogComponent, {
-      width: '400px',
-    });
-    expect(sync.mock.calls).toStrictEqual(calls);
-  });
-
-  /**
-   * Verifies: the Add New Module button, left of Sync Modules, asks for an External Module ID and emits it, as the old box did; cancelling emits nothing.
-   * Interacts with: the actions header, MatDialog.open (stub closing with the ID or nothing), the sync output.
-   * Data: proxmox/vm (one Module from a source), or the dialog cancelled.
-   */
-  it.each([
-    { label: 'an entered External Module ID', projectId: 'proxmox/vm', calls: [['proxmox/vm']] },
-    { label: 'nothing when cancelled', projectId: undefined, calls: [] },
-  ])('adds $label from Add New Module', async ({ projectId, calls }) => {
-    const { sync, open, user } = await renderModuleList({ projectId });
-
-    const header = screen.getByRole('button', { name: 'Sync Modules' })
-      .parentElement!;
-    expect(
-      Array.from(header.querySelectorAll('button')).map((b) =>
-        b.getAttribute('aria-label'),
-      ),
-    ).toEqual(['Add New Module', 'Sync Modules']);
-    await user.click(screen.getByRole('button', { name: 'Add New Module' }));
-
-    expect(open).toHaveBeenCalledWith(AddModuleDialogComponent, {
-      width: '480px',
-    });
-    expect(sync.mock.calls).toStrictEqual(calls);
-  });
-
-  /**
-   * Verifies: a git Module's row syncs it by its Path; a GitLab Module, whose project ID Caster does not keep, has no per-row sync.
-   * Interacts with: the actions column, canSyncModule, the sync output.
+   * Verifies: a git Module's Refresh emits its Path; a GitLab Module, whose project ID Caster does not keep, shows Refresh greyed out with the reason.
+   * Interacts with: the actions column, canRefreshModule, the refresh output.
    * Data: vm (local/vm), dns (GitLab).
    */
-  it('syncs one git Module from its row', async () => {
-    const { sync, user } = await renderModuleList();
+  it('refreshes one git Module from its row', async () => {
+    const { refresh, user } = await renderModuleList();
 
     await user.click(
-      within(rowOf('vm')).getByRole('button', { name: 'Sync vm' }),
+      within(rowOf('vm')).getByRole('button', { name: 'Refresh vm' }),
     );
 
-    expect(sync).toHaveBeenCalledWith('local/vm');
+    expect(refresh).toHaveBeenCalledWith('local/vm');
     expect(
-      within(rowOf('dns')).queryByRole('button', { name: 'Sync dns' }),
+      within(rowOf('dns')).getByRole('button', {
+        name: 'Refresh dns (not available for GitLab Modules)',
+      }),
+    ).toBeDisabled();
+  });
+
+  /**
+   * Verifies: a row's Refresh is disabled while that Module, its source, or every source is being refreshed.
+   * Interacts with: the refreshing input, isRefreshing.
+   * Data: refreshing holds local/vm, local, or '*'.
+   */
+  it.each([['local/vm'], ['local'], ['*']])(
+    'disables Refresh while %s is refreshing',
+    async (key) => {
+      await renderModuleList({ refreshing: new Set([key]) });
+
+      expect(
+        within(rowOf('vm')).getByRole('button', { name: 'Refresh vm' }),
+      ).toBeDisabled();
+    },
+  );
+
+  /**
+   * Verifies: refreshing another source leaves this row's Refresh usable.
+   * Interacts with: the refreshing input, isRefreshing.
+   * Data: refreshing holds mirror; vm is local's.
+   */
+  it('leaves Refresh enabled while another source refreshes', async () => {
+    await renderModuleList({ refreshing: new Set(['mirror']) });
+
+    expect(
+      within(rowOf('vm')).getByRole('button', { name: 'Refresh vm' }),
+    ).toBeEnabled();
+  });
+
+  /**
+   * Verifies: Copy Terraform source is offered for the latest version's module source, and a Module with no version shows the button greyed out.
+   * Interacts with: the ngxClipboard button.
+   * Data: vm (latest v1.10.0's urlLink), empty (no versions).
+   */
+  it("offers the latest version's Terraform source to copy", async () => {
+    await renderModuleList();
+
+    expect(
+      within(rowOf('vm')).getByRole('button', {
+        name: 'Copy the Terraform source of vm',
+      }),
+    ).toBeEnabled();
+    expect(
+      within(rowOf('empty')).getByRole('button', {
+        name: 'Copy the Terraform source of empty (no version yet)',
+      }),
+    ).toBeDisabled();
+  });
+
+  /**
+   * Verifies: once the API reports missingSince, Delete is offered only for a Module no longer in its source (marked Not in source) or a GitLab Module.
+   * Interacts with: canDelete, missingSince, the Name column.
+   * Data: vm in source, gone (missing since a date), dns (GitLab).
+   */
+  it('offers Delete only for leftover Modules once the API reports them', async () => {
+    const rows = [
+      { ...modules[0], missingSince: null },
+      {
+        id: 'mod4',
+        name: 'gone',
+        path: 'local/gone',
+        versionsCount: 0,
+        missingSince: '2026-10-15T09:00:00Z',
+      },
+      { ...modules[1], missingSince: null },
+    ] as unknown as Module[];
+    await renderModuleList({ rows });
+
+    expect(
+      within(rowOf('vm')).queryByRole('button', { name: 'Delete vm' }),
     ).toBeNull();
+    expect(within(rowOf('vm')).queryByText('Not in source')).toBeNull();
+    expect(within(rowOf('gone')).getByText('Not in source')).toBeVisible();
+    expect(
+      within(rowOf('gone')).getByRole('button', { name: 'Delete gone' }),
+    ).toBeInTheDocument();
+    expect(
+      within(rowOf('dns')).getByRole('button', { name: 'Delete dns' }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: an API that doesn't report missingSince keeps Delete on every row, as before.
+   * Interacts with: canDelete.
+   * Data: the modules without missingSince.
+   */
+  it('keeps Delete on every row for an API without missingSince', async () => {
+    await renderModuleList();
+
+    for (const name of ['vm', 'dns', 'empty']) {
+      expect(
+        within(rowOf(name)).getByRole('button', { name: `Delete ${name}` }),
+      ).toBeInTheDocument();
+    }
   });
 
   /**
@@ -357,25 +357,38 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: without canEdit there is no sync menu and no per-row Sync or Delete, while the modules are listed with their Copy ID buttons.
-   * Interacts with: the @if (canEdit) blocks in the template.
+   * Verifies: cancelling the confirmation deletes nothing.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false), the delete output.
+   * Data: module vm.
+   */
+  it('does not delete when the confirmation is cancelled', async () => {
+    const { deleteModule, user } = await renderModuleList({
+      confirmAnswer: false,
+    });
+
+    await user.click(
+      within(rowOf('vm')).getByRole('button', { name: 'Delete vm' }),
+    );
+
+    expect(deleteModule).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies: without canEdit there is no Refresh or Delete in any row, while the modules are listed with their Copy Terraform source buttons.
+   * Interacts with: the @if (canEdit()) blocks in the template.
    * Data: canEdit false.
    */
-  it('hides the add, sync and delete controls when canEdit is false', async () => {
+  it('hides Refresh and Delete when canEdit is false', async () => {
     await renderModuleList({ canEdit: false });
 
     expect(within(rowOf('vm')).getByText('local/vm')).toBeInTheDocument();
     expect(
-      within(rowOf('vm')).getByRole('button', { name: 'Copy ID of vm' }),
+      within(rowOf('vm')).getByRole('button', {
+        name: 'Copy the Terraform source of vm',
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Sync Modules' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Add New Module' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /^(Sync|Delete) / }),
+      screen.queryByRole('button', { name: /^(Refresh|Delete) / }),
     ).not.toBeInTheDocument();
   });
 });

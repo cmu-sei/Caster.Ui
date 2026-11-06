@@ -4,7 +4,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import userEvent from '@testing-library/user-event';
 import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -24,8 +23,9 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { AdminModulesComponent } from './modules.component';
-import { AdminModuleListComponent } from 'src/app/admin-app/component/admin-modules/modules-list/module-list.component';
+import { ALL_SOURCES, AdminModulesComponent } from './modules.component';
+import { AdminModuleListComponent } from './modules-list/module-list.component';
+import { ModuleSourcesComponent } from './module-sources/module-sources.component';
 
 @Component({
   selector: 'cas-admin-module-list',
@@ -36,9 +36,22 @@ class ModuleListStub {
   readonly sources = input<ModuleSource[]>([]);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  readonly syncAll = output<void>();
-  readonly sync = output<string>();
+  readonly refreshing = input<Set<string>>(new Set());
+  readonly refresh = output<string>();
   readonly delete = output<string>();
+}
+
+@Component({
+  selector: 'cas-module-sources',
+  template: '',
+})
+class ModuleSourcesStub {
+  readonly sources = input<ModuleSource[]>([]);
+  readonly listed = input<boolean>(true);
+  readonly canEdit = input<boolean>(false);
+  readonly refreshing = input<Set<string>>(new Set());
+  readonly refreshAll = output<void>();
+  readonly refresh = output<string>();
 }
 
 const healthy: ModuleSource = {
@@ -66,6 +79,7 @@ const mirror: ModuleSource = {
 interface Options {
   sources?: () => Observable<ModuleSource[]>;
   sync?: () => Observable<unknown>;
+  remove?: () => Observable<unknown>;
 }
 
 async function renderModules(
@@ -73,19 +87,24 @@ async function renderModules(
   {
     sources = () => of<ModuleSource[]>([healthy]),
     sync = () => of(null),
+    remove = () => of('mod1'),
   }: Options = {},
 ) {
   const modulesApi = {
     getAllModules: vi.fn(() =>
-      of<Module[]>([{ id: 'mod1', name: 'vm', path: 'group/vm' }]),
+      of<Module[]>([{ id: 'mod1', name: 'vm', path: 'local/vm' }]),
     ),
     getModuleSources: vi.fn(() => sources()),
     createTerrraformModuleFromRepository: vi.fn(
       (_command?: CreateModuleRepositoryCommand) => sync(),
     ),
+    deleteModule: vi.fn((_id: string) => remove()),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(AdminModulesComponent, {
-    childStubs: [{ replace: AdminModuleListComponent, with: ModuleListStub }],
+    childStubs: [
+      { replace: AdminModuleListComponent, with: ModuleListStub },
+      { replace: ModuleSourcesComponent, with: ModuleSourcesStub },
+    ],
     imports: [MatIconModule, MatButtonModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -95,17 +114,18 @@ async function renderModules(
   const list: ModuleListStub = view.fixture.debugElement.query(
     By.directive(ModuleListStub),
   ).componentInstance;
-  return { ...view, list, modulesApi };
+  const panel: ModuleSourcesStub = view.fixture.debugElement.query(
+    By.directive(ModuleSourcesStub),
+  ).componentInstance;
+  return { ...view, list, panel, modulesApi };
 }
 
-/** The text of an element with its whitespace collapsed, as the user reads it. */
-function text(element: HTMLElement): string {
-  return element.textContent.replace(/\s+/g, ' ').trim();
+/** The snack bar's text; its content stays aria-hidden until announced. */
+function snackBarText(): string | null {
+  return (
+    document.querySelector('.mat-mdc-snack-bar-container')?.textContent ?? null
+  );
 }
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-});
 
 describe('AdminModulesComponent', () => {
   /**
@@ -122,318 +142,192 @@ describe('AdminModulesComponent', () => {
   });
 
   /**
-   * Verifies: the configured sources reach the list, for its Source column and sync menu.
-   * Interacts with: ModulesService.getModuleSources (stub), the list stub's sources input.
+   * Verifies: listing the modules is what reads the sources, so the page asks for the sources once, after the modules, and hands them to both the Module Sources panel and the list.
+   * Interacts with: ModulesService.getAllModules and getModuleSources (stubs), both child stubs.
    * Data: sources local and gitlab.
    */
-  it('passes the module sources to the list', async () => {
-    const { list } = await renderModules(
+  it('asks for the sources after the modules and passes them on', async () => {
+    const { list, panel, modulesApi } = await renderModules(
       {},
       { sources: () => of([healthy, gitlab]) },
     );
 
+    expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
+    expect(modulesApi.getAllModules.mock.invocationCallOrder[0]).toBeLessThan(
+      modulesApi.getModuleSources.mock.invocationCallOrder[0],
+    );
+    expect(panel.sources().map((s) => s.name)).toEqual(['local', 'gitlab']);
     expect(list.sources().map((s) => s.name)).toEqual(['local', 'gitlab']);
+    expect(panel.listed()).toBe(true);
   });
 
   /**
-   * Verifies: ManageModules, which the API requires to sync and delete Modules, makes the module list editable.
-   * Interacts with: PermissionService.hasPermission (real), the list stub's canEdit input.
+   * Verifies: a failed source on page load opens no snack bar; the Module Sources panel is where it shows.
+   * Interacts with: MatSnackBar (real, open spied).
+   * Data: gitlab failed.
+   */
+  it('opens no snack bar for a failed source on page load', async () => {
+    // render() waits out a snack bar's duration, so the spy is what can tell.
+    const open = vi.spyOn(MatSnackBar.prototype, 'open');
+    await renderModules({}, { sources: () => of([gitlab]) });
+
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies: when the API can't list its sources, the panel is told so, the modules are still listed, and no error escapes.
+   * Interacts with: ModulesService.getModuleSources (throwError stub); test-setup fails any console.error.
+   * Data: getModuleSources fails (an older API, or no ViewModules).
+   */
+  it('marks the sources unlisted when the API cannot list them', async () => {
+    const { list, panel } = await renderModules(
+      {},
+      { sources: () => throwError(() => new Error('404')) },
+    );
+
+    expect(panel.listed()).toBe(false);
+    expect(panel.sources()).toEqual([]);
+    expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
+  });
+
+  /**
+   * Verifies: ManageModules, which the API requires to refresh and delete Modules, makes the panel and the list editable.
+   * Interacts with: PermissionService.hasPermission (real), both stubs' canEdit inputs.
    * Data: system permission ManageModules.
    */
   it('passes canEdit true with ManageModules', async () => {
-    const { list } = await renderModules({
+    const { list, panel } = await renderModules({
       system: [SystemPermission.ManageModules],
     });
 
     expect(list.canEdit()).toBe(true);
+    expect(panel.canEdit()).toBe(true);
   });
 
   /**
-   * Verifies: without ManageModules the module list is read-only, including for ManageWorkspaces, which the page used to check by mistake.
-   * Interacts with: PermissionService.hasPermission (real), the list stub's canEdit input.
+   * Verifies: without ManageModules the page is read-only, including for ManageWorkspaces, which the page used to check by mistake.
+   * Interacts with: PermissionService.hasPermission (real), both stubs' canEdit inputs.
    * Data: near misses: ViewModules, and ManageWorkspaces.
    */
   it.each([
     { label: 'ViewModules', system: [SystemPermission.ViewModules] },
     { label: 'ManageWorkspaces', system: [SystemPermission.ManageWorkspaces] },
   ])('passes canEdit false with $label only', async ({ system }) => {
-    const { list } = await renderModules({ system });
+    const { list, panel } = await renderModules({ system });
 
     expect(list.canEdit()).toBe(false);
+    expect(panel.canEdit()).toBe(false);
   });
 
-  describe('module source sync', () => {
+  describe('Refresh All Sources', () => {
     /**
-     * Verifies: once the modules are listed (which syncs the sources), the page asks for the sources once and shows no warning when every source synced.
-     * Interacts with: ModulesService.getAllModules and getModuleSources (stubs), real ModuleService.
-     * Data: one healthy source local; no permissions.
-     */
-    it('asks for the module sources after loading the modules', async () => {
-      const { modulesApi } = await renderModules({});
-
-      expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
-      expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
-      expect(modulesApi.getAllModules.mock.invocationCallOrder[0]).toBeLessThan(
-        modulesApi.getModuleSources.mock.invocationCallOrder[0],
-      );
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    });
-
-    /**
-     * Verifies: each failed source gets its own warning naming it, saying whether the list shows its last successful sync (with that time in the viewer's zone) or only the modules already stored, and giving its error; a healthy source gets none, and the page load itself opens no snack bar.
-     * Interacts with: ModulesService.getModuleSources (stub), syncTime, MatSnackBar (real, open spied).
-     * Data: TZ UTC; sources local (healthy), gitlab (failed, last success 2026-10-14 12:30 UTC, 401 Unauthorized), mirror (failed, never synced, clone failed).
-     */
-    it('warns about each module source that failed to sync', async () => {
-      vi.stubEnv('TZ', 'UTC');
-      // The real snack bar runs; render() waits out a snack bar's 5 s
-      // duration timer, so one opened on load is gone before the DOM can be
-      // read, and the spy is what can tell.
-      const open = vi.spyOn(MatSnackBar.prototype, 'open');
-      await renderModules({}, { sources: () => of([healthy, gitlab, mirror]) });
-
-      expect(screen.getAllByRole('alert').map(text)).toEqual([
-        'Module source gitlab failed to sync. Showing its Modules from the last successful sync, Oct 14, 2026, 12:30 PM UTC. 401 Unauthorized',
-        'Module source mirror failed to sync. Showing the Modules already stored. clone failed',
-      ]);
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      expect(open).not.toHaveBeenCalled();
-    });
-
-    /**
-     * Verifies: each source's warning can be dismissed on its own, and stays dismissed while that source keeps failing the same way.
-     * Interacts with: the warning's Dismiss button; ModulesService.getModuleSources (stub).
-     * Data: gitlab and mirror failed; gitlab dismissed, then the sources listed again unchanged.
-     */
-    it('dismisses one source warning and keeps the others', async () => {
-      const user = userEvent.setup();
-      const { fixture } = await renderModules(
-        {},
-        { sources: () => of([healthy, gitlab, mirror]) },
-      );
-
-      await user.click(
-        screen.getByRole('button', { name: 'Dismiss the gitlab warning' }),
-      );
-      fixture.detectChanges();
-
-      expect(screen.getAllByRole('alert').map(text)).toEqual([
-        'Module source mirror failed to sync. Showing the Modules already stored. clone failed',
-      ]);
-
-      fixture.componentInstance.load();
-      fixture.detectChanges();
-      expect(screen.getAllByRole('alert')).toHaveLength(1);
-    });
-
-    /**
-     * Verifies: a dismissed warning comes back when its source fails with a different error, or when the user syncs again.
-     * Interacts with: the Dismiss button; the list stub's syncAll output; ModulesService.getModuleSources (stub).
-     * Data: gitlab dismissed at 401; then 403; then dismissed again and a requested sync still failing.
-     */
-    it('brings a dismissed warning back on a new error or a requested sync', async () => {
-      const user = userEvent.setup();
-      let current: ModuleSource = gitlab;
-      const { fixture, list } = await renderModules(
-        {},
-        { sources: () => of([current]) },
-      );
-      const dismiss = () =>
-        user.click(
-          screen.getByRole('button', { name: 'Dismiss the gitlab warning' }),
-        );
-
-      await dismiss();
-      fixture.detectChanges();
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
-      current = { ...gitlab, error: '403 Forbidden' };
-      fixture.componentInstance.load();
-      fixture.detectChanges();
-      expect(screen.getByRole('alert')).toHaveTextContent('403 Forbidden');
-
-      await dismiss();
-      fixture.detectChanges();
-      list.syncAll.emit();
-      fixture.detectChanges();
-      expect(screen.getByRole('alert')).toHaveTextContent('403 Forbidden');
-    });
-
-    /**
-     * Verifies: with no source configured the page says no modules can be synced, and shows no failure warning.
-     * Interacts with: ModulesService.getModuleSources (stub returning []).
-     * Data: no sources.
-     */
-    it('says when no module source is configured', async () => {
-      await renderModules({}, { sources: () => of<ModuleSource[]>([]) });
-
-      expect(text(screen.getByRole('status'))).toBe(
-        'No module source is configured, so no Modules can be synced.',
-      );
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    });
-
-    /**
-     * Verifies: when the sources cannot be listed the page shows no warning and logs no error, and still lists the modules.
-     * Interacts with: ModulesService.getModuleSources (throwError stub), the list stub's modules input; test-setup fails any console.error.
-     * Data: getModuleSources fails with a 404 (an older API) or a 403 (no ViewModules).
-     */
-    it('shows no source warning when the sources cannot be listed', async () => {
-      const { list } = await renderModules(
-        {},
-        { sources: () => throwError(() => new Error('404')) },
-      );
-
-      expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    });
-
-    /**
-     * Verifies: when a requested sync cannot list the sources, the warning shown on page load is cleared rather than kept, no snack bar opens and no error is logged.
-     * Interacts with: the list stub's syncAll output, ModulesService.getModuleSources (stub answering, then throwing), MatSnackBar (real); test-setup fails any console.error.
-     * Data: gitlab failed on page load; the requested sync's getModuleSources fails with a 403.
-     */
-    it('clears the source warning when a later source listing fails', async () => {
-      let sources: () => Observable<ModuleSource[]> = () => of([gitlab]);
-      const { fixture, list, modulesApi } = await renderModules(
-        {},
-        { sources: () => sources() },
-      );
-      expect(screen.getAllByRole('alert')).toHaveLength(1);
-
-      sources = () => throwError(() => new Error('403'));
-      list.syncAll.emit();
-      fixture.detectChanges();
-
-      // Read right away: whenStable() would wait out a snack bar's duration.
-      expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      expect(screen.queryByText('Dismiss')).not.toBeInTheDocument();
-    });
-
-    /**
-     * Verifies: when the user asks the list to update every source, the page reloads the modules and the sources, and one snack bar with Dismiss names every failed source; the warnings follow the new answer.
-     * Interacts with: the list stub's syncAll output, ModulesService.getAllModules and getModuleSources (stubs), MatSnackBar (real).
-     * Data: healthy sources on page load; after the update, the sources in the row.
-     */
-    it.each([
-      {
-        label: 'one source',
-        failed: [gitlab],
-        message: 'Module source gitlab failed to sync',
-      },
-      {
-        label: 'two sources',
-        failed: [gitlab, mirror],
-        message: 'Module sources gitlab, mirror failed to sync',
-      },
-    ])(
-      'names the failed sources in a snack bar after a requested sync ($label)',
-      async ({ failed, message }) => {
-        let answer: ModuleSource[] = [healthy];
-        const { fixture, list, modulesApi } = await renderModules(
-          {},
-          { sources: () => of(answer) },
-        );
-        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
-        answer = [healthy, ...failed];
-        list.syncAll.emit();
-        fixture.detectChanges();
-
-        expect(modulesApi.getAllModules).toHaveBeenCalledTimes(2);
-        expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
-        expect(await screen.findByText(message)).toBeInTheDocument();
-        // The snack bar's content stays aria-hidden until it is announced.
-        expect(
-          document.querySelector('.mat-mdc-snack-bar-container'),
-        ).toHaveTextContent('Dismiss');
-        expect(screen.getAllByRole('alert')).toHaveLength(failed.length);
-      },
-    );
-
-    /**
-     * Verifies: syncing every source forces the API to re-read every version, unlike the page load.
-     * Interacts with: the list stub's syncAll output, ModulesService.getAllModules (stub).
+     * Verifies: Refresh All Sources marks every source refreshing, forces the API to re-read every version (unlike the page load), and clears the mark once the modules are back.
+     * Interacts with: the panel stub's refreshAll output and refreshing input, ModulesService.getAllModules (Subject stub on the second call).
      * Data: healthy sources.
      */
-    it('forces the update when every source is synced', async () => {
-      const { fixture, list, modulesApi } = await renderModules({});
+    it('forces a re-read and shows every source refreshing until done', async () => {
+      const { fixture, panel, list, modulesApi } = await renderModules({});
+      const reload = new Subject<Module[]>();
+      modulesApi.getAllModules.mockImplementationOnce(() => reload);
 
-      list.syncAll.emit();
+      panel.refreshAll.emit();
       fixture.detectChanges();
 
       expect(modulesApi.getAllModules.mock.calls).toStrictEqual([
         [true, true, false],
         [true, true, true],
       ]);
+      expect([...panel.refreshing()]).toEqual([ALL_SOURCES]);
+      expect([...list.refreshing()]).toEqual([ALL_SOURCES]);
+
+      reload.next([]);
+      reload.complete();
+      fixture.detectChanges();
+
+      expect(panel.refreshing().size).toBe(0);
+      expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
     });
 
     /**
-     * Verifies: a requested sync in which every source synced opens no snack bar, and clears an earlier warning.
-     * Interacts with: the list stub's syncAll output, ModulesService.getModuleSources (stub), MatSnackBar (real).
-     * Data: gitlab failed on page load; healthy sources after the update.
+     * Verifies: after Refresh All Sources, one snack bar names every source that failed; when all succeed none opens.
+     * Interacts with: the panel stub's refreshAll output, ModulesService.getModuleSources (stub), MatSnackBar (real).
+     * Data: healthy on page load; after the refresh, the sources in the row.
      */
-    it('opens no snack bar when a requested sync succeeds', async () => {
-      let answer: ModuleSource[] = [gitlab];
-      const { fixture, list } = await renderModules(
-        {},
-        { sources: () => of(answer) },
-      );
-      expect(screen.getAllByRole('alert')).toHaveLength(1);
+    it.each([
+      {
+        label: 'one source',
+        failed: [gitlab],
+        message: "Module source gitlab couldn't be read",
+      },
+      {
+        label: 'two sources',
+        failed: [gitlab, mirror],
+        message: "Module sources gitlab, mirror couldn't be read",
+      },
+    ])(
+      'names the failed sources in a snack bar ($label)',
+      async ({ failed, message }) => {
+        let answer: ModuleSource[] = [healthy];
+        const { fixture, panel } = await renderModules(
+          {},
+          { sources: () => of(answer) },
+        );
 
-      answer = [healthy];
-      list.syncAll.emit();
+        answer = [healthy, ...failed];
+        panel.refreshAll.emit();
+        fixture.detectChanges();
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(snackBarText()).toContain('Dismiss');
+      },
+    );
+
+    it('opens no snack bar when every source is read', async () => {
+      const { fixture, panel } = await renderModules({});
+
+      panel.refreshAll.emit();
       fixture.detectChanges();
 
       // Read right away: whenStable() would wait out a snack bar's duration.
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.queryByText('Dismiss')).not.toBeInTheDocument();
+      expect(snackBarText()).toBeNull();
     });
+  });
 
+  describe('Refresh one', () => {
     /**
-     * Verifies: syncing one source or module sends its id, keeps loading on until the API answers, then reloads the modules and the sources, showing the new warnings without a snack bar.
-     * Interacts with: the list stub's sync output and isLoading input, ModulesService.createTerrraformModuleFromRepository (Subject stub), getAllModules and getModuleSources (stubs), MatSnackBar (real).
-     * Data: id gitlab; the sources answer gitlab failed after the sync.
+     * Verifies: refreshing one source (from the panel) or one Module (from the list) sends its id, marks only that id refreshing until the API answers, then reloads the modules and sources.
+     * Interacts with: both stubs' refresh outputs and refreshing inputs, ModulesService.createTerrraformModuleFromRepository (Subject stub).
+     * Data: source local from the panel; Module local/vm from the list.
      */
-    it('syncs the entered source and reloads the modules', async () => {
+    it.each([
+      { from: 'panel' as const, id: 'local' },
+      { from: 'list' as const, id: 'local/vm' },
+    ])('refreshes $id from the $from', async ({ from, id }) => {
       const request = new Subject<unknown>();
-      let answer: ModuleSource[] = [healthy];
-      const { fixture, list, modulesApi } = await renderModules(
-        {},
-        { sources: () => of(answer), sync: () => request },
-      );
+      const view = await renderModules({}, { sync: () => request });
+      const { fixture, list, panel, modulesApi } = view;
 
-      list.sync.emit('gitlab');
+      (from === 'panel' ? panel : list).refresh.emit(id);
       fixture.detectChanges();
 
       expect(
         modulesApi.createTerrraformModuleFromRepository.mock.calls,
-      ).toStrictEqual([[{ id: 'gitlab' }]]);
-      expect(list.isLoading()).toBe(true);
+      ).toStrictEqual([[{ id }]]);
+      expect([...list.refreshing()]).toEqual([id]);
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
 
-      answer = [gitlab];
       request.next(null);
       request.complete();
       fixture.detectChanges();
 
-      // Read right away: whenStable() would wait out a snack bar's duration.
+      expect(list.refreshing().size).toBe(0);
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(2);
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
-      expect(list.isLoading()).toBe(false);
-      expect(screen.getAllByRole('alert')).toHaveLength(1);
-      expect(
-        screen.queryByText('Module source gitlab failed to sync'),
-      ).not.toBeInTheDocument();
     });
 
     /**
-     * Verifies: a failed sync of one source shows the API's problem title, else the error message, else a generic message, in a snack bar; loading clears, nothing is reloaded and no error escapes.
-     * Interacts with: the list stub's sync output and isLoading input, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
+     * Verifies: a failed refresh shows the API's problem title, else the error message, else a generic message, in a snack bar; the refreshing mark clears, nothing is reloaded and no error escapes.
+     * Interacts with: the panel stub's refresh output, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
      * Data: id web; the error in the row.
      */
     it.each([
@@ -450,28 +344,36 @@ describe('AdminModulesComponent', () => {
       {
         label: 'a generic message',
         error: {},
-        message: 'Failed to update the Modules',
+        message: "Couldn't refresh the Modules",
       },
-    ])(
-      'shows $label when syncing a source fails',
-      async ({ error, message }) => {
-        const { fixture, list, modulesApi } = await renderModules(
-          {},
-          { sync: () => throwError(() => error) },
-        );
+    ])('shows $label when a refresh fails', async ({ error, message }) => {
+      const { fixture, panel, list, modulesApi } = await renderModules(
+        {},
+        { sync: () => throwError(() => error) },
+      );
 
-        list.sync.emit('web');
-        fixture.detectChanges();
+      panel.refresh.emit('web');
+      fixture.detectChanges();
 
-        expect(await screen.findByText(message)).toBeInTheDocument();
-        // The snack bar's content stays aria-hidden until it is announced.
-        expect(
-          document.querySelector('.mat-mdc-snack-bar-container'),
-        ).toHaveTextContent('Dismiss');
-        expect(list.isLoading()).toBe(false);
-        expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
-        expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
-      },
-    );
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(snackBarText()).toContain('Dismiss');
+      expect(list.refreshing().size).toBe(0);
+      expect(list.isLoading()).toBe(false);
+      expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  /**
+   * Verifies: the list's delete output deletes the Module through the API.
+   * Interacts with: the list stub's delete output, ModulesService.deleteModule (stub).
+   * Data: mod1.
+   */
+  it('deletes a Module the list asks to delete', async () => {
+    const { fixture, list, modulesApi } = await renderModules({});
+
+    list.delete.emit('mod1');
+    fixture.detectChanges();
+
+    expect(modulesApi.deleteModule).toHaveBeenCalledWith('mod1');
   });
 });
