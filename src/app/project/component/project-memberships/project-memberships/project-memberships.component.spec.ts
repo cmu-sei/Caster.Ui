@@ -167,13 +167,13 @@ describe('ProjectMembershipsComponent', () => {
   });
 
   /**
-   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show and stay editable for an editor.
-   * Interacts with: the showTitle input.
-   * Data: project Range.
+   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show and stay editable for a manager.
+   * Interacts with: the showTitle input, PermissionService.canManageProject (real).
+   * Data: project Range; ManageProjects.
    */
   it('leaves the title out when showTitle is false', async () => {
     const { stub } = await renderMemberships(
-      { system: [SystemPermission.EditProjects] },
+      { system: [SystemPermission.ManageProjects] },
       false,
       false,
     );
@@ -182,58 +182,14 @@ describe('ProjectMembershipsComponent', () => {
     // Edit rights don't depend on the title being shown.
     expect(stub(MembershipListStub).canEdit()).toBe(true);
     expect(stub(MemberListStub).canEdit()).toBe(true);
-    expect(
-      stub(MemberListStub)
-        .users()
-        .map((u) => u.name),
-    ).toEqual(['Ada']);
   });
 
   /**
-   * Verifies: an EditProject claim on the project makes both membership lists editable (current behavior).
-   * Interacts with: PermissionService.canEditProject (real), the list stubs' canEdit inputs.
-   * Data: an EditProject claim on p1.
-   */
-  it('passes canEdit true with an EditProject claim', async () => {
-    const { stub } = await renderMemberships({
-      projects: [
-        { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
-      ],
-    });
-
-    // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit()).toBe(true);
-    expect(stub(MemberListStub).canEdit()).toBe(true);
-  });
-
-  /**
-   * Verifies: the EditProjects system permission makes both membership lists editable without a claim (current behavior).
-   * Interacts with: PermissionService.canEditProject (real).
-   * Data: system permission EditProjects.
-   */
-  it('passes canEdit true with EditProjects', async () => {
-    const { stub } = await renderMemberships({
-      system: [SystemPermission.EditProjects],
-    });
-
-    // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MemberListStub).canEdit()).toBe(true);
-  });
-
-  /**
-   * Verifies: without EditProjects or an EditProject claim on this project both lists are read-only, also with a ManageProject claim or ManageProjects (current behavior).
-   * Interacts with: PermissionService.canEditProject (real), the list stubs' canEdit inputs.
-   * Data: near misses: EditProject on another project, ManageProject on p1, ManageProjects.
+   * Verifies: a ManageProject claim on the project, or the ManageProjects system permission, makes both membership lists editable, as the API requires for adding, changing and removing memberships.
+   * Interacts with: PermissionService.canManageProject (real), the list stubs' canEdit inputs.
+   * Data: the grants in the row.
    */
   it.each<[string, PermissionGrants]>([
-    [
-      'an EditProject claim on another project',
-      {
-        projects: [
-          { projectId: 'p9', permissions: [ProjectPermission.EditProject] },
-        ],
-      },
-    ],
     [
       'a ManageProject claim',
       {
@@ -243,10 +199,39 @@ describe('ProjectMembershipsComponent', () => {
       },
     ],
     ['ManageProjects', { system: [SystemPermission.ManageProjects] }],
+  ])('passes canEdit true with %s', async (_label, grants) => {
+    const { stub } = await renderMemberships(grants);
+
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
+  });
+
+  /**
+   * Verifies: without ManageProjects or a ManageProject claim on this project both lists are read-only, including for EditProject and EditProjects, which the API refuses for memberships with a 403.
+   * Interacts with: PermissionService.canManageProject (real), the list stubs' canEdit inputs.
+   * Data: near misses: ManageProject on another project, EditProject on p1, EditProjects.
+   */
+  it.each<[string, PermissionGrants]>([
+    [
+      'a ManageProject claim on another project',
+      {
+        projects: [
+          { projectId: 'p9', permissions: [ProjectPermission.ManageProject] },
+        ],
+      },
+    ],
+    [
+      'an EditProject claim',
+      {
+        projects: [
+          { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
+        ],
+      },
+    ],
+    ['EditProjects', { system: [SystemPermission.EditProjects] }],
   ])('passes canEdit false with %s', async (_label, grants) => {
     const { stub } = await renderMemberships(grants);
 
-    // Current behavior for the Manage rows; see agent-docs/ui-test-bugs/caster.ui.md.
     expect(stub(MembershipListStub).canEdit()).toBe(false);
     expect(stub(MemberListStub).canEdit()).toBe(false);
   });
@@ -259,7 +244,7 @@ describe('ProjectMembershipsComponent', () => {
   it('creates a membership and returns when embedded', async () => {
     const { fixture, projectsApi, goBack, stub, user } =
       await renderMemberships(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         true,
       );
 

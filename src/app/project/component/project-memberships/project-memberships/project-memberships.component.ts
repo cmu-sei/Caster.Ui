@@ -114,7 +114,7 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
       .pipe(filter((x) => x != null));
     // Set here, not when the title subscribes to project$: a host that
     // hides the title would otherwise leave the lists read-only.
-    this.canEdit$ = this.permissionService.canEditProject(this.projectId());
+    this.canEdit$ = this.permissionService.canManageProject(this.projectId());
   }
 
   selectUsers(members: boolean) {
