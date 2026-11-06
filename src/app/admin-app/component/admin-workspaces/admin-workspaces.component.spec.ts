@@ -4,7 +4,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import {
   Run,
@@ -43,7 +45,9 @@ class ActiveRunsStub {
   }>();
 }
 
-async function renderAdminWorkspaces() {
+async function renderAdminWorkspaces(
+  overrides: { disableWorkspaceLocking?: () => Observable<boolean> } = {},
+) {
   const signalR = {
     startConnection: vi.fn(() => Promise.resolve()),
     joinWorkspacesAdmin: vi.fn(),
@@ -54,8 +58,11 @@ async function renderAdminWorkspaces() {
   >;
   const workspacesApi = {
     getWorkspaceLockingStatus: vi.fn(() => of(true)),
-    disableWorkspaceLocking: vi.fn(() => of(false)),
+    disableWorkspaceLocking: vi.fn(
+      overrides.disableWorkspaceLocking ?? (() => of(false)),
+    ),
   } satisfies ApiStub<WorkspacesService>;
+  const snackBar = { open: vi.fn() };
   const runsApi = {
     getRuns: vi.fn(() =>
       of<Run[]>([
@@ -74,13 +81,14 @@ async function renderAdminWorkspaces() {
       { provide: SignalRService, useValue: signalR },
       { provide: WorkspacesService, useValue: workspacesApi },
       { provide: RunsService, useValue: runsApi },
+      { provide: MatSnackBar, useValue: snackBar },
     ],
   });
   await view.fixture.whenStable();
   view.fixture.detectChanges();
   const stub = <T>(type: Type<T>): T =>
     view.fixture.debugElement.query(By.directive(type)).componentInstance;
-  return { ...view, signalR, workspacesApi, stub };
+  return { ...view, signalR, workspacesApi, snackBar, stub };
 }
 
 describe('AdminWorkspacesComponent', () => {
@@ -108,12 +116,46 @@ describe('AdminWorkspacesComponent', () => {
    * Data: locking enabled, then set to false.
    */
   it('disables workspace locking', async () => {
-    const { fixture, workspacesApi, stub } = await renderAdminWorkspaces();
+    const { fixture, workspacesApi, snackBar, stub } =
+      await renderAdminWorkspaces();
 
     stub(LockingStatusStub).setLockingEnabled.emit(false);
     fixture.detectChanges();
 
     expect(workspacesApi.disableWorkspaceLocking).toHaveBeenCalled();
     expect(stub(LockingStatusStub).lockingEnabled()).toBe(false);
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Workspace operations are disabled until you enable them or the Caster API restarts',
+      'Dismiss',
+      expect.objectContaining({ duration: 5000, verticalPosition: 'top' }),
+    );
+  });
+
+  /**
+   * Verifies: when the API refuses to disable locking, its reason shows in a snack bar (not the global error dialog) and the toggle keeps the old state.
+   * Interacts with: WorkspacesService.disableWorkspaceLocking (stub that fails with a 403 ProblemDetails), MatSnackBar (stub).
+   * Data: locking enabled; the API answers 403 "Forbidden".
+   */
+  it('shows why disabling workspace locking failed', async () => {
+    const { fixture, snackBar, stub } = await renderAdminWorkspaces({
+      disableWorkspaceLocking: () =>
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 403,
+              error: { title: 'Forbidden', status: 403 },
+            }),
+        ),
+    });
+
+    stub(LockingStatusStub).setLockingEnabled.emit(false);
+    fixture.detectChanges();
+
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Forbidden',
+      'Dismiss',
+      expect.objectContaining({ duration: 5000 }),
+    );
+    expect(stub(LockingStatusStub).lockingEnabled()).toBe(true);
   });
 });
