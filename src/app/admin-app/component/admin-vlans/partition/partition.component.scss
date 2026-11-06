@@ -9,7 +9,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 }
 
 .vlan-amount {
-  width: 8ch;
+  /* Room for a four-digit count plus the number field's spinner and padding. */
+  width: 120px;
   text-align: center;
 }
 
