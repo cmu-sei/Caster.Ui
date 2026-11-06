@@ -274,7 +274,7 @@ describe('ModuleSourcesComponent', () => {
     await renderSources({ canEdit: false });
 
     expect(
-      screen.queryByRole('button', { name: /^Refresh|Add a GitLab Project/ }),
+      screen.queryByRole('button', { name: /^(Refresh|Add a GitLab Project)/ }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Copy the local repository URL' }),
