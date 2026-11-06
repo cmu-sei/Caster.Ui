@@ -11,10 +11,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </mat-toolbar-row>
     <mat-toolbar-row>
       <mat-form-field class="w-50">
-        <mat-label>Search</mat-label>
-        <mat-icon matPrefix svgIcon="ic_magnify_search" />
         <input
           matInput
+          placeholder="Search"
+          aria-label="Search"
           [(ngModel)]="filterString"
           (keyup)="applyFilter($event)"
           #input
@@ -24,7 +24,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             matSuffix
             mat-icon-button
-            aria-label="Clear"
+            aria-label="Clear Search"
+            matTooltip="Clear Search"
             (click)="clearFilter()"
           >
             <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
