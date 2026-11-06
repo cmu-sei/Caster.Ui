@@ -79,6 +79,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             (click)="$event.stopPropagation()"
             [attr.aria-label]="'Copy the Terraform source of ' + item.name"
             [matTooltip]="'Copy Terraform source: ' + source"
+            matTooltipClass="wide-tooltip"
           >
             <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
           </button>
