@@ -7,13 +7,15 @@ import {
   ChangeDetectionStrategy,
   OnDestroy,
   inject,
+  signal,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { WorkspaceService, WorkspaceQuery } from 'src/app/workspace/state';
 import { EMPTY, Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { Run } from 'src/app/generated/caster-api';
+import { catchError, finalize } from 'rxjs/operators';
+import { Run, SystemPermission } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { MatCard } from '@angular/material/card';
 import { LockingStatusComponent } from './locking-status/locking-status.component';
@@ -46,10 +48,16 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   private workspaceQuery = inject(WorkspaceQuery);
   private signalRService = inject(SignalRService);
   private snackBar = inject(MatSnackBar);
+  private permissionService = inject(PermissionService);
 
   public lockingEnabled$: Observable<boolean>;
   public activeRuns$: Observable<Run[]>;
   public expandedRuns$: Observable<string[]>;
+  /** Turning Workspace operations on or off needs ManageWorkspaces, as in the API. */
+  public canManage$ = this.permissionService.hasPermission(
+    SystemPermission.ManageWorkspaces,
+  );
+  readonly changingLocking = signal(false);
 
   ngOnInit() {
     this.signalRService
@@ -95,6 +103,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   }
 
   setLockingEnabled(status: boolean) {
+    this.changingLocking.set(true);
     this.workspaceService
       .setLockingEnabled(status)
       .pipe(
@@ -109,6 +118,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
           );
           return EMPTY;
         }),
+        finalize(() => this.changingLocking.set(false)),
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe((enabled) =>

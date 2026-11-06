@@ -12,10 +12,15 @@ import {
   Run,
   RunsService,
   RunStatus,
+  SystemPermission,
   WorkspacesService,
 } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import {
+  PermissionGrants,
+  permissionDataProviders,
+} from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminWorkspacesComponent } from './admin-workspaces.component';
 import { ActiveRunsComponent } from 'src/app/admin-app/component/admin-workspaces/active-runs/active-runs.component';
@@ -24,6 +29,8 @@ import { LockingStatusComponent } from 'src/app/admin-app/component/admin-worksp
 @Component({ selector: 'cas-locking-status', template: '' })
 class LockingStatusStub {
   readonly lockingEnabled = input<boolean>(undefined);
+  readonly canManage = input<boolean>(false);
+  readonly busy = input<boolean>(false);
   readonly setLockingEnabled = output<boolean>();
 }
 
@@ -46,7 +53,10 @@ class ActiveRunsStub {
 }
 
 async function renderAdminWorkspaces(
-  overrides: { disableWorkspaceLocking?: () => Observable<boolean> } = {},
+  overrides: {
+    disableWorkspaceLocking?: () => Observable<boolean>;
+    grants?: PermissionGrants;
+  } = {},
 ) {
   const signalR = {
     startConnection: vi.fn(() => Promise.resolve()),
@@ -78,6 +88,9 @@ async function renderAdminWorkspaces(
     ],
     imports: [MatCardModule],
     providers: [
+      ...permissionDataProviders(
+        overrides.grants ?? { system: [SystemPermission.ManageWorkspaces] },
+      ),
       { provide: SignalRService, useValue: signalR },
       { provide: WorkspacesService, useValue: workspacesApi },
       { provide: RunsService, useValue: runsApi },
@@ -157,5 +170,21 @@ describe('AdminWorkspacesComponent', () => {
       expect.objectContaining({ duration: 5000 }),
     );
     expect(stub(LockingStatusStub).lockingEnabled()).toBe(true);
+  });
+
+  /**
+   * Verifies: the locking toggle may be changed with ManageWorkspaces but not with ViewWorkspaces alone, as the API requires.
+   * Interacts with: PermissionService.hasPermission (real), the locking stub's canManage input.
+   * Data: system permission ManageWorkspaces; near miss ViewWorkspaces only.
+   */
+  it('lets only Workspace managers change the locking status', async () => {
+    const manager = await renderAdminWorkspaces();
+    expect(manager.stub(LockingStatusStub).canManage()).toBe(true);
+    manager.fixture.destroy();
+
+    const viewer = await renderAdminWorkspaces({
+      grants: { system: [SystemPermission.ViewWorkspaces] },
+    });
+    expect(viewer.stub(LockingStatusStub).canManage()).toBe(false);
   });
 });
