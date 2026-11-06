@@ -10,7 +10,9 @@ import {
   Input,
   inject,
   input,
+  signal,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
@@ -32,7 +34,9 @@ import { MatIcon } from '@angular/material/icon';
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { VlanListComponent } from '../vlan-list/vlan-list.component';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -63,14 +67,8 @@ export class PartitionComponent implements OnInit {
   private vlanQuery = inject(VlanQuery);
   private confirmService = inject(CrucibleDialogService);
   private snackBar = inject(MatSnackBar);
-
-  @Input() set poolId(poolId: string) {
-    this.vlans$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
-    this.otherPartitions$ = this.partitionQuery.selectByPoolId(
-      poolId,
-      this.partition?.id,
-    );
-  }
+  private dialog = inject(MatDialog);
+  private feedback = inject(VlanFeedbackService);
 
   @Input() set partition(partition: Partition) {
     this._partition = partition;
@@ -89,10 +87,17 @@ export class PartitionComponent implements OnInit {
 
   _partition: Partition;
 
-  editing: boolean;
-
   vlans$: Observable<Vlan[]>;
   otherPartitions$: Observable<Partition[]>;
+
+  get defaultTooltip(): string {
+    return this.partition?.isDefault
+      ? 'Stop using this as the Default Partition'
+      : 'Make this the Default Partition: Projects without a partition take VLANs from it';
+  }
+
+  /** The VLAN count to add or remove: a whole number from 1 to 4096, else null. */
+  readonly amount = signal<number | null>(null);
 
   ngOnInit(): void {}
 
@@ -108,44 +113,122 @@ export class PartitionComponent implements OnInit {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.partitionService.delete(this.partition.id).subscribe();
+          const name = this.partition.name;
+          this.feedback
+            .report(
+              this.partitionService.delete(this.partition.id),
+              `Deleted ${name}`,
+              `Could not delete ${name}`,
+            )
+            .subscribe();
         }
       });
   }
 
-  rename($event, target) {
+  rename($event) {
     $event.stopPropagation();
 
-    this.partitionService
-      .partialEdit(this.partition.id, { name: target.value })
-      .subscribe(() => (this.editing = false));
+    const partition = this.partition;
+    const dialogRef = this.dialog.open(NameDialogComponent, {
+      data: { nameValue: partition.name },
+      minWidth: '400px',
+      maxWidth: '90vw',
+    });
+    dialogRef.componentInstance.title = 'Rename ' + partition.name;
+    dialogRef.componentInstance.message = '';
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.feedback
+          .report(
+            this.partitionService.partialEdit(partition.id, {
+              name: result.nameValue,
+            }),
+            `Renamed ${partition.name} to ${result.nameValue}`,
+            `Could not rename ${partition.name}`,
+          )
+          .subscribe();
+      }
+    });
   }
 
-  addVlans($event, vlans) {
-    $event.stopPropagation();
-    this.vlanService.addToPartition(this.partition.id, vlans).subscribe();
+  setAmount(value: string) {
+    const amount = value.trim() === '' ? NaN : Number(value);
+    this.amount.set(
+      Number.isInteger(amount) && amount >= 1 && amount <= 4096 ? amount : null,
+    );
   }
 
-  removeVlans($event, vlans) {
+  addVlans($event: Event, input: HTMLInputElement) {
     $event.stopPropagation();
-    this.vlanService.removeFromPartition(this.partition.id, vlans).subscribe();
+    const amount = this.amount();
+    if (!amount) {
+      return;
+    }
+    const name = this.partition.name;
+    this.feedback
+      .report(
+        this.vlanService.addToPartition(this.partition.id, amount),
+        (vlans) =>
+          `Added ${VlanFeedbackService.vlans(vlans.length)} to ${name}`,
+        `Could not add VLANs to ${name}`,
+      )
+      .subscribe(() => this.clearAmount(input));
+  }
+
+  removeVlans($event: Event, input: HTMLInputElement) {
+    $event.stopPropagation();
+    const amount = this.amount();
+    if (!amount) {
+      return;
+    }
+    const name = this.partition.name;
+    this.feedback
+      .report(
+        this.vlanService.removeFromPartition(this.partition.id, amount),
+        (vlans) =>
+          `Removed ${VlanFeedbackService.vlans(vlans.length)} from ${name}`,
+        `Could not remove VLANs from ${name}`,
+      )
+      .subscribe(() => this.clearAmount(input));
+  }
+
+  private clearAmount(input: HTMLInputElement) {
+    input.value = '';
+    this.amount.set(null);
   }
 
   unsetDefault($event, id: string) {
     $event.stopPropagation();
     if (this.canEdit()) {
-      this.partitionService.unsetDefault(id).subscribe();
+      const name = this.partition.name;
+      this.feedback
+        .report(
+          this.partitionService.unsetDefault(id),
+          `${name} is no longer the default partition`,
+          `Could not unset ${name} as the default partition`,
+        )
+        .subscribe();
     }
   }
 
   setDefault($event, id: string) {
     $event.stopPropagation();
     if (this.canEdit()) {
-      this.partitionService.setDefault(id).subscribe();
+      const name = this.partition.name;
+      this.feedback
+        .report(
+          this.partitionService.setDefault(id),
+          `${name} is now the default partition`,
+          `Could not make ${name} the default partition`,
+        )
+        .subscribe();
     }
   }
 
   onClipboardSuccess() {
-    this.snackBar.open('Copied to clipboard', 'Dismiss');
+    this.snackBar.open(
+      `Copied the partition_id of ${this.partition.name}`,
+      'Dismiss',
+    );
   }
 }

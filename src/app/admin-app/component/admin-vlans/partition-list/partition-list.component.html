@@ -3,30 +3,56 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div>
-  <div class="header">
-    <h1>Partitions</h1>
-    @if (canEdit()) {
-      <button
-        mat-icon-button
-        color="primary"
-        aria-label="Create a Partition"
-        matTooltip="Create a Partition"
-        (click)="createPartition()"
-      >
-        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-      </button>
-    }
-  </div>
-  <div class="content">
-    <mat-accordion class="accordion" multi>
-      <cas-partition [poolId]="poolId" [canEdit]="canEdit()" />
-
-      @for (partition of partitions$ | async; track partition) {
-        <div>
-          <cas-partition [partition]="partition" [canEdit]="canEdit()" />
-        </div>
-      }
-    </mat-accordion>
-  </div>
+<div class="cssLayoutRowStartCenter header">
+  <button
+    mat-icon-button
+    color="primary"
+    aria-label="Add New Partition"
+    matTooltip="Add New Partition"
+    (click)="createPartition()"
+    [disabled]="!canEdit()"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+  </button>
+  <span>Partitions</span>
 </div>
+<mat-accordion class="accordion" multi>
+  @for (partition of partitions$ | async; track partition.id) {
+    <cas-partition [partition]="partition" [canEdit]="canEdit()" />
+  }
+</mat-accordion>
+@if (unassigned$ | async; as unassigned) {
+  @if (!(vlansLoading$ | async)) {
+    <div class="cssLayoutRowStartCenter unassigned">
+      @if (unassigned.length) {
+        <span>
+          {{ unassigned.length }}
+          {{ unassigned.length === 1 ? "VLAN isn't" : "VLANs aren't" }} in any
+          partition
+        </span>
+        <button
+          mat-button
+          [attr.aria-expanded]="showUnassigned()"
+          [matTooltip]="
+            (showUnassigned() ? 'Hide' : 'Show') +
+            ' the VLANs that are not in any partition'
+          "
+          (click)="showUnassigned.set(!showUnassigned())"
+        >
+          {{ showUnassigned() ? 'Hide' : 'Show' }}
+        </button>
+      } @else {
+        <span>Every VLAN in this Pool is in a partition</span>
+      }
+    </div>
+  }
+  @if (showUnassigned() && unassigned.length) {
+    <cas-vlan-list
+      class="unassigned-vlans"
+      [showUnassigned]="false"
+      [vlans]="unassigned"
+      [partitions]="partitions$ | async"
+      [canEdit]="canEdit()"
+    />
+  }
+}

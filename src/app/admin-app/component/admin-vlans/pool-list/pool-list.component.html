@@ -3,48 +3,202 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="header">
-  <h1>Pools</h1>
-  @if (canEdit()) {
-    <button
-      mat-icon-button
-      color="primary"
-      (click)="createPool()"
-      aria-label="Create a Pool"
-      matTooltip="Create a Pool"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
-    </button>
-  }
-  <button
-    mat-icon-button
-    color="primary"
-    (click)="toggleDocumentation()"
-    aria-label="View Documentation"
-    matTooltip="View Documentation"
-  >
-    <mat-icon class="mdi-24px" fontIcon="mdi-information" />
-  </button>
-</div>
-@if (showDocumentation) {
-  <div>
-    <p>
-      Pools are groups of 4096 VLANs, each representing a standard switching
-      infrastructure. Each Pool can be sub-divided into Partitions of various
-      sizes. Partitions can be assigned to Projects and when a VLAN is requested
-      in a Workspace, it will be pulled from the available VLANs in it's
-      Project's assigned Partition. A system-wide Default Partition can be
-      selected, which will cause VLANs to be allocated from that Partition if no
-      Project or Partition are specified in a request.
-    </p>
+<div class="cssLayoutRowStartCenter">
+  <div class="sp-icon">
+    <mat-icon class="mdi-24px" fontIcon="mdi-lan" />
   </div>
-}
-<div class="container">
-  @for (pool of pools(); track pool) {
-    <cas-pool-list-item
-      [pool]="pool"
-      [canEdit]="canEdit()"
-      (poolSelected)="selectPool(pool)"
+  <mat-form-field class="search-field">
+    <input
+      matInput
+      [ngModel]="filterString()"
+      (ngModelChange)="filterString.set($event)"
+      placeholder="Search"
+      autocomplete="off"
     />
+    @if (filterString()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        matTooltip="Clear"
+        (click)="clearFilter()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
+      </button>
+    }
+  </mat-form-field>
+</div>
+
+<div class="table-container">
+  <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+        <div class="button-cell">
+          <button
+            mat-icon-button
+            aria-label="Add New Pool"
+            matTooltip="Add New Pool"
+            (click)="createPool()"
+            [disabled]="!canEdit()"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+          </button>
+          <button
+            mat-icon-button
+            class="primary-color"
+            aria-label="About pools"
+            [matTooltip]="aboutPools"
+            matTooltipShowDelay="0"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-information" />
+          </button>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let pool">
+        <button
+          mat-icon-button
+          [attr.aria-label]="'Delete ' + pool.name"
+          matTooltip="Delete {{ pool.name }}"
+          (click)="$event.stopPropagation(); deletePool(pool)"
+          [disabled]="!canEdit()"
+        >
+          <mat-icon
+            class="mdi-24px"
+            color="primary"
+            fontIcon="mdi-trash-can-outline"
+          />
+        </button>
+        <button
+          mat-icon-button
+          aria-label="Rename"
+          matTooltip="Rename"
+          (click)="$event.stopPropagation(); renamePool(pool)"
+          [disabled]="!canEdit()"
+        >
+          <mat-icon
+            class="mdi-24px"
+            color="primary"
+            fontIcon="mdi-square-edit-outline"
+          />
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Pool Name</th>
+      <td mat-cell *matCellDef="let pool">
+        {{ pool.name }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="isDefault">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Holds the system Default Partition"
+      >
+        Default
+      </th>
+      <td mat-cell *matCellDef="let pool">
+        @if (pool.isDefault) {
+          <mat-icon
+            class="mdi-24px primary-color"
+            fontIcon="mdi-check-circle"
+            aria-label="Contains the Default Partition"
+            aria-hidden="false"
+            matTooltip="Contains the Default Partition"
+          />
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="partitions">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        matTooltip="Partitions in the Pool, counted once the Pool is opened"
+      >
+        Partitions
+      </th>
+      <td mat-cell *matCellDef="let pool">
+        @if (counts().get(pool.id); as c) {
+          {{ c.partitions }}
+        } @else {
+          <span matTooltip="Open the Pool to count its Partitions">-</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="vlans">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        matTooltip="VLANs handed out / all VLANs in the Pool, counted once the Pool is opened"
+      >
+        VLANs In Use
+      </th>
+      <td mat-cell *matCellDef="let pool">
+        @if (counts().get(pool.id); as c) {
+          {{ c.vlansInUse }} / {{ c.vlans }}
+        } @else {
+          <span matTooltip="Open the Pool to count its VLANs">-</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="expandedDetail">
+      <td
+        mat-cell
+        *matCellDef="let pool"
+        [attr.colspan]="displayedColumns.length"
+      >
+        <div
+          class="pool-detail"
+          [@detailExpand]="
+            pool.id === expandedPoolId ? 'expanded' : 'collapsed'
+          "
+          (click)="$event.stopPropagation()"
+        >
+          @if (pool.id === expandedPoolId) {
+            <cas-partition-list [poolId]="pool.id" [canEdit]="canEdit()" />
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="element-row"
+      [class.expanded-row]="row.id === expandedPoolId"
+      [attr.aria-expanded]="row.id === expandedPoolId"
+      (click)="toggleExpand(row.id)"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: ['expandedDetail']"
+      class="detail-row"
+    ></tr>
+
+    <tr class="mat-mdc-row" *matNoDataRow>
+      <td class="mat-mdc-cell" [attr.colspan]="displayedColumns.length">
+        @if (filterString()) {
+          No data matching the filter "{{ filterString() }}"
+        } @else if (!isLoading()) {
+          There are currently no Pools
+        }
+      </td>
+    </tr>
+  </table>
+
+  @if (isLoading()) {
+    <mat-card
+      appearance="outlined"
+      style="display: flex; justify-content: center; align-items: center"
+    >
+      <mat-progress-spinner color="primary" mode="indeterminate" />
+    </mat-card>
   }
 </div>
