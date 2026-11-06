@@ -9,7 +9,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [sidenav]="null"
 />
 
-<div class="content-container">
+<!-- Shows the optional AppLandingBackgroundImage setting behind the project list. -->
+<div class="content-container" crucibleLandingBackground>
   <cas-project-list
     [projects]="projects | async"
     [isLoading]="isLoading$ | async"
