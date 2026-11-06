@@ -167,14 +167,21 @@ describe('ProjectMembershipsComponent', () => {
   });
 
   /**
-   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show.
+   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show and stay editable for an editor.
    * Interacts with: the showTitle input.
    * Data: project Range.
    */
   it('leaves the title out when showTitle is false', async () => {
-    const { stub } = await renderMemberships({}, false, false);
+    const { stub } = await renderMemberships(
+      { system: [SystemPermission.EditProjects] },
+      false,
+      false,
+    );
 
     expect(screen.queryByRole('heading', { name: 'Range' })).toBeNull();
+    // Edit rights don't depend on the title being shown.
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
     expect(
       stub(MemberListStub)
         .users()
