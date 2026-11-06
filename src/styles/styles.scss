@@ -159,3 +159,10 @@ mat-paginator {
   overflow: auto;
 }
 
+
+// A tooltip that shows one long value, such as a repository URL or a Terraform
+// source, on one line where it fits instead of wrapping it at Material's 200px.
+.wide-tooltip .mdc-tooltip__surface {
+  max-width: min(90vw, 720px);
+  overflow-wrap: anywhere;
+}

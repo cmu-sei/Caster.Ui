@@ -26,7 +26,7 @@ import {
   MatRowDef,
   MatRow,
 } from '@angular/material/table';
-import { Module } from '../../../../generated/caster-api';
+import { Module, ModuleSource } from '../../../../generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatSuffix } from '@angular/material/form-field';
@@ -39,9 +39,55 @@ import { NgClass, DatePipe } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
-export interface Action {
-  Value: string;
-  Text: string;
+/** The provider name of the legacy GitLab source. */
+export const GITLAB_PROVIDER = 'gitlab';
+
+/**
+ * A Module as the table shows it: with the name of its highest version, and
+ * the source it came from, which decides whether its row can be synced. The
+ * source is not a column: a git source's name already starts the Path.
+ */
+export interface ModuleRow extends Module {
+  source: string;
+  latestVersion: string;
+}
+
+/** When an API instance last synced a source, in the viewer's time zone. */
+export function formatSyncTime(value: string): string {
+  return new Date(value).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+}
+
+export function isGitlabSource(source: ModuleSource): boolean {
+  return source.provider?.toLowerCase() === GITLAB_PROVIDER;
+}
+
+/**
+ * The configured source a Module came from. A git source's Modules have Paths
+ * of <sourceName> or <sourceName>/<subdirectory>; the legacy GitLab source's
+ * use the project's own path, so any other Module is the GitLab source's when
+ * one is configured. Null when no configured source provides the Module.
+ */
+export function moduleSourceOf(
+  module: Module,
+  sources: ModuleSource[],
+): ModuleSource | null {
+  const path = (module.path ?? '').toLowerCase();
+  const named = sources
+    .filter((s) => !isGitlabSource(s) && s.name)
+    .filter((s) => {
+      const name = s.name.toLowerCase();
+      return path === name || path.startsWith(name + '/');
+    })
+    .sort((a, b) => b.name.length - a.name.length)[0];
+
+  return named ?? sources.find(isGitlabSource) ?? null;
 }
 
 @Component({
@@ -80,24 +126,35 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   private confirmService = inject(CrucibleDialogService);
 
   public displayedColumns: string[] = [
+    'actions',
     'name',
+    'description',
     'path',
     'versionsCount',
+    'latestVersion',
     'dateModified',
   ];
   public filterString = '';
-  public savedFilterString = '';
-  public dataSource = new MatTableDataSource<Module>(new Array<Module>());
-  public externalModuleId = '';
+  public dataSource = new MatTableDataSource<ModuleRow>([]);
 
   readonly modules = input<Module[]>(undefined);
+  readonly sources = input<ModuleSource[]>([]);
   readonly isLoading = input<boolean>(undefined);
   readonly canEdit = input<boolean>(undefined);
-  readonly load = output<boolean>();
-  readonly loadModuleById = output<string>();
+  /** What is being refreshed: Module Paths, source names, or '*' for all. */
+  readonly refreshing = input<Set<string>>(new Set());
+  /** Re-read one Module from its source, by its Path. */
+  readonly refresh = output<string>();
   readonly delete = output<string>();
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
+
+  constructor() {
+    this.dataSource.filterPredicate = (row, filter) =>
+      [row.name, row.description, row.path, row.latestVersion]
+        .filter((value) => !!value)
+        .some((value) => value.toLowerCase().includes(filter));
+  }
 
   ngOnInit() {
     const paginator = this.paginator();
@@ -105,35 +162,90 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
       this.dataSource.paginator = paginator;
     }
     this.dataSource.sort = this.sort();
-    this.filterAndSort(this.filterString);
+    this.dataSource.filter = this.filterString;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!!changes.modules && !!changes.modules.currentValue) {
-      this.dataSource.data = changes.modules.currentValue;
-      this.filterAndSort(this.filterString);
+    if (changes.modules || changes.sources) {
+      const sources = this.sources() ?? [];
+      this.dataSource.data = (this.modules() ?? []).map((module) => ({
+        ...module,
+        source: moduleSourceOf(module, sources)?.name ?? '',
+        // The API lists a Module's versions highest first.
+        latestVersion: module.versions?.[0]?.name ?? '',
+      }));
     }
   }
 
-  filterAndSort(filterValue: string) {
-    this.dataSource.filter = filterValue;
-  }
-
   applyFilter(filterValue: string) {
-    this.filterString = filterValue.toLowerCase();
-    this.filterAndSort(this.filterString);
+    this.filterString = filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.filterString;
   }
 
   clearFilter() {
     this.applyFilter('');
   }
 
-  updateAllModules() {
-    this.load.emit(true);
+  isGitlab(source: ModuleSource): boolean {
+    return isGitlabSource(source);
   }
 
-  updateModuleFromRepository() {
-    this.loadModuleById.emit(this.externalModuleId);
+  /**
+   * A git Module is re-read by its Path. A GitLab Module would need its project
+   * ID, which Caster does not store, so it has no Refresh.
+   */
+  canRefreshModule(row: ModuleRow): boolean {
+    const source = this.sources()?.find((s) => s.name === row.source);
+    return !!source && !this.isGitlab(source) && !!row.path;
+  }
+
+  /** When the Module was last re-read, in the viewer's time zone, e.g. "Nov 5, 2026, 6:15 PM EST". */
+  syncedAt(value: string | null | undefined): string {
+    return value ? formatSyncTime(value) : '';
+  }
+
+  /** Refreshing this Module, its whole source, or every source. */
+  isRefreshing(row: ModuleRow): boolean {
+    const refreshing = this.refreshing();
+    return (
+      refreshing.has(row.path) ||
+      (!!row.source && refreshing.has(row.source)) ||
+      refreshing.has('*')
+    );
+  }
+
+  refreshModule(row: ModuleRow) {
+    this.refresh.emit(row.path);
+  }
+
+  /**
+   * The value for a module block's source argument, for the latest version, as
+   * the API writes it, e.g. git::https://git.example.com/org/repo.git//vm?ref=v1.2.0.
+   */
+  terraformSource(row: ModuleRow): string | null {
+    // The API lists a Module's versions highest first.
+    return row.versions?.[0]?.urlLink || null;
+  }
+
+  /** When the Module stopped being found in its source, for the viewer, or null while it is still there. */
+  missingSince(row: ModuleRow): string | null {
+    const since = (row as ModuleRow & { missingSince?: string | null })
+      .missingSince;
+    return since ? formatSyncTime(since) : null;
+  }
+
+  /**
+   * Delete is for leftovers: a Module no longer in its source, or a GitLab
+   * Module, which is added by hand. A Module still in its source would come
+   * back on the next read, so it has no Delete. An API that doesn't report
+   * missingSince yet leaves Delete on every row, as before.
+   */
+  canDelete(row: ModuleRow): boolean {
+    if (!('missingSince' in row)) {
+      return true;
+    }
+    const source = this.sources()?.find((s) => s.name === row.source);
+    return !!this.missingSince(row) || (!!source && this.isGitlab(source));
   }
 
   deleteModule(module: Module) {
