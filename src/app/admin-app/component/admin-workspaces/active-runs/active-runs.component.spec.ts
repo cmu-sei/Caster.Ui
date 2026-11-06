@@ -114,21 +114,22 @@ describe('ActiveRunsComponent', () => {
   });
 
   /**
-   * Verifies: the Show Output button asks to expand the run.
-   * Interacts with: the expandRun output.
+   * Verifies: clicking a run's row asks to expand it, as on the other admin tables; there is no expand arrow.
+   * Interacts with: the row click, the expandRun output.
    * Data: run1 collapsed.
    */
-  it('asks to expand a run from Show Output', async () => {
+  it('asks to expand a run when its row is clicked', async () => {
     const { expandRun } = await renderActiveRuns();
 
-    await userEvent
-      .setup()
-      .click(screen.getByRole('button', { name: 'Show Output of Range' }));
+    await userEvent.setup().click(screen.getByRole('cell', { name: 'Range' }));
     expect(expandRun).toHaveBeenCalledWith({ expand: true, item: runs[0] });
+    expect(
+      screen.queryByRole('button', { name: /Show Output|Hide Output/ }),
+    ).not.toBeInTheDocument();
   });
 
   /**
-   * Verifies: an expanded run renders its run view, and its button offers Hide Output.
+   * Verifies: an expanded run renders its run view.
    * Interacts with: the cas-run stub.
    * Data: run1 expanded.
    */
@@ -139,9 +140,6 @@ describe('ActiveRunsComponent', () => {
       By.directive(RunStub),
     ).componentInstance;
     expect(run.run().id).toBe('run1');
-    expect(
-      screen.getByRole('button', { name: 'Hide Output of Range' }),
-    ).toHaveAttribute('aria-expanded', 'true');
   });
 
   /**

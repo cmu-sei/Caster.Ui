@@ -4,14 +4,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 <div class="toolbar">
-  <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-briefcase" />
-  <h2
-    class="title"
-    matTooltip="Runs that are queued, planning or applying in any Workspace. A run leaves this list once it is planned, applied, rejected or has failed."
+  <mat-icon
+    class="mdi-24px sp-icon"
+    fontIcon="mdi-briefcase"
+    role="img"
+    aria-label="Active Runs"
+    matTooltip="Active Runs: runs that are queued, planning or applying in any Workspace. A run leaves this list once it is planned, applied, rejected or has failed. Click a run to see its output."
     matTooltipClass="wide-tooltip"
-  >
-    Active Runs
-  </h2>
+  />
   <mat-form-field class="search-field" subscriptSizing="dynamic">
     <input
       matInput
@@ -52,18 +52,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <button
-          mat-icon-button
-          (click)="toggle(row); $event.stopPropagation()"
-          [attr.aria-expanded]="isExpanded(row)"
-          [attr.aria-label]="(isExpanded(row) ? 'Hide Output of ' : 'Show Output of ') + row.workspaceName"
-          [matTooltip]="(isExpanded(row) ? 'Hide Output of ' : 'Show Output of ') + row.workspaceName"
-        >
-          <mat-icon
-            class="mdi-24px"
-            [fontIcon]="isExpanded(row) ? 'mdi-chevron-down' : 'mdi-chevron-right'"
-          />
-        </button>
         @if (row.workspace?.projectId) {
           <a
             mat-icon-button
