@@ -65,7 +65,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (showUnassigned()) {
       <button (click)="reassignSelected(null)" mat-menu-item>Unassigned</button>
     }
-    @for (partition of partitions(); track partition) {
+    @for (partition of partitions(); track partition.id) {
       <button (click)="reassignSelected(partition.id)" mat-menu-item>
         {{ partition.name }}
       </button>

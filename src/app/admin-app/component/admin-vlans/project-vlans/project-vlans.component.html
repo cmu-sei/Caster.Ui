@@ -65,7 +65,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               track option
             ) {
               <mat-optgroup [label]="option.key.name">
-                @for (partition of option.value; track partition) {
+                @for (partition of option.value; track partition.id) {
                   <mat-option [value]="partition.id">
                     {{ partition.name }}
                   </mat-option>

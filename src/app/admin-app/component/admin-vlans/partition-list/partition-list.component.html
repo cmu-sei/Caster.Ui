@@ -17,7 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <span>Partitions</span>
 </div>
 <mat-accordion class="accordion" multi>
-  @for (partition of partitions$ | async; track partition) {
+  @for (partition of partitions$ | async; track partition.id) {
     <cas-partition [partition]="partition" [canEdit]="canEdit()" />
   }
 </mat-accordion>
