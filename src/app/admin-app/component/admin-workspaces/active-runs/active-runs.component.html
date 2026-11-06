@@ -3,35 +3,228 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div>
-  <h1>Active Runs</h1>
-  <cwd-table
-    [items]="runs()"
-    [displayedColumns]="[
-      'createdAt',
-      'isDestroy',
-      'status',
-      'workspaceId',
-      'actions',
-    ]"
-    [columnLabels]="{
-      createdAt: 'Created At',
-      isDestroy: 'Destroy',
-      workspaceId: 'Workspace ID',
-      actions: 'Actions',
-    }"
-    [trackByPropertyName]="'id'"
-    [expandedItems]="expandedRuns()"
-    (expand)="expand($event)"
+<div class="toolbar">
+  <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-briefcase" />
+  <h2
+    class="title"
+    matTooltip="Runs that are queued, planning or applying in any Workspace. A run leaves this list once it is planned, applied, rejected or has failed."
+    matTooltipClass="wide-tooltip"
   >
-    <div *cwdTableItemContent="let item">
-      @if (expandedRuns().includes(item.id)) {
-        <cas-run
-          [run]="item"
-          (planOutput)="planOutput($event, item)"
-          (applyOutput)="applyOutput($event, item)"
-        />
+    Active Runs
+  </h2>
+  <mat-form-field class="search-field" subscriptSizing="dynamic">
+    <input
+      matInput
+      [(ngModel)]="filterString"
+      (keyup)="applyFilter($event.target.value)"
+      placeholder="Search"
+      aria-label="Search"
+    />
+    @if (!!filterString) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear Search"
+        matTooltip="Clear Search"
+        (click)="clearFilter()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
+      </button>
+    }
+  </mat-form-field>
+  <mat-paginator
+    [pageIndex]="0"
+    [pageSize]="20"
+    [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
+  />
+  <span class="spacer"></span>
+  <ng-content />
+</div>
+
+<div class="table-container">
+  <table
+    mat-table
+    matSort
+    multiTemplateDataRows
+    [dataSource]="dataSource"
+    [trackBy]="trackByRun"
+  >
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
+        <button
+          mat-icon-button
+          (click)="toggle(row); $event.stopPropagation()"
+          [attr.aria-expanded]="isExpanded(row)"
+          [attr.aria-label]="(isExpanded(row) ? 'Hide Output of ' : 'Show Output of ') + row.workspaceName"
+          [matTooltip]="(isExpanded(row) ? 'Hide Output of ' : 'Show Output of ') + row.workspaceName"
+        >
+          <mat-icon
+            class="mdi-24px"
+            [fontIcon]="isExpanded(row) ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+          />
+        </button>
+        @if (row.workspace?.projectId) {
+          <a
+            mat-icon-button
+            [routerLink]="['/projects', row.workspace.projectId]"
+            [queryParams]="{ workspace: row.run.workspaceId }"
+            (click)="$event.stopPropagation()"
+            [attr.aria-label]="'Open ' + row.workspaceName"
+            [matTooltip]="'Open ' + row.workspaceName"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-open-in-new" />
+          </a>
+        } @else {
+          <span
+            class="disabled-action"
+            [matTooltip]="
+              row.workspace === undefined
+                ? 'Looking up the Workspace'
+                : 'You can\'t open this Workspace\'s Project'
+            "
+          >
+            <button
+              mat-icon-button
+              disabled
+              [attr.aria-label]="'Open ' + row.workspaceName + ' (not available)'"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-open-in-new" />
+            </button>
+          </span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="workspaceName">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="The Workspace the run is in"
+      >
+        Workspace
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.workspaceName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="projectName">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="The Project the Workspace is in"
+      >
+        Project
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.projectName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="type">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Plan: change what the Workspace deployed to match its files. Destroy: remove everything the Workspace deployed."
+        matTooltipClass="wide-tooltip"
+      >
+        Type
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.type }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Where the run is: queued, planning, waiting to apply or applying"
+        matTooltipClass="wide-tooltip"
+      >
+        Status
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <span [matTooltip]="row.statusTooltip" class="nowrap">{{
+          row.status
+        }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="startedBy">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Who started the run"
+      >
+        Started By
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.startedBy }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="createdAt">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="date-cell"
+        matTooltip="When the run started, in your time zone"
+      >
+        Started
+      </th>
+      <td mat-cell *matCellDef="let row" class="date-cell">
+        {{ formatStarted(row.createdAt) }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="expandedDetail">
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [attr.colspan]="displayedColumns.length"
+      >
+        <!-- No height animation: the terminal sizes itself when it opens. -->
+        @if (isExpanded(row)) {
+          <div class="detail" (click)="$event.stopPropagation()">
+            <cas-run
+              [run]="row.run"
+              (planOutput)="planOutput($event, row.run)"
+              (applyOutput)="applyOutput($event, row.run)"
+            />
+          </div>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="element-row"
+      [class.expanded]="isExpanded(row)"
+      (click)="toggle(row)"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: ['expandedDetail']"
+      class="detail-row"
+    ></tr>
+    <tr class="mat-mdc-row" *matNoDataRow>
+      @if (!loading()) {
+        <td class="mat-mdc-cell no-data" [attr.colspan]="displayedColumns.length">
+          @if (filterString) {
+            No active runs match "{{ filterString }}"
+          } @else {
+            No runs are queued, planning or applying right now
+          }
+        </td>
       }
+    </tr>
+  </table>
+
+  @if (loading()) {
+    <div class="loading">
+      <mat-progress-spinner color="primary" mode="indeterminate" diameter="48" />
     </div>
-  </cwd-table>
+  }
 </div>

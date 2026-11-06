@@ -12,14 +12,30 @@ import {
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { WorkspaceService, WorkspaceQuery } from 'src/app/workspace/state';
-import { EMPTY, Observable } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
-import { Run, SystemPermission } from 'src/app/generated/caster-api';
+import { EMPTY, Observable, Subject, of } from 'rxjs';
+import {
+  catchError,
+  finalize,
+  map,
+  switchMap,
+  take,
+  takeUntil,
+} from 'rxjs/operators';
+import {
+  DirectoriesService,
+  ProjectsService,
+  Run,
+  SystemPermission,
+  WorkspacesService,
+} from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
-import { MatCard } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
 import { LockingStatusComponent } from './locking-status/locking-status.component';
-import { ActiveRunsComponent } from './active-runs/active-runs.component';
+import {
+  ActiveRunsComponent,
+  RunWorkspace,
+} from './active-runs/active-runs.component';
 import { AsyncPipe } from '@angular/common';
 
 const SNACK_BAR = {
@@ -41,7 +57,7 @@ function reason(error: unknown, fallback: string): string {
   templateUrl: './admin-workspaces.component.html',
   styleUrls: ['./admin-workspaces.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatCard, LockingStatusComponent, ActiveRunsComponent, AsyncPipe],
+  imports: [MatIcon, LockingStatusComponent, ActiveRunsComponent, AsyncPipe],
 })
 export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   private workspaceService = inject(WorkspaceService);
@@ -49,6 +65,10 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   private signalRService = inject(SignalRService);
   private snackBar = inject(MatSnackBar);
   private permissionService = inject(PermissionService);
+  private workspacesApi = inject(WorkspacesService);
+  private directoriesApi = inject(DirectoriesService);
+  private projectsApi = inject(ProjectsService);
+  private unsubscribe$ = new Subject<void>();
 
   public lockingEnabled$: Observable<boolean>;
   public activeRuns$: Observable<Run[]>;
@@ -58,6 +78,10 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
     SystemPermission.ManageWorkspaces,
   );
   readonly changingLocking = signal(false);
+  readonly loading = signal(true);
+  /** Each active run's Workspace by Workspace ID; null if the viewer can't read it. */
+  readonly workspaces = signal<Record<string, RunWorkspace | null>>({});
+  private lookedUp = new Set<string>();
 
   ngOnInit() {
     this.signalRService
@@ -95,11 +119,63 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
           this.notify(reason(error, "Couldn't load the active runs"));
           return EMPTY;
         }),
+        finalize(() => this.loading.set(false)),
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
     this.activeRuns$ = this.workspaceQuery.activeRuns$();
     this.expandedRuns$ = this.workspaceQuery.expandedRuns$();
+
+    // Name each run's Workspace and Project, also for runs the hub adds later.
+    this.activeRuns$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((runs) => runs.forEach((r) => this.lookUp(r.workspaceId)));
+  }
+
+  /**
+   * Read a Workspace's name, then its directory's Project for the Project name
+   * and the link. Each step needs only what the viewer may already read.
+   */
+  private lookUp(workspaceId: string) {
+    if (!workspaceId || this.lookedUp.has(workspaceId)) {
+      return;
+    }
+    this.lookedUp.add(workspaceId);
+    this.workspacesApi
+      .getWorkspace(workspaceId)
+      .pipe(
+        switchMap((workspace) =>
+          this.directoriesApi.getDirectory(workspace.directoryId).pipe(
+            switchMap((directory) =>
+              this.projectsApi.getProject(directory.projectId).pipe(
+                map((project) => project.name),
+                catchError(() => of(null)),
+                map(
+                  (projectName): RunWorkspace => ({
+                    name: workspace.name,
+                    projectId: directory.projectId,
+                    projectName,
+                  }),
+                ),
+              ),
+            ),
+            catchError(() =>
+              of<RunWorkspace>({
+                name: workspace.name,
+                projectId: null,
+                projectName: null,
+              }),
+            ),
+          ),
+        ),
+        // A Workspace the viewer can't read: the table says so.
+        catchError(() => of(null)),
+        take(1),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((info) =>
+        this.workspaces.update((all) => ({ ...all, [workspaceId]: info })),
+      );
   }
 
   setLockingEnabled(status: boolean) {
@@ -155,6 +231,8 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
     this.signalRService.leaveWorkspacesAdmin();
   }
 }
