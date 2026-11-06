@@ -129,14 +129,7 @@ a {
   border-left: solid var(--mat-sys-surface-container);
 }
 
-// in the top bar, so its label and icon take the bar's text colour; the theme's icon colour would draw the icon dark
 .ask-ai {
   color: inherit;
   margin-right: 0.5rem;
-  --mat-button-text-label-text-color: var(--crucible-topbar-text, currentColor);
-  --mat-icon-color: currentColor;
-
-  .mat-icon {
-    color: inherit;
-  }
 }
