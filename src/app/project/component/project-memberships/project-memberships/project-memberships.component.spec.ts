@@ -61,7 +61,11 @@ class MemberListStub {
   readonly editMembership = output<EditProjectMembershipCommand>();
 }
 
-async function renderMemberships(grants: PermissionGrants, embedded = false) {
+async function renderMemberships(
+  grants: PermissionGrants,
+  embedded = false,
+  showTitle = true,
+) {
   const projectsApi = {
     getProject: vi.fn((id: string) => of<Project>({ id, name: 'Range' })),
     getProjectMemberships: vi.fn((projectId: string) =>
@@ -117,7 +121,7 @@ async function renderMemberships(grants: PermissionGrants, embedded = false) {
       { provide: GroupsService, useValue: groupsApi },
       { provide: SignalRService, useValue: signalR },
     ],
-    inputs: { projectId: 'p1', embedded },
+    inputs: { projectId: 'p1', embedded, showTitle },
     on: { goBack },
   });
   await view.fixture.whenStable();
@@ -160,6 +164,22 @@ describe('ProjectMembershipsComponent', () => {
         .groups()
         .map((g) => g.name),
     ).toEqual(['Blue Team']);
+  });
+
+  /**
+   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show.
+   * Interacts with: the showTitle input.
+   * Data: project Range.
+   */
+  it('leaves the title out when showTitle is false', async () => {
+    const { stub } = await renderMemberships({}, false, false);
+
+    expect(screen.queryByRole('heading', { name: 'Range' })).toBeNull();
+    expect(
+      stub(MemberListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Ada']);
   });
 
   /**

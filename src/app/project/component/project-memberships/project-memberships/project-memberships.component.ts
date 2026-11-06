@@ -66,6 +66,9 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   readonly returnLabel = input('Return');
 
+  /** False where the host already names the project, e.g. an admin table row. */
+  readonly showTitle = input(true);
+
   readonly goBack = output();
 
   project$: Observable<Project>;
