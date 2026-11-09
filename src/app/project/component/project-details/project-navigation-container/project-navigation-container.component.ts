@@ -37,9 +37,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { AsyncPipe } from '@angular/common';
 
 import {
-  ProjectEnvironmentSetsComponent,
-  ProjectEnvironmentSetsData,
-} from '../../project-environment-sets/project-environment-sets.component';
+  ProjectInfrastructureComponent,
+  ProjectInfrastructureData,
+} from '../../project-infrastructure/project-infrastructure.component';
 
 const NAME_VALUE = 'nameValue';
 
@@ -86,15 +86,15 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
-  openEnvironmentSets(project: Project) {
-    this.dialog.open<
-      ProjectEnvironmentSetsComponent,
-      ProjectEnvironmentSetsData
-    >(ProjectEnvironmentSetsComponent, {
-      data: { projectId: project.id },
-      width: '880px',
-      maxWidth: '90vw',
-    });
+  openInfrastructure(project: Project) {
+    this.dialog.open<ProjectInfrastructureComponent, ProjectInfrastructureData>(
+      ProjectInfrastructureComponent,
+      {
+        data: { projectId: project.id, projectName: project.name },
+        width: '880px',
+        maxWidth: '90vw',
+      },
+    );
   }
 
   ngOnInit() {

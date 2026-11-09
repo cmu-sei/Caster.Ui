@@ -41,6 +41,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
       </div>
 
+      <p class="projects">
+        @if (view.connection.projects?.length) {
+          Shown to
+          @for (
+            project of view.connection.projects;
+            track project.projectId;
+            let last = $last
+          ) {
+            {{ project.name }}{{ last ? '' : ', ' }}
+          }
+        } @else {
+          Not assigned to any project
+        }
+      </p>
+
       @if (view.connection.error; as problem) {
         <div class="state-row">
           <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline"></mat-icon>

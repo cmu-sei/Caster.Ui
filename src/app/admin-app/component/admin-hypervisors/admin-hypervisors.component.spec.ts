@@ -320,4 +320,25 @@ describe('AdminHypervisorsComponent', () => {
     expect(screen.queryByRole('heading', { name: 'Hosts' })).toBeNull();
     expect(screen.getByRole('heading', { name: 'Storage' })).toBeTruthy();
   });
+
+  /**
+   * Verifies: each connection names the projects it is assigned to.
+   * Interacts with: InventoryApiService.getInventoryConnections (stub).
+   * Data: Default assigned to Range A; lab2 to none.
+   */
+  it('names the projects each connection is shown to', async () => {
+    await renderPage({
+      getInventoryConnections: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryConnections']>
+      >(() =>
+        of([
+          connection({ projects: [{ projectId: 'p1', name: 'Range A' }] }),
+          connection({ name: 'lab2', isDefault: false }),
+        ]),
+      ),
+    });
+
+    expect(screen.getByText(/Shown to\s+Range A/)).toBeTruthy();
+    expect(screen.getByText('Not assigned to any project')).toBeTruthy();
+  });
 });
