@@ -33,5 +33,13 @@ export interface EnvironmentSecrets {
      * Whether every non-secret API environment variable reaches every run.
      */
     inheritAll?: boolean;
+    /**
+     * The shortest secret value a run may get (`Terraform:Secrets:MinimumMaskedLength`). A run whose secret is shorter fails before Terraform starts.
+     */
+    minimumMaskedLength?: number;
+    /**
+     * Available secret names whose values are shorter than Caster.Api.Features.EnvironmentSets.EnvironmentSecrets.MinimumMaskedLength.
+     */
+    tooShort?: Array<string> | null;
 }
 

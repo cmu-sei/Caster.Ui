@@ -41,5 +41,9 @@ export interface InventoryResult {
      * Human readable reason, set when Caster.Api.Features.Inventory.InventoryResult.Available is false or Caster.Api.Features.Inventory.InventoryResult.Stale is true.
      */
     error?: string | null;
+    /**
+     * The connection read, by name. Null from a project\'s routes when the project has no usable connection, in which case nothing is listed.
+     */
+    connection?: string | null;
 }
 

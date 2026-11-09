@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ConnectionField } from './connectionField';
 import { EnvironmentSetEntryKind } from './environmentSetEntryKind';
 import { EnvironmentSetValueSource } from './environmentSetValueSource';
 
@@ -19,5 +20,7 @@ export interface EditEnvironmentSetEntryCommand {
     valueSource?: EnvironmentSetValueSource;
     secretName?: string | null;
     value?: string | null;
+    connectionName?: string | null;
+    connectionField?: ConnectionField;
 }
 

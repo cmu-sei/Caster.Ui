@@ -16,6 +16,7 @@ api/hosts.service.ts
 api/inventory.service.ts
 api/modules.service.ts
 api/plans.service.ts
+api/projectInventory.service.ts
 api/projectPermissions.service.ts
 api/projectRoles.service.ts
 api/projects.service.ts
@@ -39,12 +40,16 @@ model/apply.ts
 model/applyStatus.ts
 model/archiveType.ts
 model/assignPartitionCommand.ts
+model/batchEditEnvironmentSetsCommand.ts
 model/cancelRunCommand.ts
+model/connectionField.ts
+model/copyEnvironmentSetCommand.ts
 model/createDesignCommand.ts
 model/createDesignModuleCommand.ts
 model/createDirectoryCommand.ts
 model/createEnvironmentSetCommand.ts
 model/createEnvironmentSetEntryCommand.ts
+model/createEnvironmentSetFromConnectionCommand.ts
 model/createFileCommand.ts
 model/createGroupCommand.ts
 model/createGroupMembershipCommand.ts
@@ -85,7 +90,13 @@ model/editWorkspaceCommand.ts
 model/editWorkspaceTopologyLayoutCommand.ts
 model/environmentSecrets.ts
 model/environmentSet.ts
+model/environmentSetConnection.ts
+model/environmentSetConnectionField.ts
+model/environmentSetConnectionPreset.ts
+model/environmentSetConnectionPresetEntry.ts
 model/environmentSetEntry.ts
+model/environmentSetEntryChange.ts
+model/environmentSetEntryChangeOperation.ts
 model/environmentSetEntryKind.ts
 model/environmentSetProject.ts
 model/environmentSetValueSource.ts
@@ -102,6 +113,8 @@ model/importProjectResult.ts
 model/importResourceCommand.ts
 model/inventoryCategory.ts
 model/inventoryConnection.ts
+model/inventoryConnectionProject.ts
+model/inventoryConnectionStatus.ts
 model/inventoryItem.ts
 model/inventoryRefreshResult.ts
 model/inventoryResult.ts

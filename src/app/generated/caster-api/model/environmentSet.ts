@@ -21,7 +21,7 @@ export interface EnvironmentSet {
     name?: string | null;
     description?: string | null;
     /**
-     * False if any secret entry\'s source variable is missing or no longer matches the secret patterns.
+     * False if any entry can\'t be used by a run: see Caster.Api.Features.EnvironmentSets.EnvironmentSetEntry.Unavailable.
      */
     isComplete?: boolean;
     entries?: Array<EnvironmentSetEntry> | null;

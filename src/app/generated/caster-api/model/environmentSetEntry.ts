@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ConnectionField } from './connectionField';
 import { EnvironmentSetEntryKind } from './environmentSetEntryKind';
 import { EnvironmentSetValueSource } from './environmentSetValueSource';
 
@@ -31,8 +32,21 @@ export interface EnvironmentSetEntry {
      */
     value?: string | null;
     /**
-     * For a secret: whether its source variable is set and matches the secret patterns. Always true for a plain entry.
+     * For a connection entry: the infrastructure connection, by name.
+     */
+    connectionName?: string | null;
+    connectionField?: ConnectionField;
+    /**
+     * Whether the value is a secret: a secret entry, or a connection credential.
+     */
+    isSecret?: boolean;
+    /**
+     * Whether a run can use the entry. Always true for a plain entry.
      */
     isAvailable?: boolean;
+    /**
+     * Why a run can\'t use the entry, when it can\'t. Never a value.
+     */
+    unavailable?: string | null;
 }
 

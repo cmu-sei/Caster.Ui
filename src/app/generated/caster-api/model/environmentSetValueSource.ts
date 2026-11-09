@@ -11,10 +11,11 @@
  */
 
 
-export type EnvironmentSetValueSource = 'Plain' | 'Secret';
+export type EnvironmentSetValueSource = 'Plain' | 'Secret' | 'Connection';
 
 export const EnvironmentSetValueSource = {
     Plain: 'Plain' as EnvironmentSetValueSource,
-    Secret: 'Secret' as EnvironmentSetValueSource
+    Secret: 'Secret' as EnvironmentSetValueSource,
+    Connection: 'Connection' as EnvironmentSetValueSource
 };
 

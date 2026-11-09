@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ConnectionField } from './connectionField';
 import { EnvironmentSetEntryKind } from './environmentSetEntryKind';
 import { EnvironmentSetValueSource } from './environmentSetValueSource';
 
@@ -28,5 +29,10 @@ export interface CreateEnvironmentSetEntryCommand {
      * For a plain entry: the value. Visible to members of every project the set is assigned to.
      */
     value?: string | null;
+    /**
+     * For a connection entry: the infrastructure connection\'s Name. Needs ManageInfrastructure.
+     */
+    connectionName?: string | null;
+    connectionField?: ConnectionField;
 }
 

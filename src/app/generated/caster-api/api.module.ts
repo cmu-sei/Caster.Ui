@@ -20,6 +20,7 @@ import { HostsService } from './api/hosts.service';
 import { InventoryService } from './api/inventory.service';
 import { ModulesService } from './api/modules.service';
 import { PlansService } from './api/plans.service';
+import { ProjectInventoryService } from './api/projectInventory.service';
 import { ProjectPermissionsService } from './api/projectPermissions.service';
 import { ProjectRolesService } from './api/projectRoles.service';
 import { ProjectsService } from './api/projects.service';
