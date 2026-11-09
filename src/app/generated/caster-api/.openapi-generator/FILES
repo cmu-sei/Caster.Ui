@@ -16,6 +16,7 @@ api/hosts.service.ts
 api/inventory.service.ts
 api/modules.service.ts
 api/plans.service.ts
+api/projectGroups.service.ts
 api/projectInventory.service.ts
 api/projectPermissions.service.ts
 api/projectRoles.service.ts
@@ -59,6 +60,8 @@ model/createModuleRepositoryCommand.ts
 model/createPartitionCommand.ts
 model/createPoolCommand.ts
 model/createProjectCommand.ts
+model/createProjectGroupCommand.ts
+model/createProjectGroupMembershipCommand.ts
 model/createProjectMembershipCommand.ts
 model/createRunCommand.ts
 model/createSnippetCommand.ts
@@ -82,6 +85,8 @@ model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
 model/editProjectCommand.ts
+model/editProjectGroupCommand.ts
+model/editProjectGroupMembershipCommand.ts
 model/editProjectMembershipCommand.ts
 model/editSystemRoleCommand.ts
 model/editUserCommand.ts
@@ -145,6 +150,10 @@ model/problemDetails.ts
 model/project.ts
 model/projectEnvironmentSet.ts
 model/projectEnvironmentSetEntry.ts
+model/projectEnvironmentSetGroup.ts
+model/projectGroup.ts
+model/projectGroupItem.ts
+model/projectGroupMembership.ts
 model/projectMembership.ts
 model/projectPermission.ts
 model/projectPermissionsClaim.ts
@@ -160,6 +169,7 @@ model/resource.ts
 model/resourceCommandResult.ts
 model/run.ts
 model/runStatus.ts
+model/setProjectGroupPartitionCommand.ts
 model/systemPermission.ts
 model/systemRole.ts
 model/tagFileCommand.ts

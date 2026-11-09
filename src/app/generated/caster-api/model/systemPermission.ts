@@ -16,7 +16,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
-export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ImportResources' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules' | 'ViewInfrastructure' | 'ViewEnvironmentSets' | 'ManageEnvironmentSets' | 'ManageInfrastructure';
+export type SystemPermission = 'CreateProjects' | 'ViewProjects' | 'EditProjects' | 'ManageProjects' | 'ImportProjects' | 'LockFiles' | 'ImportResources' | 'ViewUsers' | 'ManageUsers' | 'ViewWorkspaces' | 'ManageWorkspaces' | 'ViewVLANs' | 'ManageVLANs' | 'ViewRoles' | 'ManageRoles' | 'ViewGroups' | 'ManageGroups' | 'ViewHosts' | 'ManageHosts' | 'ViewModules' | 'ManageModules' | 'ViewInfrastructure' | 'ViewEnvironmentSets' | 'ManageEnvironmentSets' | 'ManageInfrastructure' | 'ManageProjectGroups';
 
 export const SystemPermission = {
     CreateProjects: 'CreateProjects' as SystemPermission,
@@ -43,6 +43,7 @@ export const SystemPermission = {
     ViewInfrastructure: 'ViewInfrastructure' as SystemPermission,
     ViewEnvironmentSets: 'ViewEnvironmentSets' as SystemPermission,
     ManageEnvironmentSets: 'ManageEnvironmentSets' as SystemPermission,
-    ManageInfrastructure: 'ManageInfrastructure' as SystemPermission
+    ManageInfrastructure: 'ManageInfrastructure' as SystemPermission,
+    ManageProjectGroups: 'ManageProjectGroups' as SystemPermission
 };
 

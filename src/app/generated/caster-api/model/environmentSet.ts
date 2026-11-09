@@ -10,6 +10,7 @@
  * Do not edit the class manually.
  */
 import { EnvironmentSetEntry } from './environmentSetEntry';
+import { ProjectEnvironmentSetGroup } from './projectEnvironmentSetGroup';
 import { EnvironmentSetProject } from './environmentSetProject';
 
 
@@ -26,8 +27,12 @@ export interface EnvironmentSet {
     isComplete?: boolean;
     entries?: Array<EnvironmentSetEntry> | null;
     /**
-     * The projects this set is assigned to.
+     * The projects this set is assigned to directly.
      */
     projects?: Array<EnvironmentSetProject> | null;
+    /**
+     * The project groups this set is assigned to, reaching every project in each.
+     */
+    projectGroups?: Array<ProjectEnvironmentSetGroup> | null;
 }
 

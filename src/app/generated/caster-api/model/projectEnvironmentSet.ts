@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ProjectEnvironmentSetGroup } from './projectEnvironmentSetGroup';
 import { ProjectEnvironmentSetEntry } from './projectEnvironmentSetEntry';
 
 
@@ -21,6 +22,14 @@ export interface ProjectEnvironmentSet {
     name?: string | null;
     description?: string | null;
     isComplete?: boolean;
+    /**
+     * Whether the set is assigned to the project itself; it can also come through its group.
+     */
+    isDirect?: boolean;
+    /**
+     * The project group the set comes through, if it does.
+     */
+    projectGroups?: Array<ProjectEnvironmentSetGroup> | null;
     entries?: Array<ProjectEnvironmentSetEntry> | null;
 }
 
