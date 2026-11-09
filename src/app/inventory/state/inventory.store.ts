@@ -22,10 +22,17 @@ export interface InventoryState extends InventoryCategoriesState {
   /** The configured connections, the default first. Empty until listed. */
   connections: InventoryConnection[];
   /**
-   * The connection the lists read, by name. Null reads the API's default,
-   * which is also what happens when the connections can't be listed.
+   * The connection the lists read, by name. Null reads the default: the
+   * project's, or with showAll the API's.
    */
   connection: string | null;
+  /** The project whose connections the lists read. Null reads the system routes. */
+  projectId: string | null;
+  /**
+   * True to read every connection through the system routes, for
+   * ViewInfrastructure holders; false reads only the project's.
+   */
+  showAll: boolean;
 }
 
 export const initialInventoryCategoryState: InventoryCategoryState = {
@@ -54,6 +61,8 @@ export function createInitialInventoryState(): InventoryState {
     filter: '',
     connections: [],
     connection: null,
+    projectId: null,
+    showAll: false,
   };
 }
 

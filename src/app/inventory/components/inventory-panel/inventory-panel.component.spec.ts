@@ -50,6 +50,7 @@ describe('InventoryPanelComponent', () => {
     loadAll: ReturnType<typeof vi.fn<InventoryService['loadAll']>>;
     refresh: ReturnType<typeof vi.fn<InventoryService['refresh']>>;
     setFilter: ReturnType<typeof vi.fn<InventoryService['setFilter']>>;
+    setScope: ReturnType<typeof vi.fn<InventoryService['setScope']>>;
   };
 
   beforeEach(async () => {
@@ -60,18 +61,18 @@ describe('InventoryPanelComponent', () => {
 
     // No live API in specs: the query and service are both stubbed.
     inventoryServiceSpy = {
-      loadConnections: vi.fn<InventoryService['loadConnections']>(() =>
-        of([]),
-      ),
+      loadConnections: vi.fn<InventoryService['loadConnections']>(() => of([])),
       selectConnection: vi.fn<InventoryService['selectConnection']>(() =>
         of([]),
       ),
       loadAll: vi.fn<InventoryService['loadAll']>(() => of([])),
       refresh: vi.fn<InventoryService['refresh']>(() => of([])),
       setFilter: vi.fn<InventoryService['setFilter']>(),
+      setScope: vi.fn<InventoryService['setScope']>(),
     } satisfies Partial<InventoryService>;
 
     ({ fixture } = await renderComponent(InventoryPanelComponent, {
+      inputs: { projectId: 'p1' },
       childStubs: [
         { replace: InventoryListComponent, with: InventoryListStub },
       ],
