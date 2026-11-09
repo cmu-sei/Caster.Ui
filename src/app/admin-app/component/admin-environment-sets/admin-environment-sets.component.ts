@@ -41,13 +41,15 @@ import {
   MatSuffix,
 } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, combineLatest } from 'rxjs';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 import {
   EnvironmentSet,
+  EnvironmentSetValueSource,
   SystemPermission,
   TerraformRunMode,
 } from 'src/app/generated/caster-api';
@@ -57,6 +59,14 @@ import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dia
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { EnvironmentSetDetailComponent } from './environment-set-detail/environment-set-detail.component';
 import { EnvironmentSecretsComponent } from './environment-secrets/environment-secrets.component';
+import {
+  EnvironmentSetMultiEditDialogComponent,
+  EnvironmentSetMultiEditDialogData,
+} from './environment-set-multi-edit-dialog/environment-set-multi-edit-dialog.component';
+import {
+  CreateFromConnectionDialogComponent,
+  CreateFromConnectionDialogData,
+} from './create-from-connection-dialog/create-from-connection-dialog.component';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 /**
@@ -86,7 +96,9 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
     MatLabel,
     MatInput,
     MatSuffix,
+    MatButton,
     MatIconButton,
+    MatCheckbox,
     MatTooltip,
     MatTable,
     MatSort,
@@ -119,7 +131,16 @@ export class AdminEnvironmentSetsComponent
   readonly RunMode = TerraformRunMode;
 
   filterString = '';
-  displayedColumns = ['actions', 'name', 'description', 'status', 'projects'];
+  displayedColumns = [
+    'select',
+    'actions',
+    'name',
+    'description',
+    'status',
+    'projects',
+  ];
+  /** The sets ticked for a multi-edit, by id. */
+  selectedSetIds = new Set<string>();
   dataSource = new MatTableDataSource<EnvironmentSet>();
   expandedSetIds = new Set<string>();
   showNotes = false;
@@ -138,9 +159,26 @@ export class AdminEnvironmentSetsComponent
     SystemPermission.ManageEnvironmentSets,
   );
 
+  /** Connection entries also need ManageInfrastructure. */
+  canUseConnections$: Observable<boolean> = combineLatest([
+    this.canEdit$,
+    this.permissionService.hasPermission(SystemPermission.ManageInfrastructure),
+  ]).pipe(map(([edit, infrastructure]) => edit && infrastructure));
+
+  connections$ = this.environmentSetService.connections$;
+
   ngOnInit(): void {
     this.environmentSetService.load().subscribe();
     this.environmentSetService.loadSecrets().subscribe();
+    // The connections' fields and presets are only for those who can edit sets.
+    this.canEdit$
+      .pipe(
+        filter((x) => x),
+        take(1),
+      )
+      .subscribe(() =>
+        this.environmentSetService.loadConnections().subscribe(),
+      );
     this.signalRService
       .startConnection()
       .then(() => this.signalRService.joinEnvironmentSetsAdmin());
@@ -193,6 +231,82 @@ export class AdminEnvironmentSetsComponent
 
   projectNames(set: EnvironmentSet): string {
     return (set.projects ?? []).map((x) => x.name).join(', ');
+  }
+
+  isSelected(set: EnvironmentSet): boolean {
+    return this.selectedSetIds.has(set.id);
+  }
+
+  toggleSelected(set: EnvironmentSet, selected: boolean): void {
+    if (selected) {
+      this.selectedSetIds.add(set.id);
+    } else {
+      this.selectedSetIds.delete(set.id);
+    }
+  }
+
+  /** Edits the ticked sets together. */
+  editSelected(): void {
+    const sets = this.dataSource.data.filter((x) =>
+      this.selectedSetIds.has(x.id),
+    );
+
+    if (sets.length < 2) {
+      return;
+    }
+
+    combineLatest([this.secrets$, this.connections$, this.canUseConnections$])
+      .pipe(take(1))
+      .subscribe(([secrets, connections, canUseConnections]) =>
+        this.dialog.open<
+          EnvironmentSetMultiEditDialogComponent,
+          EnvironmentSetMultiEditDialogData
+        >(EnvironmentSetMultiEditDialogComponent, {
+          data: { sets, secrets, connections, canUseConnections },
+          width: '840px',
+          maxWidth: '95vw',
+          disableClose: true,
+        }),
+      );
+  }
+
+  /** Copying a set with connection entries needs ManageInfrastructure, as making them does. */
+  hasConnectionEntries(set: EnvironmentSet): boolean {
+    return (set.entries ?? []).some(
+      (x) => x.valueSource === EnvironmentSetValueSource.Connection,
+    );
+  }
+
+  copySet(set: EnvironmentSet): void {
+    this.environmentSetService
+      .copy(set.id, {})
+      .subscribe((copy) => this.expandedSetIds.add(copy.id));
+  }
+
+  createFromConnection(): void {
+    this.connections$
+      .pipe(
+        take(1),
+        switchMap((connections) =>
+          this.dialog
+            .open<
+              CreateFromConnectionDialogComponent,
+              CreateFromConnectionDialogData,
+              EnvironmentSet
+            >(CreateFromConnectionDialogComponent, {
+              data: { connections },
+              width: '520px',
+              maxWidth: '90vw',
+              disableClose: true,
+            })
+            .afterClosed(),
+        ),
+      )
+      .subscribe((set) => {
+        if (set) {
+          this.expandedSetIds.add(set.id);
+        }
+      });
   }
 
   createSet(): void {

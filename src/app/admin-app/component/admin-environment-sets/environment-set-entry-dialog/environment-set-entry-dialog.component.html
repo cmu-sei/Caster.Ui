@@ -56,6 +56,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           Secret (an API environment variable)
         </mat-option>
         <mat-option [value]="Source.Plain">Plain value</mat-option>
+        @if (connectionsOffered) {
+          <mat-option
+            [value]="Source.Connection"
+            [disabled]="!data.canUseConnections"
+          >
+            Infrastructure connection
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
 
@@ -96,6 +104,64 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           will fail until it is.
         </p>
       }
+    } @else if (isConnection()) {
+      <mat-form-field class="form-full-width">
+        <mat-label>Connection</mat-label>
+        <mat-select formControlName="connectionName">
+          @for (connection of connections; track connection.name) {
+            <mat-option [value]="connection.name">
+              {{ connection.name }} ({{ connection.provider }})
+            </mat-option>
+          }
+          @if (missingConnection()) {
+            <mat-option [value]="form.controls.connectionName.value">
+              {{ form.controls.connectionName.value }} (not configured)
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint
+          >Read from Infrastructure:Connections when each run starts.</mat-hint
+        >
+        @if (form.controls.connectionName.hasError('required')) {
+          <mat-error>A connection is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="form-full-width">
+        <mat-label>Field</mat-label>
+        <mat-select formControlName="connectionField">
+          @for (field of fields(); track field.field) {
+            <mat-option [value]="field.field">
+              {{ field.field }}{{ field.isSecret ? ' (secret)' : '' }}
+              {{ field.isAvailable ? '' : ' (not available)' }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (selectedField(); as field) {
+          <mat-hint>
+            @if (field.isSecret) {
+              A credential: never shown, and masked in run output.
+            } @else {
+              Not secret: members of every project with this set see which
+              connection it comes from.
+            }
+          </mat-hint>
+        }
+        @if (form.controls.connectionField.hasError('required')) {
+          <mat-error>A field is required.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (selectedField(); as field) {
+        @if (!field.isAvailable) {
+          <p class="note">
+            <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline" />
+            This connection has no value for {{ field.field }}:
+            {{ field.unavailable }} Runs in projects with this set will fail
+            until it has.
+          </p>
+        }
+      }
     } @else {
       <mat-form-field class="form-full-width">
         <mat-label>Value</mat-label>
@@ -114,6 +180,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           }
         </mat-hint>
       </mat-form-field>
+    }
+
+    @if (kindError(); as message) {
+      <p class="warning" role="alert">
+        <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+        {{ message }}
+      </p>
     }
 
     @if (warning(); as message) {

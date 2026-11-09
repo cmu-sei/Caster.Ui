@@ -5,7 +5,11 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 import {
+  BatchEditEnvironmentSetsCommand,
+  CopyEnvironmentSetCommand,
   CreateEnvironmentSetCommand,
+  CreateEnvironmentSetFromConnectionCommand,
+  EnvironmentSetConnection,
   CreateEnvironmentSetEntryCommand,
   EditEnvironmentSetCommand,
   EditEnvironmentSetEntryCommand,
@@ -31,6 +35,12 @@ export class EnvironmentSetService {
   private secretsSubject = new BehaviorSubject<EnvironmentSecrets | null>(null);
   public secrets$ = this.secretsSubject.asObservable();
 
+  private connectionsSubject = new BehaviorSubject<EnvironmentSetConnection[]>(
+    [],
+  );
+  /** The infrastructure connections' fields and presets, for connection entries. */
+  public connections$ = this.connectionsSubject.asObservable();
+
   private projectSetsSubject = new BehaviorSubject<
     Record<string, ProjectEnvironmentSet[]>
   >({});
@@ -45,6 +55,36 @@ export class EnvironmentSetService {
     return this.api
       .getEnvironmentSecrets()
       .pipe(tap((x) => this.secretsSubject.next(x)));
+  }
+
+  /** Needs ManageEnvironmentSets. */
+  loadConnections(): Observable<EnvironmentSetConnection[]> {
+    return this.api
+      .getEnvironmentSetConnections()
+      .pipe(tap((x) => this.connectionsSubject.next(x ?? [])));
+  }
+
+  copy(id: string, command: CopyEnvironmentSetCommand) {
+    return this.api
+      .copyEnvironmentSet(id, command)
+      .pipe(tap((x) => this.upsert(x)));
+  }
+
+  /** Changes entries of several sets at once, checked and saved together. */
+  batchEdit(command: BatchEditEnvironmentSetsCommand) {
+    return this.api.batchEditEnvironmentSets(command).pipe(
+      tap((sets) => {
+        for (const set of sets ?? []) {
+          this.upsert(set);
+        }
+      }),
+    );
+  }
+
+  createFromConnection(command: CreateEnvironmentSetFromConnectionCommand) {
+    return this.api
+      .createEnvironmentSetFromConnection(command)
+      .pipe(tap((x) => this.upsert(x)));
   }
 
   create(command: CreateEnvironmentSetCommand) {

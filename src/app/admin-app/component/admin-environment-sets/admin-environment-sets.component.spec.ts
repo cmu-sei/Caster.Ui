@@ -38,6 +38,8 @@ class DetailStub {
   readonly set = input<EnvironmentSet>(undefined);
   readonly canEdit = input<boolean>(undefined);
   readonly secrets = input<EnvironmentSecrets>(undefined);
+  readonly connections = input<unknown[]>(undefined);
+  readonly canUseConnections = input<boolean>(undefined);
 }
 
 const sets: EnvironmentSet[] = [
@@ -77,6 +79,7 @@ async function renderPage(grants: PermissionGrants, confirmAnswer?: boolean) {
   const api = {
     getEnvironmentSets: vi.fn(() => of(structuredClone(sets))),
     getEnvironmentSecrets: vi.fn(() => of(secrets)),
+    getEnvironmentSetConnections: vi.fn(() => of([])),
     deleteEnvironmentSet: vi.fn(() => of<unknown>(null)),
   } satisfies ApiStub<EnvironmentSetsService>;
   const signalR = {

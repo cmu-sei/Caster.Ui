@@ -42,6 +42,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   <span
                     >Secret from <code>{{ entry.secretName }}</code></span
                   >
+                } @else if (entry.valueSource === Source.Connection) {
+                  <span
+                    >{{ entry.connectionField }} of connection
+                    <code>{{ entry.connectionName }}</code></span
+                  >
                 } @else {
                   <code class="plain-value">{{ entry.value }}</code>
                 }
@@ -51,25 +56,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   @if (entry.isAvailable) {
                     <mat-icon class="mdi-18px ok" fontIcon="mdi-check-circle" />
                     {{
-                      entry.valueSource === Source.Secret
-                        ? 'Available'
-                        : 'Plain'
+                      entry.valueSource === Source.Plain ? 'Plain' : 'Available'
                     }}
                   } @else {
                     <mat-icon
                       class="mdi-18px missing"
                       fontIcon="mdi-alert-circle"
                     />
-                    Missing
-                  }
-                  @if (warning(entry); as message) {
-                    <mat-icon
-                      class="mdi-18px missing"
-                      fontIcon="mdi-alert"
+                    <span
                       tabindex="0"
-                      [attr.aria-label]="message"
-                      [matTooltip]="message"
-                    />
+                      [matTooltip]="entry.unavailable"
+                      [attr.aria-label]="'Unavailable: ' + entry.unavailable"
+                      >Unavailable</span
+                    >
                   }
                 </span>
               </td>
@@ -79,7 +78,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     mat-icon-button
                     type="button"
                     [attr.aria-label]="'Edit ' + variableLabel(entry)"
-                    matTooltip="Edit"
+                    [matTooltip]="
+                      canEditEntry(entry)
+                        ? 'Edit'
+                        : 'Changing a connection entry needs ManageInfrastructure'
+                    "
+                    [disabled]="!canEditEntry(entry)"
                     (click)="editEntry(entry)"
                   >
                     <mat-icon

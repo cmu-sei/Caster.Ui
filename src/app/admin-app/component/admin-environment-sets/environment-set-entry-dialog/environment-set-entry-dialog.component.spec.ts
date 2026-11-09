@@ -141,21 +141,98 @@ describe('EnvironmentSetEntryDialogComponent', () => {
   });
 
   /**
-   * Verifies: a secret Terraform variable shows the state warning, and in Kubernetes job mode the pod log warning too.
-   * Interacts with: the Kind select; the warning note.
-   * Data: run mode Kubernetes; kind switched to Terraform variable with the default Secret source.
+   * Verifies: a secret Terraform variable is refused, with the reason, and Add stays disabled.
+   * Interacts with: the Kind select; the alert.
+   * Data: kind switched to Terraform variable with the default Secret source.
    */
-  it('warns about a secret Terraform variable in Kubernetes job mode', async () => {
-    const { harnesses, fixture } = await renderDialog({
-      secrets: secrets('Kubernetes'),
-    });
+  it('refuses a secret Terraform variable', async () => {
+    const { user, harnesses, fixture } = await renderDialog();
 
     await choose(harnesses, 'kind', 'Terraform variable (TF_VAR_)');
+    await user.type(
+      screen.getByLabelText('Terraform variable name'),
+      'password',
+    );
+    await user.type(
+      screen.getByLabelText('Secret source'),
+      'CASTER_SECRET_VSPHERE_PASSWORD',
+    );
     fixture.detectChanges();
 
-    const warning = screen.getByRole('note');
-    expect(warning).toHaveTextContent(/state, outputs and saved plan files/);
-    expect(warning).toHaveTextContent(/pod logs/);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /can't be a Terraform variable/,
+    );
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: a connection entry sends the connection and field, and a credential field says it is secret.
+   * Interacts with: the Value source, Connection and Field selects; createEnvironmentSetEntry (stub).
+   * Data: lab-pve's ApiToken as PROXMOX_VE_API_TOKEN.
+   */
+  it('adds a connection entry', async () => {
+    const { user, harnesses, environmentSetsApi } = await renderDialog({
+      canUseConnections: true,
+      connections: [
+        {
+          name: 'lab-pve',
+          provider: 'proxmox',
+          fields: [
+            { field: 'Url', isSecret: false, isAvailable: true },
+            { field: 'ApiToken', isSecret: true, isAvailable: true },
+          ],
+          presets: [],
+        },
+      ],
+    });
+
+    await user.type(
+      screen.getByLabelText('Environment variable name'),
+      'PROXMOX_VE_API_TOKEN',
+    );
+    await choose(harnesses, 'valueSource', 'Infrastructure connection');
+    await choose(harnesses, 'connectionName', 'lab-pve (proxmox)');
+    await choose(harnesses, 'connectionField', 'ApiToken (secret)');
+
+    expect(screen.getByText(/A credential: never shown/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(environmentSetsApi.createEnvironmentSetEntry).toHaveBeenCalledWith(
+      's1',
+      expect.objectContaining({
+        valueSource: 'Connection',
+        connectionName: 'lab-pve',
+        connectionField: 'ApiToken',
+        secretName: null,
+        value: null,
+      }),
+    );
+  });
+
+  /**
+   * Verifies: a secret too short to mask is warned about.
+   * Interacts with: the secret source input; the note.
+   * Data: CASTER_SECRET_PIN, listed as too short.
+   */
+  it('warns about a secret too short to mask', async () => {
+    const { user } = await renderDialog({
+      secrets: {
+        ...secrets(),
+        available: ['CASTER_SECRET_PIN'],
+        tooShort: ['CASTER_SECRET_PIN'],
+        minimumMaskedLength: 8,
+      },
+    });
+
+    await user.type(screen.getByLabelText('Environment variable name'), 'PIN');
+    await user.type(
+      screen.getByLabelText('Secret source'),
+      'CASTER_SECRET_PIN',
+    );
+
+    expect(screen.getByRole('note')).toHaveTextContent(
+      /shorter than 8 characters/,
+    );
   });
 
   /**
@@ -184,6 +261,8 @@ describe('EnvironmentSetEntryDialogComponent', () => {
         valueSource: 'Secret',
         secretName: 'CASTER_SECRET_VSPHERE_PASSWORD',
         value: null,
+        connectionName: null,
+        connectionField: null,
       },
     );
     expect(close).toHaveBeenCalledWith(set);

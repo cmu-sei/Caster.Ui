@@ -4,14 +4,14 @@
 import { describe, it, expect } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ConnectionField,
   EnvironmentSetEntryKind,
   EnvironmentSetValueSource,
-  TerraformRunMode,
 } from '../generated/caster-api';
 import {
   apiErrorMessage,
   matchesSecretPatterns,
-  secretTerraformVariableWarning,
+  secretTerraformVariableError,
   targetNameError,
 } from './environment-set-rules';
 
@@ -74,27 +74,41 @@ describe('environment set rules', () => {
   });
 
   /**
-   * Verifies: only a secret Terraform variable warns, and the pod log note appears only in Kubernetes mode.
-   * Data: each kind and source; both run modes.
+   * Verifies: a secret, or a connection credential, can't be a Terraform variable; a plain value or a non-secret field can.
+   * Data: each kind with Secret, Plain, and Connection credential and non-credential fields.
    */
-  it('warns about secret Terraform variables', () => {
-    const secret = EnvironmentSetValueSource.Secret;
+  it('refuses secrets as Terraform variables', () => {
+    const { Secret, Plain, Connection } = EnvironmentSetValueSource;
+    expect(secretTerraformVariableError(TF, Secret)).toContain(
+      "can't be a Terraform variable",
+    );
     expect(
-      secretTerraformVariableWarning(ENV, secret, TerraformRunMode.Kubernetes),
-    ).toBeNull();
-    expect(
-      secretTerraformVariableWarning(
+      secretTerraformVariableError(
         TF,
-        EnvironmentSetValueSource.Plain,
-        TerraformRunMode.Kubernetes,
+        Connection,
+        ConnectionField.ApiTokenSecret,
       ),
+    ).not.toBeNull();
+    expect(
+      secretTerraformVariableError(TF, Connection, ConnectionField.ApiUrl),
     ).toBeNull();
-    expect(
-      secretTerraformVariableWarning(TF, secret, TerraformRunMode.Process),
-    ).not.toContain('pod logs');
-    expect(
-      secretTerraformVariableWarning(TF, secret, TerraformRunMode.Kubernetes),
-    ).toContain('pod logs');
+    expect(secretTerraformVariableError(TF, Plain)).toBeNull();
+    expect(secretTerraformVariableError(ENV, Secret)).toBeNull();
+  });
+
+  /**
+   * Verifies: git's numbered configuration can't be set.
+   * Data: GIT_CONFIG_COUNT, GIT_CONFIG_KEY_0 and git_config_value_3; GIT_CONFIG_GLOBAL is allowed.
+   */
+  it("refuses git's numbered configuration", () => {
+    for (const name of [
+      'GIT_CONFIG_COUNT',
+      'GIT_CONFIG_KEY_0',
+      'git_config_value_3',
+    ]) {
+      expect(targetNameError(ENV, name)).toContain('GIT_CONFIG_COUNT');
+    }
+    expect(targetNameError(ENV, 'GIT_CONFIG_GLOBAL')).toBeNull();
   });
 
   /**

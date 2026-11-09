@@ -15,13 +15,13 @@ import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
   EnvironmentSecrets,
   EnvironmentSet,
+  EnvironmentSetConnection,
   EnvironmentSetEntry,
   EnvironmentSetEntryKind,
   EnvironmentSetProject,
   EnvironmentSetValueSource,
 } from 'src/app/generated/caster-api';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
-import { secretTerraformVariableWarning } from 'src/app/environment-sets/environment-set-rules';
 import {
   deliveredAs,
   kindLabel,
@@ -52,6 +52,9 @@ export class EnvironmentSetDetailComponent {
   readonly set = input.required<EnvironmentSet>();
   readonly canEdit = input(false);
   readonly secrets = input<EnvironmentSecrets | null>(null);
+  readonly connections = input<EnvironmentSetConnection[]>([]);
+  /** Whether the user can make connection entries (ManageInfrastructure). */
+  readonly canUseConnections = input(false);
 
   readonly Kind = EnvironmentSetEntryKind;
   readonly Source = EnvironmentSetValueSource;
@@ -59,20 +62,29 @@ export class EnvironmentSetDetailComponent {
   readonly deliveredAs = deliveredAs;
   readonly kindLabel = kindLabel;
 
-  warning(entry: EnvironmentSetEntry): string | null {
-    return secretTerraformVariableWarning(
-      entry.kind,
-      entry.valueSource,
-      this.secrets()?.runMode,
-    );
-  }
-
   addEntry(): void {
-    this.openEntryDialog({ set: this.set(), secrets: this.secrets() });
+    this.openEntryDialog({ set: this.set(), ...this.dialogContext() });
   }
 
   editEntry(entry: EnvironmentSetEntry): void {
-    this.openEntryDialog({ set: this.set(), entry, secrets: this.secrets() });
+    this.openEntryDialog({ set: this.set(), entry, ...this.dialogContext() });
+  }
+
+  /** A connection entry can only be changed with ManageInfrastructure. */
+  canEditEntry(entry: EnvironmentSetEntry): boolean {
+    return (
+      this.canEdit() &&
+      (entry.valueSource !== EnvironmentSetValueSource.Connection ||
+        this.canUseConnections())
+    );
+  }
+
+  private dialogContext() {
+    return {
+      secrets: this.secrets(),
+      connections: this.connections(),
+      canUseConnections: this.canUseConnections(),
+    };
   }
 
   deleteEntry(entry: EnvironmentSetEntry): void {

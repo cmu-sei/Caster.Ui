@@ -3,14 +3,21 @@
 
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ConnectionField,
   EnvironmentSetEntryKind,
   EnvironmentSetValueSource,
-  TerraformRunMode,
 } from '../generated/caster-api';
 
 const ENVIRONMENT_VARIABLE_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const TERRAFORM_VARIABLE_NAME = /^[A-Za-z_-][A-Za-z0-9_-]*$/;
 const RESERVED = ['HOME', 'PATH'];
+const GIT_CONFIG = /^GIT_CONFIG_(COUNT|KEY_[0-9]+|VALUE_[0-9]+)$/i;
+const SECRET_FIELDS: ConnectionField[] = [
+  ConnectionField.Password,
+  ConnectionField.ApiToken,
+  ConnectionField.ApiTokenId,
+  ConnectionField.ApiTokenSecret,
+];
 
 /**
  * The target names an entry may set. Mirrors caster.api's EnvironmentSetRules so the
@@ -44,6 +51,10 @@ export function targetNameError(
     return 'Environment variables starting with TF_ control Terraform itself and cannot be set. TF_TOKEN_* (private registry credentials) is allowed.';
   }
 
+  if (GIT_CONFIG.test(name)) {
+    return "GIT_CONFIG_COUNT, GIT_CONFIG_KEY_n and GIT_CONFIG_VALUE_n cannot be set: they would replace or renumber Caster's own git configuration.";
+  }
+
   if (RESERVED.includes(upper)) {
     return 'HOME and PATH cannot be set.';
   }
@@ -70,32 +81,38 @@ export function matchesSecretPatterns(
   });
 }
 
+/** Whether a connection field is a credential: secret, masked, never a Terraform variable. */
+export function isSecretField(
+  field: ConnectionField | null | undefined,
+): boolean {
+  return !!field && SECRET_FIELDS.includes(field);
+}
+
+/** Whether an entry's value is a secret: a Secret entry, or a connection credential. */
+export function isSecretSource(
+  valueSource: EnvironmentSetValueSource,
+  field?: ConnectionField | null,
+): boolean {
+  return (
+    valueSource === EnvironmentSetValueSource.Secret ||
+    (valueSource === EnvironmentSetValueSource.Connection &&
+      isSecretField(field))
+  );
+}
+
 /**
- * The warning a secret Terraform variable carries, or null. Terraform variable values can
- * reach state, outputs and saved plan files; in Kubernetes job mode they also reach pod
- * logs, because `terraform show -json` prints input variable values.
+ * Why an entry can't be saved because it would make a secret a Terraform variable, or
+ * null. Terraform saves variable values in plans and state, so the API refuses it too.
  */
-export function secretTerraformVariableWarning(
+export function secretTerraformVariableError(
   kind: EnvironmentSetEntryKind,
   valueSource: EnvironmentSetValueSource,
-  runMode: TerraformRunMode | null | undefined,
+  field?: ConnectionField | null,
 ): string | null {
-  if (
-    kind !== EnvironmentSetEntryKind.TerraformVariable ||
-    valueSource !== EnvironmentSetValueSource.Secret
-  ) {
-    return null;
-  }
-
-  let warning =
-    'Terraform variable values can end up in state, outputs and saved plan files. Prefer a provider environment variable; if a Terraform variable is needed, use it only in provider blocks and declare it ephemeral = true (Terraform 1.10+).';
-
-  if (runMode === TerraformRunMode.Kubernetes) {
-    warning +=
-      ' In Kubernetes job mode the value is also written to the job pod logs.';
-  }
-
-  return warning;
+  return kind === EnvironmentSetEntryKind.TerraformVariable &&
+    isSecretSource(valueSource, field)
+    ? "A secret can't be a Terraform variable: Terraform saves variables in plans and state. Use an environment variable, as provider credentials are."
+    : null;
 }
 
 /** The effective variable name an entry sets in the run. */

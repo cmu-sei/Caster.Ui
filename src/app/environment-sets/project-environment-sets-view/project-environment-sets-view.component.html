@@ -172,7 +172,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 </div>
 
 <ng-template #value let-entry>
-  @if (entry.isSecret) {
+  @if (entry.isSecret || entry.valueSource === Source.Secret) {
     @if (entry.isAvailable) {
       <span class="status">
         <mat-icon class="mdi-18px ok" fontIcon="mdi-lock" />

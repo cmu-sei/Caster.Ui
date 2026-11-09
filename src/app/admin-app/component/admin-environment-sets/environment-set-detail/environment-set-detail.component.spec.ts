@@ -38,7 +38,20 @@ const set: EnvironmentSet = {
       targetName: 'vsphere_password',
       valueSource: 'Secret',
       secretName: 'CASTER_SECRET_VSPHERE_PASSWORD',
+      isSecret: true,
       isAvailable: false,
+      unavailable:
+        "it is a secret, and a secret can't be a Terraform variable: Terraform saves variables in plans and state.",
+    },
+    {
+      id: 'e3',
+      environmentSetId: 's1',
+      kind: 'EnvironmentVariable',
+      targetName: 'VSPHERE_SERVER',
+      valueSource: 'Connection',
+      connectionName: 'lab-vcenter',
+      connectionField: 'Host',
+      isAvailable: true,
     },
   ],
   projects: [{ projectId: 'p1', name: 'Range A' }],
@@ -90,18 +103,40 @@ describe('EnvironmentSetDetailComponent', () => {
     expect(
       screen.getByText('CASTER_SECRET_VSPHERE_PASSWORD'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Missing')).toBeInTheDocument();
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    expect(screen.getByText('lab-vcenter')).toBeInTheDocument();
   });
 
   /**
-   * Verifies: a secret Terraform variable carries the pod log warning in Kubernetes job mode.
-   * Interacts with: the warning icon's accessible name.
-   * Data: vsphere_password, a secret Terraform variable; run mode Kubernetes.
+   * Verifies: an entry a run can't use says why.
+   * Interacts with: the Unavailable label's accessible name.
+   * Data: vsphere_password, a secret Terraform variable saved before the rule.
    */
-  it('warns about the secret Terraform variable', async () => {
+  it('says why an entry is unavailable', async () => {
     await renderDetail(false);
 
-    expect(screen.getByLabelText(/pod logs/)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/can't be a Terraform variable/),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a connection entry can't be edited without ManageInfrastructure, but can be deleted.
+   * Interacts with: the entry's Edit and Delete buttons.
+   * Data: VSPHERE_SERVER from a connection; canEdit, no canUseConnections.
+   */
+  it('locks connection entries without ManageInfrastructure', async () => {
+    await renderDetail(true);
+
+    expect(
+      screen.getByRole('button', { name: 'Edit VSPHERE_SERVER' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Delete VSPHERE_SERVER' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Edit VSPHERE_USER' }),
+    ).toBeEnabled();
   });
 
   /**

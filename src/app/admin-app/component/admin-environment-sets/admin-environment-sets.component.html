@@ -41,6 +41,26 @@
           >
             <mat-icon fontIcon="mdi-arrow-collapse-vertical" />
           </button>
+          @if (canEdit$ | async) {
+            <button
+              matButton
+              type="button"
+              [disabled]="selectedSetIds.size < 2"
+              matTooltip="Tick two or more sets to edit their entries together"
+              (click)="editSelected()"
+            >
+              <mat-icon fontIcon="mdi-pencil-box-multiple-outline" />
+              Edit Selected ({{ selectedSetIds.size }})
+            </button>
+          }
+          @if (canUseConnections$ | async) {
+            @if ((connections$ | async)?.length) {
+              <button matButton type="button" (click)="createFromConnection()">
+                <mat-icon fontIcon="mdi-server-network" />
+                Create Set from Connection
+              </button>
+            }
+          }
         </div>
 
         @if (secrets$ | async; as secrets) {
@@ -85,6 +105,26 @@
               <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
             </button>
           </div>
+          @if (secrets.runMode !== RunMode.Kubernetes) {
+            <p class="warning banner">
+              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+              Runs execute as local processes, which are not isolated: any
+              project's Terraform runs as the API's user and can read the API's
+              own environment, including every secret. Use Kubernetes job mode
+              where projects must be kept apart.
+            </p>
+          }
+          @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
+            <p class="warning banner">
+              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+              {{ secrets.tooShort.length }}
+              {{ secrets.tooShort.length === 1 ? 'secret is' : 'secrets are' }}
+              shorter than {{ secrets.minimumMaskedLength }} characters, too
+              short to mask in run output, so runs that use
+              {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
+              {{ secrets.tooShort.join(', ') }}.
+            </p>
+          }
           @if (secrets.inheritAll) {
             <p class="warning banner">
               <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
@@ -108,15 +148,13 @@
               @if (secrets.runMode === RunMode.Kubernetes) {
                 <li>
                   Values are plain environment variables in each Job spec: keep
-                  the jobs namespace admin-only. Secret Terraform variables also
-                  reach job pod logs.
-                </li>
-              } @else {
-                <li>
-                  Local processes are not isolated: Terraform runs as the API's
-                  user and can read the API's own environment.
+                  the jobs namespace admin-only.
                 </li>
               }
+              <li>
+                A secret can't be a Terraform variable, as Terraform saves
+                variables in plans and state.
+              </li>
               <li>
                 The run mode is set when the API starts
                 (Terraform:KubernetesJobs:Enabled).
@@ -132,6 +170,22 @@
             matSort
             multiTemplateDataRows
           >
+            <ng-container matColumnDef="select">
+              <th mat-header-cell *matHeaderCellDef>
+                <span class="visually-hidden">Select</span>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                @if (canEdit$ | async) {
+                  <mat-checkbox
+                    [checked]="isSelected(element)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleSelected(element, $event.checked)"
+                    [attr.aria-label]="'Select ' + element.name"
+                  />
+                }
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>
                 <button
@@ -165,6 +219,19 @@
                     class="mdi-24px"
                     fontIcon="mdi-square-edit-outline"
                   />
+                </button>
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Copy ' + element.name"
+                  matTooltip="Copy {{ element.name }}"
+                  (click)="$event.stopPropagation(); copySet(element)"
+                  [disabled]="
+                    !(canEdit$ | async) ||
+                    (hasConnectionEntries(element) &&
+                      !(canUseConnections$ | async))
+                  "
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
                 </button>
               </td>
             </ng-container>
@@ -233,6 +300,8 @@
                       [set]="element"
                       [canEdit]="canEdit$ | async"
                       [secrets]="secrets$ | async"
+                      [connections]="connections$ | async"
+                      [canUseConnections]="canUseConnections$ | async"
                     />
                   }
                 </div>
