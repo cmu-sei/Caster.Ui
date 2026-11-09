@@ -35,6 +35,7 @@ export const initialInventoryCategoryState: InventoryCategoryState = {
   // while `loaded` is false, so this value is never shown on its own.
   available: true,
   applies: true,
+  enabled: true,
   stale: false,
   error: null,
   loading: false,

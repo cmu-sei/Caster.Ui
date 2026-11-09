@@ -112,8 +112,8 @@ describe('inventory usage helpers', () => {
       cpuPercent: 25,
       memory: { used: 17179869184, total: 68719476736, percent: 25 },
     });
-    expect(
-      hostUsage(item({ connectionState: 'disconnected' })).online,
-    ).toBe(false);
+    expect(hostUsage(item({ connectionState: 'disconnected' })).online).toBe(
+      false,
+    );
   });
 });

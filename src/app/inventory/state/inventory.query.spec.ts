@@ -107,4 +107,41 @@ describe('InventoryQuery', () => {
       InventoryCategory.Datastores,
     ]);
   });
+
+  /**
+   * Verifies: categories$ leaves out a category the connection's settings turn off, before and after it loads.
+   * Interacts with: InventoryQuery.categories$ over a real InventoryStore.
+   * Data: a connection that reads only VM templates and ISOs; then networks reporting enabled false.
+   */
+  it('leaves out a category the connection turns off', async () => {
+    const names = async () =>
+      (await firstValueFrom(query.categories$)).map((d) => d.category);
+
+    store.update({
+      connections: [
+        {
+          name: 'lab',
+          provider: 'vsphere',
+          enabled: true,
+          isDefault: true,
+          resources: ['VmTemplate', 'Iso'],
+        },
+      ],
+      connection: 'lab',
+    });
+
+    expect(await names()).toEqual([
+      InventoryCategory.VmTemplates,
+      InventoryCategory.Isos,
+    ]);
+
+    store.update({ connections: [], connection: null });
+    setCategory(InventoryCategory.Networks, {
+      available: false,
+      enabled: false,
+    });
+
+    expect(await names()).not.toContain(InventoryCategory.Networks);
+    expect(await names()).toContain(InventoryCategory.Datastores);
+  });
 });

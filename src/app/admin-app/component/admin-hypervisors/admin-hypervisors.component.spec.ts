@@ -6,24 +6,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
-import { ApiStub } from 'src/app/test-utils/api-stub';
+import { ApiStub, BodyOverload } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { InventoryApiService } from 'src/app/inventory/api/inventory-api.service';
-import {
-  InventoryCategory,
-  InventoryConnection,
-  InventoryResponse,
-} from 'src/app/inventory/state';
+import { InventoryService as InventoryApiService } from 'src/app/generated/caster-api';
+import { InventoryConnection, InventoryResult } from 'src/app/inventory/state';
 import { AdminHypervisorsComponent } from './admin-hypervisors.component';
 
-function response(
-  overrides: Partial<InventoryResponse> = {},
-): InventoryResponse {
+function response(overrides: Partial<InventoryResult> = {}): InventoryResult {
   return {
     items: [],
     lastUpdated: '2026-10-29T14:00:00Z',
     available: true,
     applies: true,
+    enabled: true,
     stale: false,
     error: null,
     ...overrides,
@@ -84,22 +79,32 @@ const pveStorage = response({
 });
 
 interface InventoryApiStub {
-  getConnections: Mock<InventoryApiService['getConnections']>;
-  getHosts: Mock<InventoryApiService['getHosts']>;
-  getCategory: Mock<InventoryApiService['getCategory']>;
-  refresh: Mock<InventoryApiService['refresh']>;
+  getInventoryConnections: Mock<
+    BodyOverload<InventoryApiService['getInventoryConnections']>
+  >;
+  getInventoryHosts: Mock<
+    BodyOverload<InventoryApiService['getInventoryHosts']>
+  >;
+  getInventoryDatastores: Mock<
+    BodyOverload<InventoryApiService['getInventoryDatastores']>
+  >;
+  refreshInventory: Mock<BodyOverload<InventoryApiService['refreshInventory']>>;
 }
 
 async function renderPage(api: Partial<InventoryApiStub>) {
   const stub: InventoryApiStub = {
-    getConnections: vi.fn<InventoryApiService['getConnections']>(() =>
-      of([connection()]),
-    ),
-    getHosts: vi.fn<InventoryApiService['getHosts']>(() => of(pveHosts)),
-    getCategory: vi.fn<InventoryApiService['getCategory']>(() =>
-      of(pveStorage),
-    ),
-    refresh: vi.fn<InventoryApiService['refresh']>(() => of(null)),
+    getInventoryConnections: vi.fn<
+      BodyOverload<InventoryApiService['getInventoryConnections']>
+    >(() => of([connection()])),
+    getInventoryHosts: vi.fn<
+      BodyOverload<InventoryApiService['getInventoryHosts']>
+    >(() => of(pveHosts)),
+    getInventoryDatastores: vi.fn<
+      BodyOverload<InventoryApiService['getInventoryDatastores']>
+    >(() => of(pveStorage)),
+    refreshInventory: vi.fn<
+      BodyOverload<InventoryApiService['refreshInventory']>
+    >(() => of(null)),
     ...api,
   };
   stub satisfies Partial<ApiStub<InventoryApiService>>;
@@ -149,10 +154,7 @@ describe('AdminHypervisorsComponent', () => {
   it('shows how full each storage is', async () => {
     const { fixture, api } = await renderPage({});
 
-    expect(api.getCategory).toHaveBeenCalledWith(
-      InventoryCategory.Datastores,
-      'Default',
-    );
+    expect(api.getInventoryDatastores).toHaveBeenCalledWith('Default');
     const row = fixture.nativeElement
       .querySelectorAll('table')[1]
       .querySelector('tbody tr') as HTMLElement;
@@ -167,7 +169,9 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('reads every connection by name', async () => {
     const { api } = await renderPage({
-      getConnections: vi.fn<InventoryApiService['getConnections']>(() =>
+      getInventoryConnections: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryConnections']>
+      >(() =>
         of([
           connection(),
           connection({ name: 'lab2', provider: 'vsphere', isDefault: false }),
@@ -178,7 +182,7 @@ describe('AdminHypervisorsComponent', () => {
     expect(screen.getByRole('heading', { name: 'Default' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'lab2' })).toBeTruthy();
     expect(screen.getByText('vSphere')).toBeTruthy();
-    expect(api.getHosts.mock.calls.map((c) => c[0])).toEqual([
+    expect(api.getInventoryHosts.mock.calls.map((c) => c[0])).toEqual([
       'Default',
       'lab2',
     ]);
@@ -191,7 +195,9 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('says why host use is not available', async () => {
     await renderPage({
-      getHosts: vi.fn<InventoryApiService['getHosts']>(() =>
+      getInventoryHosts: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryHosts']>
+      >(() =>
         of(
           response({
             available: false,
@@ -215,7 +221,9 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('lists stale hosts and says why they could not refresh', async () => {
     await renderPage({
-      getHosts: vi.fn<InventoryApiService['getHosts']>(() =>
+      getInventoryHosts: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryHosts']>
+      >(() =>
         of({
           ...pveHosts,
           stale: true,
@@ -235,12 +243,12 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('refreshes one connection', async () => {
     const { api, user } = await renderPage({});
-    api.getHosts.mockClear();
+    api.getInventoryHosts.mockClear();
 
     await user.click(screen.getByRole('button', { name: 'Refresh Default' }));
 
-    expect(api.refresh).toHaveBeenCalledWith('Default');
-    expect(api.getHosts).toHaveBeenCalledWith('Default');
+    expect(api.refreshInventory).toHaveBeenCalledWith('Default');
+    expect(api.getInventoryHosts).toHaveBeenCalledWith('Default');
   });
 
   /**
@@ -250,9 +258,9 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('keeps storage when the hosts request fails', async () => {
     await renderPage({
-      getHosts: vi.fn<InventoryApiService['getHosts']>(() =>
-        throwError(() => new HttpErrorResponse({ status: 500 })),
-      ),
+      getInventoryHosts: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryHosts']>
+      >(() => throwError(() => new HttpErrorResponse({ status: 500 }))),
     });
 
     expect(screen.getByText('Hosts could not be read right now.')).toBeTruthy();
@@ -266,9 +274,9 @@ describe('AdminHypervisorsComponent', () => {
    */
   it('says when the API has no inventory', async () => {
     await renderPage({
-      getConnections: vi.fn<InventoryApiService['getConnections']>(() =>
-        throwError(() => new HttpErrorResponse({ status: 404 })),
-      ),
+      getInventoryConnections: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryConnections']>
+      >(() => throwError(() => new HttpErrorResponse({ status: 404 }))),
     });
 
     expect(
@@ -276,5 +284,40 @@ describe('AdminHypervisorsComponent', () => {
         'Hypervisor inventory is not available on this Caster API.',
       ),
     ).toBeTruthy();
+  });
+
+  /**
+   * Verifies: a misconfigured connection says why and isn't read.
+   * Interacts with: InventoryApiService.getInventoryConnections and getInventoryHosts (stubs).
+   * Data: one connection whose settings carry an error.
+   */
+  it('says why a misconfigured connection is not read', async () => {
+    const problem =
+      "This infrastructure connection is misconfigured, so it isn't read. Infrastructure:Connections:0:Inventory:Resources:Networks:Include is not a valid regular expression.";
+    const { api } = await renderPage({
+      getInventoryConnections: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryConnections']>
+      >(() => of([connection({ error: problem })])),
+    });
+
+    expect(screen.getByText(problem)).toBeTruthy();
+    expect(api.getInventoryHosts).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { name: 'Hosts' })).toBeNull();
+  });
+
+  /**
+   * Verifies: a kind the connection's settings turn off has no section.
+   * Interacts with: InventoryApiService.getInventoryConnections (stub).
+   * Data: a connection that reads datastores but not hosts.
+   */
+  it('leaves out what the connection does not read', async () => {
+    await renderPage({
+      getInventoryConnections: vi.fn<
+        BodyOverload<InventoryApiService['getInventoryConnections']>
+      >(() => of([connection({ resources: ['Datastore'] })])),
+    });
+
+    expect(screen.queryByRole('heading', { name: 'Hosts' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Storage' })).toBeTruthy();
   });
 });

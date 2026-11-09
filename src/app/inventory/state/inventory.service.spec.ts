@@ -4,14 +4,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of, Subject, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
+import {
+  InventoryService as InventoryApiService,
+  InventoryRefreshResult,
+} from '../../generated/caster-api';
 import { ApiStub } from '../../test-utils/api-stub';
-import { InventoryApiService } from '../api/inventory-api.service';
 import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
   InventoryConnection,
-  InventoryResponse,
+  InventoryResult,
 } from './inventory.model';
 import {
   INVENTORY_CONNECTION_KEY,
@@ -19,14 +22,13 @@ import {
 } from './inventory.service';
 import { createInitialInventoryState, InventoryStore } from './inventory.store';
 
-function response(
-  overrides: Partial<InventoryResponse> = {},
-): InventoryResponse {
+function response(overrides: Partial<InventoryResult> = {}): InventoryResult {
   return {
     items: [],
     lastUpdated: null,
     available: true,
     applies: true,
+    enabled: true,
     stale: false,
     error: null,
     ...overrides,
@@ -36,27 +38,49 @@ function response(
 describe('InventoryService', () => {
   let service: InventoryService;
   let store: InventoryStore;
+  // The generated client has a method per category; every one of them goes
+  // through getCategory, so a test can stub and assert per category.
   let apiSpy: {
-    getCategory: ReturnType<typeof vi.fn<InventoryApiService['getCategory']>>;
-    refresh: ReturnType<typeof vi.fn<InventoryApiService['refresh']>>;
+    getCategory: ReturnType<
+      typeof vi.fn<
+        (
+          category: InventoryCategory,
+          connection?: string,
+        ) => Observable<InventoryResult>
+      >
+    >;
+    refresh: ReturnType<
+      typeof vi.fn<(connection?: string) => Observable<InventoryRefreshResult>>
+    >;
     getConnections: ReturnType<
-      typeof vi.fn<InventoryApiService['getConnections']>
+      typeof vi.fn<() => Observable<InventoryConnection[]>>
     >;
   };
 
   beforeEach(() => {
-    // There is no live API, so the hand-written client is stubbed wholesale.
     apiSpy = {
-      getCategory: vi.fn<InventoryApiService['getCategory']>(),
-      refresh: vi.fn<InventoryApiService['refresh']>(() => of(null)),
-      getConnections: vi.fn<InventoryApiService['getConnections']>(() =>
-        of([]),
-      ),
-    } satisfies ApiStub<InventoryApiService>;
+      getCategory: vi.fn(),
+      refresh: vi.fn(() => of(null)),
+      getConnections: vi.fn(() => of([])),
+    };
+    const api = {
+      getInventoryVmTemplates: (connection?: string) =>
+        apiSpy.getCategory(InventoryCategory.VmTemplates, connection),
+      getInventoryIsos: (connection?: string) =>
+        apiSpy.getCategory(InventoryCategory.Isos, connection),
+      getInventoryNetworks: (connection?: string) =>
+        apiSpy.getCategory(InventoryCategory.Networks, connection),
+      getInventoryDatastores: (connection?: string) =>
+        apiSpy.getCategory(InventoryCategory.Datastores, connection),
+      getInventoryContentLibrary: (connection?: string) =>
+        apiSpy.getCategory(InventoryCategory.ContentLibrary, connection),
+      refreshInventory: (connection?: string) => apiSpy.refresh(connection),
+      getInventoryConnections: () => apiSpy.getConnections(),
+    } satisfies Partial<ApiStub<InventoryApiService>>;
     localStorage.removeItem(INVENTORY_CONNECTION_KEY);
 
     TestBed.configureTestingModule({
-      providers: [{ provide: InventoryApiService, useValue: apiSpy }],
+      providers: [{ provide: InventoryApiService, useValue: api }],
     });
 
     store = TestBed.inject(InventoryStore);
@@ -230,7 +254,7 @@ describe('InventoryService', () => {
    */
   it('treats a missing applies flag as applying', () => {
     const { applies: _, ...older } = response();
-    apiSpy.getCategory.mockReturnValue(of(older as InventoryResponse));
+    apiSpy.getCategory.mockReturnValue(of(older as InventoryResult));
 
     service.load(InventoryCategory.Networks).subscribe();
 
@@ -310,7 +334,10 @@ describe('InventoryService', () => {
   it('reads the remembered connection while it is still enabled', () => {
     localStorage.setItem(INVENTORY_CONNECTION_KEY, 'phl-vmc');
     apiSpy.getConnections.mockReturnValue(
-      of([connection('dev-proxmox', { isDefault: true }), connection('phl-vmc')]),
+      of([
+        connection('dev-proxmox', { isDefault: true }),
+        connection('phl-vmc'),
+      ]),
     );
     service.loadConnections().subscribe();
     expect(store.getValue().connection).toBe('phl-vmc');
@@ -375,7 +402,7 @@ describe('InventoryService', () => {
         loaded: true,
       },
     });
-    const pending = new Subject<InventoryResponse>();
+    const pending = new Subject<InventoryResult>();
     apiSpy.getCategory.mockReturnValue(pending);
 
     service.selectConnection('phl-vmc').subscribe();

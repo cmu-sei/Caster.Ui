@@ -17,28 +17,55 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltip } from '@angular/material/tooltip';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, finalize, map, switchMap, take } from 'rxjs/operators';
-import { InventoryApiService } from 'src/app/inventory/api/inventory-api.service';
 import {
+  InventoryResult,
+  InventoryCategory as ApiInventoryCategory,
+  InventoryService as InventoryApiService,
+} from 'src/app/generated/caster-api';
+import {
+  connectionReads,
   datastoreUsage,
   formatBytes,
   hostUsage,
-  InventoryCategory,
   InventoryConnection,
   InventoryHostUsage,
   InventoryItem,
-  InventoryResponse,
   InventoryUsage,
   providerName,
 } from 'src/app/inventory/state';
+
+/** One list as the page shows it, from the API's `InventoryResult`. */
+export interface HypervisorList {
+  items: InventoryItem[];
+  lastUpdated: string | null;
+  available: boolean;
+  /** False when the connection's settings turn this kind of object off. */
+  enabled: boolean;
+  stale: boolean;
+  error: string | null;
+}
 
 /** One connection's hosts and datastores, as the page shows them. */
 export interface HypervisorConnectionView {
   connection: InventoryConnection;
   /** Null until loaded, or when the request itself failed. */
-  hosts: InventoryResponse | null;
-  datastores: InventoryResponse | null;
+  hosts: HypervisorList | null;
+  datastores: HypervisorList | null;
   loading: boolean;
   refreshing: boolean;
+}
+
+function toList(result: InventoryResult | null): HypervisorList | null {
+  return result
+    ? {
+        items: result.items ?? [],
+        lastUpdated: result.lastUpdated ?? null,
+        available: result.available !== false,
+        enabled: result.enabled !== false,
+        stale: result.stale === true,
+        error: result.error ?? null,
+      }
+    : null;
 }
 
 /**
@@ -73,7 +100,7 @@ export class AdminHypervisorsComponent implements OnInit {
 
   ngOnInit() {
     this.inventoryApiService
-      .getConnections()
+      .getInventoryConnections()
       .pipe(take(1))
       .subscribe({
         next: (connections) => {
@@ -88,7 +115,12 @@ export class AdminHypervisorsComponent implements OnInit {
           );
           this.loading.set(false);
           for (const connection of connections ?? []) {
-            this.load(connection.name).pipe(take(1)).subscribe();
+            // A misconfigured connection isn't read; its card says why.
+            if (!connection.error) {
+              this.load(connection.name ?? '')
+                .pipe(take(1))
+                .subscribe();
+            }
           }
         },
         error: (error: unknown) => {
@@ -103,10 +135,11 @@ export class AdminHypervisorsComponent implements OnInit {
   }
 
   /** Asks the API to re-read one connection, then shows what it read. */
-  refresh(name: string) {
+  refresh(name: string | null | undefined) {
+    name = name ?? '';
     this.patch(name, { refreshing: true });
     this.inventoryApiService
-      .refresh(name)
+      .refreshInventory(name)
       .pipe(
         catchError(() => of(null)),
         switchMap(() => this.load(name)),
@@ -130,7 +163,7 @@ export class AdminHypervisorsComponent implements OnInit {
   }
 
   /** When a connection was last read, in the viewer's time zone. */
-  readTime(value: string | null): string {
+  readTime(value: string | null | undefined): string {
     return value
       ? new Date(value).toLocaleString(undefined, {
           year: 'numeric',
@@ -144,8 +177,18 @@ export class AdminHypervisorsComponent implements OnInit {
   }
 
   /** "Proxmox", "vSphere", or the provider as configured. */
-  providerName(provider: string): string {
+  providerName(provider: string | null | undefined): string {
     return providerName(provider);
+  }
+
+  /** Whether the connection's settings read hosts. */
+  readsHosts(connection: InventoryConnection): boolean {
+    return connectionReads(connection, ApiInventoryCategory.Host);
+  }
+
+  /** Whether the connection's settings read datastores. */
+  readsDatastores(connection: InventoryConnection): boolean {
+    return connectionReads(connection, ApiInventoryCategory.Datastore);
   }
 
   /**
@@ -156,14 +199,18 @@ export class AdminHypervisorsComponent implements OnInit {
     this.patch(name, { loading: true });
     return forkJoin({
       hosts: this.inventoryApiService
-        .getHosts(name)
+        .getInventoryHosts(name)
         .pipe(catchError(() => of(null))),
       datastores: this.inventoryApiService
-        .getCategory(InventoryCategory.Datastores, name)
+        .getInventoryDatastores(name)
         .pipe(catchError(() => of(null))),
     }).pipe(
       map(({ hosts, datastores }) =>
-        this.patch(name, { hosts, datastores, loading: false }),
+        this.patch(name, {
+          hosts: toList(hosts),
+          datastores: toList(datastores),
+          loading: false,
+        }),
       ),
     );
   }

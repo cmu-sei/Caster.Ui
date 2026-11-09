@@ -33,6 +33,7 @@ function categoryState(
     lastUpdated: null,
     available: true,
     applies: true,
+    enabled: true,
     stale: false,
     error: null,
     loading: false,

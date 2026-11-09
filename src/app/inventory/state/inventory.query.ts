@@ -7,6 +7,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import {
   INVENTORY_CATEGORIES,
+  connectionReads,
   InventoryCategory,
   InventoryCategoryDescriptor,
   InventoryCategoryState,
@@ -33,7 +34,7 @@ export class InventoryQuery extends Query<InventoryState> {
    */
   readonly connection$: Observable<InventoryConnection | null> = this.select(
     (state) =>
-      state.connections.find((c) => c.name === state.connection) ?? null
+      state.connections.find((c) => c.name === state.connection) ?? null,
   );
 
   /**
@@ -49,17 +50,27 @@ export class InventoryQuery extends Query<InventoryState> {
       .reduce<string | null>(
         (oldest, t) =>
           oldest === null || Date.parse(t) < Date.parse(oldest) ? t : oldest,
-        null
-      )
+        null,
+      ),
   );
 
   /**
    * The categories to show: all of them, less any the provider has none of,
-   * e.g. content libraries on Proxmox.
+   * e.g. content libraries on Proxmox, and any the connection's settings turn
+   * off.
    */
   readonly categories$: Observable<InventoryCategoryDescriptor[]> = this.select(
-    (state) =>
-      INVENTORY_CATEGORIES.filter((d) => state[d.category].applies !== false)
+    (state) => {
+      const connection = state.connections.find(
+        (c) => c.name === state.connection,
+      );
+      return INVENTORY_CATEGORIES.filter(
+        (d) =>
+          state[d.category].applies !== false &&
+          state[d.category].enabled !== false &&
+          connectionReads(connection, d.apiCategory),
+      );
+    },
   );
 
   constructor() {
@@ -68,20 +79,22 @@ export class InventoryQuery extends Query<InventoryState> {
 
   /** The full state slice for one category, including its own availability. */
   selectCategory(
-    category: InventoryCategory
+    category: InventoryCategory,
   ): Observable<InventoryCategoryState> {
     return this.select((state) => state[category]);
   }
 
   /** Items for one category with the shared search term applied. */
   selectFilteredItems(
-    category: InventoryCategory
+    category: InventoryCategory,
   ): Observable<InventoryItem[]> {
     return combineLatest([this.selectCategory(category), this.filter$]).pipe(
       map(([categoryState, filter]) =>
-        categoryState.items.filter((item) => inventoryItemMatches(item, filter))
+        categoryState.items.filter((item) =>
+          inventoryItemMatches(item, filter),
+        ),
       ),
-      shareReplay({ bufferSize: 1, refCount: true })
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
 }

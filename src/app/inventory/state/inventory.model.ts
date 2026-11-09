@@ -1,51 +1,14 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-/**
- * Read-only infrastructure inventory (vCenter) models.
- *
- * These mirror the `/api/inventory/*` contract by hand because the generated
- * client in `src/app/generated/caster-api` does not yet contain these
- * endpoints. See `inventory-api.service.ts` for the replacement plan.
- */
+import {
+  InventoryCategory as ApiInventoryCategory,
+  InventoryConnection,
+  InventoryItem,
+  InventoryResult,
+} from '../../generated/caster-api';
 
-/** A single inventory object, e.g. one VM template or one ISO. */
-export interface InventoryItem {
-  id: string;
-  name: string;
-  path: string;
-  properties: { [key: string]: string };
-  /**
-   * Terraform that references the item, ready to paste, keyed by the provider
-   * source it is written for, e.g. "bpg/proxmox". Absent or empty for items
-   * that are not referenced this way.
-   */
-  terraform?: { [provider: string]: string };
-}
-
-/** The payload returned by every inventory GET endpoint. */
-export interface InventoryResponse {
-  items: InventoryItem[];
-  lastUpdated: string | null;
-  /**
-   * False is a NORMAL condition, not a failure. The feature is off by default
-   * and most deployments have no vCenter credentials configured. When false,
-   * `error` carries a human-readable explanation to show the user.
-   */
-  available: boolean;
-  /**
-   * False when the provider has no such kind of object, e.g. content libraries
-   * on Proxmox. The panel leaves such a category out instead of listing it as
-   * unavailable.
-   */
-  applies: boolean;
-  /**
-   * True when the latest read failed and `items` are from the last read that
-   * succeeded, at `lastUpdated`. `error` says why the latest read failed.
-   */
-  stale: boolean;
-  error: string | null;
-}
+export type { InventoryConnection, InventoryItem, InventoryResult };
 
 /**
  * The inventory kinds. The string values double as keys into
@@ -60,7 +23,32 @@ export enum InventoryCategory {
 }
 
 /** Per-category slice of the store. Each category loads and fails on its own. */
-export interface InventoryCategoryState extends InventoryResponse {
+export interface InventoryCategoryState {
+  items: InventoryItem[];
+  lastUpdated: string | null;
+  /**
+   * False is a NORMAL condition, not a failure. The feature is off by default
+   * and most deployments have no hypervisor credentials configured. When false,
+   * `error` carries a human-readable explanation to show the user.
+   */
+  available: boolean;
+  /**
+   * False when the provider has no such kind of object, e.g. content libraries
+   * on Proxmox. The panel leaves such a category out instead of listing it as
+   * unavailable.
+   */
+  applies: boolean;
+  /**
+   * False when the connection's settings turn this kind of object off. The
+   * panel leaves it out.
+   */
+  enabled: boolean;
+  /**
+   * True when the latest read failed and `items` are from the last read that
+   * succeeded, at `lastUpdated`. `error` says why the latest read failed.
+   */
+  stale: boolean;
+  error: string | null;
   loading: boolean;
   /** True once a load has resolved one way or the other. */
   loaded: boolean;
@@ -75,6 +63,8 @@ export interface InventoryCategoryState extends InventoryResponse {
 /** Static display metadata for a category. */
 export interface InventoryCategoryDescriptor {
   category: InventoryCategory;
+  /** The API's name for the category, as a connection's `resources` lists it. */
+  apiCategory: ApiInventoryCategory;
   label: string;
   /** Material Design Icons font icon name. */
   icon: string;
@@ -85,55 +75,61 @@ export interface InventoryCategoryDescriptor {
 export const INVENTORY_CATEGORIES: InventoryCategoryDescriptor[] = [
   {
     category: InventoryCategory.VmTemplates,
+    apiCategory: ApiInventoryCategory.VmTemplate,
     label: 'VM Templates',
     icon: 'mdi-cube-outline',
     fallbackUnavailableMessage: 'VM template inventory is not configured.',
   },
   {
     category: InventoryCategory.Isos,
+    apiCategory: ApiInventoryCategory.Iso,
     label: 'ISOs',
     icon: 'mdi-disc',
     fallbackUnavailableMessage: 'ISO inventory is not configured.',
   },
   {
     category: InventoryCategory.Networks,
+    apiCategory: ApiInventoryCategory.Network,
     label: 'Networks',
     icon: 'mdi-lan',
     fallbackUnavailableMessage: 'Network inventory is not configured.',
   },
   {
     category: InventoryCategory.Datastores,
+    apiCategory: ApiInventoryCategory.Datastore,
     label: 'Datastores',
     icon: 'mdi-database',
     fallbackUnavailableMessage: 'Datastore inventory is not configured.',
   },
   {
     category: InventoryCategory.ContentLibrary,
+    apiCategory: ApiInventoryCategory.ContentLibrary,
     label: 'Content Library',
     icon: 'mdi-bookshelf',
     fallbackUnavailableMessage: 'Content library inventory is not configured.',
   },
 ];
 
-/** A configured connection, as `GET /api/inventory/connections` lists it. */
-export interface InventoryConnection {
-  name: string;
-  provider: string;
-  enabled: boolean;
-  /** True for the connection the top-level Infrastructure settings configure. */
-  isDefault: boolean;
-  lastUpdated: string | null;
+/**
+ * Whether a connection reads a kind of object. A connection listed without its
+ * resource types, e.g. by an older API, reads them all.
+ */
+export function connectionReads(
+  connection: InventoryConnection | null | undefined,
+  category: ApiInventoryCategory,
+): boolean {
+  return !connection?.resources || connection.resources.includes(category);
 }
 
 /** "Proxmox", "vSphere", or the provider as configured. */
-export function providerName(provider: string): string {
+export function providerName(provider: string | null | undefined): string {
   switch ((provider ?? '').toLowerCase()) {
     case 'proxmox':
       return 'Proxmox';
     case 'vsphere':
       return 'vSphere';
     default:
-      return provider;
+      return provider ?? '';
   }
 }
 
@@ -165,7 +161,10 @@ function numberProperty(item: InventoryItem, key: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-function usage(used: number | null, total: number | null): InventoryUsage | null {
+function usage(
+  used: number | null,
+  total: number | null,
+): InventoryUsage | null {
   if (used === null || total === null || total <= 0) {
     return null;
   }
@@ -185,7 +184,7 @@ export function datastoreUsage(item: InventoryItem): InventoryUsage | null {
   const free = numberProperty(item, 'freeSpace');
   return usage(
     capacity === null || free === null ? null : capacity - free,
-    capacity
+    capacity,
   );
 }
 
@@ -225,7 +224,7 @@ export function formatBytes(bytes: number): string {
   }
   const unit = Math.min(
     BYTE_UNITS.length - 1,
-    Math.floor(Math.log(bytes) / Math.log(1024))
+    Math.floor(Math.log(bytes) / Math.log(1024)),
   );
   const value = bytes / Math.pow(1024, unit);
   return `${unit === 0 ? value : value.toFixed(1)} ${BYTE_UNITS[unit]}`;
@@ -246,7 +245,7 @@ export function inventoryItemLabel(item: InventoryItem): string | null {
  */
 export function inventoryItemMatches(
   item: InventoryItem,
-  term: string
+  term: string,
 ): boolean {
   if (!term) {
     return true;
@@ -262,6 +261,6 @@ export function inventoryItemMatches(
     return true;
   }
   return Object.values(item.properties || {}).some(
-    (value) => !!value && value.toLowerCase().includes(needle)
+    (value) => !!value && value.toLowerCase().includes(needle),
   );
 }
