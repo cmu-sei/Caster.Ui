@@ -58,6 +58,7 @@ export class PermissionService {
       map(
         ([permissions, groupPermissionClaims]) =>
           permissions.filter((y) => y.startsWith('View')).length > 0 ||
+          permissions.includes(SystemPermission.ManageProjectGroups) ||
           this.hasManageMembershipClaim(groupPermissionClaims)
       )
     );

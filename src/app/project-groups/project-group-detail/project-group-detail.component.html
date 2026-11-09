@@ -1,0 +1,285 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="detail">
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <section aria-label="Projects">
+    <h3>Projects</h3>
+    <ul class="items">
+      @for (project of group().projects; track project.id) {
+        <li>
+          <span>{{ project.name }}</span>
+          @if (group().canManage) {
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Remove ' + project.name"
+              matTooltip="Take out of the group"
+              (click)="removeProject(project)"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
+            </button>
+          }
+        </li>
+      } @empty {
+        <li class="secondary">No projects yet.</li>
+      }
+    </ul>
+    @if (group().canManage) {
+      <div class="assign">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Project</mat-label>
+          <mat-select [(ngModel)]="selectedProject">
+            @for (
+              p of unassigned(projects$ | async, group().projects);
+              track p.id
+            ) {
+              <mat-option [value]="p.id">{{ p.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton
+          type="button"
+          [disabled]="!selectedProject"
+          (click)="addProject()"
+        >
+          <mat-icon fontIcon="mdi-plus" />
+          Add Project
+        </button>
+      </div>
+      <p class="secondary">
+        You can add the projects you manage. A project moves out of any other
+        group.
+      </p>
+      @if (canCreateProjects$ | async) {
+        <button matButton type="button" (click)="createProject()">
+          <mat-icon fontIcon="mdi-folder-plus-outline" />
+          New Project in Group
+        </button>
+      }
+    }
+  </section>
+
+  @if (group().canManage) {
+    <section aria-label="Memberships">
+      <h3>Memberships</h3>
+      <p class="secondary">
+        Each membership's role applies in every project of the group. A Manager,
+        or any role with Manage Project, manages the group.
+      </p>
+      <ul class="items">
+        @for (membership of memberships(); track membership.id) {
+          <li>
+            <span>
+              <mat-icon
+                class="mdi-18px"
+                [fontIcon]="
+                  membership.userId ? 'mdi-account' : 'mdi-account-group'
+                "
+              />
+              {{ membership.userName ?? membership.groupName }}
+            </span>
+            <span>
+              <mat-form-field subscriptSizing="dynamic" class="role">
+                <mat-select
+                  [value]="membership.roleId"
+                  (selectionChange)="changeRole(membership, $event.value)"
+                  [attr.aria-label]="
+                    'Role of ' + (membership.userName ?? membership.groupName)
+                  "
+                >
+                  @for (role of roles$ | async; track role.id) {
+                    <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                [attr.aria-label]="
+                  'Remove ' + (membership.userName ?? membership.groupName)
+                "
+                matTooltip="Remove"
+                (click)="removeMembership(membership)"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-trash-can-outline" />
+              </button>
+            </span>
+          </li>
+        } @empty {
+          <li class="secondary">No memberships yet.</li>
+        }
+      </ul>
+      <div class="assign">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>User</mat-label>
+          <mat-select
+            [(ngModel)]="selectedUser"
+            (selectionChange)="selectedUserGroup = null"
+          >
+            @for (u of users$ | async; track u.id) {
+              <mat-option [value]="u.id">{{ u.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>or Group</mat-label>
+          <mat-select
+            [(ngModel)]="selectedUserGroup"
+            (selectionChange)="selectedUser = null"
+          >
+            @for (g of userGroups$ | async; track g.id) {
+              <mat-option [value]="g.id">{{ g.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Role</mat-label>
+          <mat-select [(ngModel)]="selectedRole">
+            @for (role of roles$ | async; track role.id) {
+              <mat-option [value]="role.id">{{ role.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton
+          type="button"
+          [disabled]="!selectedUser && !selectedUserGroup"
+          (click)="addMembership()"
+        >
+          <mat-icon fontIcon="mdi-plus" />
+          Add
+        </button>
+      </div>
+    </section>
+  }
+
+  <section aria-label="Environment Sets">
+    <h3>Environment Sets</h3>
+    <ul class="items">
+      @for (set of group().environmentSets; track set.id) {
+        <li>
+          <span>{{ set.name }}</span>
+          @if (canManageSets$ | async) {
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Remove ' + set.name"
+              matTooltip="Take from the group"
+              (click)="unassignSet(set)"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
+            </button>
+          }
+        </li>
+      } @empty {
+        <li class="secondary">None.</li>
+      }
+    </ul>
+    @if (canManageSets$ | async) {
+      <div class="assign">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Environment Set</mat-label>
+          <mat-select [(ngModel)]="selectedSet">
+            @for (
+              s of unassigned(sets$ | async, group().environmentSets);
+              track s.id
+            ) {
+              <mat-option [value]="s.id">{{ s.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton
+          type="button"
+          [disabled]="!selectedSet"
+          (click)="assignSet()"
+        >
+          <mat-icon fontIcon="mdi-link-variant" />
+          Assign
+        </button>
+      </div>
+    }
+  </section>
+
+  <section aria-label="Inventory connections">
+    <h3>Inventory connections</h3>
+    <ul class="items">
+      @for (name of group().inventoryConnections; track name) {
+        <li>
+          <span>{{ name }}</span>
+          @if (canManageConnections$ | async) {
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Remove ' + name"
+              matTooltip="Stop showing to the group"
+              (click)="unassignConnection(name)"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
+            </button>
+          }
+        </li>
+      } @empty {
+        <li class="secondary">None.</li>
+      }
+    </ul>
+    @if (canManageConnections$ | async) {
+      <div class="assign">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Connection</mat-label>
+          <mat-select [(ngModel)]="selectedConnection">
+            @for (
+              c of unassignedConnections(connections$ | async);
+              track c.name
+            ) {
+              <mat-option [value]="c.name">{{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton
+          type="button"
+          [disabled]="!selectedConnection"
+          (click)="assignConnection()"
+        >
+          <mat-icon fontIcon="mdi-link-variant" />
+          Assign
+        </button>
+      </div>
+    }
+  </section>
+
+  <section aria-label="Partition and hosts">
+    <h3>Partition and hosts</h3>
+    @if (canManageVlans$ | async) {
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Partition</mat-label>
+        <mat-select
+          [value]="group().partitionId ?? ''"
+          (selectionChange)="setPartition($event.value)"
+        >
+          <mat-option value="">None (the default)</mat-option>
+          @for (p of partitions$ | async; track p.id) {
+            <mat-option [value]="p.id">{{ p.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    <p class="secondary">
+      Hosts:
+      @for (host of group().hosts; track host.id; let last = $last) {
+        {{ host.name }}{{ last ? '' : ', ' }}
+      } @empty {
+        none.
+      }
+      Hosts are given to a group through the API (a host's projectGroupId).
+    </p>
+  </section>
+</div>

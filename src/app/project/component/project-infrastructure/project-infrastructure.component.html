@@ -32,8 +32,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   [class.missing]="connection.status === 'Missing'"
                   >{{ connectionStatus(connection) }}</span
                 >
+                @for (group of connection.projectGroups ?? []; track group) {
+                  <span class="status">via group {{ group }}</span>
+                }
               </span>
-              @if (canManageInfrastructure$ | async) {
+              @if (
+                (canManageInfrastructure$ | async) &&
+                connection.isDirect !== false
+              ) {
                 <button
                   mat-icon-button
                   type="button"
@@ -86,16 +92,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <span>
                   <mat-icon class="mdi-18px" fontIcon="mdi-key-variant" />
                   {{ set.name }}
+                  @for (
+                    group of set.projectGroups ?? [];
+                    track group.projectGroupId
+                  ) {
+                    <span class="status">via group {{ group.name }}</span>
+                  }
                 </span>
-                <button
-                  mat-icon-button
-                  type="button"
-                  [attr.aria-label]="'Remove ' + set.name"
-                  matTooltip="Remove from project"
-                  (click)="unassignSet(set)"
-                >
-                  <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
-                </button>
+                @if (set.isDirect !== false) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [attr.aria-label]="'Remove ' + set.name"
+                    matTooltip="Remove from project"
+                    (click)="unassignSet(set)"
+                  >
+                    <mat-icon
+                      class="mdi-18px"
+                      fontIcon="mdi-link-variant-off"
+                    />
+                  </button>
+                }
               </li>
             }
           </ul>

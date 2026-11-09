@@ -102,7 +102,10 @@ async function renderDialog(grants: PermissionGrants, confirmAnswer = true) {
         provide: MAT_DIALOG_DATA,
         useValue: { projectId: 'p1', projectName: 'Range A' },
       },
-      { provide: MatDialogRef, useValue: dialogRefStub<ProjectInfrastructureComponent>().dialogRef },
+      {
+        provide: MatDialogRef,
+        useValue: dialogRefStub<ProjectInfrastructureComponent>().dialogRef,
+      },
       { provide: ProjectInventoryService, useValue: projectInventory },
       { provide: InventoryService, useValue: inventory },
       { provide: EnvironmentSetsService, useValue: sets },

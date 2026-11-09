@@ -166,6 +166,29 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
+        @if (
+          permissions.includes(SystemPermission.ViewProjects) ||
+          permissions.includes(SystemPermission.ManageProjectGroups)
+        ) {
+          <mat-list-item
+            id="wrapper showhand"
+            (click)="adminGotoProjectGroups()"
+          >
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-folder-multiple-outline"
+            />
+            {{ projectGroupsText }}
+            <button
+              [attr.aria-label]="projectGroupsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
         @if (canViewGroups$ | async) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
             <mat-icon
@@ -246,6 +269,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             permissions.includes(SystemPermission.ViewEnvironmentSets)
           ) {
             <cas-admin-environment-sets />
+          }
+          @if (
+            showStatus === projectGroupsText &&
+            (permissions.includes(SystemPermission.ViewProjects) ||
+              permissions.includes(SystemPermission.ManageProjectGroups))
+          ) {
+            <cas-project-groups-list />
           }
           @if (showStatus === groupsText && (canViewGroups$ | async)) {
             <cas-admin-groups />

@@ -132,16 +132,13 @@ export class EnvironmentSetService {
     );
   }
 
+  /**
+   * Unassigns a set from a project, then reads the project's sets back: one also given
+   * through the project's group stays, marked as coming from the group.
+   */
   unassign(projectId: string, setId: string) {
     return this.api.unassignEnvironmentSet(projectId, setId).pipe(
-      tap(() =>
-        this.projectSetsUpdated(
-          projectId,
-          (this.projectSetsSubject.getValue()[projectId] ?? []).filter(
-            (x) => x.environmentSetId !== setId,
-          ),
-        ),
-      ),
+      switchMap(() => this.loadProjectSets(projectId)),
       switchMap(() => this.refresh(setId)),
     );
   }

@@ -12,12 +12,23 @@ import { TopbarView } from './../../../../shared/components/top-bar/topbar.model
 import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
 import { ProjectListComponent } from '../project-list/project-list.component';
 import { AsyncPipe } from '@angular/common';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { map } from 'rxjs/operators';
+import { ProjectGroupService } from '../../../../project-groups/project-group.service';
+import { ProjectGroupsDialogComponent } from '../../../../project-groups/project-groups-dialog/project-groups-dialog.component';
 
 @Component({
   selector: 'cas-project-container',
   templateUrl: './project-list-container.component.html',
   styleUrls: ['./project-list-container.component.scss'],
-  imports: [TopbarComponent, ProjectListComponent, AsyncPipe],
+  imports: [
+    TopbarComponent,
+    ProjectListComponent,
+    AsyncPipe,
+    MatButton,
+    MatIcon,
+  ],
 })
 export class ProjectListContainerComponent implements OnInit {
   private projectService = inject(ProjectService);
@@ -27,6 +38,13 @@ export class ProjectListContainerComponent implements OnInit {
   private dialog = inject(MatDialog);
   private userService = inject(UserService);
   private currentUserQuery = inject(CurrentUserQuery);
+  private projectGroupService = inject(ProjectGroupService);
+
+  /** Whether the user manages a project group, and so has groups to manage here. */
+  public managesGroups$: Observable<boolean> =
+    this.projectGroupService.groups$.pipe(
+      map((groups) => groups.some((x) => x.canManage)),
+    );
 
   public username: string;
   public titleText: string;
@@ -38,6 +56,10 @@ export class ProjectListContainerComponent implements OnInit {
     this.projects = this.projectQuery.selectAll();
 
     this.projectService.loadProjects(true).pipe(take(1)).subscribe();
+    this.projectGroupService
+      .load()
+      .pipe(take(1))
+      .subscribe({ error: () => undefined });
 
     this.isLoading$ = this.projectQuery.selectLoading();
 
@@ -48,6 +70,13 @@ export class ProjectListContainerComponent implements OnInit {
       this.username = cu.name;
     });
     this.userService.setCurrentUser();
+  }
+
+  openProjectGroups(): void {
+    this.dialog.open(ProjectGroupsDialogComponent, {
+      width: '880px',
+      maxWidth: '95vw',
+    });
   }
 
   logout(): void {

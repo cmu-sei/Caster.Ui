@@ -56,8 +56,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           can read.
         </li>
         <li>
-          Secret values, including hypervisor credentials from a connection,
-          are never shown here, and are replaced with <code>***</code> in run
+          Secret values, including hypervisor credentials from a connection, are
+          never shown here, and are replaced with <code>***</code> in run
           output. A run fails before Terraform starts if a value is missing.
         </li>
       </ul>
@@ -84,7 +84,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         (closed)="setExpanded(set, false)"
       >
         <mat-expansion-panel-header>
-          <mat-panel-title>{{ set.name }}</mat-panel-title>
+          <mat-panel-title>
+            {{ set.name }}
+            @for (
+              group of set.projectGroups ?? [];
+              track group.projectGroupId
+            ) {
+              <span class="via">via group {{ group.name }}</span>
+            }
+          </mat-panel-title>
           <mat-panel-description>
             <span class="secondary">
               {{ set.entries?.length ?? 0 }}
@@ -130,7 +138,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </p>
         }
 
-          <table class="entries">
+        <table class="entries">
           <thead>
             <tr>
               <th scope="col">Variable</th>
@@ -189,7 +197,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon
         class="mdi-18px"
         [class.ok]="entry.isAvailable"
-        [fontIcon]="entry.isAvailable ? 'mdi-server-network' : 'mdi-alert-circle'"
+        [fontIcon]="
+          entry.isAvailable ? 'mdi-server-network' : 'mdi-alert-circle'
+        "
       />
       {{ entry.connectionField }} of connection
       <code>{{ entry.connectionName }}</code>
