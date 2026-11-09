@@ -8,7 +8,6 @@ import {
   computed,
   inject,
   input,
-  output,
   signal,
 } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
@@ -33,7 +32,6 @@ import {
 import { EnvironmentSetService } from '../environment-set.service';
 import { apiErrorMessage } from '../environment-set-rules';
 import {
-  declarationSnippet,
   deliveredAs,
   entryCopyText,
   kindLabel,
@@ -47,8 +45,8 @@ const EXPAND_ALL_UP_TO = 3;
 /**
  * A project's Environment Sets as its members see them, one panel per set: what each
  * variable is called in Terraform, its plain value or whether its secret is available,
- * and the declaration to copy or insert. Never secret sources or values. Used by the
- * project dialog and, compact, by the editor sidebar.
+ * and the declaration to copy. Never secret sources or values. Used by the project's
+ * Environment Sets dialog.
  */
 @Component({
   selector: 'cas-project-environment-sets-view',
@@ -74,11 +72,6 @@ export class ProjectEnvironmentSetsViewComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   readonly projectId = input.required<string>();
-  /** Two-line entries instead of a table, for the narrow editor sidebar. */
-  readonly compact = input(false);
-  /** Offer Insert (the editor sidebar, while the file is being edited). */
-  readonly canInsert = input(false);
-  readonly insert = output<string>();
 
   readonly Source = EnvironmentSetValueSource;
   readonly variableLabel = variableLabel;
@@ -164,18 +157,6 @@ export class ProjectEnvironmentSetsViewComponent implements OnInit {
 
   copySet(set: ProjectEnvironmentSet): void {
     this.copy(setSnippet(this.fullSet(set)), `${set.name} copied`);
-  }
-
-  insertEntry(entry: ProjectEnvironmentSetEntry): void {
-    const snippet = declarationSnippet(entry);
-
-    if (snippet) {
-      this.insert.emit(snippet);
-    }
-  }
-
-  insertSet(set: ProjectEnvironmentSet): void {
-    this.insert.emit(setSnippet(this.fullSet(set)));
   }
 
   private copy(text: string, message: string): void {

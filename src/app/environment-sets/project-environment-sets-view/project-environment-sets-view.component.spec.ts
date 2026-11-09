@@ -54,15 +54,10 @@ const proxmox = set('s1', 'Proxmox', {
   ],
 });
 
-async function renderView(
-  sets: ProjectEnvironmentSet[],
-  inputs: { compact?: boolean; canInsert?: boolean } = {},
-) {
+async function renderView(sets: ProjectEnvironmentSet[]) {
   const copy = vi.fn(() => true);
-  const insert = vi.fn();
   const view = await renderComponent(ProjectEnvironmentSetsViewComponent, {
-    inputs: { projectId: 'p1', ...inputs },
-    on: { insert },
+    inputs: { projectId: 'p1' },
     providers: [
       {
         provide: EnvironmentSetsService,
@@ -75,7 +70,7 @@ async function renderView(
     ],
   });
 
-  return { ...view, copy, insert, user: userEvent.setup() };
+  return { ...view, copy, user: userEvent.setup() };
 }
 
 describe('ProjectEnvironmentSetsViewComponent', () => {
@@ -148,32 +143,6 @@ describe('ProjectEnvironmentSetsViewComponent', () => {
       screen.getByRole('button', { name: /^Copy PROXMOX_VE_API_TOKEN/ }),
     );
     expect(copy).toHaveBeenLastCalledWith('PROXMOX_VE_API_TOKEN');
-  });
-
-  /**
-   * Verifies: Insert is offered only when inserting is allowed, and only for entries that need a declaration.
-   * Interacts with: the insert output.
-   * Data: Proxmox, compact, with and without canInsert.
-   */
-  it('offers Insert only in the editor while editing', async () => {
-    const { user, insert } = await renderView([proxmox], {
-      compact: true,
-      canInsert: true,
-    });
-
-    expect(
-      screen.queryByRole('button', {
-        name: 'Insert the declaration of var.PROXMOX_VE_API_TOKEN',
-      }),
-    ).toBeNull();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Insert the declaration of var.node',
-      }),
-    );
-    expect(insert).toHaveBeenCalledWith(
-      expect.stringContaining('variable "node" {'),
-    );
   });
 
   /**

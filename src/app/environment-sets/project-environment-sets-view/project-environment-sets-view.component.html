@@ -3,7 +3,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div class="view" [class.compact]="compact()">
+<div class="view">
   <div class="toolbar">
     <mat-form-field class="filter" subscriptSizing="dynamic">
       <mat-label>Filter</mat-label>
@@ -51,15 +51,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </li>
         <li>
           <strong>Terraform variables</strong> need a declaration: copy it, then
-          use <code>var.&lt;name&gt;</code>. Declare secret ones
-          <code>ephemeral = true</code> (Terraform 1.10+) and use them only in
-          provider blocks: Terraform variable values can end up in state and
-          plan files, which project members can read.
+          use <code>var.&lt;name&gt;</code>. They are never secrets: Terraform
+          saves variable values in state and plan files, which project members
+          can read.
         </li>
         <li>
-          Secret values are never shown here, and are replaced with
-          <code>***</code> in run output. A run fails before Terraform starts if
-          a secret is missing.
+          Secret values, including hypervisor credentials from a connection,
+          are never shown here, and are replaced with <code>***</code> in run
+          output. A run fails before Terraform starts if a value is missing.
         </li>
       </ul>
     </div>
@@ -121,95 +120,59 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon fontIcon="mdi-content-copy" />
               Copy set
             </button>
-            @if (canInsert()) {
-              <button
-                matButton
-                type="button"
-                matTooltip="Insert the declarations this set needs at the end of the file"
-                (click)="insertSet(set)"
-              >
-                <mat-icon fontIcon="mdi-file-import-outline" />
-                Insert
-              </button>
-            }
           </span>
         </div>
 
         @if (!set.isComplete) {
           <p class="missing">
             Runs in this project fail until an admin supplies the missing
-            secrets.
+            values.
           </p>
         }
 
-        @if (compact()) {
-          <ul class="entry-list">
+          <table class="entries">
+          <thead>
+            <tr>
+              <th scope="col">Variable</th>
+              <th scope="col">Kind</th>
+              <th scope="col">Value</th>
+              <th scope="col">
+                <span class="visually-hidden">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
             @for (entry of set.entries; track entry.id) {
-              <li>
-                <div class="entry-line">
+              <tr>
+                <td>
                   <code [matTooltip]="deliveredAs(entry)">{{
                     variableLabel(entry)
                   }}</code>
-                  <ng-container
-                    [ngTemplateOutlet]="actions"
-                    [ngTemplateOutletContext]="{ $implicit: entry }"
-                  />
-                </div>
-                <div class="secondary">
-                  {{ kindLabel(entry) }} ·
+                </td>
+                <td>{{ kindLabel(entry) }}</td>
+                <td>
                   <ng-container
                     [ngTemplateOutlet]="value"
                     [ngTemplateOutletContext]="{ $implicit: entry }"
                   />
-                </div>
-              </li>
-            }
-          </ul>
-        } @else {
-          <table class="entries">
-            <thead>
-              <tr>
-                <th scope="col">Variable</th>
-                <th scope="col">Kind</th>
-                <th scope="col">Value</th>
-                <th scope="col">
-                  <span class="visually-hidden">Actions</span>
-                </th>
+                </td>
+                <td class="actions">
+                  <ng-container
+                    [ngTemplateOutlet]="actions"
+                    [ngTemplateOutletContext]="{ $implicit: entry }"
+                  />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @for (entry of set.entries; track entry.id) {
-                <tr>
-                  <td>
-                    <code [matTooltip]="deliveredAs(entry)">{{
-                      variableLabel(entry)
-                    }}</code>
-                  </td>
-                  <td>{{ kindLabel(entry) }}</td>
-                  <td>
-                    <ng-container
-                      [ngTemplateOutlet]="value"
-                      [ngTemplateOutletContext]="{ $implicit: entry }"
-                    />
-                  </td>
-                  <td class="actions">
-                    <ng-container
-                      [ngTemplateOutlet]="actions"
-                      [ngTemplateOutletContext]="{ $implicit: entry }"
-                    />
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+            }
+          </tbody>
+        </table>
       </mat-expansion-panel>
     }
   </mat-accordion>
 </div>
 
 <ng-template #value let-entry>
-  @if (entry.valueSource === Source.Secret) {
+  @if (entry.isSecret) {
     @if (entry.isAvailable) {
       <span class="status">
         <mat-icon class="mdi-18px ok" fontIcon="mdi-lock" />
@@ -221,6 +184,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         Secret · missing
       </span>
     }
+  } @else if (entry.valueSource === Source.Connection) {
+    <span class="status" [class.missing]="!entry.isAvailable">
+      <mat-icon
+        class="mdi-18px"
+        [class.ok]="entry.isAvailable"
+        [fontIcon]="entry.isAvailable ? 'mdi-server-network' : 'mdi-alert-circle'"
+      />
+      {{ entry.connectionField }} of connection
+      <code>{{ entry.connectionName }}</code>
+      @if (!entry.isAvailable) {
+        · missing
+      }
+    </span>
   } @else {
     <code class="plain-value">{{ entry.value }}</code>
   }
@@ -237,16 +213,5 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
       <mat-icon class="mdi-18px" fontIcon="mdi-content-copy" />
     </button>
-    @if (canInsert() && needsDeclaration(entry)) {
-      <button
-        mat-icon-button
-        type="button"
-        [attr.aria-label]="'Insert the declaration of var.' + entry.targetName"
-        [matTooltip]="'Insert the declaration of var.' + entry.targetName"
-        (click)="insertEntry(entry)"
-      >
-        <mat-icon class="mdi-18px" fontIcon="mdi-file-import-outline" />
-      </button>
-    }
   </span>
 </ng-template>

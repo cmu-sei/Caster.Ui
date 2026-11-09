@@ -64,28 +64,6 @@ mat-panel-description {
   }
 }
 
-.entry-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  li {
-    padding: 4px 0;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-  }
-}
-
-.entry-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-
-  code {
-    overflow-wrap: anywhere;
-  }
-}
-
 .entry-actions {
   display: inline-flex;
   white-space: nowrap;
@@ -112,10 +90,6 @@ mat-panel-description {
 
 .secondary {
   color: var(--mat-sys-on-surface-variant);
-}
-
-.compact mat-panel-description .secondary {
-  display: none;
 }
 
 .visually-hidden {

@@ -52,7 +52,6 @@ import { WorkspaceContainerComponent } from 'src/app/workspace/components/worksp
 @Component({ selector: 'cas-editor', template: '' })
 class EditorStub {
   readonly fileId = input<string>(undefined);
-  readonly projectId = input<string>(undefined);
   readonly modules = input<Module[]>(undefined);
   readonly sidebarOpen = input<boolean>(undefined);
   readonly sidebarView = input<string>(undefined);

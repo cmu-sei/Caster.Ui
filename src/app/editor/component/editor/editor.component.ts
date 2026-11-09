@@ -28,7 +28,11 @@ import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
-import { FileQuery, FileService, isSameContent } from '../../../files/state';
+import {
+  FileQuery,
+  FileService,
+  isSameContent,
+} from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import {
@@ -45,7 +49,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { ModuleListComponent } from '../module-list/module-list.component';
 import { VersionListComponent } from '../version-list/version-list.component';
-import { ProjectEnvironmentSetsViewComponent } from 'src/app/environment-sets/project-environment-sets-view/project-environment-sets-view.component';
 import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { CrucibleHotkeyDirective } from '../../../shared/directives/crucible-hotkey.directive';
 import { MatDivider } from '@angular/material/list';
@@ -73,7 +76,6 @@ const SIDEBAR_MIN_WIDTH = 300;
     MatIcon,
     ModuleListComponent,
     VersionListComponent,
-    ProjectEnvironmentSetsViewComponent,
     MatSidenavContent,
     MatToolbar,
     MatToolbarRow,
@@ -99,7 +101,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private settingsService = inject(ComnSettingsService);
 
   readonly fileId = input<string>(undefined);
-  readonly projectId = input<string>(undefined);
   readonly modules = input<Module[]>(undefined);
   @Input() sidebarOpen: boolean;
   @Input() sidebarView: string;
@@ -422,16 +423,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       });
   }
 
-  /** Appends an Environment Set declaration, as insertModuleFn appends a module. */
-  insertSnippetFn(snippet: string) {
-    if (!this.isEditing) {
-      return;
-    }
-
-    this.code = this.code + '\n' + snippet + '\n';
-    this.changeDetectorRef.markForCheck();
-  }
-
   getModuleFn(event) {
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
@@ -502,8 +493,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   sidebarChangedFn(event, tostate) {
     if (event) {
       switch (event) {
-        case 'versions':
-        case 'environment': {
+        case 'versions': {
           this.sidebarViewChanged.emit(event);
           break;
         }
