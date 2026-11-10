@@ -4,6 +4,7 @@ README.md
 api.module.ts
 api/api.ts
 api/applies.service.ts
+api/assignments.service.ts
 api/designs.service.ts
 api/designsModules.service.ts
 api/directories.service.ts
@@ -40,6 +41,8 @@ model/apply.ts
 model/applyStatus.ts
 model/archiveType.ts
 model/assignPartitionCommand.ts
+model/assignmentChange.ts
+model/assignmentOperation.ts
 model/batchEditEnvironmentSetsCommand.ts
 model/cancelRunCommand.ts
 model/connectionField.ts
@@ -70,6 +73,7 @@ model/deletePoolCommand.ts
 model/design.ts
 model/designModule.ts
 model/directory.ts
+model/editAssignmentsCommand.ts
 model/editDesignCommand.ts
 model/editDesignModuleCommand.ts
 model/editDirectoryCommand.ts

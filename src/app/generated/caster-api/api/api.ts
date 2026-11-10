@@ -5,6 +5,8 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 export * from './applies.service';
 import { AppliesService } from './applies.service';
+export * from './assignments.service';
+import { AssignmentsService } from './assignments.service';
 export * from './designs.service';
 import { DesignsService } from './designs.service';
 export * from './designsModules.service';
@@ -55,4 +57,4 @@ export * from './vlans.service';
 import { VlansService } from './vlans.service';
 export * from './workspaces.service';
 import { WorkspacesService } from './workspaces.service';
-export const APIS = [AppliesService, DesignsService, DesignsModulesService, DirectoriesService, EnvironmentSetsService, FilesService, GroupPermissionsService, GroupsService, HealthService, HostsService, InventoryService, ModulesService, PlansService, ProjectInventoryService, ProjectPermissionsService, ProjectRolesService, ProjectsService, ResourcesService, RunsService, SystemPermissionsService, SystemRolesService, TerraformService, UsersService, VariablesService, VlansService, WorkspacesService];
+export const APIS = [AppliesService, AssignmentsService, DesignsService, DesignsModulesService, DirectoriesService, EnvironmentSetsService, FilesService, GroupPermissionsService, GroupsService, HealthService, HostsService, InventoryService, ModulesService, PlansService, ProjectInventoryService, ProjectPermissionsService, ProjectRolesService, ProjectsService, ResourcesService, RunsService, SystemPermissionsService, SystemRolesService, TerraformService, UsersService, VariablesService, VlansService, WorkspacesService];

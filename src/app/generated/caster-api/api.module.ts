@@ -8,6 +8,7 @@ import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
 import { AppliesService } from './api/applies.service';
+import { AssignmentsService } from './api/assignments.service';
 import { DesignsService } from './api/designs.service';
 import { DesignsModulesService } from './api/designsModules.service';
 import { DirectoriesService } from './api/directories.service';
