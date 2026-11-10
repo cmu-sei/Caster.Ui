@@ -81,6 +81,15 @@ async function renderPage(grants: PermissionGrants, confirmAnswer?: boolean) {
     getEnvironmentSecrets: vi.fn(() => of(secrets)),
     getEnvironmentSetConnections: vi.fn(() => of([])),
     deleteEnvironmentSet: vi.fn(() => of<unknown>(null)),
+    copyEnvironmentSet: vi.fn(() =>
+      of<EnvironmentSet>({
+        id: 's3',
+        name: 'vSphere (copy)',
+        isComplete: false,
+        entries: [],
+        projects: [],
+      }),
+    ),
   } satisfies ApiStub<EnvironmentSetsService>;
   const signalR = {
     startConnection: vi.fn(() => Promise.resolve()),
@@ -219,6 +228,39 @@ describe('AdminEnvironmentSetsComponent', () => {
     );
     expect(api.deleteEnvironmentSet).toHaveBeenCalledWith('s1');
     expect(screen.queryByRole('cell', { name: 'vSphere' })).toBeNull();
+  });
+
+  /**
+   * Verifies: copying a set asks first, then copies it.
+   * Interacts with: CrucibleDialogService.confirm (stub answering true), copyEnvironmentSet (stub).
+   * Data: vSphere.
+   */
+  it('copies a set after confirming', async () => {
+    const { user, confirm, api } = await renderPage(manage, true);
+
+    await user.click(screen.getByRole('button', { name: 'Copy vSphere' }));
+
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Copy Environment Set',
+        message: expect.stringContaining('Copy vSphere?'),
+      }),
+    );
+    expect(api.copyEnvironmentSet).toHaveBeenCalledWith('s1', {});
+  });
+
+  /**
+   * Verifies: declining the confirmation copies nothing.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false), copyEnvironmentSet (stub).
+   * Data: vSphere.
+   */
+  it('does not copy a set when the confirmation is declined', async () => {
+    const { user, confirm, api } = await renderPage(manage, false);
+
+    await user.click(screen.getByRole('button', { name: 'Copy vSphere' }));
+
+    expect(confirm).toHaveBeenCalled();
+    expect(api.copyEnvironmentSet).not.toHaveBeenCalled();
   });
 
   /**
