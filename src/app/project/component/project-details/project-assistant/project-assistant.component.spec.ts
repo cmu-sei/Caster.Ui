@@ -2,14 +2,15 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { screen, within } from '@testing-library/angular';
+import { screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Theme } from '@cmusei/crucible-common';
 import { DiffEditorComponent, EditorComponent } from 'ngx-monaco-editor-v2';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError, timer } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   AiAssistResult,
   AiAssistService,
@@ -37,6 +38,22 @@ class EditorStub {
   readonly options = input<any>();
   readonly model = input<any>();
 }
+
+// the project page holds the panel in an OnPush view, below the root
+@Component({
+  selector: 'cas-on-push-parent',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ProjectAssistantComponent],
+  template:
+    '<cas-project-assistant projectId="p1" directoryId="lab" workspaceId="dev" />',
+})
+class OnPushParent {}
+@Component({
+  selector: 'cas-on-push-host',
+  imports: [OnPushParent],
+  template: '<cas-on-push-parent />',
+})
+class OnPushHost {}
 
 const DIRECTORIES: Directory[] = [
   { id: 'range', name: 'range', projectId: 'p1' },
@@ -397,5 +414,68 @@ describe('ProjectAssistantComponent', () => {
       'range',
       'range',
     ]);
+  });
+
+  /**
+   * Verifies: an answer that arrives after the request shows, and the prompt opens again, when the panel sits in an
+   * OnPush view as it does on the project page.
+   * Interacts with: AiAssistService.askAiAssistant answering later.
+   * Data: an example asked; the answer sent once the spinner shows.
+   */
+  it('shows a later answer inside an OnPush parent', async () => {
+    const { user } = await renderComponent(OnPushHost, {
+      providers: [
+        {
+          provide: AiAssistService,
+          // the answer comes back on a later task, as an HTTP response does
+          useValue: {
+            askAiAssistant: vi.fn(() =>
+              timer(20).pipe(map(() => structuredClone(ANSWER))),
+            ),
+          },
+        },
+        { provide: WorkspacesService, useValue: {} },
+        {
+          provide: DirectoryQuery,
+          useValue: { selectAll: () => of(DIRECTORIES) },
+        },
+        {
+          provide: WorkspaceQuery,
+          useValue: { selectAll: () => of(WORKSPACES) },
+        },
+        { provide: FileQuery, useValue: {} },
+        { provide: FileService, useValue: {} },
+        { provide: WorkspaceService, useValue: {} },
+        {
+          provide: CurrentUserQuery,
+          useValue: { userTheme$: new BehaviorSubject<Theme>(Theme.LIGHT) },
+        },
+      ],
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(ProjectAssistantComponent, {
+          remove: { imports: [DiffEditorComponent, EditorComponent] },
+          add: { imports: [DiffEditorStub, EditorStub] },
+        }),
+    }).then(() => ({ user: userEvent.setup() }));
+
+    await user.click(
+      screen.getByRole('button', { name: 'Why did the last run fail?' }),
+    );
+    expect(screen.getByText('Working out the changes...')).toBeInTheDocument();
+
+    expect(
+      await screen.findByText(/count in a module block needs Terraform 0\.13/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Working out the changes...'),
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', { name: 'What should change?' }),
+      ).toBeEnabled(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Show changes' }));
+    expect(screen.getByRole('button', { name: 'Hide' })).toBeInTheDocument();
   });
 });

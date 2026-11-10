@@ -138,10 +138,11 @@ export class ProjectAssistantComponent {
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
   );
 
-  turns: AssistTurn[] = [];
+  // signals, so an answer arriving after the request redraws the panel inside the OnPush project page
+  readonly turns = signal<AssistTurn[]>([]);
   prompt = '';
-  isAsking = false;
-  isApplying = false;
+  readonly isAsking = signal(false);
+  readonly isApplying = signal(false);
 
   readonly examples = [
     'Fix the errors from the last plan or apply',
@@ -178,7 +179,7 @@ export class ProjectAssistantComponent {
       const workspaceId = this.workspaceId();
       const directories = this.directories();
       untracked(() => {
-        if (this.turns.length) {
+        if (this.turns().length) {
           return;
         }
         if (directoryId) {
@@ -198,8 +199,8 @@ export class ProjectAssistantComponent {
     return (
       !!this.prompt.trim() &&
       !!this.selectedDirectoryId() &&
-      !this.isAsking &&
-      !this.isApplying
+      !this.isAsking() &&
+      !this.isApplying()
     );
   }
 
@@ -214,23 +215,23 @@ export class ProjectAssistantComponent {
   }
 
   newConversation() {
-    this.turns = [];
+    this.turns.set([]);
     this.prompt = '';
   }
 
   ask(text = this.prompt) {
     text = text.trim();
     const directoryId = this.selectedDirectoryId();
-    if (!text || !directoryId || this.isAsking) {
+    if (!text || !directoryId || this.isAsking()) {
       return;
     }
-    const history: AiAssistMessage[] = this.turns.map((t) => ({
+    const history: AiAssistMessage[] = this.turns().map((t) => ({
       role: t.role,
       text: this.historyText(t),
     }));
-    this.turns.push({ role: 'planner', text });
+    this.addTurn({ role: 'planner', text });
     this.prompt = '';
-    this.isAsking = true;
+    this.isAsking.set(true);
     this.aiAssistService
       .askAiAssistant(directoryId, {
         prompt: text,
@@ -240,7 +241,7 @@ export class ProjectAssistantComponent {
       .pipe(take(1))
       .subscribe({
         next: (result) => {
-          this.turns.push({
+          this.addTurn({
             role: 'assistant',
             text: result.reply || '',
             question: result.question || undefined,
@@ -253,15 +254,15 @@ export class ProjectAssistantComponent {
             })),
             warnings: result.warnings ?? [],
           });
-          this.isAsking = false;
+          this.isAsking.set(false);
         },
         error: (err) => {
-          this.turns.push({
+          this.addTurn({
             role: 'assistant',
             text: '',
             error: this.getErrorMessage(err, 'The request failed.'),
           });
-          this.isAsking = false;
+          this.isAsking.set(false);
         },
       });
   }
@@ -270,30 +271,68 @@ export class ProjectAssistantComponent {
     return (turn.changes ?? []).filter((c) => c.keep).map((c) => c.change);
   }
 
-  apply(turn: AssistTurn) {
-    const changes = this.keptChanges(turn);
+  /** Keeps or leaves out one proposed change */
+  setKeep(turnIndex: number, rowIndex: number, keep: boolean) {
+    this.updateRow(turnIndex, rowIndex, { keep });
+  }
+
+  /** Shows or hides one proposed change's diff or new file */
+  toggleOpen(turnIndex: number, rowIndex: number) {
+    const row = this.turns()[turnIndex]?.changes?.[rowIndex];
+    if (row) {
+      this.updateRow(turnIndex, rowIndex, { open: !row.open });
+    }
+  }
+
+  apply(turnIndex: number) {
+    const turn = this.turns()[turnIndex];
+    const changes = turn ? this.keptChanges(turn) : [];
     const directoryId = this.selectedDirectoryId();
-    if (!changes.length || !directoryId || this.isApplying) {
+    if (!changes.length || !directoryId || this.isApplying()) {
       return;
     }
-    this.isApplying = true;
+    this.isApplying.set(true);
     this.aiAssistService
       .applyAiAssistantChanges(directoryId, { changes })
       .pipe(take(1))
       .subscribe({
         next: (result) => {
-          turn.results = result.results ?? [];
-          this.isApplying = false;
-          this.reload(directoryId, turn.results);
+          const results = result.results ?? [];
+          this.updateTurn(turnIndex, { results });
+          this.isApplying.set(false);
+          this.reload(directoryId, results);
         },
         error: (err) => {
-          turn.error = this.getErrorMessage(
-            err,
-            'The changes could not be applied.',
-          );
-          this.isApplying = false;
+          this.updateTurn(turnIndex, {
+            error: this.getErrorMessage(
+              err,
+              'The changes could not be applied.',
+            ),
+          });
+          this.isApplying.set(false);
         },
       });
+  }
+
+  private addTurn(turn: AssistTurn) {
+    this.turns.update((turns) => [...turns, turn]);
+  }
+
+  private updateTurn(turnIndex: number, patch: Partial<AssistTurn>) {
+    this.turns.update((turns) =>
+      turns.map((t, i) => (i === turnIndex ? { ...t, ...patch } : t)),
+    );
+  }
+
+  private updateRow(
+    turnIndex: number,
+    rowIndex: number,
+    patch: Partial<AssistChangeRow>,
+  ) {
+    const changes = this.turns()[turnIndex]?.changes?.map((row, i) =>
+      i === rowIndex ? { ...row, ...patch } : row,
+    );
+    this.updateTurn(turnIndex, { changes });
   }
 
   isFile(change: AiAssistChange): boolean {
