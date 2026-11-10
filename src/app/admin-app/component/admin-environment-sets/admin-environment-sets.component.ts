@@ -277,9 +277,20 @@ export class AdminEnvironmentSetsComponent
     );
   }
 
+  /** Asks first: the copy is a new set, "<name> (copy)", with the same entries and no projects. */
   copySet(set: EnvironmentSet): void {
-    this.environmentSetService
-      .copy(set.id, {})
+    this.confirmService
+      .confirm({
+        title: 'Copy Environment Set',
+        message: `Copy ${set.name}? The copy gets the same entries, but no projects.`,
+        confirmText: 'Copy',
+      })
+      .afterClosed()
+      .pipe(
+        take(1),
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.environmentSetService.copy(set.id, {})),
+      )
       .subscribe((copy) => this.expandedSetIds.add(copy.id));
   }
 
