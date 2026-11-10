@@ -37,7 +37,11 @@ describe('InventoryService', () => {
   let service: InventoryService;
   let store: InventoryStore;
   let projectApi: {
+    getProjectInventoryVmTemplates: ReturnType<typeof vi.fn>;
+    getProjectInventoryIsos: ReturnType<typeof vi.fn>;
     getProjectInventoryNetworks: ReturnType<typeof vi.fn>;
+    getProjectInventoryDatastores: ReturnType<typeof vi.fn>;
+    getProjectInventoryContentLibrary: ReturnType<typeof vi.fn>;
     getProjectInventoryConnections: ReturnType<typeof vi.fn>;
     refreshProjectInventory: ReturnType<typeof vi.fn>;
   };
@@ -81,7 +85,11 @@ describe('InventoryService', () => {
       getInventoryConnections: () => apiSpy.getConnections(),
     } satisfies Partial<ApiStub<InventoryApiService>>;
     projectApi = {
+      getProjectInventoryVmTemplates: vi.fn(() => of(response())),
+      getProjectInventoryIsos: vi.fn(() => of(response())),
       getProjectInventoryNetworks: vi.fn(() => of(response())),
+      getProjectInventoryDatastores: vi.fn(() => of(response())),
+      getProjectInventoryContentLibrary: vi.fn(() => of(response())),
       getProjectInventoryConnections: vi.fn(() => of([])),
       refreshProjectInventory: vi.fn(() => of(null)),
     };
