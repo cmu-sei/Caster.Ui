@@ -118,9 +118,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <div class="section-header">
       <h3>Projects</h3>
       @if (canEdit()) {
-        <button matButton type="button" (click)="assign()">
+        <button
+          matButton
+          type="button"
+          [attr.aria-label]="'Assign ' + set().name"
+          (click)="assign()"
+        >
           <mat-icon fontIcon="mdi-link-variant" />
-          Assign Projects
+          Assign
         </button>
       }
     </div>
@@ -146,6 +151,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </ul>
     } @else {
       <p class="secondary">Not assigned to any project.</p>
+    }
+    @if (set().projectGroups?.length) {
+      <p class="secondary">
+        Through project groups:
+        @for (
+          group of set().projectGroups;
+          track group.projectGroupId;
+          let last = $last
+        ) {
+          {{ group.name }}{{ last ? '' : ', ' }}
+        }
+      </p>
     }
   </section>
 </div>

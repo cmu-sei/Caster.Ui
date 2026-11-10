@@ -6,12 +6,20 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
@@ -25,8 +33,9 @@ import { ProjectGroupDetailComponent } from '../project-group-detail/project-gro
 import { ProjectGroupService } from '../project-group.service';
 
 /**
- * The project groups the user can see, each expanding to its detail. ManageProjectGroups holders
- * also create, rename and delete them. Used by Administration and by group managers' own dialog.
+ * The project groups the user can see, searchable, each row expanding to its detail.
+ * ManageProjectGroups holders also create, rename and delete them. Used by Administration and by
+ * group managers' own dialog.
  */
 @Component({
   selector: 'cas-project-groups-list',
@@ -37,7 +46,11 @@ import { ProjectGroupService } from '../project-group.service';
     AsyncPipe,
     MatButton,
     MatIconButton,
-    MatExpansionModule,
+    MatFormField,
+    MatLabel,
+    MatPrefix,
+    MatSuffix,
+    MatInput,
     MatIcon,
     MatTooltip,
     ProjectGroupDetailComponent,
@@ -50,6 +63,24 @@ export class ProjectGroupsListComponent implements OnInit {
   private confirmService = inject(CrucibleDialogService);
 
   readonly groups$ = this.groupService.groups$;
+  private readonly groups = toSignal(this.groups$, { initialValue: [] });
+  readonly filter = signal('');
+  readonly expandedId = signal<string | null>(null);
+
+  /** The groups whose name or description matches the search. */
+  readonly visible = computed(() => {
+    const term = this.filter().trim().toLowerCase();
+    return this.groups().filter(
+      (x) =>
+        !term ||
+        (x.name ?? '').toLowerCase().includes(term) ||
+        (x.description ?? '').toLowerCase().includes(term),
+    );
+  });
+
+  toggle(group: ProjectGroup): void {
+    this.expandedId.update((x) => (x === group.id ? null : group.id));
+  }
   readonly canManageGroups$: Observable<boolean> =
     this.permissionService.hasPermission(SystemPermission.ManageProjectGroups);
   readonly error = signal<string | null>(null);

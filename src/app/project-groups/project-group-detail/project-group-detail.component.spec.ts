@@ -3,9 +3,10 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
-import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
+  AssignmentsService,
   ProjectGroup,
   ProjectGroupsService,
   ProjectsService,
@@ -48,28 +49,61 @@ async function renderDetail(canManage: boolean, grants: PermissionGrants = {}) {
         },
       ]),
     ),
+    getProjectGroup: vi.fn(() => of(group(canManage))),
+    getProjectGroups: vi.fn(() =>
+      of([group(canManage), { id: 'g2', name: 'Lab' }]),
+    ),
+    addProjectToProjectGroup: vi.fn(() => of(group(canManage))),
   };
+  const assignments = { editAssignments: vi.fn(() => of<unknown>(null)) };
   const view = await renderComponent(ProjectGroupDetailComponent, {
     inputs: { group: group(canManage) },
     providers: [
       ...permissionDataProviders(grants),
       { provide: ProjectGroupsService, useValue: groupsApi },
+      { provide: AssignmentsService, useValue: assignments },
       {
         provide: ProjectsService,
-        useValue: { getAllProjects: vi.fn(() => of([])) },
+        useValue: {
+          getAllProjects: vi.fn(() =>
+            of([
+              { id: 'p1', name: 'Blue Team', projectGroupId: 'g1' },
+              { id: 'p2', name: 'Red Team', projectGroupId: 'g2' },
+            ]),
+          ),
+        },
       },
-      { provide: UsersService, useValue: { getAllUsers: vi.fn(() => of([])) } },
+      {
+        provide: UsersService,
+        useValue: {
+          getAllUsers: vi.fn(() =>
+            of([
+              { id: 'u1', name: 'Alice' },
+              { id: 'u2', name: 'Bob' },
+            ]),
+          ),
+        },
+      },
       {
         provide: GroupsService,
         useValue: { getAllGroups: vi.fn(() => of([])) },
       },
       {
         provide: ProjectRolesService,
-        useValue: { getAllProjectRoles: vi.fn(() => of([])) },
+        useValue: {
+          getAllProjectRoles: vi.fn(() => of([{ id: 'r1', name: 'Manager' }])),
+        },
       },
       {
         provide: EnvironmentSetsService,
-        useValue: { getEnvironmentSets: vi.fn(() => of([])) },
+        useValue: {
+          getEnvironmentSets: vi.fn(() =>
+            of([
+              { id: 's1', name: 'Proxmox' },
+              { id: 's2', name: 'vSphere' },
+            ]),
+          ),
+        },
       },
       {
         provide: InventoryService,
@@ -79,59 +113,84 @@ async function renderDetail(canManage: boolean, grants: PermissionGrants = {}) {
         provide: VlansService,
         useValue: { getPartitions: vi.fn(() => of([])) },
       },
-      { provide: CrucibleDialogService, useValue: { confirm: vi.fn() } },
     ],
   });
   await view.fixture.whenStable();
   view.fixture.detectChanges();
-  return { ...view, groupsApi };
+  return { ...view, groupsApi, assignments, user: userEvent.setup() };
 }
 
 describe('ProjectGroupDetailComponent', () => {
   /**
-   * Verifies: a member who doesn't manage the group sees what it holds, with no controls and no memberships.
+   * Verifies: a member who doesn't manage the group sees what it holds, with no checkboxes and no Memberships tab.
    * Interacts with: the group input; ProjectGroupsService.getProjectGroupMemberships (stub, not called).
    * Data: Range A with one project, set and connection; canManage false.
    */
   it('shows a member what the group holds, read-only', async () => {
-    const { groupsApi } = await renderDetail(false);
+    const { groupsApi, user } = await renderDetail(false);
 
     expect(screen.getByText('Blue Team')).toBeInTheDocument();
-    expect(screen.getByText('Proxmox')).toBeInTheDocument();
-    expect(screen.getByText('lab-pve')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Remove Blue Team' }),
-    ).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'Memberships' })).toBeNull();
     expect(groupsApi.getProjectGroupMemberships).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('tab', { name: 'Environment Sets' }));
+    expect(screen.getByText('Proxmox')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Connections' }));
+    expect(screen.getByText('lab-pve')).toBeInTheDocument();
   });
 
   /**
-   * Verifies: a group manager manages memberships and projects, but not the group's sets, which need ManageEnvironmentSets.
-   * Interacts with: the Remove buttons; getProjectGroupMemberships (stub).
-   * Data: canManage true; no system permissions.
+   * Verifies: a group manager searches and checks projects to add, a project in another group says it moves, and Save adds it.
+   * Interacts with: ProjectGroupsService.addProjectToProjectGroup and getProjectGroup (stubs).
+   * Data: canManage true; Red Team is in Lab.
    */
-  it("lets a group manager manage memberships and projects, not the group's sets", async () => {
-    await renderDetail(true);
+  it('lets a group manager add a project from another group', async () => {
+    const { user, groupsApi } = await renderDetail(true);
 
-    expect(
-      screen.getByRole('button', { name: 'Remove Blue Team' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Remove Proxmox' })).toBeNull();
+    expect(screen.getByText('moves from Lab')).toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: /Red Team/ }));
+    await user.click(screen.getByRole('button', { name: 'Save 1 change' }));
+
+    expect(groupsApi.addProjectToProjectGroup).toHaveBeenCalledWith('g1', 'p2');
+    expect(groupsApi.getProjectGroup).toHaveBeenCalledWith('g1');
   });
 
   /**
-   * Verifies: ManageEnvironmentSets can take a set from the group.
-   * Interacts with: PermissionService over stubbed system permissions.
-   * Data: canManage false; ManageEnvironmentSets.
+   * Verifies: a group manager sees the memberships in the searchable member tables, but the group's sets stay read-only without ManageEnvironmentSets.
+   * Data: canManage true; no system permissions; Alice is a member, Bob is not.
    */
-  it('lets ManageEnvironmentSets manage the group sets', async () => {
-    await renderDetail(false, {
+  it("lets a group manager manage memberships, not the group's sets", async () => {
+    const { user } = await renderDetail(true);
+
+    await user.click(screen.getByRole('tab', { name: 'Memberships' }));
+    expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Bob').length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('tab', { name: 'Environment Sets' }));
+    expect(screen.queryByRole('checkbox', { name: /Proxmox/ })).toBeNull();
+  });
+
+  /**
+   * Verifies: ManageEnvironmentSets changes the group's sets in one save through the assignments API.
+   * Interacts with: AssignmentsService.editAssignments and ProjectGroupsService.getProjectGroup (stubs).
+   * Data: canManage false; ManageEnvironmentSets; swap Proxmox for vSphere.
+   */
+  it("saves the group's sets together", async () => {
+    const { user, assignments } = await renderDetail(false, {
       system: [SystemPermission.ManageEnvironmentSets],
     });
 
-    expect(
-      screen.getByRole('button', { name: 'Remove Proxmox' }),
-    ).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Environment Sets' }));
+    await user.click(screen.getByRole('checkbox', { name: /Proxmox/ }));
+    await user.click(screen.getByRole('checkbox', { name: /vSphere/ }));
+    await user.click(screen.getByRole('button', { name: 'Save 2 changes' }));
+
+    expect(assignments.editAssignments).toHaveBeenCalledWith({
+      changes: [
+        { operation: 'Add', projectGroupId: 'g1', environmentSetId: 's2' },
+        { operation: 'Remove', projectGroupId: 'g1', environmentSetId: 's1' },
+      ],
+    });
   });
 });

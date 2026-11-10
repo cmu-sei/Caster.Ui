@@ -5,46 +5,31 @@
   padding: 8px 16px 16px;
 }
 
-section {
-  margin-bottom: 12px;
+.tab-body {
+  padding-top: 12px;
 }
 
-h3 {
-  margin: 8px 0 4px;
-}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
 
-.items {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 8px;
-
-  li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-
-    > span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+  .spacer {
+    flex: 1;
   }
 }
 
-.assign {
+.memberships {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-}
-
-.role {
-  width: 160px;
+  gap: 24px;
+  justify-content: center;
 }
 
 .secondary {
   color: var(--mat-sys-on-surface-variant);
+  margin-top: 0;
 }
 
 .error {

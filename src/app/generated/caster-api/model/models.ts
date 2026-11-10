@@ -91,6 +91,7 @@ export * from './importResourceCommand';
 export * from './inventoryCategory';
 export * from './inventoryConnection';
 export * from './inventoryConnectionProject';
+export * from './inventoryConnectionProjectGroup';
 export * from './inventoryConnectionStatus';
 export * from './inventoryItem';
 export * from './inventoryRefreshResult';

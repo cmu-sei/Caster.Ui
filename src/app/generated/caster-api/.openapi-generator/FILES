@@ -123,6 +123,7 @@ model/importResourceCommand.ts
 model/inventoryCategory.ts
 model/inventoryConnection.ts
 model/inventoryConnectionProject.ts
+model/inventoryConnectionProjectGroup.ts
 model/inventoryConnectionStatus.ts
 model/inventoryItem.ts
 model/inventoryRefreshResult.ts

@@ -55,6 +55,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           } @else {
             Not assigned to any project
           }
+          @if (view.connection.assignedProjectGroups?.length) {
+            &middot; groups
+            @for (
+              group of view.connection.assignedProjectGroups;
+              track group.projectGroupId;
+              let last = $last
+            ) {
+              {{ group.name }}{{ last ? '' : ', ' }}
+            }
+          }
           @if (view.connection.enabled === false) {
             <span class="muted">&middot; Inventory turned off</span>
           }
@@ -63,13 +73,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <button
             matButton
             type="button"
-            [attr.aria-label]="
-              'Assign ' + view.connection.name + ' to projects'
-            "
+            [attr.aria-label]="'Assign ' + view.connection.name"
             (click)="assign(view.connection)"
           >
             <mat-icon fontIcon="mdi-link-variant" />
-            Assign Projects
+            Assign
           </button>
         }
       </div>

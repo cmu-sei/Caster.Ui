@@ -18,6 +18,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-tab label="Environment Sets">
         <div class="tab-body">
           @if (editing() && canManageSets()) {
+            @if (throughGroup()) {
+              <p class="secondary">
+                What the project gets through its group is changed on the group.
+              </p>
+            }
             <cas-assignment-checklist
               [items]="setItems()"
               [initial]="initialSets()"
@@ -69,6 +74,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     [class.missing]="connection.status === 'Missing'"
                     >{{ connectionStatus(connection) }}</span
                   >
+                  @for (group of connection.projectGroups ?? []; track group) {
+                    <span class="status">via group {{ group }}</span>
+                  }
                 </li>
               }
             </ul>

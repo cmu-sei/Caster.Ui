@@ -30,6 +30,11 @@ export class ProjectGroupService {
       .pipe(tap((x) => this.groupsSubject.next(x ?? [])));
   }
 
+  /** Reads one group back, after a change made elsewhere. */
+  refresh(id: string): Observable<ProjectGroup> {
+    return this.api.getProjectGroup(id).pipe(tap((x) => this.upsert(x)));
+  }
+
   create(name: string, description: string) {
     return this.api
       .createProjectGroup({ name, description })
@@ -79,30 +84,6 @@ export class ProjectGroupService {
   removeProject(id: string, projectId: string) {
     return this.api
       .removeProjectFromProjectGroup(id, projectId)
-      .pipe(tap((x) => this.upsert(x)));
-  }
-
-  assignSet(id: string, setId: string) {
-    return this.api
-      .assignEnvironmentSetToProjectGroup(id, setId)
-      .pipe(tap((x) => this.upsert(x)));
-  }
-
-  unassignSet(id: string, setId: string) {
-    return this.api
-      .unassignEnvironmentSetFromProjectGroup(id, setId)
-      .pipe(tap((x) => this.upsert(x)));
-  }
-
-  assignConnection(id: string, name: string) {
-    return this.api
-      .assignInventoryConnectionToProjectGroup(id, name)
-      .pipe(tap((x) => this.upsert(x)));
-  }
-
-  unassignConnection(id: string, name: string) {
-    return this.api
-      .unassignInventoryConnectionFromProjectGroup(id, name)
       .pipe(tap((x) => this.upsert(x)));
   }
 

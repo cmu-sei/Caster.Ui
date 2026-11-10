@@ -12,6 +12,7 @@ import {
   EnvironmentSecrets,
   EnvironmentSet,
   EnvironmentSetsService,
+  ProjectGroupsService,
   ProjectsService,
 } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
@@ -71,6 +72,7 @@ async function renderDetail(canEdit: boolean, confirmAnswer?: boolean) {
   const api = {
     unassignEnvironmentSet: vi.fn(() => of<unknown>(null)),
     getEnvironmentSet: vi.fn(() => of({ ...set, projects: [] })),
+    getProjectEnvironmentSets: vi.fn(() => of([])),
   } satisfies ApiStub<EnvironmentSetsService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
@@ -83,6 +85,9 @@ async function renderDetail(canEdit: boolean, confirmAnswer?: boolean) {
     ),
   };
   const assignments = { editAssignments: vi.fn(() => of<unknown>(null)) };
+  const projectGroups = {
+    getProjectGroups: vi.fn(() => of([{ id: 'g1', name: 'Lab' }])),
+  };
 
   const view = await renderComponent(EnvironmentSetDetailComponent, {
     inputs: { set, canEdit, secrets },
@@ -91,6 +96,7 @@ async function renderDetail(canEdit: boolean, confirmAnswer?: boolean) {
       { provide: EnvironmentSetsService, useValue: api },
       { provide: ProjectsService, useValue: projects },
       { provide: AssignmentsService, useValue: assignments },
+      { provide: ProjectGroupsService, useValue: projectGroups },
       {
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
@@ -161,9 +167,7 @@ describe('EnvironmentSetDetailComponent', () => {
     await renderDetail(false);
 
     expect(screen.queryByRole('button', { name: 'Add Entry' })).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: 'Assign Projects' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Assign vSphere' })).toBeNull();
     expect(
       screen.queryByRole('button', { name: 'Remove from Range A' }),
     ).toBeNull();
@@ -188,22 +192,27 @@ describe('EnvironmentSetDetailComponent', () => {
   });
 
   /**
-   * Verifies: Assign Projects lists every project with the set's checked, and saves what changed in one request.
-   * Interacts with: ProjectsService.getAllProjects and AssignmentsService.editAssignments (stubs); the real dialog.
-   * Data: assigned to Range A; add Range B.
+   * Verifies: Assign lists every project and project group with the set's checked, and saves both kinds in one request.
+   * Interacts with: ProjectsService.getAllProjects, ProjectGroupsService.getProjectGroups and AssignmentsService.editAssignments (stubs); the real dialog.
+   * Data: assigned to Range A; add Range B and the Lab group.
    */
-  it('assigns the set to more projects in one save', async () => {
+  it('assigns the set to projects and groups in one save', async () => {
     const { user, assignments } = await renderDetail(true);
 
-    await user.click(screen.getByRole('button', { name: 'Assign Projects' }));
+    await user.click(screen.getByRole('button', { name: 'Assign vSphere' }));
     expect(
       await screen.findByRole('checkbox', { name: /Range A/ }),
     ).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
-    await user.click(screen.getByRole('button', { name: 'Save 1 change' }));
+    await user.click(screen.getByRole('tab', { name: 'Project Groups' }));
+    await user.click(screen.getByRole('checkbox', { name: /Lab/ }));
+    await user.click(screen.getByRole('button', { name: 'Save 2 changes' }));
 
     expect(assignments.editAssignments).toHaveBeenCalledWith({
-      changes: [{ operation: 'Add', projectId: 'p2', environmentSetId: 's1' }],
+      changes: [
+        { operation: 'Add', projectId: 'p2', environmentSetId: 's1' },
+        { operation: 'Add', projectGroupId: 'g1', environmentSetId: 's1' },
+      ],
     });
   });
 });

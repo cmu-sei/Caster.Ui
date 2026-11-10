@@ -8,7 +8,11 @@ import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { ComnAuthService } from '@cmusei/crucible-common';
 import { User as OidcUser } from 'oidc-client-ts';
-import { Project, ProjectsService } from 'src/app/generated/caster-api';
+import {
+  Project,
+  ProjectGroupsService,
+  ProjectsService,
+} from 'src/app/generated/caster-api';
 import { TopbarView } from 'src/app/shared/components/top-bar/topbar.models';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -60,6 +64,10 @@ async function renderProjectContainer(
     ],
     providers: [
       { provide: ProjectsService, useValue: projectsApi },
+      {
+        provide: ProjectGroupsService,
+        useValue: { getProjectGroups: () => of([]) },
+      },
       { provide: ComnAuthService, useValue: auth },
     ],
   });

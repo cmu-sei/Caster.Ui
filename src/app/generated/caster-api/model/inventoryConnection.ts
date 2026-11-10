@@ -15,6 +15,7 @@
 import { InventoryConnectionStatus } from './inventoryConnectionStatus';
 import { InventoryConnectionProject } from './inventoryConnectionProject';
 import { InventoryCategory } from './inventoryCategory';
+import { InventoryConnectionProjectGroup } from './inventoryConnectionProjectGroup';
 
 
 /**
@@ -51,6 +52,10 @@ export interface InventoryConnection {
      * The projects the connection is assigned to. Listed by GET api/inventory/connections only, which needs ViewInfrastructure.
      */
     projects?: Array<InventoryConnectionProject> | null;
+    /**
+     * The project groups the connection is assigned to. Listed by GET api/inventory/connections only, which needs ViewInfrastructure.
+     */
+    assignedProjectGroups?: Array<InventoryConnectionProjectGroup> | null;
     /**
      * From a project\'s routes: whether the connection is assigned to the project itself.
      */

@@ -8,278 +8,167 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <p class="error" role="alert">{{ message }}</p>
   }
 
-  <section aria-label="Projects">
-    <h3>Projects</h3>
-    <ul class="items">
-      @for (project of group().projects; track project.id) {
-        <li>
-          <span>{{ project.name }}</span>
-          @if (group().canManage) {
-            <button
-              mat-icon-button
-              type="button"
-              [attr.aria-label]="'Remove ' + project.name"
-              matTooltip="Take out of the group"
-              (click)="removeProject(project)"
-            >
-              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
-            </button>
-          }
-        </li>
-      } @empty {
-        <li class="secondary">No projects yet.</li>
-      }
-    </ul>
-    @if (group().canManage) {
-      <div class="assign">
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>Project</mat-label>
-          <mat-select [(ngModel)]="selectedProject">
-            @for (
-              p of unassigned(projects$ | async, group().projects);
-              track p.id
-            ) {
-              <mat-option [value]="p.id">{{ p.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button
-          matButton
-          type="button"
-          [disabled]="!selectedProject"
-          (click)="addProject()"
-        >
-          <mat-icon fontIcon="mdi-plus" />
-          Add Project
-        </button>
-      </div>
-      <p class="secondary">
-        You can add the projects you manage. A project moves out of any other
-        group.
-      </p>
-      @if (canCreateProjects$ | async) {
-        <button matButton type="button" (click)="createProject()">
-          <mat-icon fontIcon="mdi-folder-plus-outline" />
-          New Project in Group
-        </button>
-      }
-    }
-  </section>
-
-  @if (group().canManage) {
-    <section aria-label="Memberships">
-      <h3>Memberships</h3>
-      <p class="secondary">
-        Each membership's role applies in every project of the group. A Manager,
-        or any role with Manage Project, manages the group.
-      </p>
-      <ul class="items">
-        @for (membership of memberships(); track membership.id) {
-          <li>
-            <span>
-              <mat-icon
-                class="mdi-18px"
-                [fontIcon]="
-                  membership.userId ? 'mdi-account' : 'mdi-account-group'
-                "
-              />
-              {{ membership.userName ?? membership.groupName }}
-            </span>
-            <span>
-              <mat-form-field subscriptSizing="dynamic" class="role">
-                <mat-select
-                  [value]="membership.roleId"
-                  (selectionChange)="changeRole(membership, $event.value)"
-                  [attr.aria-label]="
-                    'Role of ' + (membership.userName ?? membership.groupName)
-                  "
-                >
-                  @for (role of roles$ | async; track role.id) {
-                    <mat-option [value]="role.id">{{ role.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <button
-                mat-icon-button
-                type="button"
-                [attr.aria-label]="
-                  'Remove ' + (membership.userName ?? membership.groupName)
-                "
-                matTooltip="Remove"
-                (click)="removeMembership(membership)"
-              >
-                <mat-icon class="mdi-18px" fontIcon="mdi-trash-can-outline" />
-              </button>
-            </span>
-          </li>
-        } @empty {
-          <li class="secondary">No memberships yet.</li>
+  <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+    <mat-tab label="Projects">
+      <div class="tab-body">
+        @if (group().canManage) {
+          <p class="secondary">
+            You can add the projects you manage. A project moves out of any
+            other group, and keeps its own memberships and sets.
+          </p>
         }
-      </ul>
-      <div class="assign">
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>User</mat-label>
-          <mat-select
-            [(ngModel)]="selectedUser"
-            (selectionChange)="selectedUserGroup = null"
-          >
-            @for (u of users$ | async; track u.id) {
-              <mat-option [value]="u.id">{{ u.name }}</mat-option>
+        <cas-assignment-checklist
+          [items]="projectItems()"
+          [initial]="initialProjects()"
+          [(selected)]="selectedProjects"
+          [editable]="!!group().canManage"
+          searchLabel="Search projects"
+          emptyText="No projects yet."
+        />
+        @if (group().canManage) {
+          <div class="actions">
+            @if (canCreateProjects()) {
+              <button matButton type="button" (click)="createProject()">
+                <mat-icon fontIcon="mdi-folder-plus-outline" />
+                New Project in Group
+              </button>
             }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>or Group</mat-label>
-          <mat-select
-            [(ngModel)]="selectedUserGroup"
-            (selectionChange)="selectedUser = null"
-          >
-            @for (g of userGroups$ | async; track g.id) {
-              <mat-option [value]="g.id">{{ g.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>Role</mat-label>
-          <mat-select [(ngModel)]="selectedRole">
-            @for (role of roles$ | async; track role.id) {
-              <mat-option [value]="role.id">{{ role.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button
-          matButton
-          type="button"
-          [disabled]="!selectedUser && !selectedUserGroup"
-          (click)="addMembership()"
-        >
-          <mat-icon fontIcon="mdi-plus" />
-          Add
-        </button>
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: projectChanges(), tab: 'projects' }
+              "
+            />
+          </div>
+        }
       </div>
-    </section>
-  }
+    </mat-tab>
 
-  <section aria-label="Environment Sets">
-    <h3>Environment Sets</h3>
-    <ul class="items">
-      @for (set of group().environmentSets; track set.id) {
-        <li>
-          <span>{{ set.name }}</span>
-          @if (canManageSets$ | async) {
-            <button
-              mat-icon-button
-              type="button"
-              [attr.aria-label]="'Remove ' + set.name"
-              matTooltip="Take from the group"
-              (click)="unassignSet(set)"
+    @if (group().canManage) {
+      <mat-tab label="Memberships">
+        <div class="tab-body">
+          <p class="secondary">
+            Each membership's role applies in every project of the group. A
+            Manager, or any role with Manage Project, manages the group.
+          </p>
+          <div class="memberships">
+            <cas-project-membership-list
+              [users]="nonMembers()"
+              [groups]="groupNonMembers()"
+              [canEdit]="true"
+              (createMembership)="addMembership($event)"
+            />
+            <cas-project-member-list
+              [memberships]="membershipRows()"
+              [users]="members()"
+              [groups]="groupMembers()"
+              [roles]="roles()"
+              [canEdit]="true"
+              (deleteMembership)="removeMembership($event)"
+              (editMembership)="changeRole($event)"
+            />
+          </div>
+        </div>
+      </mat-tab>
+    }
+
+    <mat-tab label="Environment Sets">
+      <div class="tab-body">
+        <p class="secondary">
+          Every project in the group gets these sets as well as its own.
+        </p>
+        <cas-assignment-checklist
+          [items]="setItems()"
+          [initial]="initialSets()"
+          [(selected)]="selectedSets"
+          [editable]="canManageSets()"
+          searchLabel="Search Environment Sets"
+          emptyText="None."
+        />
+        @if (canManageSets()) {
+          <div class="actions">
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: setChanges(), tab: 'sets' }
+              "
+            />
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Connections">
+      <div class="tab-body">
+        <p class="secondary">
+          Every project in the group sees these connections' inventory as well
+          as its own.
+        </p>
+        <cas-assignment-checklist
+          [items]="connectionItems()"
+          [initial]="initialConnections()"
+          [(selected)]="selectedConnections"
+          [editable]="canManageConnections()"
+          searchLabel="Search connections"
+          emptyText="None."
+        />
+        @if (canManageConnections()) {
+          <div class="actions">
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: connectionChanges(), tab: 'connections' }
+              "
+            />
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Partition & Hosts">
+      <div class="tab-body">
+        @if (canManageVlans()) {
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Partition</mat-label>
+            <mat-select
+              [value]="group().partitionId ?? ''"
+              (selectionChange)="setPartition($event.value)"
             >
-              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
-            </button>
+              <mat-option value="">None (the default)</mat-option>
+              @for (p of partitions(); track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        <p class="secondary">
+          Hosts:
+          @for (host of group().hosts; track host.id; let last = $last) {
+            {{ host.name }}{{ last ? '' : ', ' }}
+          } @empty {
+            none.
           }
-        </li>
-      } @empty {
-        <li class="secondary">None.</li>
-      }
-    </ul>
-    @if (canManageSets$ | async) {
-      <div class="assign">
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>Environment Set</mat-label>
-          <mat-select [(ngModel)]="selectedSet">
-            @for (
-              s of unassigned(sets$ | async, group().environmentSets);
-              track s.id
-            ) {
-              <mat-option [value]="s.id">{{ s.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button
-          matButton
-          type="button"
-          [disabled]="!selectedSet"
-          (click)="assignSet()"
-        >
-          <mat-icon fontIcon="mdi-link-variant" />
-          Assign
-        </button>
+          Hosts are given to a group through the API (a host's projectGroupId).
+        </p>
       </div>
-    }
-  </section>
-
-  <section aria-label="Inventory connections">
-    <h3>Inventory connections</h3>
-    <ul class="items">
-      @for (name of group().inventoryConnections; track name) {
-        <li>
-          <span>{{ name }}</span>
-          @if (canManageConnections$ | async) {
-            <button
-              mat-icon-button
-              type="button"
-              [attr.aria-label]="'Remove ' + name"
-              matTooltip="Stop showing to the group"
-              (click)="unassignConnection(name)"
-            >
-              <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
-            </button>
-          }
-        </li>
-      } @empty {
-        <li class="secondary">None.</li>
-      }
-    </ul>
-    @if (canManageConnections$ | async) {
-      <div class="assign">
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>Connection</mat-label>
-          <mat-select [(ngModel)]="selectedConnection">
-            @for (
-              c of unassignedConnections(connections$ | async);
-              track c.name
-            ) {
-              <mat-option [value]="c.name">{{ c.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button
-          matButton
-          type="button"
-          [disabled]="!selectedConnection"
-          (click)="assignConnection()"
-        >
-          <mat-icon fontIcon="mdi-link-variant" />
-          Assign
-        </button>
-      </div>
-    }
-  </section>
-
-  <section aria-label="Partition and hosts">
-    <h3>Partition and hosts</h3>
-    @if (canManageVlans$ | async) {
-      <mat-form-field subscriptSizing="dynamic">
-        <mat-label>Partition</mat-label>
-        <mat-select
-          [value]="group().partitionId ?? ''"
-          (selectionChange)="setPartition($event.value)"
-        >
-          <mat-option value="">None (the default)</mat-option>
-          @for (p of partitions$ | async; track p.id) {
-            <mat-option [value]="p.id">{{ p.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    }
-    <p class="secondary">
-      Hosts:
-      @for (host of group().hosts; track host.id; let last = $last) {
-        {{ host.name }}{{ last ? '' : ', ' }}
-      } @empty {
-        none.
-      }
-      Hosts are given to a group through the API (a host's projectGroupId).
-    </p>
-  </section>
+    </mat-tab>
+  </mat-tab-group>
 </div>
+
+<ng-template #saveButton let-changes="changes" let-tab="tab">
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="changes.add.length + changes.remove.length === 0 || saving()"
+    (click)="saveTab(tab)"
+  >
+    {{
+      saving()
+        ? 'Saving'
+        : saveLabel(changes.add.length + changes.remove.length)
+    }}
+  </button>
+</ng-template>

@@ -97,7 +97,7 @@ export class AssignmentsService {
     }
 
     /**
-     * Add and remove Environment Sets and inventory connections on projects, all at once
+     * Add and remove Environment Sets and inventory connections on projects and project groups, all at once
      * The changes are checked against the final state and saved together, or not at all. Adding what is already assigned, or removing what isn\&#39;t, changes nothing. Set changes need ManageEnvironmentSets, connection changes ManageInfrastructure.
      * @param editAssignmentsCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
