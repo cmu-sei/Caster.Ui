@@ -31,22 +31,22 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
     <div
       class="nav-background d-flex flex-row justify-content-start align-items-center"
-      (click)="openInfrastructure(project)"
+      (click)="openEnvironment(project)"
     >
       <mat-icon
-        title="Infrastructure"
+        title="Environment"
         class="add-icon mdi-18px icon"
-        fontIcon="mdi-server-network"
-        matTooltip="Inventory connections and Environment Sets assigned to {{
+        fontIcon="mdi-tune-variant"
+        matTooltip="Environment Sets and connections assigned to {{
           project.name
         }}"
       />
       <a
         class="add-link"
-        matTooltip="Inventory connections and Environment Sets assigned to {{
+        matTooltip="Environment Sets and connections assigned to {{
           project.name
         }}"
-        >Infrastructure</a
+        >Environment</a
       >
     </div>
     <div

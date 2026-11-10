@@ -14,7 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-panel-title>
         <div class="d-flex flex-row justify-content-start align-items-center">
           <mat-icon class="mdi-18px" fontIcon="mdi-server-network"></mat-icon>
-          <strong>INFRASTRUCTURE</strong>
+          <strong>INVENTORY</strong>
         </div>
       </mat-panel-title>
     </mat-expansion-panel-header>
@@ -28,7 +28,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [value]="(connection$ | async)?.name"
             [disabled]="(connections$ | async)?.length === 1"
             (selectionChange)="selectConnection($event.value)"
-            aria-label="Infrastructure connection"
+            aria-label="Inventory connection"
           >
             @for (c of connections$ | async; track c.name) {
               <mat-option [value]="c.name" [disabled]="unusable(c)">
@@ -49,7 +49,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [(ngModel)]="filterString"
           (keyup)="applyFilter(filterString)"
           placeholder="Search inventory"
-          aria-label="Search infrastructure inventory"
+          aria-label="Search inventory"
         />
         @if (!!filterString) {
           <button

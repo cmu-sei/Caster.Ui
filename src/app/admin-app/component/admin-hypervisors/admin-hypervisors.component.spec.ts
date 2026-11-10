@@ -8,7 +8,17 @@ import userEvent from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 import { ApiStub, BodyOverload } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { InventoryService as InventoryApiService } from 'src/app/generated/caster-api';
+import { MatDialogModule } from '@angular/material/dialog';
+import {
+  AssignmentsService,
+  InventoryService as InventoryApiService,
+  ProjectsService,
+  SystemPermission,
+} from 'src/app/generated/caster-api';
+import {
+  PermissionGrants,
+  permissionDataProviders,
+} from 'src/app/test-utils/mock-permission-data.service';
 import { InventoryConnection, InventoryResult } from 'src/app/inventory/state';
 import { AdminHypervisorsComponent } from './admin-hypervisors.component';
 
@@ -91,7 +101,10 @@ interface InventoryApiStub {
   refreshInventory: Mock<BodyOverload<InventoryApiService['refreshInventory']>>;
 }
 
-async function renderPage(api: Partial<InventoryApiStub>) {
+async function renderPage(
+  api: Partial<InventoryApiStub>,
+  grants: PermissionGrants = {},
+) {
   const stub: InventoryApiStub = {
     getInventoryConnections: vi.fn<
       BodyOverload<InventoryApiService['getInventoryConnections']>
@@ -109,12 +122,28 @@ async function renderPage(api: Partial<InventoryApiStub>) {
   };
   stub satisfies Partial<ApiStub<InventoryApiService>>;
 
+  const assignments = { editAssignments: vi.fn(() => of<unknown>(null)) };
+  const projects = {
+    getAllProjects: vi.fn(() =>
+      of([
+        { id: 'p1', name: 'Range A' },
+        { id: 'p2', name: 'Range B' },
+      ]),
+    ),
+  };
+
   const view = await renderComponent(AdminHypervisorsComponent, {
-    providers: [{ provide: InventoryApiService, useValue: stub }],
+    imports: [MatDialogModule],
+    providers: [
+      ...permissionDataProviders(grants),
+      { provide: InventoryApiService, useValue: stub },
+      { provide: AssignmentsService, useValue: assignments },
+      { provide: ProjectsService, useValue: projects },
+    ],
   });
   await view.fixture.whenStable();
   view.fixture.detectChanges();
-  return { ...view, api: stub, user: userEvent.setup() };
+  return { ...view, api: stub, assignments, user: userEvent.setup() };
 }
 
 /** A table row's cells, each with its whitespace collapsed. */
@@ -340,5 +369,47 @@ describe('AdminHypervisorsComponent', () => {
 
     expect(screen.getByText(/Shown to\s+Range A/)).toBeTruthy();
     expect(screen.getByText('Not assigned to any project')).toBeTruthy();
+  });
+
+  /**
+   * Verifies: ManageInfrastructure holders assign a connection to projects from its card, in one save.
+   * Interacts with: AssignmentsService.editAssignments and ProjectsService.getAllProjects (stubs); the real dialog.
+   * Data: Default assigned to Range A; add Range B.
+   */
+  it('assigns a connection to projects', async () => {
+    const { user, assignments, api } = await renderPage(
+      {
+        getInventoryConnections: vi.fn<
+          BodyOverload<InventoryApiService['getInventoryConnections']>
+        >(() =>
+          of([
+            connection({ projects: [{ projectId: 'p1', name: 'Range A' }] }),
+          ]),
+        ),
+      },
+      { system: [SystemPermission.ManageInfrastructure] },
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'Assign Default to projects' }),
+    );
+    await user.click(await screen.findByRole('checkbox', { name: /Range B/ }));
+    await user.click(screen.getByRole('button', { name: 'Save 1 change' }));
+
+    expect(assignments.editAssignments).toHaveBeenCalledWith({
+      changes: [
+        { operation: 'Add', projectId: 'p2', connectionName: 'Default' },
+      ],
+    });
+    expect(api.getInventoryConnections).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * Verifies: without ManageInfrastructure there is no way to assign.
+   */
+  it('hides assigning from a caller holding only ViewInfrastructure', async () => {
+    await renderPage({}, { system: [SystemPermission.ViewInfrastructure] });
+
+    expect(screen.queryByRole('button', { name: /Assign/ })).toBeNull();
   });
 });

@@ -24,6 +24,7 @@ import { ErrorService } from '../sei-cwd-common/cwd-error/error.service';
 // 2. Every generated API service under src/app/generated/caster-api.
 import {
   AppliesService,
+  AssignmentsService,
   DesignsModulesService,
   DesignsService,
   DirectoriesService,
@@ -66,6 +67,7 @@ export function getDefaultProviders(
     // needs an endpoint passes `{ provide: XService, useValue: xApi }` built
     // with `satisfies ApiStub<XService>`.
     unstubbed(AppliesService),
+    unstubbed(AssignmentsService),
     unstubbed(DesignsModulesService),
     unstubbed(DesignsService),
     unstubbed(DirectoriesService),

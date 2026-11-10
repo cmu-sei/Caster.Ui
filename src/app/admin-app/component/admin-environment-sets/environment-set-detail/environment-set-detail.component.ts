@@ -32,9 +32,13 @@ import {
   EnvironmentSetEntryDialogData,
 } from '../environment-set-entry-dialog/environment-set-entry-dialog.component';
 import {
-  AssignProjectDialogComponent,
-  AssignProjectDialogData,
-} from '../assign-project-dialog/assign-project-dialog.component';
+  AssignmentService,
+  setProjectChanges,
+} from 'src/app/assignments/assignment.service';
+import {
+  AssignmentDialogComponent,
+  AssignmentDialogData,
+} from 'src/app/assignments/assignment-dialog/assignment-dialog.component';
 
 /** One set's entries and the projects it is assigned to. */
 @Component({
@@ -48,6 +52,7 @@ export class EnvironmentSetDetailComponent {
   private dialog = inject(MatDialog);
   private confirmService = inject(CrucibleDialogService);
   private environmentSetService = inject(EnvironmentSetService);
+  private assignmentService = inject(AssignmentService);
 
   readonly set = input.required<EnvironmentSet>();
   readonly canEdit = input(false);
@@ -104,15 +109,34 @@ export class EnvironmentSetDetailComponent {
       });
   }
 
+  /** Adds and removes the set's projects together, checked against the final state. */
   assign(): void {
-    this.dialog.open<AssignProjectDialogComponent, AssignProjectDialogData>(
-      AssignProjectDialogComponent,
-      {
-        data: { set: this.set() },
-        width: '480px',
-        maxWidth: '90vw',
-        disableClose: true,
-      },
+    const set = this.set();
+    this.assignmentService.projectItems().subscribe((items) =>
+      this.dialog.open<AssignmentDialogComponent, AssignmentDialogData>(
+        AssignmentDialogComponent,
+        {
+          data: {
+            title: `Assign ${set.name}`,
+            description:
+              "Every workspace in a project gets this set's variables on its next run.",
+            sections: [
+              {
+                label: 'Projects',
+                items,
+                assigned: (set.projects ?? []).map((x) => x.projectId),
+                searchLabel: 'Search projects',
+                emptyText: 'There are no projects.',
+              },
+            ],
+            save: ([projects]) =>
+              this.assignmentService.edit(setProjectChanges(set.id, projects)),
+          },
+          width: '640px',
+          maxWidth: '90vw',
+          disableClose: true,
+        },
+      ),
     );
   }
 

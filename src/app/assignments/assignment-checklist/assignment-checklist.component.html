@@ -1,0 +1,82 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="checklist">
+  @if (editable()) {
+    <div class="toolbar">
+      <mat-form-field class="search" subscriptSizing="dynamic">
+        <mat-label>{{ searchLabel() }}</mat-label>
+        <mat-icon matPrefix fontIcon="mdi-magnify" />
+        <input
+          matInput
+          autocomplete="off"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+        />
+        @if (filter()) {
+          <button
+            matSuffix
+            mat-icon-button
+            type="button"
+            aria-label="Clear search"
+            (click)="filter.set('')"
+          >
+            <mat-icon fontIcon="mdi-close-circle-outline" />
+          </button>
+        }
+      </mat-form-field>
+      <mat-slide-toggle
+        [checked]="assignedOnly()"
+        (change)="assignedOnly.set($event.checked)"
+        >Assigned only</mat-slide-toggle
+      >
+    </div>
+  }
+
+  @if (visible().length) {
+    <ul class="items">
+      @for (item of visible(); track item.id) {
+        <li [class.changed]="!!change(item)">
+          @if (editable()) {
+            <mat-checkbox
+              [checked]="isSelected(item)"
+              [disabled]="item.locked === true"
+              (change)="toggle(item, $event.checked)"
+            >
+              <ng-container
+                *ngTemplateOutlet="label; context: { $implicit: item }"
+              />
+            </mat-checkbox>
+          } @else {
+            <span class="read-only">
+              <ng-container
+                *ngTemplateOutlet="label; context: { $implicit: item }"
+              />
+            </span>
+          }
+          @if (change(item); as what) {
+            <span class="change" [class.removing]="what === 'Removing'">{{
+              what
+            }}</span>
+          }
+        </li>
+      }
+    </ul>
+  } @else if (filter() || assignedOnly()) {
+    <p class="secondary">Nothing matches.</p>
+  } @else {
+    <p class="secondary">{{ emptyText() }}</p>
+  }
+</div>
+
+<ng-template #label let-item>
+  <span class="name" [class.warn]="item.warn">{{ item.name }}</span>
+  @for (note of item.notes ?? []; track note) {
+    <span class="note">{{ note }}</span>
+  }
+  @if (item.detail) {
+    <span class="detail">{{ item.detail }}</span>
+  }
+</ng-template>

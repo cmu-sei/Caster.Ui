@@ -41,20 +41,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </button>
       </div>
 
-      <p class="projects">
-        @if (view.connection.projects?.length) {
-          Shown to
-          @for (
-            project of view.connection.projects;
-            track project.projectId;
-            let last = $last
-          ) {
-            {{ project.name }}{{ last ? '' : ', ' }}
+      <div class="projects">
+        <p>
+          @if (view.connection.projects?.length) {
+            Shown to
+            @for (
+              project of view.connection.projects;
+              track project.projectId;
+              let last = $last
+            ) {
+              {{ project.name }}{{ last ? '' : ', ' }}
+            }
+          } @else {
+            Not assigned to any project
           }
-        } @else {
-          Not assigned to any project
+          @if (view.connection.enabled === false) {
+            <span class="muted">&middot; Inventory turned off</span>
+          }
+        </p>
+        @if (canManage()) {
+          <button
+            matButton
+            type="button"
+            [attr.aria-label]="
+              'Assign ' + view.connection.name + ' to projects'
+            "
+            (click)="assign(view.connection)"
+          >
+            <mat-icon fontIcon="mdi-link-variant" />
+            Assign Projects
+          </button>
         }
-      </p>
+      </div>
 
       @if (view.connection.error; as problem) {
         <div class="state-row">

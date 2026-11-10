@@ -202,7 +202,7 @@ describe('InventoryPanelComponent', () => {
     fixture.detectChanges();
 
     const trigger: HTMLElement = fixture.nativeElement.querySelector(
-      '[aria-label="Infrastructure connection"] .mat-mdc-select-trigger',
+      '[aria-label="Inventory connection"] .mat-mdc-select-trigger',
     );
     trigger.click();
     fixture.detectChanges();

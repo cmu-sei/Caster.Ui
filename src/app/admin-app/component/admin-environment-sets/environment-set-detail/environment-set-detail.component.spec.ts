@@ -8,9 +8,11 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { of } from 'rxjs';
 import {
+  AssignmentsService,
   EnvironmentSecrets,
   EnvironmentSet,
   EnvironmentSetsService,
+  ProjectsService,
 } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
@@ -72,12 +74,23 @@ async function renderDetail(canEdit: boolean, confirmAnswer?: boolean) {
   } satisfies ApiStub<EnvironmentSetsService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
+  const projects = {
+    getAllProjects: vi.fn(() =>
+      of([
+        { id: 'p1', name: 'Range A' },
+        { id: 'p2', name: 'Range B' },
+      ]),
+    ),
+  };
+  const assignments = { editAssignments: vi.fn(() => of<unknown>(null)) };
 
   const view = await renderComponent(EnvironmentSetDetailComponent, {
     inputs: { set, canEdit, secrets },
     imports: [MatDialogModule],
     providers: [
       { provide: EnvironmentSetsService, useValue: api },
+      { provide: ProjectsService, useValue: projects },
+      { provide: AssignmentsService, useValue: assignments },
       {
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
@@ -85,7 +98,7 @@ async function renderDetail(canEdit: boolean, confirmAnswer?: boolean) {
     ],
   });
 
-  return { ...view, api, confirm, user: userEvent.setup() };
+  return { ...view, api, assignments, confirm, user: userEvent.setup() };
 }
 
 describe('EnvironmentSetDetailComponent', () => {
@@ -149,7 +162,7 @@ describe('EnvironmentSetDetailComponent', () => {
 
     expect(screen.queryByRole('button', { name: 'Add Entry' })).toBeNull();
     expect(
-      screen.queryByRole('button', { name: 'Assign to Project' }),
+      screen.queryByRole('button', { name: 'Assign Projects' }),
     ).toBeNull();
     expect(
       screen.queryByRole('button', { name: 'Remove from Range A' }),
@@ -172,5 +185,25 @@ describe('EnvironmentSetDetailComponent', () => {
       expect.objectContaining({ title: 'Remove from Project' }),
     );
     expect(api.unassignEnvironmentSet).toHaveBeenCalledWith('p1', 's1');
+  });
+
+  /**
+   * Verifies: Assign Projects lists every project with the set's checked, and saves what changed in one request.
+   * Interacts with: ProjectsService.getAllProjects and AssignmentsService.editAssignments (stubs); the real dialog.
+   * Data: assigned to Range A; add Range B.
+   */
+  it('assigns the set to more projects in one save', async () => {
+    const { user, assignments } = await renderDetail(true);
+
+    await user.click(screen.getByRole('button', { name: 'Assign Projects' }));
+    expect(
+      await screen.findByRole('checkbox', { name: /Range A/ }),
+    ).toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
+    await user.click(screen.getByRole('button', { name: 'Save 1 change' }));
+
+    expect(assignments.editAssignments).toHaveBeenCalledWith({
+      changes: [{ operation: 'Add', projectId: 'p2', environmentSetId: 's1' }],
+    });
   });
 });

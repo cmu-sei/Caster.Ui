@@ -37,9 +37,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { AsyncPipe } from '@angular/common';
 
 import {
-  ProjectInfrastructureComponent,
-  ProjectInfrastructureData,
-} from '../../project-infrastructure/project-infrastructure.component';
+  ProjectEnvironmentComponent,
+  ProjectEnvironmentData,
+} from '../../project-environment/project-environment.component';
 
 const NAME_VALUE = 'nameValue';
 
@@ -86,9 +86,9 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
-  openInfrastructure(project: Project) {
-    this.dialog.open<ProjectInfrastructureComponent, ProjectInfrastructureData>(
-      ProjectInfrastructureComponent,
+  openEnvironment(project: Project) {
+    this.dialog.open<ProjectEnvironmentComponent, ProjectEnvironmentData>(
+      ProjectEnvironmentComponent,
       {
         data: { projectId: project.id, projectName: project.name },
         width: '880px',

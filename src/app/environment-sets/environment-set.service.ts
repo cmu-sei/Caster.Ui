@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 import {
   BatchEditEnvironmentSetsCommand,
@@ -125,13 +125,6 @@ export class EnvironmentSetService {
       .pipe(tap((x) => this.entriesChanged(x)));
   }
 
-  assign(projectId: string, setId: string) {
-    return this.api.assignEnvironmentSet(projectId, setId).pipe(
-      tap((x) => this.projectSetsUpdated(projectId, x)),
-      switchMap(() => this.refresh(setId)),
-    );
-  }
-
   /**
    * Unassigns a set from a project, then reads the project's sets back: one also given
    * through the project's group stays, marked as coming from the group.
@@ -141,6 +134,27 @@ export class EnvironmentSetService {
       switchMap(() => this.loadProjectSets(projectId)),
       switchMap(() => this.refresh(setId)),
     );
+  }
+
+  /**
+   * After assignments changed elsewhere: re-reads the sets already loaded here, whose projects
+   * changed, and the member views of the projects already loaded here.
+   */
+  assignmentsChanged(
+    projectIds: string[],
+    setIds: string[],
+  ): Observable<unknown> {
+    const loadedSets = new Set(this.setsSubject.getValue().map((x) => x.id));
+    const loadedProjects = this.projectSetsSubject.getValue();
+    const reads: Observable<unknown>[] = [
+      ...[...new Set(setIds)]
+        .filter((id) => loadedSets.has(id))
+        .map((id) => this.refresh(id)),
+      ...[...new Set(projectIds)]
+        .filter((id) => id in loadedProjects)
+        .map((id) => this.loadProjectSets(id)),
+    ];
+    return reads.length ? forkJoin(reads) : of(null);
   }
 
   /** Re-reads one set: its projects change with an assignment. */

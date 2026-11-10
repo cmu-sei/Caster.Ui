@@ -91,18 +91,17 @@ describe('EnvironmentSetService', () => {
   });
 
   /**
-   * Verifies: assign() publishes the project's sets and re-reads the set, whose projects changed.
-   * Interacts with: assignEnvironmentSet and getEnvironmentSet (stubs).
-   * Data: set s1 assigned to project p1.
+   * Verifies: after assignments change, the sets and project views already loaded are re-read, and nothing else.
+   * Interacts with: getEnvironmentSet and getProjectEnvironmentSets (stubs).
+   * Data: set s1 and project p1 loaded; s2 and p2 not.
    */
-  it('assign() updates the project sets and the set', async () => {
+  it('assignmentsChanged() re-reads only what is loaded', async () => {
     const projectSet: ProjectEnvironmentSet = {
       environmentSetId: 's1',
       projectId: 'p1',
       name: 'A',
     };
     const api = {
-      assignEnvironmentSet: vi.fn(() => of([projectSet])),
       getEnvironmentSet: vi.fn(() =>
         of<EnvironmentSet>({
           id: 's1',
@@ -110,11 +109,18 @@ describe('EnvironmentSetService', () => {
           projects: [{ projectId: 'p1', name: 'Range' }],
         }),
       ),
+      getProjectEnvironmentSets: vi.fn(() => of([projectSet])),
     } satisfies ApiStub<EnvironmentSetsService>;
     const service = setup(api);
+    service.upsert({ id: 's1', name: 'A', projects: [] });
+    service.projectSetsUpdated('p1', []);
 
-    await firstValueFrom(service.assign('p1', 's1'));
+    await firstValueFrom(
+      service.assignmentsChanged(['p1', 'p2'], ['s1', 's2']),
+    );
 
+    expect(api.getEnvironmentSet).toHaveBeenCalledExactlyOnceWith('s1');
+    expect(api.getProjectEnvironmentSets).toHaveBeenCalledExactlyOnceWith('p1');
     expect(await firstValueFrom(service.projectSets$('p1'))).toEqual([
       projectSet,
     ]);
