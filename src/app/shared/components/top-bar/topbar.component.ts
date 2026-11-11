@@ -13,8 +13,14 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
-import { Observable, Subject, combineLatest, of } from 'rxjs';
-import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
+import { Observable, ReplaySubject, Subject, of } from 'rxjs';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  switchMap,
+  takeUntil,
+} from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
@@ -80,16 +86,22 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   canManageProject$: Observable<boolean>;
 
+  /** The user's system permissions once read, so nothing is decided from the empty list before. */
+  private readonly loadedPermissions = new ReplaySubject<SystemPermission[]>(1);
+
   /**
    * Group managers who can't reach Administration's Project Groups manage their groups from the
    * user menu, on every page. Only they need the groups read.
    */
-  managesGroupsOutsideAdmin$: Observable<boolean> = combineLatest([
-    this.permissionService.hasPermission(SystemPermission.ViewProjects),
-    this.permissionService.hasPermission(SystemPermission.ManageProjectGroups),
-  ]).pipe(
-    switchMap(([viewProjects, manageGroups]) =>
-      viewProjects || manageGroups
+  managesGroupsOutsideAdmin$: Observable<boolean> = this.loadedPermissions.pipe(
+    map(
+      (x) =>
+        x.includes(SystemPermission.ViewProjects) ||
+        x.includes(SystemPermission.ManageProjectGroups),
+    ),
+    distinctUntilChanged(),
+    switchMap((inAdmin) =>
+      inAdmin
         ? of(false)
         : this.projectGroupService
             .groupsLoaded$()
@@ -105,7 +117,9 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit() {
-    this.permissionService.load().subscribe();
+    this.permissionService
+      .load()
+      .subscribe((x) => this.loadedPermissions.next(x ?? []));
     this.permissionService.loadGroupPermissions().subscribe();
 
     this.currentUser$ = this.currentUserQuery.select().pipe(

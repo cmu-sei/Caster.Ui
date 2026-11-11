@@ -125,7 +125,7 @@ export class ProjectGroupsListComponent implements OnInit {
     this.confirmService
       .confirm({
         title: 'Delete Project Group',
-        message: `Delete ${group.name}? Its ${group.projects?.length ?? 0} projects stay, ungrouped, and lose its memberships, sets and connections.`,
+        message: `Delete ${group.name}? ${projectsStay(group)}`,
         confirmText: 'Delete',
       })
       .afterClosed()
@@ -152,4 +152,15 @@ export class ProjectGroupsListComponent implements OnInit {
     dialogRef.componentInstance.message = '';
     return dialogRef.afterClosed();
   }
+}
+
+function projectsStay(group: ProjectGroup): string {
+  const count = group.projects?.length ?? 0;
+  if (count === 0) {
+    return 'It has no projects.';
+  }
+  const lose = 'ungrouped, and lose its memberships, sets and connections.';
+  return count === 1
+    ? `Its project stays, ${lose}`
+    : `Its ${count} projects stay, ${lose}`;
 }

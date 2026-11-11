@@ -37,6 +37,9 @@ import {
   ProjectGroupMembership,
   ProjectGroupsService,
   ProjectMembership,
+  ProjectPermission,
+  ProjectPermissionsClaim,
+  ProjectPermissionsService,
   ProjectRole,
   ProjectRolesService,
   ProjectsService,
@@ -64,10 +67,9 @@ import { ProjectGroupService } from '../project-group.service';
 
 /**
  * One project group, a tab for each part: its projects, memberships, Environment Sets,
- * connections, and partition. Each part is editable by those who may: projects and
+ * connections, and VLAN partition. Each part is editable by those who may: projects and
  * memberships by the group's managers and ManageProjectGroups, sets by ManageEnvironmentSets,
- * connections by ManageInfrastructure, the partition by ManageVLANs, who alone see it. A group's
- * hosts are set through the Hosts API, and aren't shown here.
+ * connections by ManageInfrastructure, the VLANs tab by ManageVLANs, who alone see it.
  */
 @Component({
   selector: 'cas-project-group-detail',
@@ -95,6 +97,7 @@ export class ProjectGroupDetailComponent implements OnInit {
   private permissionService = inject(PermissionService);
   private projectsApi = inject(ProjectsService);
   private projectGroupsApi = inject(ProjectGroupsService);
+  private projectPermissionsApi = inject(ProjectPermissionsService);
   private usersApi = inject(UsersService);
   private groupsApi = inject(GroupsService);
   private rolesApi = inject(ProjectRolesService);
@@ -123,8 +126,11 @@ export class ProjectGroupDetailComponent implements OnInit {
   private readonly users = signal<User[]>([]);
   private readonly userGroups = signal<Group[]>([]);
   readonly roles = signal<ProjectRole[]>([]);
-  /** The projects the user manages, which they can add (the API checks again). */
-  private readonly projects = signal<Project[]>([]);
+  /** The projects the user is a member of, and their permissions in each. */
+  private readonly myProjects = signal<Project[]>([]);
+  private readonly projectClaims = signal<ProjectPermissionsClaim[]>([]);
+  /** Every project, for ManageProjects holders who may add any (and can list them all). */
+  private readonly allProjects = signal<Project[] | null>(null);
   private readonly sets = signal<EnvironmentSet[]>([]);
   private readonly connections = signal<InventoryConnection[]>([]);
   readonly partitions = signal<Partition[]>([]);
@@ -138,13 +144,36 @@ export class ProjectGroupDetailComponent implements OnInit {
   );
   readonly selectedProjects = linkedSignal(() => this.initialProjects());
 
-  /** The group's projects and the ones the user manages; a project in another group moves. */
+  /**
+   * The projects the user may add, as the API decides: ones they manage, out of no group or
+   * one they also manage (the API checks again).
+   */
+  private readonly addableProjects = computed(() => {
+    const all = this.allProjects();
+    const managed = all
+      ? all
+      : this.myProjects().filter((p) =>
+          this.projectClaims().some(
+            (c) =>
+              c.projectId === p.id &&
+              (c.permissions ?? []).includes(ProjectPermission.ManageProject),
+          ),
+        );
+    return managed.filter(
+      (p) =>
+        !p.projectGroupId ||
+        p.projectGroupId === this.group().id ||
+        !!this.groupNames().find((g) => g.id === p.projectGroupId)?.canManage,
+    );
+  });
+
+  /** The group's projects and the ones the user may add; a project in another group moves. */
   readonly projectItems = computed<AssignmentItem[]>(() => {
     const items = new Map<string, AssignmentItem>();
     for (const p of this.group().projects ?? []) {
       items.set(p.id, { id: p.id, name: p.name ?? '' });
     }
-    for (const p of this.projects()) {
+    for (const p of this.addableProjects()) {
       if (!items.has(p.id)) {
         const other = this.groupNames().find((g) => g.id === p.projectGroupId);
         items.set(p.id, {
@@ -240,6 +269,9 @@ export class ProjectGroupDetailComponent implements OnInit {
     assignmentDiff(this.initialConnections(), this.selectedConnections()),
   );
 
+  /** The partition shown, put back to the stored one if a change is refused. */
+  readonly partition = linkedSignal(() => this.group().partitionId ?? '');
+
   readonly saveLabel = saveLabel;
 
   ngOnInit(): void {
@@ -250,7 +282,16 @@ export class ProjectGroupDetailComponent implements OnInit {
         next: (x) => this.memberships.set(x ?? []),
         error: (err) => this.error.set(apiErrorMessage(err)),
       });
-      this.read(this.projectsApi.getAllProjects(true), this.projects);
+      this.read(this.projectsApi.getAllProjects(true), this.myProjects);
+      this.read(
+        this.projectPermissionsApi.getMyProjectPermissions(),
+        this.projectClaims,
+      );
+      this.when(SystemPermission.ManageProjects, () =>
+        this.when(SystemPermission.ViewProjects, () =>
+          this.read(this.projectsApi.getAllProjects(false), this.allProjects),
+        ),
+      );
       this.read(this.projectGroupsApi.getProjectGroups(), this.groupNames);
       this.read(this.usersApi.getAllUsers(), this.users);
       this.read(this.groupsApi.getAllGroups(), this.userGroups);
@@ -361,9 +402,15 @@ export class ProjectGroupDetailComponent implements OnInit {
 
   setPartition(partitionId: string | null): void {
     this.error.set(null);
+    this.partition.set(partitionId ?? '');
     this.groupService
       .setPartition(this.group().id, partitionId || null)
-      .subscribe({ error: (err) => this.error.set(apiErrorMessage(err)) });
+      .subscribe({
+        error: (err) => {
+          this.partition.set(this.group().partitionId ?? '');
+          this.error.set(apiErrorMessage(err));
+        },
+      });
   }
 
   /** Saves, then reads the group back: its lists reset to what was stored, even after a failure partway. */

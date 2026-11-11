@@ -194,12 +194,15 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Sets the display to Environment Sets
+   * Sets the display to Project Groups
    */
   adminGotoProjectGroups(): void {
     this.navigateToSection(this.projectGroupsText);
   }
 
+  /**
+   * Sets the display to Environment Sets
+   */
   adminGotoEnvironmentSets(): void {
     this.navigateToSection(this.environmentSetsText);
   }

@@ -88,10 +88,23 @@ export class ProjectGroupService {
     return this.api.deleteProjectGroupMembership(membershipId);
   }
 
+  /** Adds a project to a group; it leaves the group it was in, which is updated here too. */
   addProject(id: string, projectId: string) {
-    return this.api
-      .addProjectToProjectGroup(id, projectId)
-      .pipe(tap((x) => this.upsert(x)));
+    return this.api.addProjectToProjectGroup(id, projectId).pipe(
+      tap((x) => {
+        this.groupsSubject.next(
+          this.groupsSubject.getValue().map((g) =>
+            g.id !== id && g.projects?.some((p) => p.id === projectId)
+              ? {
+                  ...g,
+                  projects: g.projects.filter((p) => p.id !== projectId),
+                }
+              : g,
+          ),
+        );
+        this.upsert(x);
+      }),
+    );
   }
 
   removeProject(id: string, projectId: string) {

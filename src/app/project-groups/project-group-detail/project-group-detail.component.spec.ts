@@ -9,6 +9,7 @@ import {
   AssignmentsService,
   ProjectGroup,
   ProjectGroupsService,
+  ProjectPermission,
   ProjectsService,
   SystemPermission,
   UsersService,
@@ -51,7 +52,11 @@ async function renderDetail(canManage: boolean, grants: PermissionGrants = {}) {
     ),
     getProjectGroup: vi.fn(() => of(group(canManage))),
     getProjectGroups: vi.fn(() =>
-      of([group(canManage), { id: 'g2', name: 'Lab' }]),
+      of([
+        group(canManage),
+        { id: 'g2', name: 'Lab', canManage: true },
+        { id: 'g3', name: 'Other', canManage: false },
+      ]),
     ),
     addProjectToProjectGroup: vi.fn(() => of(group(canManage))),
   };
@@ -69,6 +74,8 @@ async function renderDetail(canManage: boolean, grants: PermissionGrants = {}) {
             of([
               { id: 'p1', name: 'Blue Team', projectGroupId: 'g1' },
               { id: 'p2', name: 'Red Team', projectGroupId: 'g2' },
+              { id: 'p3', name: 'White Cell' },
+              { id: 'p4', name: 'Gray Team', projectGroupId: 'g3' },
             ]),
           ),
         },
@@ -120,7 +127,30 @@ async function renderDetail(canManage: boolean, grants: PermissionGrants = {}) {
   return { ...view, groupsApi, assignments, user: userEvent.setup() };
 }
 
+/** Manages Red Team and Gray Team, and is only a member of White Cell. */
+const managesProjects: PermissionGrants = {
+  projects: [
+    { projectId: 'p2', permissions: [ProjectPermission.ManageProject] },
+    { projectId: 'p3', permissions: [ProjectPermission.ViewProject] },
+    { projectId: 'p4', permissions: [ProjectPermission.ManageProject] },
+  ],
+};
+
 describe('ProjectGroupDetailComponent', () => {
+  /**
+   * Verifies: the Projects tab offers only projects the API would let the user add: ones they manage, out of no group or one they also manage.
+   * Data: manages Red Team (in Lab, which they manage) and Gray Team (in Other, which they don't); only a member of White Cell.
+   */
+  it('offers only the projects the user may add', async () => {
+    await renderDetail(true, managesProjects);
+
+    expect(
+      screen.getByRole('checkbox', { name: /Red Team/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /White Cell/ })).toBeNull();
+    expect(screen.queryByRole('checkbox', { name: /Gray Team/ })).toBeNull();
+  });
+
   /**
    * Verifies: a member who doesn't manage the group sees what it holds, with no checkboxes and no Memberships tab.
    * Interacts with: the group input; ProjectGroupsService.getProjectGroupMemberships (stub, not called).
@@ -146,7 +176,7 @@ describe('ProjectGroupDetailComponent', () => {
    * Data: canManage true; Red Team is in Lab.
    */
   it('lets a group manager add a project from another group', async () => {
-    const { user, groupsApi } = await renderDetail(true);
+    const { user, groupsApi } = await renderDetail(true, managesProjects);
 
     expect(screen.getByText('moves from Lab')).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: /Red Team/ }));

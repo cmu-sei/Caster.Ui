@@ -138,7 +138,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>Partition</mat-label>
             <mat-select
-              [value]="group().partitionId ?? ''"
+              [value]="partition()"
               (selectionChange)="setPartition($event.value)"
             >
               <mat-option value="">None (the default)</mat-option>
