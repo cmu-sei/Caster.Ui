@@ -8,7 +8,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatCheckbox } from '@angular/material/checkbox';
+import { MatCheckbox, MatCheckboxChange } from '@angular/material/checkbox';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import {
@@ -159,21 +159,64 @@ export class EnvironmentSetMultiEditDialogComponent {
     );
   }
 
-  /** Adds an edited row's entry to the sets that lack it, or stops doing so. */
-  toggleAddToOthers(row: MultiEditRow, add: boolean): void {
+  /** The selected sets that lack the row's entry. */
+  missingFrom(row: MultiEditRow): string {
+    return this.data.sets
+      .filter((x) => !row.setIds.includes(x.id))
+      .map((x) => x.name)
+      .join(', ');
+  }
+
+  /**
+   * Adds the row's entry to the sets that lack it, or stops doing so. An entry the sets agree
+   * on is copied as it is; a mixed one needs a value first, so the edit dialog opens.
+   */
+  toggleAddToOthers(row: MultiEditRow, event: MatCheckboxChange): void {
     const change = this.change(row);
 
-    if (
-      change &&
-      change.operation !== EnvironmentSetEntryChangeOperation.Delete
-    ) {
-      this.put(row.name, {
-        ...change,
-        operation: add
-          ? EnvironmentSetEntryChangeOperation.Upsert
-          : EnvironmentSetEntryChangeOperation.Update,
-      });
+    if (change) {
+      if (change.operation !== EnvironmentSetEntryChangeOperation.Delete) {
+        this.put(row.name, {
+          ...change,
+          operation: event.checked
+            ? EnvironmentSetEntryChangeOperation.Upsert
+            : EnvironmentSetEntryChangeOperation.Update,
+        });
+      }
+      return;
     }
+
+    if (!event.checked) {
+      return;
+    }
+
+    if (!row.mixed) {
+      this.put(row.name, {
+        operation: EnvironmentSetEntryChangeOperation.Upsert,
+        kind: row.entry.kind,
+        targetName: row.entry.targetName,
+        valueSource: row.entry.valueSource,
+        value: row.entry.value,
+        secretName: row.entry.secretName,
+        connectionName: row.entry.connectionName,
+        connectionField: row.entry.connectionField,
+      });
+      return;
+    }
+
+    this.openEntry(
+      `Add ${variableLabel(row.entry)} where missing`,
+      row.entry,
+    ).subscribe((fields) => {
+      if (fields) {
+        this.put(row.name, {
+          ...fields,
+          operation: EnvironmentSetEntryChangeOperation.Upsert,
+        });
+      } else {
+        event.source.checked = false;
+      }
+    });
   }
 
   remove(row: MultiEditRow): void {
