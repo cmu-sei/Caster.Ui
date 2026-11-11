@@ -56,13 +56,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               @if (row.setIds.length < data.sets.length) {
                 <mat-checkbox
                   [checked]="addsToOthers(row)"
-                  [disabled]="change?.operation === Operation.Delete"
+                  [disabled]="
+                    change?.operation === Operation.Delete || locked(row)
+                  "
                   [matTooltip]="
-                    row.mixed && !change
-                      ? 'Add to ' +
-                        missingFrom(row) +
-                        ': the sets differ, so pick the value first'
-                      : 'Add to ' + missingFrom(row)
+                    locked(row)
+                      ? lockedText
+                      : row.mixed && !change
+                        ? 'Add to ' +
+                          missingFrom(row) +
+                          ': the sets differ, so pick the value first'
+                        : 'Add to ' + missingFrom(row)
                   "
                   (change)="toggleAddToOthers(row, $event)"
                   [aria-label]="
@@ -88,8 +92,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Edit in every set that has it"
+                [matTooltip]="
+                  locked(row) ? lockedText : 'Edit in every set that has it'
+                "
                 [attr.aria-label]="'Edit ' + variableLabel(row.entry)"
+                [disabled]="locked(row)"
                 (click)="edit(row)"
               >
                 <mat-icon class="mdi-18px" fontIcon="mdi-square-edit-outline" />

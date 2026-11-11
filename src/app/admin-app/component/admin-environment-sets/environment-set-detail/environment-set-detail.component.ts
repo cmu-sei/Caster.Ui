@@ -39,6 +39,7 @@ import {
   AssignmentDialogComponent,
   AssignmentDialogData,
 } from 'src/app/assignments/assignment-dialog/assignment-dialog.component';
+import { connectionEntryLockedText } from 'src/app/environment-sets/environment-set-rules';
 
 /** One set's entries and the projects it is assigned to. */
 @Component({
@@ -63,6 +64,7 @@ export class EnvironmentSetDetailComponent {
 
   readonly Kind = EnvironmentSetEntryKind;
   readonly Source = EnvironmentSetValueSource;
+  readonly lockedText = connectionEntryLockedText;
   readonly variableLabel = variableLabel;
   readonly deliveredAs = deliveredAs;
   readonly kindLabel = kindLabel;

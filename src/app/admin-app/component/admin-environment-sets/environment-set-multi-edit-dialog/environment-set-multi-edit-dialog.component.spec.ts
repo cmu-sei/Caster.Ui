@@ -65,6 +65,7 @@ const threeSets: EnvironmentSet[] = [
 async function renderDialog(
   entryDialogResult: unknown = undefined,
   selected: EnvironmentSet[] = sets,
+  canUseConnections = false,
 ) {
   const { dialogRef, close } =
     dialogRefStub<EnvironmentSetMultiEditDialogComponent>();
@@ -83,7 +84,7 @@ async function renderDialog(
           sets: selected,
           secrets: null,
           connections: [],
-          canUseConnections: false,
+          canUseConnections,
         },
       },
       { provide: EnvironmentSetsService, useValue: api },
@@ -186,5 +187,42 @@ describe('EnvironmentSetMultiEditDialogComponent', () => {
     expect(open).toHaveBeenCalled();
     expect(checkbox).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: without ManageInfrastructure a connection entry can't be edited or added where missing, as the API would refuse the whole save, but can still be removed.
+   * Interacts with: the row's controls.
+   * Data: PROXMOX_VE_ENDPOINT read from a connection in A only.
+   */
+  it('locks a connection entry without permission to manage connections', async () => {
+    const withConnection: EnvironmentSet[] = [
+      {
+        ...sets[0],
+        entries: [
+          {
+            id: 'a3',
+            kind: 'EnvironmentVariable',
+            targetName: 'PROXMOX_VE_ENDPOINT',
+            valueSource: 'Connection',
+            connectionName: 'lab-pve',
+            connectionField: 'ApiUrl',
+          },
+        ],
+      },
+      sets[1],
+    ];
+    await renderDialog(undefined, withConnection);
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'Add PROXMOX_VE_ENDPOINT where missing',
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Edit PROXMOX_VE_ENDPOINT' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Remove PROXMOX_VE_ENDPOINT' }),
+    ).toBeEnabled();
   });
 });

@@ -97,7 +97,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </button>
     } @else {
       @if (canChange()) {
-        <button matButton="outlined" type="button" (click)="edit()">
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="!loaded()"
+          (click)="edit()"
+        >
           <mat-icon fontIcon="mdi-pencil" />
           Change Assignments
         </button>

@@ -9,7 +9,9 @@ import {
   inject,
   input,
   signal,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -46,7 +48,7 @@ const EXPAND_ALL_UP_TO = 3;
  * A project's Environment Sets as its members see them, one panel per set: what each
  * variable is called in Terraform, its plain value or whether its secret is available,
  * and the declaration to copy. Never secret sources or values. Used by the project's
- * Environment Sets dialog.
+ * Environment dialog.
  */
 @Component({
   selector: 'cas-project-environment-sets-view',
@@ -68,6 +70,7 @@ const EXPAND_ALL_UP_TO = 3;
 })
 export class ProjectEnvironmentSetsViewComponent implements OnInit {
   private environmentSetService = inject(EnvironmentSetService);
+  private destroyRef = inject(DestroyRef);
   private clipboard = inject(Clipboard);
   private snackBar = inject(MatSnackBar);
 
@@ -113,6 +116,7 @@ export class ProjectEnvironmentSetsViewComponent implements OnInit {
   ngOnInit(): void {
     this.environmentSetService
       .projectSets$(this.projectId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((sets) => this.setsChanged(sets));
 
     this.environmentSetService.loadProjectSets(this.projectId()).subscribe({

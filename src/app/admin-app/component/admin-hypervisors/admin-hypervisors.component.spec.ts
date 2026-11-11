@@ -309,9 +309,7 @@ describe('AdminHypervisorsComponent', () => {
     });
 
     expect(
-      screen.getByText(
-        'Hypervisor inventory is not available on this Caster API.',
-      ),
+      screen.getByText('Inventory is not available on this Caster API.'),
     ).toBeTruthy();
   });
 

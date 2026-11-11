@@ -149,8 +149,8 @@ export class AdminHypervisorsComponent implements OnInit {
         error: (error: unknown) => {
           this.error.set(
             error instanceof HttpErrorResponse && error.status === 404
-              ? 'Hypervisor inventory is not available on this Caster API.'
-              : 'Hypervisor inventory could not be read right now.',
+              ? 'Inventory is not available on this Caster API.'
+              : 'Inventory could not be read right now.',
           );
           this.loading.set(false);
         },

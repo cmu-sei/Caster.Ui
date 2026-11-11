@@ -171,6 +171,22 @@ export class InventoryService {
     );
   }
 
+  /**
+   * After a project's connections are assigned or removed: lists them again and reloads the
+   * lists, if the panel is showing that project's and has read them. A panel not yet opened
+   * reads them when it is.
+   */
+  projectConnectionsChanged(projectId: string): Observable<unknown> {
+    const state = this.inventoryStore.getValue();
+    const read = INVENTORY_CATEGORIES.some((d) => state[d.category].loaded);
+
+    if (state.projectId !== projectId || state.showAll || !read) {
+      return of(null);
+    }
+
+    return this.loadConnections().pipe(switchMap(() => this.loadAll()));
+  }
+
   /** Switches the lists to another connection and reloads every category from it. */
   selectConnection(name: string): Observable<(InventoryResult | null)[]> {
     this.inventoryStore.update({

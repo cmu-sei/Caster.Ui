@@ -145,3 +145,7 @@ export function apiErrorMessage(error: unknown): string {
 
   return error instanceof Error ? error.message : 'An error has occurred.';
 }
+
+/** Why a connection entry can't be changed: the API needs ManageInfrastructure for it. */
+export const connectionEntryLockedText =
+  'Changing a connection entry needs permission to manage connections';

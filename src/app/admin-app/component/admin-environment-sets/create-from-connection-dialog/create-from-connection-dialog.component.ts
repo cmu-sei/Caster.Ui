@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -66,18 +66,15 @@ export class CreateFromConnectionDialogComponent {
   );
 
   constructor() {
-    this.pickFirstPreset();
-    this.form.controls.connectionName.valueChanges.subscribe(() =>
-      this.pickFirstPreset(),
-    );
+    this.pickFirstPreset(this.form.controls.connectionName.value);
+    // The control's own value: the form's value, and so connection(), hasn't caught up yet.
+    this.form.controls.connectionName.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((name) => this.pickFirstPreset(name));
   }
 
   connection(): EnvironmentSetConnection | null {
-    return (
-      this.data.connections.find(
-        (x) => x.name === this.value().connectionName,
-      ) ?? null
-    );
+    return this.find(this.value().connectionName);
   }
 
   preset(): EnvironmentSetConnectionPreset | null {
@@ -111,8 +108,12 @@ export class CreateFromConnectionDialogComponent {
       });
   }
 
-  private pickFirstPreset(): void {
-    const presets = this.connection()?.presets ?? [];
+  private find(name: string): EnvironmentSetConnection | null {
+    return this.data.connections.find((x) => x.name === name) ?? null;
+  }
+
+  private pickFirstPreset(connectionName: string): void {
+    const presets = this.find(connectionName)?.presets ?? [];
     const current = this.form.controls.preset.value;
 
     if (!presets.some((x) => x.id === current)) {
