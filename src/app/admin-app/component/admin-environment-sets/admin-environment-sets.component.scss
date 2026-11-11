@@ -44,26 +44,10 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
   margin-right: 8px;
 }
 
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+.intro,
+p.warning {
   flex-shrink: 0;
   margin: 8px 0 4px;
-}
-
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 6px;
-}
-
-.notes {
-  flex-shrink: 0;
-  margin: 0 0 8px;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .table-container {
