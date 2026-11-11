@@ -216,6 +216,7 @@ describe('AdminContainerComponent', () => {
         SystemPermission.ViewModules,
         SystemPermission.ViewUsers,
         SystemPermission.ViewRoles,
+        SystemPermission.ViewEnvironmentSets,
         SystemPermission.ViewGroups,
       ],
     });
@@ -228,6 +229,7 @@ describe('AdminContainerComponent', () => {
       'Users',
       'Roles',
       'Connections',
+      'Environment Sets',
       'Groups',
     ]);
   });
