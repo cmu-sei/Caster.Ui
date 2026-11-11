@@ -21,14 +21,16 @@ import { WorkspaceEditComponent } from './workspace-edit.component';
 const workspace: Workspace = {
   id: 'w1',
   name: 'dev',
+  maxVcpu: 32,
   terraformVersion: '1.5.7',
   parallelism: 4,
   azureDestroyFailureThreshold: 2,
   runs: [],
 };
 
-async function renderWorkspaceEdit() {
+async function renderWorkspaceEdit(canEditLimits = false) {
   const updateWorkspace = vi.fn<(w: Partial<Workspace> | null) => void>();
+  const updateLimits = vi.fn();
   const { dialogRef } = dialogRefStub<WorkspaceEditComponent>();
   const view = await renderComponent(WorkspaceEditComponent, {
     imports: [
@@ -49,10 +51,11 @@ async function renderWorkspaceEdit() {
         defaultVersion: '1.5.7',
       },
       maxParallelism: 10,
+      canEditLimits,
     },
-    on: { updateWorkspace },
+    on: { updateWorkspace, updateLimits },
   });
-  return { ...view, updateWorkspace, user: userEvent.setup() };
+  return { ...view, updateWorkspace, updateLimits, user: userEvent.setup() };
 }
 
 describe('WorkspaceEditComponent', () => {
@@ -104,5 +107,54 @@ describe('WorkspaceEditComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(updateWorkspace).toHaveBeenCalledWith(null);
+  });
+
+  /**
+   * Verifies: without EditProjects the deployment limit fields are not shown.
+   * Interacts with: the canEditLimits input.
+   * Data: workspace dev with a vCPU limit of 32; canEditLimits false.
+   */
+  it('hides the deployment limits from a caller who cannot set them', async () => {
+    await renderWorkspaceEdit(false);
+
+    expect(screen.queryByLabelText('Max vCPU')).toBeNull();
+  });
+
+  /**
+   * Verifies: an admin sees the workspace's limits, and Save emits the changed limits apart from the workspace fields, an emptied field as no limit.
+   * Interacts with: the updateLimits and updateWorkspace outputs.
+   * Data: workspace dev with a vCPU limit of 32; max machines set to 10, max vCPU emptied.
+   */
+  it('saves changed deployment limits for an admin', async () => {
+    const { updateLimits, updateWorkspace, user } =
+      await renderWorkspaceEdit(true);
+
+    expect(screen.getByLabelText('Max vCPU')).toHaveValue(32);
+    await user.type(screen.getByLabelText('Max machines'), '10');
+    await user.clear(screen.getByLabelText('Max vCPU'));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(updateLimits).toHaveBeenCalledWith({
+      maxMachines: 10,
+      maxVcpu: null,
+      maxMemoryGiB: null,
+      maxDiskGiB: null,
+    });
+    expect(updateWorkspace).toHaveBeenCalledWith({});
+  });
+
+  /**
+   * Verifies: a negative limit is refused and keeps Save disabled.
+   * Interacts with: the min validator on each limit.
+   * Data: max disk -5.
+   */
+  it('refuses a negative limit', async () => {
+    const { user } = await renderWorkspaceEdit(true);
+
+    await user.type(screen.getByLabelText('Max disk (GiB)'), '-5');
+    await user.tab();
+
+    expect(screen.getByText('A whole number from 0')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 });

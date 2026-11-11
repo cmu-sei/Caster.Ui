@@ -6,12 +6,19 @@ import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import {
+  CapacityService,
+  SystemPermission,
   TerraformService,
   TerraformVersionsResult,
   Workspace,
   WorkspacesService,
 } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import {
+  PermissionGrants,
+  permissionDataProviders,
+} from 'src/app/test-utils/mock-permission-data.service';
+import { DeploymentLimits } from 'src/app/shared/components/deployment-limits/deployment-limits';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { WorkspaceEditContainerComponent } from './workspace-edit-container.component';
@@ -22,10 +29,12 @@ class WorkspaceEditStub {
   readonly workspace = input<Workspace>(undefined);
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
+  readonly canEditLimits = input<boolean>(false);
   readonly updateWorkspace = output<Partial<Workspace>>();
+  readonly updateLimits = output<DeploymentLimits>();
 }
 
-async function renderContainer() {
+async function renderContainer(grants: PermissionGrants = {}) {
   const terraformApi = {
     getTerraformVersions: vi.fn(() =>
       of<TerraformVersionsResult>({
@@ -40,10 +49,17 @@ async function renderContainer() {
       of<Workspace>({ ...w, id, runs: [] }),
     ),
   } satisfies ApiStub<WorkspacesService>;
+  const capacityApi = {
+    editWorkspaceLimits: vi.fn((id: string, limits?: DeploymentLimits) =>
+      of<Workspace>({ id, name: 'dev', runs: [], ...limits }),
+    ),
+  } satisfies ApiStub<CapacityService>;
   const editWorkspaceComplete = vi.fn<(done: boolean) => void>();
   const view = await renderComponent(WorkspaceEditContainerComponent, {
     childStubs: [{ replace: WorkspaceEditComponent, with: WorkspaceEditStub }],
     providers: [
+      ...permissionDataProviders(grants),
+      { provide: CapacityService, useValue: capacityApi },
       { provide: TerraformService, useValue: terraformApi },
       { provide: WorkspacesService, useValue: workspacesApi },
     ],
@@ -57,7 +73,7 @@ async function renderContainer() {
   const edit: WorkspaceEditStub = view.fixture.debugElement.query(
     By.directive(WorkspaceEditStub),
   ).componentInstance;
-  return { ...view, edit, workspacesApi, editWorkspaceComplete };
+  return { ...view, edit, workspacesApi, capacityApi, editWorkspaceComplete };
 }
 
 describe('WorkspaceEditContainerComponent', () => {
@@ -91,5 +107,35 @@ describe('WorkspaceEditContainerComponent', () => {
     edit.updateWorkspace.emit(null);
     expect(workspacesApi.partialEditWorkspace).toHaveBeenCalledTimes(1);
     expect(editWorkspaceComplete).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * Verifies: the form may set the deployment limits only with EditProjects, and saved limits are sent to the API.
+   * Interacts with: PermissionService.hasPermission (real); the stub's canEditLimits input and updateLimits output; CapacityService.editWorkspaceLimits (stub).
+   * Data: system permission EditProjects, then none; max vCPU 16.
+   */
+  it('lets an admin set the deployment limits', async () => {
+    const { edit, capacityApi } = await renderContainer({
+      system: [SystemPermission.EditProjects],
+    });
+
+    expect(edit.canEditLimits()).toBe(true);
+    edit.updateLimits.emit({ maxVcpu: 16 });
+    expect(capacityApi.editWorkspaceLimits).toHaveBeenCalledWith('w1', {
+      maxVcpu: 16,
+    });
+  });
+
+  /**
+   * Verifies: without EditProjects the form does not offer the deployment limits.
+   * Interacts with: PermissionService.hasPermission (real); the stub's canEditLimits input.
+   * Data: near miss: system permission ViewProjects.
+   */
+  it('does not let a project member set the deployment limits', async () => {
+    const { edit } = await renderContainer({
+      system: [SystemPermission.ViewProjects],
+    });
+
+    expect(edit.canEditLimits()).toBe(false);
   });
 });

@@ -36,6 +36,12 @@ import { MatSelect, MatOption } from '@angular/material/select';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
+import { DeploymentLimitsFieldsComponent } from 'src/app/shared/components/deployment-limits/deployment-limits-fields.component';
+import {
+  DeploymentLimits,
+  deploymentLimitsForm,
+  deploymentLimitsValue,
+} from 'src/app/shared/components/deployment-limits/deployment-limits';
 
 @Component({
   selector: 'cas-workspace-edit',
@@ -57,6 +63,7 @@ import { MatIcon } from '@angular/material/icon';
     MatSuffix,
     MatTooltip,
     MatIcon,
+    DeploymentLimitsFieldsComponent,
   ],
 })
 export class WorkspaceEditComponent implements OnInit {
@@ -65,10 +72,15 @@ export class WorkspaceEditComponent implements OnInit {
   readonly workspace = input<Workspace>(undefined);
   readonly terraformVersions = input<TerraformVersionsResult>(undefined);
   readonly maxParallelism = input<number>(undefined);
+  /** True for a caller who can set the workspace's own deployment limits (EditProjects). */
+  readonly canEditLimits = input<boolean>(false);
 
   readonly updateWorkspace = output<Partial<Workspace>>();
+  /** The workspace's own deployment limits, when they were changed. Emitted before updateWorkspace. */
+  readonly updateLimits = output<DeploymentLimits>();
 
   form: FormGroup;
+  limitsForm = deploymentLimitsForm();
 
   collator = new Intl.Collator('en', {
     numeric: true,
@@ -118,6 +130,11 @@ export class WorkspaceEditComponent implements OnInit {
         this.workspace().azureDestroyFailureThreshold,
     });
 
+    this.limitsForm = deploymentLimitsForm(this.workspace());
+    if (this.canEditLimits()) {
+      this.form.addControl('limits', this.limitsForm);
+    }
+
     this.sortedVersions = this.terraformVersions()
       ?.versions?.sort(this.collator.compare)
       .reverse();
@@ -126,7 +143,14 @@ export class WorkspaceEditComponent implements OnInit {
   save() {
     const update: Partial<Workspace> = {};
 
+    if (this.limitsForm.dirty && this.canEditLimits()) {
+      this.updateLimits.emit(deploymentLimitsValue(this.limitsForm));
+    }
+
     Object.keys(this.form.controls).forEach((name) => {
+      if (name === 'limits') {
+        return;
+      }
       const currentControl = this.form.controls[name];
 
       if (currentControl.dirty) {

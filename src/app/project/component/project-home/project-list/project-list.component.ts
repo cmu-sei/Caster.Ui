@@ -44,6 +44,11 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NameDialogComponent } from 'src/app/sei-cwd-common/name-dialog/name-dialog.component';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import {
+  DeploymentLimitsDialogComponent,
+  DeploymentLimitsDialogData,
+} from 'src/app/shared/components/deployment-limits/deployment-limits-dialog.component';
+import { DeploymentLimits } from 'src/app/shared/components/deployment-limits/deployment-limits';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DirectoryQuery } from 'src/app/directories/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
@@ -134,6 +139,8 @@ export class ProjectListComponent implements OnInit, OnChanges {
   canManageAll$: Observable<boolean>;
   canManageProjects$: Observable<string[]>;
   canCreate$: Observable<boolean>;
+  /** Setting a project's deployment limits needs the EditProjects system permission. */
+  canEditLimits$: Observable<boolean>;
 
   constructor() {
     this.canManageAll$ = this.permissionService.permissions$.pipe(
@@ -152,6 +159,9 @@ export class ProjectListComponent implements OnInit, OnChanges {
 
     this.canCreate$ = this.permissionService.hasPermission(
       SystemPermission.CreateProjects,
+    );
+    this.canEditLimits$ = this.permissionService.hasPermission(
+      SystemPermission.EditProjects,
     );
   }
 
@@ -244,6 +254,28 @@ export class ProjectListComponent implements OnInit, OnChanges {
           .subscribe();
       }
     });
+  }
+
+  editLimits(project: Project) {
+    this.dialog
+      .open(DeploymentLimitsDialogComponent, {
+        data: {
+          title: 'Deployment limits for ' + project.name,
+          limits: project,
+        } satisfies DeploymentLimitsDialogData,
+        minWidth: '400px',
+        maxWidth: '90vw',
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((limits?: DeploymentLimits) => {
+        if (limits) {
+          this.projectService
+            .updateLimits(project.id, limits)
+            .pipe(take(1))
+            .subscribe();
+        }
+      });
   }
 
   delete(project: Project) {

@@ -12,6 +12,7 @@ import { Observable, of } from 'rxjs';
 import { concatMap, take, tap } from 'rxjs/operators';
 import { FileService } from 'src/app/files/state';
 import {
+  CapacityService,
   AppliesService,
   ImportResourceCommand,
   PlansService,
@@ -25,6 +26,7 @@ import {
   Workspace,
   WorkspacesService,
 } from '../../generated/caster-api';
+import { DeploymentLimits } from 'src/app/shared/components/deployment-limits/deployment-limits';
 import { isUpdate } from '../../shared/utilities/functions';
 import {
   ResourceActions,
@@ -43,6 +45,7 @@ export class WorkspaceService {
   private fileService = inject(FileService);
   private runsService = inject(RunsService);
   private appliesService = inject(AppliesService);
+  private capacityService = inject(CapacityService);
   private plansService = inject(PlansService);
   private resourceService = inject(ResourcesService);
 
@@ -97,6 +100,13 @@ export class WorkspaceService {
     this.workspacesService.partialEditWorkspace(id, command).subscribe((w) => {
       this.workspaceStore.update(w.id, w);
     });
+  }
+
+  /** Sets the workspace's own deployment limits. Needs the EditProjects system permission. */
+  updateLimits(id: string, limits: DeploymentLimits) {
+    return this.capacityService
+      .editWorkspaceLimits(id, limits)
+      .pipe(tap((w) => this.workspaceStore.update(w.id, w)));
   }
 
   updated(workspace: Workspace) {
@@ -277,10 +287,16 @@ export class WorkspaceService {
       );
   }
 
-  applyRun(workspaceId: string, id: string) {
-    return this.appliesService
-      .applyRun(id)
-      .pipe(tap((run) => this.expandRun(true, run)));
+  /** Applies a run; acknowledgeCapacityWarning applies it although the hypervisors may not have room. */
+  applyRun(
+    workspaceId: string,
+    id: string,
+    acknowledgeCapacityWarning = false,
+  ) {
+    const apply$ = acknowledgeCapacityWarning
+      ? this.appliesService.applyRun(id, true)
+      : this.appliesService.applyRun(id);
+    return apply$.pipe(tap((run) => this.expandRun(true, run)));
   }
 
   rejectRun(workspaceId, runId: string) {

@@ -17,11 +17,15 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { of } from 'rxjs';
 import {
+  CapacityService,
   Project,
   ProjectPermission,
   SystemPermission,
 } from 'src/app/generated/caster-api';
+import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
+import { ApiStub } from 'src/app/test-utils/api-stub';
 import {
   PermissionGrants,
   permissionDataProviders,
@@ -54,6 +58,7 @@ async function renderProjectList(
       MatCardModule,
       MatProgressSpinnerModule,
       MatDialogModule,
+      ...CRUCIBLE_DIALOG_IMPORTS,
     ],
     providers: [...permissionDataProviders(grants), ...providers],
     inputs: { projects, isLoading: false, manageMode },
@@ -231,5 +236,62 @@ describe('ProjectListComponent', () => {
     await user.click(screen.getByText('Bravo'));
 
     expect(selectedProjectId).toHaveBeenCalledWith('p2');
+  });
+
+  describe('deployment limits', () => {
+    const capacityApi = () =>
+      ({
+        editProjectLimits: vi.fn((id: string, limits?: object) =>
+          of<Project>({ ...projects.find((p) => p.id === id), ...limits }),
+        ),
+      }) satisfies ApiStub<CapacityService>;
+
+    /**
+     * Verifies: with EditProjects, manage mode offers each project's deployment limits, and saving the dialog sets them, an empty field as no limit.
+     * Interacts with: the real DeploymentLimitsDialogComponent in a MatDialog; CapacityService.editProjectLimits (stub).
+     * Data: system permission EditProjects; manage mode; Alpha's max vCPU set to 50.
+     */
+    it("sets a project's limits for a caller with EditProjects", async () => {
+      const api = capacityApi();
+      const { user } = await renderProjectList(
+        { system: [SystemPermission.EditProjects] },
+        true,
+        [{ provide: CapacityService, useValue: api }],
+      );
+
+      await user.click(
+        screen.getByRole('button', { name: 'Deployment limits for Alpha' }),
+      );
+      await user.type(await screen.findByLabelText('Max vCPU'), '50');
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      expect(api.editProjectLimits).toHaveBeenCalledWith('p1', {
+        maxMachines: null,
+        maxVcpu: 50,
+        maxMemoryGiB: null,
+        maxDiskGiB: null,
+      });
+    });
+
+    /**
+     * Verifies: deployment limits are not offered without EditProjects, nor outside manage mode.
+     * Interacts with: PermissionService.hasPermission (real).
+     * Data: near miss: ManageProjects in manage mode; EditProjects outside it.
+     */
+    it.each([
+      [SystemPermission.ManageProjects, true],
+      [SystemPermission.EditProjects, false],
+    ])(
+      'hides the limits with %s (manage mode %s)',
+      async (permission, manageMode) => {
+        await renderProjectList({ system: [permission] }, manageMode, [
+          { provide: CapacityService, useValue: capacityApi() },
+        ]);
+
+        expect(
+          screen.queryByRole('button', { name: 'Deployment limits for Alpha' }),
+        ).toBeNull();
+      },
+    );
   });
 });

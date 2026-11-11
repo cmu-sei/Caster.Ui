@@ -111,6 +111,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon color="primary" fontIcon="mdi-open-in-new" />
             </a>
           }
+          @if (manageMode() && (canEditLimits$ | async)) {
+            <button
+              mat-icon-button
+              [attr.aria-label]="'Deployment limits for ' + element.name"
+              matTooltip="Deployment limits"
+              (click)="editLimits(element)"
+            >
+              <mat-icon color="primary" fontIcon="mdi-gauge" />
+            </button>
+          }
           @if (
             (canManageAll$ | async) ||
             (canManageProjects$ | async).includes(element.id)

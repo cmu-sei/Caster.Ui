@@ -8,6 +8,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [workspace]="workspace$ | async"
     [terraformVersions]="versionResult"
     [maxParallelism]="maxParallelism$ | async"
+    [canEditLimits]="canEditLimits$ | async"
+    (updateLimits)="onUpdateLimits($event)"
     (updateWorkspace)="onUpdateWorkspace($event)"
   />
 }

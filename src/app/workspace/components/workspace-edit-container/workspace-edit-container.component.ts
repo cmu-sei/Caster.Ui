@@ -11,10 +11,13 @@ import {
 } from '@angular/core';
 import { WorkspaceService, WorkspaceQuery } from '../../state';
 import {
+  SystemPermission,
   TerraformService,
   TerraformVersionsResult,
   Workspace,
 } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
+import { DeploymentLimits } from 'src/app/shared/components/deployment-limits/deployment-limits';
 import { Observable } from 'rxjs';
 import { WorkspaceEditComponent } from './workspace-edit/workspace-edit.component';
 import { AsyncPipe } from '@angular/common';
@@ -30,6 +33,7 @@ export class WorkspaceEditContainerComponent implements OnInit {
   private workspaceService = inject(WorkspaceService);
   private workspaceQuery = inject(WorkspaceQuery);
   private terraformService = inject(TerraformService);
+  private permissionService = inject(PermissionService);
 
   readonly id = input<string>(undefined);
   readonly editWorkspaceComplete = output<boolean>();
@@ -37,11 +41,19 @@ export class WorkspaceEditContainerComponent implements OnInit {
   public workspace$: Observable<Workspace>;
   public versionResult$: Observable<TerraformVersionsResult>;
   public maxParallelism$: Observable<number>;
+  public canEditLimits$: Observable<boolean>;
 
   ngOnInit(): void {
     this.workspace$ = this.workspaceQuery.selectEntity(this.id());
     this.versionResult$ = this.terraformService.getTerraformVersions();
     this.maxParallelism$ = this.terraformService.getTerraformMaxParallelism();
+    this.canEditLimits$ = this.permissionService.hasPermission(
+      SystemPermission.EditProjects,
+    );
+  }
+
+  onUpdateLimits(limits: DeploymentLimits) {
+    this.workspaceService.updateLimits(this.id(), limits).subscribe();
   }
 
   onUpdateWorkspace(workspace: Partial<Workspace>) {

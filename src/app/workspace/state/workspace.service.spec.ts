@@ -1067,6 +1067,23 @@ describe('WorkspaceService', () => {
       expect(query.ui.getEntity('w1').expandedRuns).toEqual([]);
       expect(query.ui.getAll().map((u) => u.id)).toEqual(['w1']);
     });
+
+    /**
+     * Verifies: an acknowledged capacity warning is sent along with the apply.
+     * Interacts with: AppliesService.applyRun (stub).
+     * Data: stored w1; run r1 applied with the warning acknowledged.
+     */
+    it('sends an acknowledged capacity warning', () => {
+      const apply: Apply = { id: 'a1', runId: 'r1', status: 'Queued' };
+      const appliesApi = {
+        applyRun: vi.fn((_id: string, _acknowledge?: boolean) => of(apply)),
+      } satisfies ApiStub<AppliesService>;
+      const { service } = setup({ applies: appliesApi }, [ws()]);
+
+      recordEmissions(service.applyRun('w1', 'r1', true));
+
+      expect(appliesApi.applyRun).toHaveBeenCalledWith('r1', true);
+    });
   });
 
   describe('rejectRun and cancelRun', () => {

@@ -7,6 +7,7 @@ import { ProjectUI, Breadcrumb, ProjectObjectType, Tab } from './project.model';
 import { DirectoryQuery } from 'src/app/directories';
 import { ProjectQuery } from './project-query.service';
 import {
+  CapacityService,
   Workspace,
   Directory,
   Project,
@@ -16,6 +17,7 @@ import {
   Design,
   VlansService,
 } from 'src/app/generated/caster-api';
+import { DeploymentLimits } from 'src/app/shared/components/deployment-limits/deployment-limits';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { WorkspaceQuery } from 'src/app/workspace/state';
@@ -33,6 +35,7 @@ export class ProjectService {
   private workspaceQuery = inject(WorkspaceQuery);
   private projectQuery = inject(ProjectQuery);
   private projectsService = inject(ProjectsService);
+  private capacityService = inject(CapacityService);
   private vlanService = inject(VlansService);
   private fileQuery = inject(FileQuery);
   private designQuery = inject(DesignQuery);
@@ -95,6 +98,13 @@ export class ProjectService {
         );
       }),
     );
+  }
+
+  /** Sets a project's deployment limits. Needs the EditProjects system permission. */
+  updateLimits(id: string, limits: DeploymentLimits): Observable<Project> {
+    return this.capacityService
+      .editProjectLimits(id, limits)
+      .pipe(tap((project) => this.projectStore.upsert(project.id, project)));
   }
 
   setSelectedTab(index: number) {
