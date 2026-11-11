@@ -13,8 +13,8 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
-import { Observable, Subject, combineLatest } from 'rxjs';
-import { filter, map, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, of } from 'rxjs';
+import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
@@ -82,16 +82,18 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
 
   /**
    * Group managers who can't reach Administration's Project Groups manage their groups from the
-   * user menu. The groups are those the home page loaded.
+   * user menu, on every page. Only they need the groups read.
    */
   managesGroupsOutsideAdmin$: Observable<boolean> = combineLatest([
-    this.projectGroupService.groups$,
     this.permissionService.hasPermission(SystemPermission.ViewProjects),
     this.permissionService.hasPermission(SystemPermission.ManageProjectGroups),
   ]).pipe(
-    map(
-      ([groups, viewProjects, manageGroups]) =>
-        !viewProjects && !manageGroups && groups.some((x) => x.canManage),
+    switchMap(([viewProjects, manageGroups]) =>
+      viewProjects || manageGroups
+        ? of(false)
+        : this.projectGroupService
+            .groupsLoaded$()
+            .pipe(map((groups) => groups.some((x) => x.canManage))),
     ),
   );
 

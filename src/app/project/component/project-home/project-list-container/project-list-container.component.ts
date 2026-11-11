@@ -16,13 +16,17 @@ import { TopbarView } from './../../../../shared/components/top-bar/topbar.model
 import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
 import { ProjectListComponent } from '../project-list/project-list.component';
 import { AsyncPipe } from '@angular/common';
-import { ProjectGroupService } from '../../../../project-groups/project-group.service';
 
 @Component({
   selector: 'cas-project-container',
   templateUrl: './project-list-container.component.html',
   styleUrls: ['./project-list-container.component.scss'],
-  imports: [CrucibleLandingBackgroundDirective, TopbarComponent, ProjectListComponent, AsyncPipe],
+  imports: [
+    CrucibleLandingBackgroundDirective,
+    TopbarComponent,
+    ProjectListComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectListContainerComponent implements OnInit {
   private projectService = inject(ProjectService);
@@ -32,7 +36,6 @@ export class ProjectListContainerComponent implements OnInit {
   private dialog = inject(MatDialog);
   private userService = inject(UserService);
   private currentUserQuery = inject(CurrentUserQuery);
-  private projectGroupService = inject(ProjectGroupService);
 
   public username: string;
   public titleText: string;
@@ -44,11 +47,6 @@ export class ProjectListContainerComponent implements OnInit {
     this.projects = this.projectQuery.selectAll();
 
     this.projectService.loadProjects(true).pipe(take(1)).subscribe();
-    // The user menu offers Project Groups to the groups' managers.
-    this.projectGroupService
-      .load()
-      .pipe(take(1))
-      .subscribe({ error: () => undefined });
 
     this.isLoading$ = this.projectQuery.selectLoading();
 

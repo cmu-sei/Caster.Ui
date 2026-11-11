@@ -2,8 +2,8 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 import {
   CreateProjectGroupMembershipCommand,
   ProjectGroup,
@@ -24,10 +24,23 @@ export class ProjectGroupService {
   private groupsSubject = new BehaviorSubject<ProjectGroup[]>([]);
   public groups$ = this.groupsSubject.asObservable();
 
+  private loaded = false;
+
   load(): Observable<ProjectGroup[]> {
-    return this.api
-      .getProjectGroups()
-      .pipe(tap((x) => this.groupsSubject.next(x ?? [])));
+    return this.api.getProjectGroups().pipe(
+      tap((x) => {
+        this.loaded = true;
+        this.groupsSubject.next(x ?? []);
+      }),
+    );
+  }
+
+  /** The groups, read once if nothing has read them yet, then kept current by this service's writes. */
+  groupsLoaded$(): Observable<ProjectGroup[]> {
+    const read = this.loaded
+      ? of(null)
+      : this.load().pipe(catchError(() => of(null)));
+    return read.pipe(switchMap(() => this.groups$));
   }
 
   /** Reads one group back, after a change made elsewhere. */

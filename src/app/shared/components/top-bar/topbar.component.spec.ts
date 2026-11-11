@@ -19,7 +19,6 @@ import {
   ProjectPermission,
   SystemPermission,
 } from '../../../generated/caster-api';
-import { ProjectGroupService } from '../../../project-groups/project-group.service';
 import {
   PermissionGrants,
   permissionDataProviders,
@@ -69,7 +68,6 @@ async function renderTopbar(
     ],
     inputs,
   });
-  TestBed.inject(ProjectGroupService).load().subscribe();
   TestBed.inject(CurrentUserStore).update({ id: 'u1', name: 'Ada' });
   view.fixture.detectChanges();
   await user.click(screen.getByRole('button', { name: /Ada/ }));

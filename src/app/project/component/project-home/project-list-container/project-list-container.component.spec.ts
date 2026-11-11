@@ -88,10 +88,16 @@ async function renderProjectContainer(
       {
         provide: ComnSettingsService,
         useValue: {
-          settings: { AppTopBarText: 'Caster', AppLandingBackgroundImage: landing.background },
+          settings: {
+            AppTopBarText: 'Caster',
+            AppLandingBackgroundImage: landing.background,
+          },
         } satisfies Pick<ComnSettingsService, 'settings'>,
       },
-      { provide: CrucibleThemeService, useValue: { isDarkMode: signal(landing.dark ?? false) } },
+      {
+        provide: CrucibleThemeService,
+        useValue: { isDarkMode: signal(landing.dark ?? false) },
+      },
     ],
   });
   return { ...view, projectsApi };
@@ -149,7 +155,10 @@ describe('ProjectListContainerComponent', () => {
    */
   it('shows the landing background once the image loads', async () => {
     vi.stubGlobal('Image', FakeImage);
-    const { fixture, container } = await renderProjectContainer({}, { background: '/assets/local/projects-loads.jpg' });
+    const { fixture, container } = await renderProjectContainer(
+      {},
+      { background: '/assets/local/projects-loads.jpg' },
+    );
 
     const page = container.querySelector('.content-container') as HTMLElement;
     expect(FakeImage.last?.src).toBe('/assets/local/projects-loads.jpg');
@@ -158,7 +167,9 @@ describe('ProjectListContainerComponent', () => {
     FakeImage.last!.onload!();
     fixture.detectChanges();
 
-    expect(page.style.getPropertyValue('--crucible-landing-background')).toBe('url("/assets/local/projects-loads.jpg")');
+    expect(page.style.getPropertyValue('--crucible-landing-background')).toBe(
+      'url("/assets/local/projects-loads.jpg")',
+    );
     expect(page.classList.contains('crucible-landing-background')).toBe(true);
   });
 
@@ -169,7 +180,10 @@ describe('ProjectListContainerComponent', () => {
    */
   it('tints the landing background in dark mode', async () => {
     vi.stubGlobal('Image', FakeImage);
-    const { fixture, container } = await renderProjectContainer({}, { background: '/assets/local/projects-dark.jpg', dark: true });
+    const { fixture, container } = await renderProjectContainer(
+      {},
+      { background: '/assets/local/projects-dark.jpg', dark: true },
+    );
 
     FakeImage.last!.onload!();
     fixture.detectChanges();
@@ -186,13 +200,18 @@ describe('ProjectListContainerComponent', () => {
    */
   it('keeps the normal background when the image fails to load', async () => {
     vi.stubGlobal('Image', FakeImage);
-    const { fixture, container } = await renderProjectContainer({}, { background: '/assets/local/projects-missing.jpg' });
+    const { fixture, container } = await renderProjectContainer(
+      {},
+      { background: '/assets/local/projects-missing.jpg' },
+    );
 
     FakeImage.last!.onerror?.();
     fixture.detectChanges();
 
     const page = container.querySelector('.content-container') as HTMLElement;
-    expect(page.style.getPropertyValue('--crucible-landing-background')).toBe('');
+    expect(page.style.getPropertyValue('--crucible-landing-background')).toBe(
+      '',
+    );
     expect(page.classList.contains('crucible-landing-background')).toBe(false);
   });
 

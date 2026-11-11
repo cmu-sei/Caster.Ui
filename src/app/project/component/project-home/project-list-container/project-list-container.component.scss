@@ -2,18 +2,18 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 :host {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--mat-sys-background);
-  color: var(--mat-sys-on-background);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
 }
 
 .content-container {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  text-align: center;
-  background-color: var(--mat-sys-background);
-  color: var(--mat-sys-on-background);
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    text-align: center;
+    background-color: var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
 }
