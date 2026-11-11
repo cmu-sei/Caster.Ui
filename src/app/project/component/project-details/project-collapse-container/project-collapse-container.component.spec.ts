@@ -155,11 +155,11 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
-   * Verifies: every project member gets the Infrastructure panel, for the active project; it lists only the connections assigned to the project.
+   * Verifies: every project member gets the Inventory panel, for the active project; it lists only the connections assigned to the project.
    * Interacts with: the panel stub's projectId input.
    * Data: active project p1 Range; ViewProjects only.
    */
-  it("shows the Infrastructure panel for the project's members", async () => {
+  it("shows the Inventory panel for the project's members", async () => {
     const { fixture } = await renderContainer([SystemPermission.ViewProjects]);
 
     const panel = fixture.debugElement.query(By.directive(InventoryPanelStub));

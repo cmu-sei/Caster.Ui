@@ -47,7 +47,7 @@ export class SystemRolesModel {
     [SystemPermission.ViewHosts, 'Allows viewing of Hosts'],
     [
       SystemPermission.ViewInfrastructure,
-      "Allows viewing the infrastructure inventory of the configured connections: VM templates, content library items, ISOs, networks, datastores and hosts. Enables each Project's Infrastructure panel and the Hypervisors Administration panel.",
+      "Allows viewing the infrastructure inventory of the configured connections: VM templates, content library items, ISOs, networks, datastores and hosts. Enables each Project's Inventory panel and the Hypervisors Administration panel.",
     ],
     [
       SystemPermission.ManageHosts,
