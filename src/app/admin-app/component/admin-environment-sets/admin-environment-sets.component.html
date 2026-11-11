@@ -67,54 +67,25 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           }
         </div>
 
+        <p class="secondary intro">
+          A set's variables reach every workspace of the projects it is assigned
+          to. Secret values are never shown, and are masked in run output.
+        </p>
         @if (secrets$ | async; as secrets) {
-          <div class="summary">
-            @if (secrets.missing?.length) {
-              <span class="warning">
-                {{ secrets.missing.length }} missing
-                {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}: runs
-                that use
-                {{ secrets.missing.length === 1 ? 'it' : 'them' }} fail. See the
-                Secrets tab.
-              </span>
-            }
-            @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
-              <span class="warning">
-                Too short to mask in run output, so runs that use
-                {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
-                {{ secrets.tooShort.join(', ') }}.
-              </span>
-            }
-            <button
-              mat-icon-button
-              type="button"
-              aria-label="About Environment Sets"
-              matTooltip="About Environment Sets"
-              [attr.aria-expanded]="showNotes"
-              (click)="showNotes = !showNotes"
-            >
-              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
-            </button>
-          </div>
-          @if (showNotes) {
-            <ul class="notes" role="note">
-              <li>
-                A set's variables reach every workspace of the projects it is
-                assigned to. Secret values are never shown, and are masked in
-                run output.
-              </li>
-              <li>
-                A project's editors can read its sets' values through their
-                Terraform, so assign a set only where they may hold its
-                credentials.
-              </li>
-              @if (secrets.runMode !== RunMode.Kubernetes) {
-                <li>
-                  Runs on this Caster aren't isolated from each other, so any
-                  project's Terraform can read every secret.
-                </li>
-              }
-            </ul>
+          @if (secrets.missing?.length) {
+            <p class="warning">
+              {{ secrets.missing.length }} missing
+              {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}: runs
+              that use {{ secrets.missing.length === 1 ? 'it' : 'them' }} fail.
+              See the Secrets tab.
+            </p>
+          }
+          @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
+            <p class="warning">
+              Too short to mask in run output, so runs that use
+              {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
+              {{ secrets.tooShort.join(', ') }}.
+            </p>
           }
         }
 

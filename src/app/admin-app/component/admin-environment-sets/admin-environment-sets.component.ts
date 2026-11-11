@@ -51,7 +51,6 @@ import {
   EnvironmentSet,
   EnvironmentSetValueSource,
   SystemPermission,
-  TerraformRunMode,
 } from 'src/app/generated/caster-api';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
 import { PermissionService } from 'src/app/permissions/permission.service';
@@ -128,7 +127,6 @@ export class AdminEnvironmentSetsComponent
   private confirmService = inject(CrucibleDialogService);
 
   readonly sort = viewChild(MatSort);
-  readonly RunMode = TerraformRunMode;
 
   filterString = '';
   displayedColumns = [
@@ -143,7 +141,6 @@ export class AdminEnvironmentSetsComponent
   selectedSetIds = new Set<string>();
   dataSource = new MatTableDataSource<EnvironmentSet>();
   expandedSetIds = new Set<string>();
-  showNotes = false;
 
   dataSource$ = this.environmentSetService.sets$.pipe(
     map((sets) => {
