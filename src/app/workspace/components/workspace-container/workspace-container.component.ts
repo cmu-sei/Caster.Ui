@@ -11,6 +11,7 @@ import {
   TemplateRef,
   inject,
   input,
+  signal,
   viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -21,6 +22,8 @@ import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { CurrentUserQuery } from 'src/app/users/state';
 import {
+  CapacityCheck,
+  CapacityService,
   Resource,
   ResourceCommandResult,
   Run,
@@ -53,6 +56,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { TableItemContentDirective } from '../../../sei-cwd-common/cwd-table/directives/table-item-content.directive';
 import { RunComponent } from '../run/run.component';
+import { RunCapacityComponent } from '../run-capacity/run-capacity.component';
 import { WorkspaceTopologyComponent } from '../workspace-topology/workspace-topology.component';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AsyncPipe, JsonPipe } from '@angular/common';
@@ -78,6 +82,7 @@ import { AsyncPipe, JsonPipe } from '@angular/common';
     FormsModule,
     TableItemContentDirective,
     RunComponent,
+    RunCapacityComponent,
     MatProgressSpinner,
     ImportResourceComponent,
     OutputComponent,
@@ -96,6 +101,12 @@ export class WorkspaceContainerComponent
   currentUserQuery = inject(CurrentUserQuery);
   private dialog = inject(MatDialog);
   private permissionService = inject(PermissionService);
+  private capacityService = inject(CapacityService);
+
+  /** Each planned run's capacity check, by run id, as last read. */
+  readonly capacityChecks = signal<Record<string, CapacityCheck>>({});
+  /** Runs whose room warning has been acknowledged, by run id. */
+  readonly acknowledgedRuns = signal<Record<string, boolean>>({});
 
   readonly workspaceId = input<string>(undefined);
   readonly breadcrumb = input<Breadcrumb[]>(undefined);
@@ -293,11 +304,76 @@ export class WorkspaceContainerComponent
 
   apply(event: Event, run: Run) {
     event.stopPropagation();
-    // TODO: Unsubscribe from this.
+    const check = this.capacityChecks()[run.id];
+
+    if (check) {
+      this.applyChecked(run, check);
+      return;
+    }
+
+    // Not expanded yet: read the check first, so a refusal or a warning shows
+    // in the run instead of failing the request.
+    this.capacityService
+      .getRunCapacity(run.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.setCapacityCheck(run, result);
+          this.applyChecked(run, result);
+        },
+        error: () => this.applyChecked(run, undefined),
+      });
+  }
+
+  private applyChecked(run: Run, check: CapacityCheck | undefined) {
+    const acknowledged = !!this.acknowledgedRuns()[run.id];
+
+    if (
+      check &&
+      (check.canApply === false ||
+        (check.requiresAcknowledgement && !acknowledged))
+    ) {
+      this.workspaceService.expandRun(true, run);
+      return;
+    }
+
     this.workspaceService
-      .applyRun(this.workspaceId(), run.id)
-      .pipe()
+      .applyRun(this.workspaceId(), run.id, acknowledged)
+      .pipe(take(1))
       .subscribe();
+  }
+
+  setCapacityCheck(run: Run, check: CapacityCheck) {
+    this.capacityChecks.update((checks) => ({ ...checks, [run.id]: check }));
+  }
+
+  setAcknowledged(run: Run, acknowledged: boolean) {
+    this.acknowledgedRuns.update((runs) => ({
+      ...runs,
+      [run.id]: acknowledged,
+    }));
+  }
+
+  /** False when the run's capacity check refuses it, or warns and is not acknowledged yet. */
+  capacityAllowsApply(run: Run): boolean {
+    const check = this.capacityChecks()[run.id];
+    if (!check) {
+      return true;
+    }
+    if (check.canApply === false) {
+      return false;
+    }
+    return !check.requiresAcknowledgement || !!this.acknowledgedRuns()[run.id];
+  }
+
+  capacityTooltip(run: Run): string {
+    const check = this.capacityChecks()[run.id];
+    if (!check || this.capacityAllowsApply(run)) {
+      return '';
+    }
+    return check.canApply === false
+      ? 'Refused by the capacity check'
+      : 'Acknowledge the capacity warning to apply';
   }
 
   destroy(event: Event) {

@@ -98,14 +98,16 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           class="d-flex flex-row flex-nowrap justify-content-start align-content-between gap-2"
         >
           @if (hasPlan(item)) {
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="!canEdit()"
-              (click)="apply($event, item)"
-            >
-              Apply
-            </button>
+            <span [matTooltip]="capacityTooltip(item)">
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="!canEdit() || !capacityAllowsApply(item)"
+                (click)="apply($event, item)"
+              >
+                Apply
+              </button>
+            </span>
           }
           @if (hasPlan(item)) {
             <button
@@ -160,6 +162,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </div>
         <div *cwdTableItemContent="let item">
           @if ((expandedRunIds$ | async).includes(item.id)) {
+            @if (hasPlan(item)) {
+              <cas-run-capacity
+                [runId]="item.id"
+                [canEdit]="canEdit()"
+                [acknowledged]="!!acknowledgedRuns()[item.id]"
+                (acknowledgedChange)="setAcknowledged(item, $event)"
+                (checked)="setCapacityCheck(item, $event)"
+              />
+            }
             <cas-run
               [run]="item"
               (planOutput)="planOutput($event, item)"

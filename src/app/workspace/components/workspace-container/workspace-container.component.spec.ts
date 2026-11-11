@@ -21,10 +21,15 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
+  Apply,
+  AppliesService,
+  CapacityCheck,
+  CapacityService,
   Resource,
   ResourcesService,
   Run,
   RunsService,
+  RunStatus,
   SystemPermission,
   Workspace,
 } from 'src/app/generated/caster-api';
@@ -79,13 +84,23 @@ async function renderWorkspace(
   canEdit: boolean,
   grants: PermissionGrants = {},
   resources: Resource[] = [],
+  runs: Run[] = [],
+  capacity: CapacityCheck = { status: 'Ok', canApply: true },
 ) {
   const runsApi = {
     createRun: vi.fn(() =>
       of<Run>({ id: 'run1', workspaceId: 'w1', isDestroy: false }),
     ),
-    getRunsByWorkspaceId: vi.fn((_id: string) => of<Run[]>([])),
+    getRunsByWorkspaceId: vi.fn((_id: string) => of<Run[]>(runs)),
   } satisfies ApiStub<RunsService>;
+  const appliesApi = {
+    applyRun: vi.fn((runId: string, _acknowledge?: boolean) =>
+      of<Apply>({ id: 'apply1', runId }),
+    ),
+  } satisfies ApiStub<AppliesService>;
+  const capacityApi = {
+    getRunCapacity: vi.fn((_runId: string) => of(capacity)),
+  } satisfies ApiStub<CapacityService>;
   const resourcesApi = {
     getResourcesByWorkspace: vi.fn((_id: string) => of(resources)),
   } satisfies ApiStub<ResourcesService>;
@@ -126,6 +141,8 @@ async function renderWorkspace(
       ...permissionDataProviders(grants),
       { provide: RunsService, useValue: runsApi },
       { provide: ResourcesService, useValue: resourcesApi },
+      { provide: AppliesService, useValue: appliesApi },
+      { provide: CapacityService, useValue: capacityApi },
       { provide: SignalRService, useValue: signalR },
     ],
     inputs: { workspaceId: 'w1', breadcrumb: [], canEdit },
@@ -141,7 +158,16 @@ async function renderWorkspace(
   // The table's action area; the header row has a sortable Destroy column too.
   const actions = () =>
     within(view.container.querySelector('.list-actions') as HTMLElement);
-  return { ...view, runsApi, signalR, openStateView, actions, user };
+  return {
+    ...view,
+    runsApi,
+    appliesApi,
+    capacityApi,
+    signalR,
+    openStateView,
+    actions,
+    user,
+  };
 }
 
 describe('WorkspaceContainerComponent', () => {
@@ -273,6 +299,105 @@ describe('WorkspaceContainerComponent', () => {
       isDestroy: false,
       replaceAddresses: ['proxmox_cloned_vm.a'],
       targets: ['proxmox_cloned_vm.b'],
+    });
+  });
+
+  describe('capacity check before Apply', () => {
+    const planned: Run = {
+      id: 'run1',
+      workspaceId: 'w1',
+      status: RunStatus.Planned,
+      isDestroy: false,
+      planId: 'p1',
+      createdAt: '2026-11-11T12:00:00Z',
+    };
+    const warning: CapacityCheck = {
+      status: 'Warning',
+      canApply: true,
+      requiresAcknowledgement: true,
+      message: 'The hypervisors may not have room for this run.',
+      requested: { machines: 1, vcpu: 4, memoryMiB: 8192, diskGiB: 40 },
+      after: { machines: 1, vcpu: 4, memoryMiB: 8192, diskGiB: 40 },
+      limits: {},
+      hosts: [],
+      datastores: [],
+      notes: [],
+    };
+    const applyButton = async () =>
+      screen.findByRole('button', { name: 'Apply' });
+
+    /**
+     * Verifies: a run within its limits and the room is applied at once, without an acknowledgement.
+     * Interacts with: CapacityService.getRunCapacity and AppliesService.applyRun (stubs).
+     * Data: one planned run; an Ok check.
+     */
+    it('applies a run the check allows', async () => {
+      const { appliesApi, capacityApi, user } = await renderWorkspace(
+        true,
+        {},
+        [],
+        [planned],
+      );
+
+      await user.click(await applyButton());
+
+      expect(capacityApi.getRunCapacity).toHaveBeenCalledWith('run1');
+      expect(appliesApi.applyRun).toHaveBeenCalledWith('run1');
+    });
+
+    /**
+     * Verifies: Apply on a run the hypervisors may not have room for opens the warning instead, stays disabled until it is acknowledged, then applies with the acknowledgement.
+     * Interacts with: the real cas-run-capacity; CapacityService.getRunCapacity and AppliesService.applyRun (stubs).
+     * Data: one planned run; a Warning check that needs acknowledging.
+     */
+    it('needs the room warning acknowledged before applying', async () => {
+      const { appliesApi, user } = await renderWorkspace(
+        true,
+        {},
+        [],
+        [planned],
+        warning,
+      );
+
+      await user.click(await applyButton());
+
+      expect(appliesApi.applyRun).not.toHaveBeenCalled();
+      expect(await screen.findByText('Not enough room.')).toBeInTheDocument();
+      expect(await applyButton()).toBeDisabled();
+
+      await user.click(screen.getByRole('checkbox', { name: /Apply anyway/ }));
+      expect(await applyButton()).toBeEnabled();
+      await user.click(await applyButton());
+
+      expect(appliesApi.applyRun).toHaveBeenCalledWith('run1', true);
+    });
+
+    /**
+     * Verifies: a run the check refuses is never applied, and its Apply is disabled once the refusal shows.
+     * Interacts with: the real cas-run-capacity; CapacityService.getRunCapacity and AppliesService.applyRun (stubs).
+     * Data: one planned run; a Refused check over a project limit.
+     */
+    it('does not apply a refused run', async () => {
+      const { appliesApi, user } = await renderWorkspace(
+        true,
+        {},
+        [],
+        [planned],
+        {
+          ...warning,
+          status: 'Refused',
+          canApply: false,
+          requiresAcknowledgement: false,
+          message:
+            'This run would leave the workspace with 4 vCPUs, over its limit of 2 vCPUs (set on the project); it has 0 now.',
+        },
+      );
+
+      await user.click(await applyButton());
+
+      expect(await screen.findByText('Apply refused.')).toBeInTheDocument();
+      expect(await applyButton()).toBeDisabled();
+      expect(appliesApi.applyRun).not.toHaveBeenCalled();
     });
   });
 });

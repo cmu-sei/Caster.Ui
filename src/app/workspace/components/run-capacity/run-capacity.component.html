@@ -1,0 +1,143 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (check(); as check) {
+  <section
+    class="capacity"
+    [class.refused]="status() === statuses.Refused"
+    [class.warning]="status() === statuses.Warning"
+    aria-label="Capacity check"
+  >
+    <div class="summary">
+      @switch (status()) {
+        @case (statuses.Refused) {
+          <mat-icon class="mdi-24px" fontIcon="mdi-cancel" />
+          <strong>Apply refused.</strong>
+        }
+        @case (statuses.Warning) {
+          <mat-icon class="mdi-24px" fontIcon="mdi-alert" />
+          <strong>Not enough room.</strong>
+        }
+        @case (statuses.Unknown) {
+          <mat-icon class="mdi-24px" fontIcon="mdi-help-circle-outline" />
+        }
+        @default {
+          <mat-icon class="mdi-24px" fontIcon="mdi-check-circle-outline" />
+        }
+      }
+      <span>
+        Adds {{ check.requested?.machines ?? 0 }}
+        {{ check.requested?.machines === 1 ? 'machine' : 'machines' }},
+        {{ check.requested?.vcpu ?? 0 }} vCPU,
+        {{ gib(check.requested?.memoryMiB) | number: '1.0-1' }} GiB memory,
+        {{ check.requested?.diskGiB ?? 0 | number: '1.0-1' }} GiB disk.
+      </span>
+    </div>
+
+    @if (check.message) {
+      <p class="message">{{ check.message }}</p>
+    }
+
+    @if (status() !== statuses.Unknown) {
+      <table class="lines">
+        <caption>
+          Workspace after this run
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">Total</th>
+            <th scope="col">Limit</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of limitRows(); track row.label) {
+            <tr [class.over]="row.over">
+              <th scope="row">{{ row.label }}</th>
+              <td>{{ row.after | number: '1.0-1' }} {{ row.unit }}</td>
+              <td>
+                @if (row.limit) {
+                  {{ row.limit.value }} {{ row.unit }}
+                  <span class="source">({{ source(row.limit) }})</span>
+                } @else {
+                  None
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (check.hosts?.length || check.datastores?.length) {
+        <table class="lines">
+          <caption>
+            Room on the hypervisors
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Host or datastore</th>
+              <th scope="col">Needs</th>
+              <th scope="col">Free</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (host of check.hosts; track $index) {
+              <tr [class.over]="!host.fits">
+                <th scope="row">
+                  {{ host.host ?? 'All ' + host.hypervisor + ' hosts' }}
+                  @if (!host.online) {
+                    <span class="source">(offline)</span>
+                  }
+                </th>
+                <td>
+                  {{ host.needVcpu }} vCPU,
+                  {{ gib(host.needMemoryMiB) | number: '1.0-1' }} GiB
+                </td>
+                <td>
+                  {{ host.freeVcpu }} vCPU{{ host.cpuApproximated ? '*' : '' }},
+                  {{ gib(host.freeMemoryMiB) | number: '1.0-1' }} GiB
+                </td>
+              </tr>
+            }
+            @for (datastore of check.datastores; track $index) {
+              <tr [class.over]="!datastore.fits">
+                <th scope="row">
+                  {{
+                    datastore.datastore ??
+                      'All ' + datastore.hypervisor + ' datastores'
+                  }}
+                </th>
+                <td>{{ datastore.needGiB | number: '1.0-1' }} GiB</td>
+                <td>{{ datastore.freeGiB | number: '1.0-1' }} GiB</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+
+    @if (check.notes?.length) {
+      <ul class="notes">
+        @for (note of check.notes; track $index) {
+          <li>{{ note }}</li>
+        }
+      </ul>
+    }
+
+    @if (check.requiresAcknowledgement) {
+      <mat-checkbox
+        [disabled]="!canEdit()"
+        [checked]="acknowledged()"
+        (change)="acknowledged.set($event.checked)"
+        (click)="$event.stopPropagation()"
+      >
+        Apply anyway: I understand the hypervisors may not have room for this
+        run
+      </mat-checkbox>
+    }
+  </section>
+} @else if (failed()) {
+  <p class="message">The capacity check could not be loaded.</p>
+}
