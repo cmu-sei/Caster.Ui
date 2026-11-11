@@ -21,6 +21,7 @@ import {
   SystemPermission,
 } from 'src/app/generated/caster-api';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
+import { InventoryService } from 'src/app/inventory/state/inventory.service';
 import { apiErrorMessage } from 'src/app/environment-sets/environment-set-rules';
 import { ProjectEnvironmentSetsViewComponent } from 'src/app/environment-sets/project-environment-sets-view/project-environment-sets-view.component';
 import { PermissionService } from 'src/app/permissions/permission.service';
@@ -77,6 +78,7 @@ export class ProjectEnvironmentComponent implements OnInit {
   private inventoryApi = inject(InventoryApiService);
   private environmentSetService = inject(EnvironmentSetService);
   private assignmentService = inject(AssignmentService);
+  private inventoryService = inject(InventoryService);
   private permissionService = inject(PermissionService);
 
   private readonly canManageInfrastructure$ =
@@ -96,6 +98,8 @@ export class ProjectEnvironmentComponent implements OnInit {
 
   /** The project's connections, as its members see them. */
   readonly connections = signal<InventoryConnection[]>([]);
+  /** Whether the project's connections have been read, so editing starts from what is assigned. */
+  private readonly connectionsLoaded = signal(false);
   /** Every configured connection, for ManageInfrastructure holders. */
   private readonly allConnections = signal<InventoryConnection[]>([]);
   private readonly allSets = toSignal(this.environmentSetService.sets$, {
@@ -104,6 +108,11 @@ export class ProjectEnvironmentComponent implements OnInit {
   readonly projectSets = toSignal(
     this.environmentSetService.projectSets$(this.data.projectId),
     { initialValue: null },
+  );
+
+  /** Editing starts from what is assigned, so it waits until both lists are read. */
+  readonly loaded = computed(
+    () => this.projectSets() !== null && this.connectionsLoaded(),
   );
 
   readonly editing = signal(false);
@@ -308,6 +317,11 @@ export class ProjectEnvironmentComponent implements OnInit {
         this.saving.set(false);
         this.editing.set(false);
         this.loadConnections();
+        if (connections.add.length || connections.remove.length) {
+          this.inventoryService
+            .projectConnectionsChanged(this.data.projectId)
+            .subscribe();
+        }
       },
       error: (err) => {
         this.saving.set(false);
@@ -331,7 +345,10 @@ export class ProjectEnvironmentComponent implements OnInit {
     this.projectInventoryApi
       .getProjectInventoryConnections(this.data.projectId)
       .subscribe({
-        next: (x) => this.connections.set(x ?? []),
+        next: (x) => {
+          this.connections.set(x ?? []);
+          this.connectionsLoaded.set(true);
+        },
         error: (err) => this.error.set(apiErrorMessage(err)),
       });
   }

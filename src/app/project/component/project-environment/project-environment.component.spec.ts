@@ -16,6 +16,7 @@ import {
   ProjectInventoryService,
   SystemPermission,
 } from 'src/app/generated/caster-api';
+import { InventoryService as InventoryStateService } from 'src/app/inventory/state/inventory.service';
 import { ProjectEnvironmentSetsViewComponent } from 'src/app/environment-sets/project-environment-sets-view/project-environment-sets-view.component';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import {
@@ -86,6 +87,9 @@ async function renderDialog(
     getProjectEnvironmentSets: vi.fn(() => of(projectSets)),
   };
   const assignments = { editAssignments };
+  const inventoryState = {
+    projectConnectionsChanged: vi.fn(() => of<unknown>(null)),
+  };
 
   const view = await renderComponent(ProjectEnvironmentComponent, {
     childStubs: [
@@ -105,6 +109,7 @@ async function renderDialog(
       { provide: InventoryService, useValue: inventory },
       { provide: EnvironmentSetsService, useValue: sets },
       { provide: AssignmentsService, useValue: assignments },
+      { provide: InventoryStateService, useValue: inventoryState },
     ],
   });
   await view.fixture.whenStable();
@@ -116,6 +121,7 @@ async function renderDialog(
     inventory,
     sets,
     assignments,
+    inventoryState,
     user: userEvent.setup(),
   };
 }
@@ -169,8 +175,8 @@ describe('ProjectEnvironmentComponent', () => {
    * Interacts with: AssignmentsService.editAssignments (stub).
    * Data: lab-vcenter shown.
    */
-  it('removes a connection', async () => {
-    const { user, assignments } = await renderDialog(admin);
+  it('removes a connection, and has the Inventory panel list connections again', async () => {
+    const { user, assignments, inventoryState } = await renderDialog(admin);
 
     await user.click(
       screen.getByRole('button', { name: /Change Assignments/ }),
@@ -188,6 +194,7 @@ describe('ProjectEnvironmentComponent', () => {
         },
       ],
     });
+    expect(inventoryState.projectConnectionsChanged).toHaveBeenCalledWith('p1');
   });
 
   /**

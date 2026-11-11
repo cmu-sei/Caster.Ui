@@ -489,4 +489,25 @@ describe('InventoryService', () => {
       apiSpy.getCategory.mock.calls.every(([, name]) => name === 'phl-vmc'),
     ).toBe(true);
   });
+
+  /**
+   * Verifies: after the project's connections change, a panel that has read them lists them again, and one not yet opened, or showing another project, waits.
+   * Interacts with: projectConnectionsChanged; ProjectInventoryService (stub); real InventoryStore.
+   * Data: project p1, Networks read once.
+   */
+  it("lists a project's connections again after they change, once read", () => {
+    service.setScope('p1');
+    service.projectConnectionsChanged('p1').subscribe();
+    expect(projectApi.getProjectInventoryConnections).not.toHaveBeenCalled();
+
+    projectApi.getProjectInventoryNetworks.mockReturnValue(of(response()));
+    service.load(InventoryCategory.Networks).subscribe();
+    service.projectConnectionsChanged('p2').subscribe();
+    expect(projectApi.getProjectInventoryConnections).not.toHaveBeenCalled();
+
+    service.projectConnectionsChanged('p1').subscribe();
+    expect(projectApi.getProjectInventoryConnections).toHaveBeenCalledWith(
+      'p1',
+    );
+  });
 });

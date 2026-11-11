@@ -27,6 +27,7 @@ import {
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
 import {
   apiErrorMessage,
+  connectionEntryLockedText,
   effectiveName,
 } from 'src/app/environment-sets/environment-set-rules';
 import { variableLabel } from 'src/app/environment-sets/environment-set-snippets';
@@ -52,6 +53,8 @@ export interface MultiEditRow {
   setIds: string[];
   /** Whether the sets that have it give it different values or sources. */
   mixed: boolean;
+  /** Whether any of the sets reads it from a connection, which only ManageInfrastructure holders change. */
+  connection: boolean;
 }
 
 /**
@@ -82,6 +85,7 @@ export class EnvironmentSetMultiEditDialogComponent {
   private environmentSetService = inject(EnvironmentSetService);
 
   readonly Operation = EnvironmentSetEntryChangeOperation;
+  readonly lockedText = connectionEntryLockedText;
   readonly variableLabel = variableLabel;
   readonly title = `Edit ${this.data.sets.length} Environment Sets`;
 
@@ -101,9 +105,12 @@ export class EnvironmentSetMultiEditDialogComponent {
           entry,
           setIds: [],
           mixed: false,
+          connection: false,
           signatures: new Set<string>(),
         };
         row.setIds.push(set.id);
+        row.connection ||=
+          entry.valueSource === EnvironmentSetValueSource.Connection;
         row.signatures.add(signature(entry));
         rows.set(name, row);
       }
@@ -133,6 +140,11 @@ export class EnvironmentSetMultiEditDialogComponent {
 
   change(row: MultiEditRow): EnvironmentSetEntryChange | null {
     return this.changes()[row.name] ?? null;
+  }
+
+  /** A connection entry can be removed by anyone here, but changed only with ManageInfrastructure, as the API requires. */
+  locked(row: MultiEditRow): boolean {
+    return row.connection && !this.data.canUseConnections;
   }
 
   /** Whether the sets that lack the row's entry would get it. */

@@ -145,6 +145,12 @@ export class AdminEnvironmentSetsComponent
   dataSource$ = this.environmentSetService.sets$.pipe(
     map((sets) => {
       this.dataSource.data = sets;
+      // A deleted set can't stay ticked, or Edit Selected would count it.
+      for (const id of this.selectedSetIds) {
+        if (!sets.some((x) => x.id === id)) {
+          this.selectedSetIds.delete(id);
+        }
+      }
       return this.dataSource;
     }),
   );

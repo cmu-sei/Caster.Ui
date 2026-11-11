@@ -78,11 +78,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                     mat-icon-button
                     type="button"
                     [attr.aria-label]="'Edit ' + variableLabel(entry)"
-                    [matTooltip]="
-                      canEditEntry(entry)
-                        ? 'Edit'
-                        : 'Changing a connection entry needs ManageInfrastructure'
-                    "
+                    [matTooltip]="canEditEntry(entry) ? 'Edit' : lockedText"
                     [disabled]="!canEditEntry(entry)"
                     (click)="editEntry(entry)"
                   >

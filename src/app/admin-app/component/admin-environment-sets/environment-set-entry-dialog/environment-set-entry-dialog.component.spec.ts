@@ -190,7 +190,7 @@ describe('EnvironmentSetEntryDialogComponent', () => {
       screen.getByLabelText('Environment variable name'),
       'PROXMOX_VE_API_TOKEN',
     );
-    await choose(harnesses, 'valueSource', 'Infrastructure connection');
+    await choose(harnesses, 'valueSource', 'Connection');
     await choose(harnesses, 'connectionName', 'lab-pve (proxmox)');
     await choose(harnesses, 'connectionField', 'ApiToken (secret)');
 
