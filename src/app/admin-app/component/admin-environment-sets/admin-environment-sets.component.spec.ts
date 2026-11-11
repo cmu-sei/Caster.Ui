@@ -156,16 +156,13 @@ describe('AdminEnvironmentSetsComponent', () => {
   });
 
   /**
-   * Verifies: the Sets tab sums up how runs execute and how many secrets are missing, and the Secrets tab lists every name with its status and the sets using it.
+   * Verifies: the Sets tab says how many secrets are missing, and the Secrets tab lists every name with its status and the sets using it.
    * Interacts with: getEnvironmentSecrets (stub); the Secrets tab.
    * Data: Kubernetes job mode; one available and one missing name; the missing one used by vSphere.
    */
-  it('sums up the run mode and lists the secrets on their own tab', async () => {
+  it('counts the missing secrets and lists the secrets on their own tab', async () => {
     const { user } = await renderPage(manage);
 
-    expect(
-      screen.getByText(/Runs execute as\s+Kubernetes jobs/),
-    ).toBeInTheDocument();
     expect(screen.getByText(/1 missing\s+secret/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Secrets' }));

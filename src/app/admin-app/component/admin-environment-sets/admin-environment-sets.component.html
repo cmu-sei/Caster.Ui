@@ -69,33 +69,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
         @if (secrets$ | async; as secrets) {
           <div class="summary">
-            <span>
-              Runs execute as
-              {{
-                secrets.runMode === RunMode.Kubernetes
-                  ? 'Kubernetes jobs'
-                  : 'local processes'
-              }}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>
-              Secret names match
-              @for (
-                pattern of secrets.patterns;
-                track pattern;
-                let last = $last
-              ) {
-                <code>{{ pattern }}</code
-                >{{ last ? '' : ', ' }}
-              } @empty {
-                <span class="warning">no pattern (none are configured)</span>
-              }
-            </span>
             @if (secrets.missing?.length) {
-              <span aria-hidden="true">·</span>
               <span class="warning">
                 {{ secrets.missing.length }} missing
-                {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}
+                {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}: runs
+                that use
+                {{ secrets.missing.length === 1 ? 'it' : 'them' }} fail. See the
+                Secrets tab.
+              </span>
+            }
+            @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
+              <span class="warning">
+                Too short to mask in run output, so runs that use
+                {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
+                {{ secrets.tooShort.join(', ') }}.
               </span>
             }
             <button
@@ -109,60 +96,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
             </button>
           </div>
-          @if (secrets.runMode !== RunMode.Kubernetes) {
-            <p class="warning banner">
-              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
-              Runs execute as local processes, which are not isolated: any
-              project's Terraform runs as the API's user and can read the API's
-              own environment, including every secret. Use Kubernetes job mode
-              where projects must be kept apart.
-            </p>
-          }
-          @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
-            <p class="warning banner">
-              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
-              {{ secrets.tooShort.length }}
-              {{ secrets.tooShort.length === 1 ? 'secret is' : 'secrets are' }}
-              shorter than {{ secrets.minimumMaskedLength }} characters, too
-              short to mask in run output, so runs that use
-              {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
-              {{ secrets.tooShort.join(', ') }}.
-            </p>
-          }
-          @if (secrets.inheritAll) {
-            <p class="warning banner">
-              <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
-              InheritAll is on: every API environment variable except secrets
-              reaches every run, including the API's own credentials.
-            </p>
-          }
           @if (showNotes) {
             <ul class="notes" role="note">
               <li>
-                Secrets are API environment variables whose names match the
-                patterns above. Caster never shows their values, and masks them
-                in run output.
+                A set's variables reach every workspace of the projects it is
+                assigned to. Secret values are never shown, and are masked in
+                run output.
               </li>
               <li>
-                Only the projects a set is assigned to get its variables, in
-                every workspace. Project editors can read those values through
-                their Terraform, so assign a set only where its editors may hold
-                its credentials.
+                A project's editors can read its sets' values through their
+                Terraform, so assign a set only where they may hold its
+                credentials.
               </li>
-              @if (secrets.runMode === RunMode.Kubernetes) {
+              @if (secrets.runMode !== RunMode.Kubernetes) {
                 <li>
-                  Values are plain environment variables in each Job spec: keep
-                  the jobs namespace admin-only.
+                  Runs on this Caster aren't isolated from each other, so any
+                  project's Terraform can read every secret.
                 </li>
               }
-              <li>
-                A secret can't be a Terraform variable, as Terraform saves
-                variables in plans and state.
-              </li>
-              <li>
-                The run mode is set when the API starts
-                (Terraform:KubernetesJobs:Enabled).
-              </li>
             </ul>
           }
         }
