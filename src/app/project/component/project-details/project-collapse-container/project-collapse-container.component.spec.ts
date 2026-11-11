@@ -153,12 +153,14 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
-   * Verifies: with ViewInfrastructure the side panel shows the Infrastructure panel.
+   * Verifies: with ViewInfrastructure the side panel shows the Inventory panel.
    * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
    * Data: active project p1 Range; system permission ViewInfrastructure.
    */
-  it('shows the Infrastructure panel with ViewInfrastructure', async () => {
-    const { fixture } = await renderContainer([SystemPermission.ViewInfrastructure]);
+  it('shows the Inventory panel with ViewInfrastructure', async () => {
+    const { fixture } = await renderContainer([
+      SystemPermission.ViewInfrastructure,
+    ]);
 
     expect(
       fixture.debugElement.query(By.directive(InventoryPanelStub)),
@@ -166,11 +168,11 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
-   * Verifies: without ViewInfrastructure the Infrastructure panel is not rendered, so it can never fetch the inventory.
+   * Verifies: without ViewInfrastructure the Inventory panel is not rendered, so it can never fetch the inventory.
    * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
    * Data: active project p1 Range; ViewProjects but not ViewInfrastructure.
    */
-  it('hides the Infrastructure panel without ViewInfrastructure', async () => {
+  it('hides the Inventory panel without ViewInfrastructure', async () => {
     const { fixture } = await renderContainer([SystemPermission.ViewProjects]);
 
     expect(
@@ -182,11 +184,11 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
-   * Verifies: ViewHosts, which the Hosts admin feature uses, no longer shows the Infrastructure panel; the inventory routes need ViewInfrastructure.
+   * Verifies: ViewHosts, which the Hosts admin feature uses, no longer shows the Inventory panel; the inventory routes need ViewInfrastructure.
    * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
    * Data: active project p1 Range; ViewHosts only.
    */
-  it('hides the Infrastructure panel for ViewHosts alone', async () => {
+  it('hides the Inventory panel for ViewHosts alone', async () => {
     const { fixture } = await renderContainer([SystemPermission.ViewHosts]);
 
     expect(
