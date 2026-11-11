@@ -170,7 +170,7 @@ describe('AdminContainerComponent', () => {
     [
       'ViewInfrastructure',
       { system: [SystemPermission.ViewInfrastructure] },
-      ['Infrastructure Connections'],
+      ['Connections'],
     ],
     ['ManageHosts', { system: [SystemPermission.ManageHosts] }, []],
     ['ViewModules', { system: [SystemPermission.ViewModules] }, ['Modules']],
@@ -224,7 +224,7 @@ describe('AdminContainerComponent', () => {
       'Projects',
       'Workspaces',
       'VLANs',
-      'Infrastructure Connections',
+      'Connections',
       'Modules',
       'Users',
       'Roles',
@@ -282,7 +282,7 @@ describe('AdminContainerComponent', () => {
       permission: SystemPermission.ViewVlans,
     },
     {
-      section: 'Infrastructure Connections',
+      section: 'Connections',
       page: 'cas-admin-hypervisors',
       permission: SystemPermission.ViewInfrastructure,
     },
@@ -330,7 +330,7 @@ describe('AdminContainerComponent', () => {
       permission: SystemPermission.ManageVlans,
     },
     {
-      section: 'Infrastructure Connections',
+      section: 'Connections',
       page: 'cas-admin-hypervisors',
       permission: SystemPermission.ManageHosts,
     },
