@@ -71,7 +71,7 @@ function toList(result: InventoryResult | null): HypervisorList | null {
 /**
  * CPU, memory and storage use on each hypervisor Caster has an inventory
  * connection to, for admins planning whether an exercise will fit. Read from
- * the same cache as the project Infrastructure panel, so the figures are as old
+ * the same cache as the project Inventory panel, so the figures are as old
  * as the last inventory read; Refresh re-reads that one connection.
  */
 @Component({
