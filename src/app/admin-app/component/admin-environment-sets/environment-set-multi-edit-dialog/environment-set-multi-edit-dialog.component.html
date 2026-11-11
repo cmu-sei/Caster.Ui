@@ -25,7 +25,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <th scope="col">Variable</th>
           <th scope="col">In</th>
           <th scope="col">Value</th>
-          <th scope="col">Add to the others</th>
+          <th scope="col">Add where missing</th>
           <th scope="col"><span class="visually-hidden">Actions</span></th>
         </tr>
       </thead>
@@ -56,15 +56,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               @if (row.setIds.length < data.sets.length) {
                 <mat-checkbox
                   [checked]="addsToOthers(row)"
-                  [disabled]="!change || change.operation === Operation.Delete"
+                  [disabled]="change?.operation === Operation.Delete"
                   [matTooltip]="
-                    change
-                      ? 'Also add the edited entry to the sets that lack it'
-                      : 'Edit the entry first'
+                    row.mixed && !change
+                      ? 'Add to ' +
+                        missingFrom(row) +
+                        ': the sets differ, so pick the value first'
+                      : 'Add to ' + missingFrom(row)
                   "
-                  (change)="toggleAddToOthers(row, $event.checked)"
-                  [attr.aria-label]="
-                    'Add ' + variableLabel(row.entry) + ' to the other sets'
+                  (change)="toggleAddToOthers(row, $event)"
+                  [aria-label]="
+                    'Add ' + variableLabel(row.entry) + ' where missing'
                   "
                 />
               }

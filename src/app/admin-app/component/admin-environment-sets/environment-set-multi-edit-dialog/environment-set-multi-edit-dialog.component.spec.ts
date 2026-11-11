@@ -56,7 +56,16 @@ const sets: EnvironmentSet[] = [
   },
 ];
 
-async function renderDialog(entryDialogResult: unknown = undefined) {
+/** REGION in A and B with different values, and nothing in C. */
+const threeSets: EnvironmentSet[] = [
+  ...sets,
+  { id: 'c', name: 'C', entries: [] },
+];
+
+async function renderDialog(
+  entryDialogResult: unknown = undefined,
+  selected: EnvironmentSet[] = sets,
+) {
   const { dialogRef, close } =
     dialogRefStub<EnvironmentSetMultiEditDialogComponent>();
   const api = {
@@ -71,7 +80,7 @@ async function renderDialog(entryDialogResult: unknown = undefined) {
       {
         provide: MAT_DIALOG_DATA,
         useValue: {
-          sets,
+          sets: selected,
           secrets: null,
           connections: [],
           canUseConnections: false,
@@ -132,5 +141,50 @@ describe('EnvironmentSetMultiEditDialogComponent', () => {
       ],
     });
     expect(close).toHaveBeenCalledWith(sets);
+  });
+
+  /**
+   * Verifies: an entry the sets that have it agree on is added where missing without editing it first.
+   * Interacts with: the Add where missing checkbox; batchEditEnvironmentSets (stub).
+   * Data: OLD = "x" in A only.
+   */
+  it('adds an entry where missing as the sets have it', async () => {
+    const { user, api, open } = await renderDialog();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Add OLD where missing' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(open).not.toHaveBeenCalled();
+    expect(api.batchEditEnvironmentSets).toHaveBeenCalledWith({
+      environmentSetIds: ['a', 'b'],
+      changes: [
+        expect.objectContaining({
+          operation: 'Upsert',
+          targetName: 'OLD',
+          valueSource: 'Plain',
+          value: 'x',
+        }),
+      ],
+    });
+  });
+
+  /**
+   * Verifies: a mixed entry asks for its value before it is added where missing, and cancelling leaves it unchecked.
+   * Interacts with: the entry dialog (stub answering nothing, as a cancel).
+   * Data: REGION differs between A and B, and C lacks it.
+   */
+  it('asks for a value before adding a mixed entry where missing', async () => {
+    const { user, open } = await renderDialog(undefined, threeSets);
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: 'Add REGION where missing',
+    });
+    await user.click(checkbox);
+
+    expect(open).toHaveBeenCalled();
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 });
