@@ -102,7 +102,11 @@ export class RunComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.isApply = true;
 
       if (run.apply != null) {
-        this.addOutput(run.apply.output);
+        // a run applied without room for it says so above its output, in yellow
+        if (run.apply.capacityWarning) {
+          this.addOutput(`\x1b[33mCapacity warning: ${run.apply.capacityWarning}\x1b[0m\r\n`);
+        }
+        this.addOutput(run.apply.output ?? '');
         return;
       } else {
         this.signalRService.startConnection().then(() => {

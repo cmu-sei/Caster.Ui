@@ -31,5 +31,9 @@ export interface Apply {
      * The raw Terraform output of the Apply command
      */
     output?: string | null;
+    /**
+     * The capacity warning the run was applied with, when the hypervisors may not have had room for it; null when they did
+     */
+    capacityWarning?: string | null;
 }
 

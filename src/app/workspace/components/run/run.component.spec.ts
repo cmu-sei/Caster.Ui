@@ -120,6 +120,24 @@ describe('RunComponent', () => {
   });
 
   /**
+   * Verifies: an applied run that was applied without room for it shows its capacity warning above the apply output.
+   * Interacts with: the real xterm Terminal (with mockMatchMedia), SignalRService (stub, not streamed).
+   * Data: run Applied with a capacity warning and apply output "Apply complete!".
+   */
+  it('shows the capacity warning an apply was made with', async () => {
+    const { signalR, firstLine } = await renderRun({
+      id: 'run1',
+      status: RunStatus.Applied,
+      planId: 'pl1',
+      applyId: 'ap1',
+      apply: { id: 'ap1', output: 'Apply complete!', capacityWarning: 'pve1 needs 4 vCPUs. Applied without acknowledging the warning.' },
+    });
+
+    expect(firstLine()).toBe('Capacity warning: pve1 needs 4 vCPUs. Applied without acknowledging the warning.');
+    expect(signalR.streamApplyOutput).not.toHaveBeenCalled();
+  });
+
+  /**
    * Verifies: a planning run without stored output streams the plan from the hub and emits the full output when the stream completes.
    * Interacts with: SignalRService.startConnection and streamPlanOutput (stub), the planOutput output.
    * Data: run Planning, plan not loaded; stream chunks "Plan: " and "1 to add".
