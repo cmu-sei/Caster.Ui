@@ -11,11 +11,15 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ComnAuthService } from '@cmusei/crucible-common';
+import { of } from 'rxjs';
 import {
   GroupPermission,
+  ProjectGroup,
+  ProjectGroupsService,
   ProjectPermission,
   SystemPermission,
 } from '../../../generated/caster-api';
+import { ProjectGroupService } from '../../../project-groups/project-group.service';
 import {
   PermissionGrants,
   permissionDataProviders,
@@ -38,6 +42,7 @@ async function renderTopbar(
   grants: PermissionGrants = {},
   inputs: { projectId?: string; topbarView?: TopbarView } = {},
   authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
+  groups: ProjectGroup[] = [],
 ) {
   const user = userEvent.setup();
   const view = await renderComponent(TopbarComponent, {
@@ -57,9 +62,14 @@ async function renderTopbar(
           ...authOverrides,
         } satisfies Pick<ComnAuthService, 'logout'>,
       },
+      {
+        provide: ProjectGroupsService,
+        useValue: { getProjectGroups: () => of(groups) },
+      },
     ],
     inputs,
   });
+  TestBed.inject(ProjectGroupService).load().subscribe();
   TestBed.inject(CurrentUserStore).update({ id: 'u1', name: 'Ada' });
   view.fixture.detectChanges();
   await user.click(screen.getByRole('button', { name: /Ada/ }));
@@ -81,9 +91,13 @@ describe('TopbarComponent', () => {
   it('leaves a rejected menu logout unhandled', async () => {
     const failure = new Error('sign-out redirect failed');
     const errors = captureUnhandledRxErrors();
-    const { user } = await renderTopbar({}, {}, {
-      logout: () => Promise.reject(failure),
-    });
+    const { user } = await renderTopbar(
+      {},
+      {},
+      {
+        logout: () => Promise.reject(failure),
+      },
+    );
 
     await user.click(screen.getByRole('menuitem', { name: 'Logout' }));
     await flush();
@@ -232,5 +246,51 @@ describe('TopbarComponent', () => {
     expect(
       screen.getByRole('menuitem', { name: 'Manage Project' }),
     ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a group manager who can't reach Administration's Project Groups gets them in the user menu.
+   * Interacts with: ProjectGroupService (real) over ProjectGroupsService (stub).
+   * Data: Lab, which Ada manages; no system permissions.
+   */
+  it('offers Project Groups to a group manager outside Administration', async () => {
+    await renderTopbar({}, {}, {}, [
+      { id: 'g1', name: 'Lab', canManage: true },
+    ]);
+
+    expect(
+      screen.getByRole('menuitem', { name: 'Project Groups' }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: whoever sees Project Groups in Administration isn't offered them in the menu too.
+   * Data: Lab managed with ManageProjectGroups.
+   */
+  it('leaves Project Groups to Administration for admins', async () => {
+    await renderTopbar(
+      { system: [SystemPermission.ManageProjectGroups] },
+      {},
+      {},
+      [{ id: 'g1', name: 'Lab', canManage: true }],
+    );
+
+    expect(
+      screen.queryByRole('menuitem', { name: 'Project Groups' }),
+    ).toBeNull();
+  });
+
+  /**
+   * Verifies: a member who manages no group isn't offered Project Groups.
+   * Data: Lab, which Ada doesn't manage.
+   */
+  it('hides Project Groups from a member who manages none', async () => {
+    await renderTopbar({}, {}, {}, [
+      { id: 'g1', name: 'Lab', canManage: false },
+    ]);
+
+    expect(
+      screen.queryByRole('menuitem', { name: 'Project Groups' }),
+    ).toBeNull();
   });
 });

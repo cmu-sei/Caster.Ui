@@ -128,9 +128,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </div>
     </mat-tab>
 
-    <mat-tab label="Partition & Hosts">
-      <div class="tab-body">
-        @if (canManageVlans()) {
+    @if (canManageVlans()) {
+      <mat-tab label="Partition">
+        <div class="tab-body">
+          <p class="secondary">
+            The group's projects acquire VLANs from their own partition, then
+            this one, then the default.
+          </p>
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>Partition</mat-label>
             <mat-select
@@ -143,18 +147,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               }
             </mat-select>
           </mat-form-field>
-        }
-        <p class="secondary">
-          Hosts:
-          @for (host of group().hosts; track host.id; let last = $last) {
-            {{ host.name }}{{ last ? '' : ', ' }}
-          } @empty {
-            none.
-          }
-          Hosts are given to a group through the API (a host's projectGroupId).
-        </p>
-      </div>
-    </mat-tab>
+        </div>
+      </mat-tab>
+    }
   </mat-tab-group>
 </div>
 

@@ -64,10 +64,10 @@ import { ProjectGroupService } from '../project-group.service';
 
 /**
  * One project group, a tab for each part: its projects, memberships, Environment Sets,
- * connections, and partition and hosts. Each part is editable by those who may: projects and
+ * connections, and partition. Each part is editable by those who may: projects and
  * memberships by the group's managers and ManageProjectGroups, sets by ManageEnvironmentSets,
- * connections by ManageInfrastructure, the partition by ManageVLANs. Hosts are given to a
- * group through the Hosts API.
+ * connections by ManageInfrastructure, the partition by ManageVLANs, who alone see it. A group's
+ * hosts are set through the Hosts API, and aren't shown here.
  */
 @Component({
   selector: 'cas-project-group-detail',

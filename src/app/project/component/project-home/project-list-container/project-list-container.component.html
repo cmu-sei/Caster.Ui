@@ -10,17 +10,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 />
 
 <div class="content-container">
-  @if (managesGroups$ | async) {
-    <button
-      matButton
-      type="button"
-      class="project-groups"
-      (click)="openProjectGroups()"
-    >
-      <mat-icon fontIcon="mdi-folder-multiple-outline" />
-      Project Groups
-    </button>
-  }
   <cas-project-list
     [projects]="projects | async"
     [isLoading]="isLoading$ | async"

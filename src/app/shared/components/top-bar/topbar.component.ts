@@ -13,14 +13,20 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ComnAuthQuery, ComnAuthService, Theme } from '@cmusei/crucible-common';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, combineLatest } from 'rxjs';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { UserService } from '../../../users/state/user.service';
 import { CurrentUserState } from './../../../users/state/user.store';
 import { TopbarView } from './topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
-import { ProjectPermission } from 'src/app/generated/caster-api';
+import {
+  ProjectPermission,
+  SystemPermission,
+} from 'src/app/generated/caster-api';
+import { MatDialog } from '@angular/material/dialog';
+import { ProjectGroupService } from 'src/app/project-groups/project-group.service';
+import { ProjectGroupsDialogComponent } from 'src/app/project-groups/project-groups-dialog/project-groups-dialog.component';
 import { ProjectQuery } from 'src/app/project/state/project-query.service';
 import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { MatIconButton, MatButton } from '@angular/material/button';
@@ -54,6 +60,8 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   private authQuery = inject(ComnAuthQuery);
   private router = inject(Router);
   private permissionService = inject(PermissionService);
+  private projectGroupService = inject(ProjectGroupService);
+  private dialog = inject(MatDialog);
 
   readonly title = input<string>('Caster');
   @Input() sidenav?;
@@ -71,6 +79,28 @@ export class TopbarComponent implements OnInit, OnDestroy, OnChanges {
   canViewAdmin$ = this.permissionService.canViewAdiminstration();
 
   canManageProject$: Observable<boolean>;
+
+  /**
+   * Group managers who can't reach Administration's Project Groups manage their groups from the
+   * user menu. The groups are those the home page loaded.
+   */
+  managesGroupsOutsideAdmin$: Observable<boolean> = combineLatest([
+    this.projectGroupService.groups$,
+    this.permissionService.hasPermission(SystemPermission.ViewProjects),
+    this.permissionService.hasPermission(SystemPermission.ManageProjectGroups),
+  ]).pipe(
+    map(
+      ([groups, viewProjects, manageGroups]) =>
+        !viewProjects && !manageGroups && groups.some((x) => x.canManage),
+    ),
+  );
+
+  openProjectGroups(): void {
+    this.dialog.open(ProjectGroupsDialogComponent, {
+      width: '880px',
+      maxWidth: '95vw',
+    });
+  }
 
   ngOnInit() {
     this.permissionService.load().subscribe();
