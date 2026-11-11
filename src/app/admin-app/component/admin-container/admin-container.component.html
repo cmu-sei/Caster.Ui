@@ -79,15 +79,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           </mat-list-item>
         }
         @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
-          <mat-list-item id="wrapper showhand" (click)="adminGotoHypervisors()">
+          <mat-list-item id="wrapper showhand" (click)="adminGotoConnections()">
             <mat-icon
               matListItemIcon
               class="mat-list-item-icon"
               fontIcon="mdi-server-network"
             />
-            {{ hypervisorsText }}
+            {{ connectionsText }}
             <button
-              [attr.aria-label]="hypervisorsText"
+              [attr.aria-label]="connectionsText"
               mat-icon-button
               class="pull-right"
             >
@@ -253,7 +253,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <cas-vlans />
           }
           @if (
-            showStatus === hypervisorsText &&
+            showStatus === connectionsText &&
             permissions.includes(SystemPermission.ViewInfrastructure)
           ) {
             <cas-admin-hypervisors />

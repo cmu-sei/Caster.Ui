@@ -82,7 +82,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
   public vlansText = 'VLANs';
-  public hypervisorsText = 'Infrastructure Connections';
+  public connectionsText = 'Connections';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
   public projectsText = 'Projects';
@@ -166,10 +166,10 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Sets the display to Infrastructure Connections
+   * Sets the display to Connections
    */
-  adminGotoHypervisors(): void {
-    this.navigateToSection(this.hypervisorsText);
+  adminGotoConnections(): void {
+    this.navigateToSection(this.connectionsText);
   }
 
   /**

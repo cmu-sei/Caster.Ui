@@ -2,7 +2,11 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 import { Component, OnInit, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
+import {
+  ComnAuthService,
+  ComnSettingsService,
+  CrucibleLandingBackgroundDirective,
+} from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Project } from '../../../../generated/caster-api';
@@ -18,7 +22,7 @@ import { ProjectGroupService } from '../../../../project-groups/project-group.se
   selector: 'cas-project-container',
   templateUrl: './project-list-container.component.html',
   styleUrls: ['./project-list-container.component.scss'],
-  imports: [TopbarComponent, ProjectListComponent, AsyncPipe],
+  imports: [CrucibleLandingBackgroundDirective, TopbarComponent, ProjectListComponent, AsyncPipe],
 })
 export class ProjectListContainerComponent implements OnInit {
   private projectService = inject(ProjectService);
