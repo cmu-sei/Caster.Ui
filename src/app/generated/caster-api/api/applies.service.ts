@@ -100,16 +100,24 @@ export class AppliesService {
 
     /**
      * Applies the Plan associated with the specified Run
+     * Refused with a 409 when the run takes its workspace over an effective limit, or when the hypervisors may not have room for it and Capacity:RoomCheck is Block. With RoomCheck Warn, a run the hypervisors may not have room for is applied only when acknowledgeCapacityWarning is true. See GET runs/{runId}/capacity.
      * @param runId 
+     * @param acknowledgeCapacityWarning True to apply even though the hypervisors may not have room for the run.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public applyRun(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Apply>;
-    public applyRun(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Apply>>;
-    public applyRun(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Apply>>;
-    public applyRun(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public applyRun(runId: string, acknowledgeCapacityWarning?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Apply>;
+    public applyRun(runId: string, acknowledgeCapacityWarning?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Apply>>;
+    public applyRun(runId: string, acknowledgeCapacityWarning?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Apply>>;
+    public applyRun(runId: string, acknowledgeCapacityWarning?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling applyRun.');
+        }
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (acknowledgeCapacityWarning !== undefined && acknowledgeCapacityWarning !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>acknowledgeCapacityWarning, 'acknowledgeCapacityWarning');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -156,6 +164,7 @@ export class AppliesService {
         return this.httpClient.request<Apply>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

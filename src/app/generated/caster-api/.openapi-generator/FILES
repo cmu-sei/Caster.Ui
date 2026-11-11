@@ -4,6 +4,7 @@ README.md
 api.module.ts
 api/api.ts
 api/applies.service.ts
+api/capacity.service.ts
 api/designs.service.ts
 api/designsModules.service.ts
 api/directories.service.ts
@@ -39,6 +40,12 @@ model/applyStatus.ts
 model/archiveType.ts
 model/assignPartitionCommand.ts
 model/cancelRunCommand.ts
+model/capacityCheck.ts
+model/capacityCheckStatus.ts
+model/capacityDatastoreLine.ts
+model/capacityHostLine.ts
+model/capacityLimitViolation.ts
+model/capacityTotals.ts
 model/createDesignCommand.ts
 model/createDesignModuleCommand.ts
 model/createDirectoryCommand.ts
@@ -72,12 +79,16 @@ model/editHostCommand.ts
 model/editPartitionCommand.ts
 model/editPoolCommand.ts
 model/editProjectCommand.ts
+model/editProjectLimitsCommand.ts
 model/editProjectMembershipCommand.ts
 model/editSystemRoleCommand.ts
 model/editUserCommand.ts
 model/editVariableCommand.ts
 model/editWorkspaceCommand.ts
+model/editWorkspaceLimitsCommand.ts
 model/editWorkspaceTopologyLayoutCommand.ts
+model/effectiveLimit.ts
+model/effectiveLimits.ts
 model/fileVersion.ts
 model/group.ts
 model/groupMembership.ts
@@ -94,6 +105,7 @@ model/inventoryConnection.ts
 model/inventoryItem.ts
 model/inventoryRefreshResult.ts
 model/inventoryResult.ts
+model/limitSource.ts
 model/modelFile.ts
 model/models.ts
 model/module.ts
@@ -132,6 +144,7 @@ model/reserveVlansCommand.ts
 model/reserveVlansResult.ts
 model/resource.ts
 model/resourceCommandResult.ts
+model/roomCheckMode.ts
 model/run.ts
 model/runStatus.ts
 model/systemPermission.ts

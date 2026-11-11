@@ -45,5 +45,21 @@ export interface Workspace {
      * If set, the number of consecutive failed destroys in an Azure Workspace before  Caster will attempt to mitigate by removing azurerm_resource_group children from the state.
      */
     azureDestroyFailureThreshold?: number | null;
+    /**
+     * The most machines this sets, or null for no limit here. The limit in force is the lowest of the workspace\'s, its project\'s and the global one.
+     */
+    maxMachines?: number | null;
+    /**
+     * The most vCPUs this sets, or null for no limit here.
+     */
+    maxVcpu?: number | null;
+    /**
+     * The most memory, in GiB, this sets, or null for no limit here.
+     */
+    maxMemoryGiB?: number | null;
+    /**
+     * The most disk, in GiB, this sets, or null for no limit here.
+     */
+    maxDiskGiB?: number | null;
 }
 

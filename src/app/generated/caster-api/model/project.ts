@@ -37,5 +37,21 @@ export interface Project {
      * The vlan partition this project is a part of.
      */
     partitionId?: string | null;
+    /**
+     * The most machines this sets, or null for no limit here. The limit in force is the lowest of the workspace\'s, its project\'s and the global one.
+     */
+    maxMachines?: number | null;
+    /**
+     * The most vCPUs this sets, or null for no limit here.
+     */
+    maxVcpu?: number | null;
+    /**
+     * The most memory, in GiB, this sets, or null for no limit here.
+     */
+    maxMemoryGiB?: number | null;
+    /**
+     * The most disk, in GiB, this sets, or null for no limit here.
+     */
+    maxDiskGiB?: number | null;
 }
 
