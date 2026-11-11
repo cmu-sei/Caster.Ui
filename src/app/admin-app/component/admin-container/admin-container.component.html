@@ -78,43 +78,6 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
-        @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
-          <mat-list-item id="wrapper showhand" (click)="adminGotoConnections()">
-            <mat-icon
-              matListItemIcon
-              class="mat-list-item-icon"
-              fontIcon="mdi-server-network"
-            />
-            {{ connectionsText }}
-            <button
-              [attr.aria-label]="connectionsText"
-              mat-icon-button
-              class="pull-right"
-            >
-              <mat-icon fontIcon="mdi-menu-right" />
-            </button>
-          </mat-list-item>
-        }
-        @if (permissions.includes(SystemPermission.ViewEnvironmentSets)) {
-          <mat-list-item
-            id="wrapper showhand"
-            (click)="adminGotoEnvironmentSets()"
-          >
-            <mat-icon
-              matListItemIcon
-              class="mat-list-item-icon"
-              fontIcon="mdi-key-variant"
-            />
-            {{ environmentSetsText }}
-            <button
-              [attr.aria-label]="environmentSetsText"
-              mat-icon-button
-              class="pull-right"
-            >
-              <mat-icon fontIcon="mdi-menu-right" />
-            </button>
-          </mat-list-item>
-        }
         @if (permissions.includes(SystemPermission.ViewModules)) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoModules()">
             <mat-icon
@@ -159,6 +122,43 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             {{ rolesText }}
             <button
               [attr.aria-label]="rolesText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoConnections()">
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-server-network"
+            />
+            {{ connectionsText }}
+            <button
+              [attr.aria-label]="connectionsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewEnvironmentSets)) {
+          <mat-list-item
+            id="wrapper showhand"
+            (click)="adminGotoEnvironmentSets()"
+          >
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-key-variant"
+            />
+            {{ environmentSetsText }}
+            <button
+              [attr.aria-label]="environmentSetsText"
               mat-icon-button
               class="pull-right"
             >
