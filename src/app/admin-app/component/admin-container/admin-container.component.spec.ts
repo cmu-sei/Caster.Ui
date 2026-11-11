@@ -224,10 +224,10 @@ describe('AdminContainerComponent', () => {
       'Projects',
       'Workspaces',
       'VLANs',
-      'Hypervisors',
       'Modules',
       'Users',
       'Roles',
+      'Hypervisors',
       'Groups',
     ]);
   });
