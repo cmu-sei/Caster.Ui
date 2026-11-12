@@ -161,7 +161,7 @@ export class DirectoryService {
     includeIds: boolean,
   ): Observable<FileDownload> {
     return this.directoriesService
-      .exportDirectory(id, archiveType, includeIds, 'response')
+      .exportDirectory(id, archiveType, includeIds, undefined, 'response')
       .pipe(
         map((response) => {
           return {

@@ -16,6 +16,7 @@ import { GroupPermissionsService } from './api/groupPermissions.service';
 import { GroupsService } from './api/groups.service';
 import { HealthService } from './api/health.service';
 import { HostsService } from './api/hosts.service';
+import { InventoryService } from './api/inventory.service';
 import { ModulesService } from './api/modules.service';
 import { PlansService } from './api/plans.service';
 import { ProjectPermissionsService } from './api/projectPermissions.service';

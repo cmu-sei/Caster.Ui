@@ -596,6 +596,7 @@ describe('ProjectService', () => {
             _id: string,
             _type?: ArchiveType,
             _ids?: boolean,
+            _settings?: boolean,
             _observe?: 'response',
           ) => of(response),
         ),
@@ -614,6 +615,7 @@ describe('ProjectService', () => {
         'p1',
         'zip',
         false,
+        undefined,
         'response',
       );
       expect(await firstValueFrom(service.import('p1', true, archive))).toBe(

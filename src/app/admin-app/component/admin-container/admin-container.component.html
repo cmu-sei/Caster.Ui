@@ -129,6 +129,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
+        @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoHypervisors()">
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-server"
+            />
+            {{ hypervisorsText }}
+            <button
+              [attr.aria-label]="hypervisorsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
         @if (canViewGroups$ | async) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
             <mat-icon
@@ -191,6 +208,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             permissions.includes(SystemPermission.ViewVlans)
           ) {
             <cas-vlans />
+          }
+          @if (
+            showStatus === hypervisorsText &&
+            permissions.includes(SystemPermission.ViewInfrastructure)
+          ) {
+            <cas-admin-hypervisors />
           }
           @if (
             showStatus === rolesText &&

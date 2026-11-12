@@ -347,13 +347,14 @@ export class DirectoriesService {
      * @param id ID of a directory.
      * @param archiveType 
      * @param includeIds If true, Directory Ids will be appended to their names to be optionally preserved on Import
+     * @param includeSettings If true, Directory and Workspace settings are included in the archive so that they can be restored on Import. Set to false when the archive will be imported by an older instance of Caster that does not understand them.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
-    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
+    public exportDirectory(id: string, archiveType?: ArchiveType, includeIds?: boolean, includeSettings?: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling exportDirectory.');
         }
@@ -366,6 +367,10 @@ export class DirectoriesService {
         if (includeIds !== undefined && includeIds !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>includeIds, 'IncludeIds');
+        }
+        if (includeSettings !== undefined && includeSettings !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>includeSettings, 'IncludeSettings');
         }
 
         let localVarHeaders = this.defaultHeaders;
