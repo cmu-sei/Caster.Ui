@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   inject,
+  input,
 } from '@angular/core';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,9 @@ import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltip } from '@angular/material/tooltip';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { SystemPermission } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
 import { Observable, Subject } from 'rxjs';
 import { switchMap, take, takeUntil } from 'rxjs/operators';
 import {
@@ -39,7 +43,9 @@ import {
 import { InventoryListComponent } from '../inventory-list/inventory-list.component';
 
 /**
- * Read-only infrastructure inventory for the project side panel.
+ * Read-only infrastructure inventory for the project side panel: the connections
+ * assigned to the project, or every connection for ViewInfrastructure holders
+ * who switch to "Show all connections".
  *
  * Shows what VM templates, ISOs, networks and datastores exist so a user
  * building a topology does not have to open vCenter in a second window to
@@ -69,6 +75,7 @@ import { InventoryListComponent } from '../inventory-list/inventory-list.compone
     MatIconButton,
     MatTooltip,
     MatProgressSpinner,
+    MatSlideToggle,
     InventoryListComponent,
     AsyncPipe,
     DatePipe,
@@ -77,6 +84,14 @@ import { InventoryListComponent } from '../inventory-list/inventory-list.compone
 export class InventoryPanelComponent implements OnInit, OnDestroy {
   private inventoryQuery = inject(InventoryQuery);
   private inventoryService = inject(InventoryService);
+  private permissionService = inject(PermissionService);
+
+  /** The project whose assigned connections are listed. */
+  readonly projectId = input.required<string>();
+
+  /** ViewInfrastructure holders can switch to every connection. */
+  public canShowAll$: Observable<boolean>;
+  public showAll = false;
 
   public categories$: Observable<InventoryCategoryDescriptor[]>;
   public refreshing$: Observable<boolean>;
@@ -94,6 +109,10 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
   // Assigning them later (from a subscribe callback) renders blank under
   // OnPush until something else triggers change detection.
   ngOnInit() {
+    this.inventoryService.setScope(this.projectId(), false);
+    this.canShowAll$ = this.permissionService.hasPermission(
+      SystemPermission.ViewInfrastructure,
+    );
     this.categories$ = this.inventoryQuery.categories$;
     this.refreshing$ = this.inventoryQuery.refreshing$;
     this.lastUpdated$ = this.inventoryQuery.lastUpdated$;
@@ -116,13 +135,27 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
       .loadConnections()
       .pipe(
         switchMap(() => this.inventoryService.loadAll()),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
 
   onCollapsed() {
     this.expanded = false;
+  }
+
+  /** Switches between the project's connections and every connection, and reloads. */
+  setShowAll(showAll: boolean) {
+    this.showAll = showAll;
+    this.inventoryService.setScope(this.projectId(), showAll);
+    this.loaded = true;
+    this.inventoryService
+      .loadConnections()
+      .pipe(
+        switchMap(() => this.inventoryService.loadAll()),
+        take(1),
+      )
+      .subscribe();
   }
 
   refresh() {
@@ -136,7 +169,14 @@ export class InventoryPanelComponent implements OnInit, OnDestroy {
 
   /** "dev-proxmox (Proxmox)". */
   connectionLabel(connection: InventoryConnection): string {
-    return `${connection.name} (${providerName(connection.provider)})`;
+    return connection.status === 'Missing'
+      ? `${connection.name} (missing)`
+      : `${connection.name} (${providerName(connection.provider)})`;
+  }
+
+  /** A connection the lists can't read: missing from configuration, or with inventory off. */
+  unusable(connection: InventoryConnection): boolean {
+    return connection.status === 'Missing' || !connection.enabled;
   }
 
   applyFilter(filter: string) {

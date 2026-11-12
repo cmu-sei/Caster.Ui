@@ -9,7 +9,9 @@ import {
   signal,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCard } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -21,7 +23,17 @@ import {
   InventoryResult,
   InventoryCategory as ApiInventoryCategory,
   InventoryService as InventoryApiService,
+  SystemPermission,
 } from 'src/app/generated/caster-api';
+import { PermissionService } from 'src/app/permissions/permission.service';
+import {
+  AssignmentService,
+  connectionProjectChanges,
+} from 'src/app/assignments/assignment.service';
+import {
+  AssignmentDialogComponent,
+  AssignmentDialogData,
+} from 'src/app/assignments/assignment-dialog/assignment-dialog.component';
 import {
   connectionReads,
   datastoreUsage,
@@ -69,10 +81,11 @@ function toList(result: InventoryResult | null): HypervisorList | null {
 }
 
 /**
- * CPU, memory and storage use on each hypervisor Caster has an inventory
- * connection to, for admins planning whether an exercise will fit. Read from
- * the same cache as the project Inventory panel, so the figures are as old
- * as the last inventory read; Refresh re-reads that one connection.
+ * The infrastructure connections: the projects each is assigned to, and CPU,
+ * memory and storage use on each hypervisor, for admins planning whether an
+ * exercise will fit. Read from the same cache as the project Inventory panel,
+ * so the figures are as old as the last inventory read; Refresh re-reads that
+ * one connection. ManageInfrastructure holders assign connections to projects.
  */
 @Component({
   selector: 'cas-admin-hypervisors',
@@ -80,6 +93,7 @@ function toList(result: InventoryResult | null): HypervisorList | null {
   styleUrls: ['./admin-hypervisors.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    MatButton,
     MatCard,
     MatIcon,
     MatIconButton,
@@ -90,6 +104,15 @@ function toList(result: InventoryResult | null): HypervisorList | null {
 })
 export class AdminHypervisorsComponent implements OnInit {
   private inventoryApiService = inject(InventoryApiService);
+  private assignmentService = inject(AssignmentService);
+  private dialog = inject(MatDialog);
+
+  readonly canManage = toSignal(
+    inject(PermissionService).hasPermission(
+      SystemPermission.ManageInfrastructure,
+    ),
+    { initialValue: false },
+  );
 
   readonly connections = signal<HypervisorConnectionView[]>([]);
   readonly loading = signal(true);
@@ -126,12 +149,68 @@ export class AdminHypervisorsComponent implements OnInit {
         error: (error: unknown) => {
           this.error.set(
             error instanceof HttpErrorResponse && error.status === 404
-              ? 'Hypervisor inventory is not available on this Caster API.'
-              : 'Hypervisor inventory could not be read right now.',
+              ? 'Inventory is not available on this Caster API.'
+              : 'Inventory could not be read right now.',
           );
           this.loading.set(false);
         },
       });
+  }
+
+  /** Adds and removes the connection's projects together. */
+  assign(connection: InventoryConnection) {
+    const name = connection.name ?? '';
+    this.assignmentService.projectItems().subscribe((items) =>
+      this.dialog
+        .open<AssignmentDialogComponent, AssignmentDialogData>(
+          AssignmentDialogComponent,
+          {
+            data: {
+              title: `Assign ${name}`,
+              description: `Projects see ${name}'s inventory in their Inventory panel. A connection gives inventory, not credentials: those come from Environment Sets.`,
+              sections: [
+                {
+                  label: 'Projects',
+                  items,
+                  assigned: (connection.projects ?? []).map((x) => x.projectId),
+                  searchLabel: 'Search projects',
+                  emptyText: 'There are no projects.',
+                },
+              ],
+              save: ([projects]) =>
+                this.assignmentService.edit(
+                  connectionProjectChanges(name, projects),
+                ),
+            },
+            width: '640px',
+            maxWidth: '90vw',
+            disableClose: true,
+          },
+        )
+        .afterClosed()
+        .subscribe((saved) => {
+          if (saved) {
+            this.reloadProjects();
+          }
+        }),
+    );
+  }
+
+  /** Re-reads the connection list for its projects, keeping what each card has loaded. */
+  private reloadProjects() {
+    this.inventoryApiService
+      .getInventoryConnections()
+      .pipe(take(1))
+      .subscribe((connections) =>
+        this.connections.update((views) =>
+          views.map((view) => {
+            const updated = (connections ?? []).find(
+              (x) => x.name === view.connection.name,
+            );
+            return updated ? { ...view, connection: updated } : view;
+          }),
+        ),
+      );
   }
 
   /** Asks the API to re-read one connection, then shows what it read. */

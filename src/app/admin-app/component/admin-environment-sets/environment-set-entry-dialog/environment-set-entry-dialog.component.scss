@@ -1,0 +1,23 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.form-full-width {
+  width: 100%;
+}
+
+.note,
+.warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.note {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}

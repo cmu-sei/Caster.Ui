@@ -58,7 +58,9 @@ class ProjectStub {
 }
 
 @Component({ selector: 'cas-inventory-panel', template: '' })
-class InventoryPanelStub {}
+class InventoryPanelStub {
+  readonly projectId = input<string>(undefined);
+}
 
 /**
  * Renders the project page with project p1 Range already active, over the
@@ -153,46 +155,15 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
-   * Verifies: with ViewInfrastructure the side panel shows the Inventory panel.
-   * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
-   * Data: active project p1 Range; system permission ViewInfrastructure.
+   * Verifies: every project member gets the Inventory panel, for the active project; it lists only the connections assigned to the project.
+   * Interacts with: the panel stub's projectId input.
+   * Data: active project p1 Range; ViewProjects only.
    */
-  it('shows the Inventory panel with ViewInfrastructure', async () => {
-    const { fixture } = await renderContainer([
-      SystemPermission.ViewInfrastructure,
-    ]);
-
-    expect(
-      fixture.debugElement.query(By.directive(InventoryPanelStub)),
-    ).not.toBeNull();
-  });
-
-  /**
-   * Verifies: without ViewInfrastructure the Inventory panel is not rendered, so it can never fetch the inventory.
-   * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
-   * Data: active project p1 Range; ViewProjects but not ViewInfrastructure.
-   */
-  it('hides the Inventory panel without ViewInfrastructure', async () => {
+  it("shows the Inventory panel for the project's members", async () => {
     const { fixture } = await renderContainer([SystemPermission.ViewProjects]);
 
-    expect(
-      fixture.debugElement.query(By.directive(InventoryPanelStub)),
-    ).toBeNull();
-    expect(
-      fixture.debugElement.query(By.directive(ProjectStub)),
-    ).not.toBeNull();
-  });
-
-  /**
-   * Verifies: ViewHosts, which the Hosts admin feature uses, no longer shows the Inventory panel; the inventory routes need ViewInfrastructure.
-   * Interacts with: PermissionService.hasPermission (real) over stubbed system permissions.
-   * Data: active project p1 Range; ViewHosts only.
-   */
-  it('hides the Inventory panel for ViewHosts alone', async () => {
-    const { fixture } = await renderContainer([SystemPermission.ViewHosts]);
-
-    expect(
-      fixture.debugElement.query(By.directive(InventoryPanelStub)),
-    ).toBeNull();
+    const panel = fixture.debugElement.query(By.directive(InventoryPanelStub));
+    expect(panel).not.toBeNull();
+    expect(panel.componentInstance.projectId()).toBe('p1');
   });
 });

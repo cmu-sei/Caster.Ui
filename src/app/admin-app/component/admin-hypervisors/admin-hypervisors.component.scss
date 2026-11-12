@@ -93,3 +93,16 @@ mat-progress-bar.warn {
 mat-progress-bar.high {
   --mat-progress-bar-active-indicator-color: #d32f2f;
 }
+
+.projects {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  p {
+    margin: 0;
+  }
+}

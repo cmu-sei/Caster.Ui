@@ -1,0 +1,147 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="detail">
+  <section aria-label="Entries">
+    <div class="section-header">
+      <h3>Entries</h3>
+      @if (canEdit()) {
+        <button matButton type="button" (click)="addEntry()">
+          <mat-icon fontIcon="mdi-plus" />
+          Add Entry
+        </button>
+      }
+    </div>
+
+    @if (set().entries?.length) {
+      <table class="entries">
+        <thead>
+          <tr>
+            <th scope="col">Variable</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Value</th>
+            <th scope="col">Status</th>
+            @if (canEdit()) {
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of set().entries; track entry.id) {
+            <tr>
+              <td>
+                <code [matTooltip]="deliveredAs(entry)">{{
+                  variableLabel(entry)
+                }}</code>
+              </td>
+              <td>{{ kindLabel(entry) }}</td>
+              <td>
+                @if (entry.valueSource === Source.Secret) {
+                  <span
+                    >Secret from <code>{{ entry.secretName }}</code></span
+                  >
+                } @else if (entry.valueSource === Source.Connection) {
+                  <span
+                    >{{ entry.connectionField }} of connection
+                    <code>{{ entry.connectionName }}</code></span
+                  >
+                } @else {
+                  <code class="plain-value">{{ entry.value }}</code>
+                }
+              </td>
+              <td>
+                <span class="status">
+                  @if (entry.isAvailable) {
+                    <mat-icon class="mdi-18px ok" fontIcon="mdi-check-circle" />
+                    {{
+                      entry.valueSource === Source.Plain ? 'Plain' : 'Available'
+                    }}
+                  } @else {
+                    <mat-icon
+                      class="mdi-18px missing"
+                      fontIcon="mdi-alert-circle"
+                    />
+                    <span
+                      tabindex="0"
+                      [matTooltip]="entry.unavailable"
+                      [attr.aria-label]="'Unavailable: ' + entry.unavailable"
+                      >Unavailable</span
+                    >
+                  }
+                </span>
+              </td>
+              @if (canEdit()) {
+                <td class="actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [attr.aria-label]="'Edit ' + variableLabel(entry)"
+                    [matTooltip]="canEditEntry(entry) ? 'Edit' : lockedText"
+                    [disabled]="!canEditEntry(entry)"
+                    (click)="editEntry(entry)"
+                  >
+                    <mat-icon
+                      class="mdi-18px"
+                      fontIcon="mdi-square-edit-outline"
+                    />
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [attr.aria-label]="'Delete ' + variableLabel(entry)"
+                    matTooltip="Delete"
+                    (click)="deleteEntry(entry)"
+                  >
+                    <mat-icon
+                      class="mdi-18px"
+                      fontIcon="mdi-trash-can-outline"
+                    />
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="secondary">No entries yet.</p>
+    }
+  </section>
+
+  <section aria-label="Projects">
+    <div class="section-header">
+      <h3>Projects</h3>
+      @if (canEdit()) {
+        <button matButton type="button" (click)="assign()">
+          <mat-icon fontIcon="mdi-link-variant" />
+          Assign Projects
+        </button>
+      }
+    </div>
+
+    @if (set().projects?.length) {
+      <ul class="projects">
+        @for (project of set().projects; track project.projectId) {
+          <li>
+            <span>{{ project.name }}</span>
+            @if (canEdit()) {
+              <button
+                mat-icon-button
+                type="button"
+                [attr.aria-label]="'Remove from ' + project.name"
+                matTooltip="Remove from project"
+                (click)="unassign(project)"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-link-variant-off" />
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="secondary">Not assigned to any project.</p>
+    }
+  </section>
+</div>

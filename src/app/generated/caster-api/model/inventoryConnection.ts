@@ -12,6 +12,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { InventoryConnectionStatus } from './inventoryConnectionStatus';
+import { InventoryConnectionProject } from './inventoryConnectionProject';
 import { InventoryCategory } from './inventoryCategory';
 
 
@@ -44,5 +46,10 @@ export interface InventoryConnection {
      * Why this connection\'s settings can\'t be used, in which case it isn\'t read. Null when they can.
      */
     error?: string | null;
+    status?: InventoryConnectionStatus;
+    /**
+     * The projects the connection is assigned to. Listed by GET api/inventory/connections only, which needs ViewInfrastructure.
+     */
+    projects?: Array<InventoryConnectionProject> | null;
 }
 

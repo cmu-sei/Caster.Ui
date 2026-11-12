@@ -91,7 +91,7 @@ export class InventoryListComponent implements OnInit {
       this.descriptor().category,
     );
     this.items$ = this.inventoryQuery.selectFilteredItems(
-      this.descriptor().category
+      this.descriptor().category,
     );
     this.filter$ = this.inventoryQuery.filter$;
   }
@@ -125,7 +125,7 @@ export class InventoryListComponent implements OnInit {
    * when it has none.
    */
   terraformOf(
-    item: InventoryItem
+    item: InventoryItem,
   ): { provider: string; snippet: string }[] | null {
     const snippets = Object.entries(item.terraform ?? {})
       .filter(([, snippet]) => !!snippet)

@@ -1,0 +1,268 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+<div class="cssLayoutColumnCenterStart">
+  <mat-tab-group class="tabs" animationDuration="0ms" mat-stretch-tabs="false">
+    <mat-tab label="Sets">
+      <div class="tab-body">
+        <div class="move-container">
+          <mat-form-field class="search-field" subscriptSizing="dynamic">
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              [(ngModel)]="filterString"
+              (keyup)="applyFilter($event.target.value)"
+              autocomplete="off"
+            />
+            @if (filterString) {
+              <button
+                matSuffix
+                mat-icon-button
+                aria-label="Clear"
+                (click)="clearFilter()"
+              >
+                <mat-icon
+                  class="mdi-24px"
+                  fontIcon="mdi-close-circle-outline"
+                />
+              </button>
+            }
+          </mat-form-field>
+          <button
+            mat-icon-button
+            aria-label="Expand all"
+            matTooltip="Expand all"
+            (click)="expandAll()"
+          >
+            <mat-icon fontIcon="mdi-arrow-expand-vertical" />
+          </button>
+          <button
+            mat-icon-button
+            aria-label="Collapse all"
+            matTooltip="Collapse all"
+            (click)="collapseAll()"
+          >
+            <mat-icon fontIcon="mdi-arrow-collapse-vertical" />
+          </button>
+          @if (canEdit$ | async) {
+            <button
+              matButton
+              type="button"
+              [disabled]="selectedSetIds.size < 2"
+              matTooltip="Tick two or more sets to edit their entries together"
+              (click)="editSelected()"
+            >
+              <mat-icon fontIcon="mdi-pencil-box-multiple-outline" />
+              Edit Selected ({{ selectedSetIds.size }})
+            </button>
+          }
+          @if (canUseConnections$ | async) {
+            @if ((connections$ | async)?.length) {
+              <button matButton type="button" (click)="createFromConnection()">
+                <mat-icon fontIcon="mdi-server-network" />
+                Create Set from Connection
+              </button>
+            }
+          }
+        </div>
+
+        <p class="secondary intro">
+          A set's variables reach every workspace of the projects it is assigned
+          to. Secret values are never shown, and are masked in run output.
+        </p>
+        @if (secrets$ | async; as secrets) {
+          @if (secrets.missing?.length) {
+            <p class="warning">
+              {{ secrets.missing.length }} missing
+              {{ secrets.missing.length === 1 ? 'secret' : 'secrets' }}: runs
+              that use {{ secrets.missing.length === 1 ? 'it' : 'them' }} fail.
+              See the Secrets tab.
+            </p>
+          }
+          @if (secrets.minimumMaskedLength && secrets.tooShort?.length) {
+            <p class="warning">
+              Too short to mask in run output, so runs that use
+              {{ secrets.tooShort.length === 1 ? 'it' : 'them' }} fail:
+              {{ secrets.tooShort.join(', ') }}.
+            </p>
+          }
+        }
+
+        <div class="table-container">
+          <table
+            mat-table
+            [dataSource]="dataSource$ | async"
+            matSort
+            multiTemplateDataRows
+          >
+            <ng-container matColumnDef="select">
+              <th mat-header-cell *matHeaderCellDef>
+                <span class="visually-hidden">Select</span>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                @if (canEdit$ | async) {
+                  <mat-checkbox
+                    [checked]="isSelected(element)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleSelected(element, $event.checked)"
+                    [attr.aria-label]="'Select ' + element.name"
+                  />
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>
+                <button
+                  mat-icon-button
+                  aria-label="Add Environment Set"
+                  matTooltip="Add Environment Set"
+                  (click)="createSet()"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+                </button>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Delete ' + element.name"
+                  matTooltip="Delete {{ element.name }}"
+                  (click)="$event.stopPropagation(); deleteSet(element)"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+                </button>
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Edit ' + element.name"
+                  matTooltip="Edit {{ element.name }}"
+                  (click)="$event.stopPropagation(); editSet(element)"
+                  [disabled]="!(canEdit$ | async)"
+                >
+                  <mat-icon
+                    class="mdi-24px"
+                    fontIcon="mdi-square-edit-outline"
+                  />
+                </button>
+                <button
+                  mat-icon-button
+                  [attr.aria-label]="'Copy ' + element.name"
+                  matTooltip="Copy {{ element.name }}"
+                  (click)="$event.stopPropagation(); copySet(element)"
+                  [disabled]="
+                    !(canEdit$ | async) ||
+                    (hasConnectionEntries(element) &&
+                      !(canUseConnections$ | async))
+                  "
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
+                </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let element" class="secondary">
+                {{ element.description }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="isComplete"
+              >
+                Status
+              </th>
+              <td mat-cell *matCellDef="let element">
+                @if (element.isComplete) {
+                  <span class="status">
+                    <mat-icon class="mdi-18px ok" fontIcon="mdi-check-circle" />
+                    Complete
+                  </span>
+                } @else {
+                  <span class="status warning">
+                    <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
+                    Incomplete
+                  </span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="projects">
+              <th mat-header-cell *matHeaderCellDef>Projects</th>
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [matTooltip]="projectNames(element)"
+                [matTooltipDisabled]="!element.projects?.length"
+              >
+                {{ element.projects?.length ?? 0 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="expandedDetail">
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [attr.colspan]="displayedColumns.length"
+              >
+                <div
+                  [@detailExpand]="
+                    isExpanded(element.id) ? 'expanded' : 'collapsed'
+                  "
+                  (click)="$event.stopPropagation()"
+                >
+                  @if (isExpanded(element.id)) {
+                    <cas-environment-set-detail
+                      [set]="element"
+                      [canEdit]="canEdit$ | async"
+                      [secrets]="secrets$ | async"
+                      [connections]="connections$ | async"
+                      [canUseConnections]="canUseConnections$ | async"
+                    />
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              class="element-row"
+              (click)="toggleExpand(row.id)"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: ['expandedDetail']"
+              class="detail-row"
+            ></tr>
+          </table>
+          @if ((dataSource$ | async)?.data?.length === 0) {
+            <p class="secondary empty">No Environment Sets yet.</p>
+          }
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Secrets">
+      <div class="tab-body">
+        <cas-environment-secrets
+          [secrets]="secrets$ | async"
+          [sets]="sets$ | async"
+        />
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

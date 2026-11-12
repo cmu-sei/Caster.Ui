@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import {
+  ProjectInventoryService as ProjectInventoryApiService,
   InventoryService as InventoryApiService,
   InventoryRefreshResult,
 } from '../../generated/caster-api';
@@ -16,10 +17,7 @@ import {
   InventoryConnection,
   InventoryResult,
 } from './inventory.model';
-import {
-  INVENTORY_CONNECTION_KEY,
-  InventoryService,
-} from './inventory.service';
+import { InventoryService } from './inventory.service';
 import { createInitialInventoryState, InventoryStore } from './inventory.store';
 
 function response(overrides: Partial<InventoryResult> = {}): InventoryResult {
@@ -38,6 +36,15 @@ function response(overrides: Partial<InventoryResult> = {}): InventoryResult {
 describe('InventoryService', () => {
   let service: InventoryService;
   let store: InventoryStore;
+  let projectApi: {
+    getProjectInventoryVmTemplates: ReturnType<typeof vi.fn>;
+    getProjectInventoryIsos: ReturnType<typeof vi.fn>;
+    getProjectInventoryNetworks: ReturnType<typeof vi.fn>;
+    getProjectInventoryDatastores: ReturnType<typeof vi.fn>;
+    getProjectInventoryContentLibrary: ReturnType<typeof vi.fn>;
+    getProjectInventoryConnections: ReturnType<typeof vi.fn>;
+    refreshProjectInventory: ReturnType<typeof vi.fn>;
+  };
   // The generated client has a method per category; every one of them goes
   // through getCategory, so a test can stub and assert per category.
   let apiSpy: {
@@ -77,10 +84,21 @@ describe('InventoryService', () => {
       refreshInventory: (connection?: string) => apiSpy.refresh(connection),
       getInventoryConnections: () => apiSpy.getConnections(),
     } satisfies Partial<ApiStub<InventoryApiService>>;
-    localStorage.removeItem(INVENTORY_CONNECTION_KEY);
+    projectApi = {
+      getProjectInventoryVmTemplates: vi.fn(() => of(response())),
+      getProjectInventoryIsos: vi.fn(() => of(response())),
+      getProjectInventoryNetworks: vi.fn(() => of(response())),
+      getProjectInventoryDatastores: vi.fn(() => of(response())),
+      getProjectInventoryContentLibrary: vi.fn(() => of(response())),
+      getProjectInventoryConnections: vi.fn(() => of([])),
+      refreshProjectInventory: vi.fn(() => of(null)),
+    };
 
     TestBed.configureTestingModule({
-      providers: [{ provide: InventoryApiService, useValue: api }],
+      providers: [
+        { provide: InventoryApiService, useValue: api },
+        { provide: ProjectInventoryApiService, useValue: projectApi },
+      ],
     });
 
     store = TestBed.inject(InventoryStore);
@@ -305,7 +323,7 @@ describe('InventoryService', () => {
   }
 
   /**
-   * Verifies: with no choice remembered, the default connection is read.
+   * Verifies: the default connection is read.
    * Interacts with: InventoryApiService.getConnections (stub); real InventoryStore.
    * Data: phl-vmc and dev-proxmox (default).
    */
@@ -327,29 +345,80 @@ describe('InventoryService', () => {
   });
 
   /**
-   * Verifies: the connection this browser chose last is read again, unless it is no longer enabled.
-   * Interacts with: localStorage; InventoryApiService.getConnections (stub).
-   * Data: phl-vmc remembered, enabled and then disabled.
+   * Verifies: a project scope reads the project's routes, and the system routes with showAll.
+   * Interacts with: ProjectInventoryService (stub); InventoryApiService.getCategory (stub).
+   * Data: project p1, Networks, then showAll.
    */
-  it('reads the remembered connection while it is still enabled', () => {
-    localStorage.setItem(INVENTORY_CONNECTION_KEY, 'phl-vmc');
-    apiSpy.getConnections.mockReturnValue(
-      of([
-        connection('dev-proxmox', { isDefault: true }),
-        connection('phl-vmc'),
-      ]),
-    );
-    service.loadConnections().subscribe();
-    expect(store.getValue().connection).toBe('phl-vmc');
+  it("reads a project's routes, or every connection with showAll", () => {
+    apiSpy.getCategory.mockReturnValue(of(response()));
+    service.setScope('p1');
 
-    apiSpy.getConnections.mockReturnValue(
+    service.load(InventoryCategory.Networks).subscribe();
+    service.loadConnections().subscribe();
+    service.refresh().subscribe();
+
+    expect(projectApi.getProjectInventoryNetworks).toHaveBeenCalledWith(
+      'p1',
+      undefined,
+    );
+    expect(projectApi.getProjectInventoryConnections).toHaveBeenCalledWith(
+      'p1',
+    );
+    expect(projectApi.refreshProjectInventory).toHaveBeenCalledWith(
+      'p1',
+      undefined,
+    );
+    expect(apiSpy.getCategory).not.toHaveBeenCalled();
+
+    service.setScope('p1', true);
+    service.load(InventoryCategory.Networks).subscribe();
+
+    expect(apiSpy.getCategory).toHaveBeenCalledWith(
+      InventoryCategory.Networks,
+      undefined,
+    );
+  });
+
+  /**
+   * Verifies: changing project clears what was read, and an answer for the old project is dropped.
+   * Interacts with: setScope; InventoryApiService.getCategory (pending stub); real InventoryStore.
+   * Data: p1's networks pending while the scope moves to p2.
+   */
+  it('drops what another project read', () => {
+    const pending = new Subject<InventoryResult>();
+    projectApi.getProjectInventoryNetworks.mockReturnValue(pending);
+    service.setScope('p1');
+    store.update({ connection: 'lab' });
+
+    service.load(InventoryCategory.Networks).subscribe();
+    service.setScope('p2');
+    pending.next(
+      response({
+        items: [{ id: 'n1', name: 'vlan-1', path: 'vlan-1', properties: {} }],
+      }),
+    );
+
+    expect(store.getValue().connection).toBeNull();
+    expect(store.getValue()[InventoryCategory.Networks].items).toEqual([]);
+  });
+
+  /**
+   * Verifies: a missing or disabled connection is never the default.
+   * Interacts with: loadConnections over a project's list.
+   * Data: a missing assignment first, then lab-pve (default).
+   */
+  it("never defaults to a project's missing connection", () => {
+    projectApi.getProjectInventoryConnections.mockReturnValue(
       of([
-        connection('dev-proxmox', { isDefault: true }),
-        connection('phl-vmc', { enabled: false }),
+        connection('renamed-away', { status: 'Missing', enabled: false }),
+        connection('lab-pve', { isDefault: true }),
       ]),
     );
+    service.setScope('p1');
+
     service.loadConnections().subscribe();
-    expect(store.getValue().connection).toBe('dev-proxmox');
+
+    expect(store.getValue().connection).toBe('lab-pve');
   });
 
   /**
@@ -389,11 +458,11 @@ describe('InventoryService', () => {
   });
 
   /**
-   * Verifies: choosing a connection remembers it, drops the previous connection's lists, and reloads every category from the new one.
-   * Interacts with: localStorage; InventoryApiService.getCategory (stub); real InventoryStore.
+   * Verifies: choosing a connection drops the previous connection's lists, and reloads every category from the new one.
+   * Interacts with: InventoryApiService.getCategory (stub); real InventoryStore.
    * Data: dev-proxmox's content library marked as not applying, then phl-vmc chosen.
    */
-  it('switches every list to a chosen connection and remembers it', () => {
+  it('switches every list to a chosen connection', () => {
     store.update({
       connection: 'dev-proxmox',
       [InventoryCategory.ContentLibrary]: {
@@ -407,7 +476,6 @@ describe('InventoryService', () => {
 
     service.selectConnection('phl-vmc').subscribe();
 
-    expect(localStorage.getItem(INVENTORY_CONNECTION_KEY)).toBe('phl-vmc');
     expect(store.getValue().connection).toBe('phl-vmc');
     // Not loaded yet, and no longer hidden by dev-proxmox's answer.
     expect(store.getValue()[InventoryCategory.ContentLibrary]).toMatchObject({
@@ -420,5 +488,26 @@ describe('InventoryService', () => {
     expect(
       apiSpy.getCategory.mock.calls.every(([, name]) => name === 'phl-vmc'),
     ).toBe(true);
+  });
+
+  /**
+   * Verifies: after the project's connections change, a panel that has read them lists them again, and one not yet opened, or showing another project, waits.
+   * Interacts with: projectConnectionsChanged; ProjectInventoryService (stub); real InventoryStore.
+   * Data: project p1, Networks read once.
+   */
+  it("lists a project's connections again after they change, once read", () => {
+    service.setScope('p1');
+    service.projectConnectionsChanged('p1').subscribe();
+    expect(projectApi.getProjectInventoryConnections).not.toHaveBeenCalled();
+
+    projectApi.getProjectInventoryNetworks.mockReturnValue(of(response()));
+    service.load(InventoryCategory.Networks).subscribe();
+    service.projectConnectionsChanged('p2').subscribe();
+    expect(projectApi.getProjectInventoryConnections).not.toHaveBeenCalled();
+
+    service.projectConnectionsChanged('p1').subscribe();
+    expect(projectApi.getProjectInventoryConnections).toHaveBeenCalledWith(
+      'p1',
+    );
   });
 });

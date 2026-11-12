@@ -7,8 +7,10 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import {
   InventoryConnection,
+  InventoryRefreshResult,
   InventoryResult,
   InventoryService as InventoryApiService,
+  ProjectInventoryService as ProjectInventoryApiService,
 } from '../../generated/caster-api';
 import {
   INVENTORY_CATEGORIES,
@@ -16,20 +18,44 @@ import {
   InventoryCategoryState,
 } from './inventory.model';
 import {
+  createInitialInventoryState,
   initialInventoryCategoryState,
   InventoryState,
   InventoryStore,
 } from './inventory.store';
 
-/** Where the panel remembers the chosen connection, per browser. */
-export const INVENTORY_CONNECTION_KEY = 'caster.inventory.connection';
-
+/**
+ * The inventory a panel shows: one project's assigned connections, or, for
+ * ViewInfrastructure holders, every connection. State belongs to one scope; a
+ * change of project or mode clears it, and a response for another scope is
+ * dropped.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class InventoryService {
   private inventoryStore = inject(InventoryStore);
   private inventoryApiService = inject(InventoryApiService);
+  private projectInventoryApiService = inject(ProjectInventoryApiService);
+
+  /**
+   * Points the lists at a project's connections, or every connection with
+   * showAll. Clears everything read for another scope.
+   */
+  setScope(projectId: string | null, showAll = false) {
+    const state = this.inventoryStore.getValue();
+
+    if (state.projectId === projectId && state.showAll === showAll) {
+      return;
+    }
+
+    this.inventoryStore.update({
+      ...createInitialInventoryState(),
+      filter: state.filter,
+      projectId,
+      showAll,
+    });
+  }
 
   /**
    * Loads a single category. Never errors: a transport failure is folded into
@@ -37,10 +63,14 @@ export class InventoryService {
    */
   load(category: InventoryCategory): Observable<InventoryResult | null> {
     this.patch(category, { loading: true, loadFailed: false });
+    const scope = this.scope();
     const connection = this.inventoryStore.getValue().connection ?? undefined;
 
     return this.read(category, connection).pipe(
       tap((response) => {
+        if (!this.isScope(scope)) {
+          return;
+        }
         this.patch(category, {
           items: response?.items ?? [],
           lastUpdated: response?.lastUpdated ?? null,
@@ -57,19 +87,21 @@ export class InventoryService {
         });
       }),
       catchError((error: unknown) => {
-        this.patch(category, {
-          items: [],
-          lastUpdated: null,
-          available: false,
-          // Unknown, so it stays listed with the error.
-          applies: true,
-          enabled: true,
-          stale: false,
-          error: this.describeTransportError(error),
-          loading: false,
-          loaded: true,
-          loadFailed: true,
-        });
+        if (this.isScope(scope)) {
+          this.patch(category, {
+            items: [],
+            lastUpdated: null,
+            available: false,
+            // Unknown, so it stays listed with the error.
+            applies: true,
+            enabled: true,
+            stale: false,
+            error: this.describeTransportError(error),
+            loading: false,
+            loaded: true,
+            loadFailed: true,
+          });
+        }
         return of(null);
       }),
     );
@@ -83,14 +115,23 @@ export class InventoryService {
   }
 
   /**
-   * Manual refresh: ask the API to re-read vCenter, then reload every list.
-   * A failing refresh call still reloads, so each list reports its own state.
+   * Manual refresh: ask the API to re-read the connection, then reload every
+   * list. A failing refresh call still reloads, so each list reports its own state.
    */
   refresh(): Observable<(InventoryResult | null)[]> {
     this.inventoryStore.update({ refreshing: true });
     const connection = this.inventoryStore.getValue().connection ?? undefined;
+    const { projectId, showAll } = this.inventoryStore.getValue();
 
-    return this.inventoryApiService.refreshInventory(connection).pipe(
+    const refresh: Observable<InventoryRefreshResult> =
+      projectId && !showAll
+        ? this.projectInventoryApiService.refreshProjectInventory(
+            projectId,
+            connection,
+          )
+        : this.inventoryApiService.refreshInventory(connection);
+
+    return refresh.pipe(
       catchError(() => of(null)),
       switchMap(() => this.loadAll()),
       finalize(() => this.inventoryStore.update({ refreshing: false })),
@@ -98,25 +139,32 @@ export class InventoryService {
   }
 
   /**
-   * Lists the connections and picks the one to read: the one this browser
-   * chose last if it is still enabled, otherwise the default. Never errors: if
-   * the list can't be read, no connection is named and the lists read the
-   * API's default.
+   * Lists the connections the scope can read and picks the default: the
+   * project's, or the API's with showAll. Never errors: if the list can't be
+   * read, no connection is named and the lists read the default.
    */
   loadConnections(): Observable<InventoryConnection[]> {
-    return this.inventoryApiService.getInventoryConnections().pipe(
+    const scope = this.scope();
+    const { projectId, showAll } = this.inventoryStore.getValue();
+
+    const connections: Observable<InventoryConnection[]> =
+      projectId && !showAll
+        ? this.projectInventoryApiService.getProjectInventoryConnections(
+            projectId,
+          )
+        : this.inventoryApiService.getInventoryConnections();
+
+    return connections.pipe(
       catchError(() => of([] as InventoryConnection[])),
-      map((connections) => connections ?? []),
-      tap((connections) => {
-        const enabled = connections.filter((c) => c.enabled);
-        const remembered = readRememberedConnection();
-        const chosen =
-          enabled.find((c) => c.name === remembered) ??
-          enabled.find((c) => c.isDefault) ??
-          enabled[0] ??
-          null;
+      map((list) => list ?? []),
+      tap((list) => {
+        if (!this.isScope(scope)) {
+          return;
+        }
+        const usable = list.filter((c) => c.enabled && c.status !== 'Missing');
+        const chosen = usable.find((c) => c.isDefault) ?? usable[0] ?? null;
         this.inventoryStore.update({
-          connections,
+          connections: list,
           connection: chosen?.name ?? null,
         });
       }),
@@ -124,11 +172,23 @@ export class InventoryService {
   }
 
   /**
-   * Switches the lists to another connection, remembers it for this browser,
-   * and reloads every category from it.
+   * After a project's connections are assigned or removed: lists them again and reloads the
+   * lists, if the panel is showing that project's and has read them. A panel not yet opened
+   * reads them when it is.
    */
+  projectConnectionsChanged(projectId: string): Observable<unknown> {
+    const state = this.inventoryStore.getValue();
+    const read = INVENTORY_CATEGORIES.some((d) => state[d.category].loaded);
+
+    if (state.projectId !== projectId || state.showAll || !read) {
+      return of(null);
+    }
+
+    return this.loadConnections().pipe(switchMap(() => this.loadAll()));
+  }
+
+  /** Switches the lists to another connection and reloads every category from it. */
   selectConnection(name: string): Observable<(InventoryResult | null)[]> {
-    rememberConnection(name);
     this.inventoryStore.update({
       connection: name,
       ...Object.fromEntries(
@@ -141,11 +201,33 @@ export class InventoryService {
     return this.loadAll();
   }
 
-  /** Reads one category of a connection, the API's default when none is named. */
+  setFilter(filter: string) {
+    this.inventoryStore.update({ filter: filter ?? '' });
+  }
+
+  /** Reads one category of a connection, the scope's default when none is named. */
   private read(
     category: InventoryCategory,
     connection?: string,
   ): Observable<InventoryResult> {
+    const { projectId, showAll } = this.inventoryStore.getValue();
+
+    if (projectId && !showAll) {
+      const api = this.projectInventoryApiService;
+      switch (category) {
+        case InventoryCategory.VmTemplates:
+          return api.getProjectInventoryVmTemplates(projectId, connection);
+        case InventoryCategory.Isos:
+          return api.getProjectInventoryIsos(projectId, connection);
+        case InventoryCategory.Networks:
+          return api.getProjectInventoryNetworks(projectId, connection);
+        case InventoryCategory.Datastores:
+          return api.getProjectInventoryDatastores(projectId, connection);
+        case InventoryCategory.ContentLibrary:
+          return api.getProjectInventoryContentLibrary(projectId, connection);
+      }
+    }
+
     switch (category) {
       case InventoryCategory.VmTemplates:
         return this.inventoryApiService.getInventoryVmTemplates(connection);
@@ -160,8 +242,13 @@ export class InventoryService {
     }
   }
 
-  setFilter(filter: string) {
-    this.inventoryStore.update({ filter: filter ?? '' });
+  private scope(): string {
+    const { projectId, showAll } = this.inventoryStore.getValue();
+    return `${projectId ?? ''}|${showAll}`;
+  }
+
+  private isScope(scope: string): boolean {
+    return this.scope() === scope;
   }
 
   private patch(
@@ -181,21 +268,5 @@ export class InventoryService {
       return 'Inventory is not available on this Caster API.';
     }
     return 'Inventory could not be read right now.';
-  }
-}
-
-function readRememberedConnection(): string | null {
-  try {
-    return localStorage.getItem(INVENTORY_CONNECTION_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function rememberConnection(name: string) {
-  try {
-    localStorage.setItem(INVENTORY_CONNECTION_KEY, name);
-  } catch {
-    // Storage can be off; the choice then lasts until the page reloads.
   }
 }

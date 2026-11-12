@@ -32,6 +32,7 @@ import { AdminHypervisorsComponent } from '../admin-hypervisors/admin-hypervisor
 import { AdminRolesComponent } from '../admin-roles/admin-roles.component';
 import { AdminGroupsComponent } from '../admin-groups/admin-groups.component';
 import { AdminProjectsComponent } from '../admin-projects/admin-projects.component';
+import { AdminEnvironmentSetsComponent } from '../admin-environment-sets/admin-environment-sets.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -58,6 +59,7 @@ import { AsyncPipe } from '@angular/common';
     AdminRolesComponent,
     AdminGroupsComponent,
     AdminProjectsComponent,
+    AdminEnvironmentSetsComponent,
     AsyncPipe,
   ],
 })
@@ -78,10 +80,11 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
   public vlansText = 'VLANs';
-  public hypervisorsText = 'Hypervisors';
+  public connectionsText = 'Connections';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
   public projectsText = 'Projects';
+  public environmentSetsText = 'Environment Sets';
   public showStatus = this.projectsText;
   public theme$: Observable<Theme>;
   TopbarView = TopbarView;
@@ -160,10 +163,10 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Sets the display to Hypervisors
+   * Sets the display to Connections
    */
-  adminGotoHypervisors(): void {
-    this.navigateToSection(this.hypervisorsText);
+  adminGotoConnections(): void {
+    this.navigateToSection(this.connectionsText);
   }
 
   /**
@@ -185,6 +188,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoProjects(): void {
     this.navigateToSection(this.projectsText);
+  }
+
+  /**
+   * Sets the display to Environment Sets
+   */
+  adminGotoEnvironmentSets(): void {
+    this.navigateToSection(this.environmentSetsText);
   }
 
   private navigateToSection(sectionName: string) {

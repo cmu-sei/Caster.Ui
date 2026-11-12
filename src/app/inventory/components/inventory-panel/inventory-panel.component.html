@@ -9,7 +9,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [expanded]="expanded"
     (opened)="onExpanded()"
     (closed)="onCollapsed()"
-    >
+  >
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="d-flex flex-row justify-content-start align-items-center">
@@ -29,10 +29,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             [disabled]="(connections$ | async)?.length === 1"
             (selectionChange)="selectConnection($event.value)"
             aria-label="Inventory connection"
-            >
+          >
             @for (c of connections$ | async; track c.name) {
-              <mat-option [value]="c.name" [disabled]="!c.enabled">
-                {{ connectionLabel(c) }}{{ c.enabled ? '' : ' - disabled' }}
+              <mat-option [value]="c.name" [disabled]="unusable(c)">
+                {{ connectionLabel(c)
+                }}{{
+                  c.status !== 'Missing' && !c.enabled ? ' - disabled' : ''
+                }}
               </mat-option>
             }
           </mat-select>
@@ -47,14 +50,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           (keyup)="applyFilter(filterString)"
           placeholder="Search inventory"
           aria-label="Search inventory"
-          />
+        />
         @if (!!filterString) {
           <button
             matSuffix
             mat-icon-button
             aria-label="Clear search"
             (click)="clearFilter()"
-            >
+          >
             <mat-icon
               class="mdi-18px"
               fontIcon="mdi-close-circle-outline"
@@ -70,7 +73,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         (click)="refresh()"
         matTooltip="Refresh inventory"
         aria-label="Refresh inventory"
-        >
+      >
         @if (refreshing$ | async) {
           <mat-spinner diameter="18"></mat-spinner>
         } @else {
@@ -79,8 +82,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </button>
     </div>
 
-    @for (descriptor of categories$ | async; track descriptor.category) {
-      <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
+    @if (canShowAll$ | async) {
+      <mat-slide-toggle
+        class="show-all"
+        [checked]="showAll"
+        (change)="setShowAll($event.checked)"
+        >Show all connections</mat-slide-toggle
+      >
+    }
+
+    @if ((connections$ | async)?.length === 0 && expanded) {
+      <p class="no-connections">
+        {{
+          showAll
+            ? 'No infrastructure connections are configured.'
+            : 'No infrastructure connections are assigned to this project.'
+        }}
+      </p>
+    } @else {
+      @for (descriptor of categories$ | async; track descriptor.category) {
+        <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
+      }
     }
 
     @if (lastUpdated$ | async; as lastUpdated) {
