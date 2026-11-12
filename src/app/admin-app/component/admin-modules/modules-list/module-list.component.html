@@ -7,7 +7,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <div class="sp-icon">
     <mat-icon class="mdi-24px" fontIcon="mdi-view-module" />
   </div>
-  <mat-form-field style="width: 300px">
+  <mat-form-field class="search-field">
     <input
       matInput
       [(ngModel)]="filterString"
@@ -18,14 +18,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <button
         matSuffix
         mat-icon-button
-        aria-label="Clear"
+        aria-label="Clear Search"
+        matTooltip="Clear Search"
         (click)="clearFilter()"
       >
         <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
       </button>
     }
   </mat-form-field>
-  <div class="button-end">
+  <div class="nator-div">
     <mat-paginator
       #paginator
       [pageIndex]="0"
@@ -35,63 +36,105 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 </div>
 
-@if (canEdit()) {
-  <div class="add-module-row">
-    <div class="add-module-cell">
-      <mat-form-field>
-        <input
-          matInput
-          placeholder="External Module ID"
-          [(ngModel)]="externalModuleId"
-          matTooltip="A module source name, or name/subdirectory for one module in it. For a GitLab source, its project ID."
-        />
-      </mat-form-field>
-      <button
-        mat-icon-button
-        (click)="updateModuleFromRepository()"
-        aria-label="Add/Update the Modules from this source"
-        [disabled]="!externalModuleId || isLoading()"
-      >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-note-plus"
-          matTooltip="Add/Update the Modules from this source"
-        />
-      </button>
-    </div>
-    <div class="add-module-cell">
-      <button
-        mat-icon-button
-        (click)="updateAllModules()"
-        aria-label="Add/Update the Modules from every source"
-        [disabled]="isLoading()"
-      >
-        <mat-icon
-          class="mdi-24px"
-          fontIcon="mdi-cloud-download"
-          matTooltip="Add/Update the Modules from every source"
-        />
-      </button>
-    </div>
-  </div>
-}
-
 <div class="table-container">
   <table mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let item">
+        @if (canEdit()) {
+          @if (canRefreshModule(item)) {
+            <button
+              mat-icon-button
+              (click)="refreshModule(item); $event.stopPropagation()"
+              [disabled]="isRefreshing(item)"
+              [attr.aria-label]="'Refresh ' + item.name"
+              [matTooltip]="'Re-read ' + item.name + ' from ' + item.source"
+            >
+              @if (isRefreshing(item)) {
+                <mat-spinner diameter="16" />
+              } @else {
+                <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+              }
+            </button>
+          } @else {
+            <span
+              class="disabled-action"
+              matTooltip="A GitLab Module is refreshed from the GitLab source in Module Sources"
+            >
+              <button
+                mat-icon-button
+                disabled
+                [attr.aria-label]="'Refresh ' + item.name + ' (not available for GitLab Modules)'"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
+              </button>
+            </span>
+          }
+        }
+        @if (terraformSource(item); as source) {
+          <button
+            mat-icon-button
+            ngxClipboard
+            [cbContent]="source"
+            (click)="$event.stopPropagation()"
+            [attr.aria-label]="'Copy the Terraform source of ' + item.name"
+            [matTooltip]="'Copy Terraform source: ' + source"
+            matTooltipClass="wide-tooltip"
+          >
+            <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
+          </button>
+        } @else {
+          <span class="disabled-action" matTooltip="No version to copy yet">
+            <button
+              mat-icon-button
+              disabled
+              [attr.aria-label]="'Copy the Terraform source of ' + item.name + ' (no version yet)'"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
+            </button>
+          </span>
+        }
+        @if (canEdit() && canDelete(item)) {
+          <button
+            mat-icon-button
+            (click)="deleteModule(item); $event.stopPropagation()"
+            [attr.aria-label]="'Delete ' + item.name"
+            [matTooltip]="'Delete ' + item.name"
+          >
+            <mat-icon class="mdi-18px" fontIcon="mdi-trash-can-outline" />
+          </button>
+        }
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-      <td mat-cell *matCellDef="let item">
-        <button
-          mat-icon-button
-          ngxClipboard
-          [cbContent]="item.id"
-          (click)="$event.stopPropagation()"
-          title="Copy:  {{ item.id }}"
-          [attr.aria-label]="'Copy ID of ' + item.name"
-        >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
-        </button>
+      <td mat-cell *matCellDef="let item" [title]="'ID ' + item.id">
         {{ item.name }}
+        @if (missingSince(item); as since) {
+          <span
+            class="not-in-source"
+            [matTooltip]="
+              'Not found in ' +
+              (item.source || 'its source') +
+              ' since ' +
+              since +
+              '. Delete it once nothing uses it.'
+            "
+            >Not in source</span
+          >
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+      <td mat-cell *matCellDef="let item" [title]="item.description ?? ''">
+        {{
+          item.description && item.description.length > 80
+            ? item.description.slice(0, 80) + ' ...'
+            : item.description
+        }}
       </td>
     </ng-container>
 
@@ -118,20 +161,23 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="latestVersion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Latest Version</th>
+      <td mat-cell *matCellDef="let item">{{ item.latestVersion }}</td>
+    </ng-container>
+
     <ng-container matColumnDef="dateModified">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Date Loaded</th>
-      <td mat-cell *matCellDef="let item">
-        {{ item.dateModified | date: 'yyyy-MM-dd HH:mm' }}
-        @if (canEdit()) {
-          <button
-            mat-icon-button
-            (click)="deleteModule(item); $event.stopPropagation()"
-            title="Delete Module"
-            aria-label="Delete Module"
-          >
-            <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
-          </button>
-        }
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="date-cell"
+        matTooltip="When Caster last re-read this Module from its source"
+      >
+        Last Synced
+      </th>
+      <td mat-cell *matCellDef="let item" class="date-cell">
+        {{ syncedAt(item.dateModified) }}
       </td>
     </ng-container>
 

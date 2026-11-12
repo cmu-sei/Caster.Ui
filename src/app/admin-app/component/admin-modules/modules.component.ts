@@ -15,15 +15,18 @@ import { EMPTY, Observable } from 'rxjs';
 import { catchError, finalize, map, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
-import { MatIcon } from '@angular/material/icon';
 import { AdminModuleListComponent } from './modules-list/module-list.component';
+import { ModuleSourcesComponent } from './module-sources/module-sources.component';
 import { AsyncPipe } from '@angular/common';
+
+/** The refreshing key for Refresh All Sources. */
+export const ALL_SOURCES = '*';
 
 @Component({
   selector: 'cas-admin-modules',
   templateUrl: './modules.component.html',
   styleUrls: ['./modules.component.css'],
-  imports: [MatIcon, AdminModuleListComponent, AsyncPipe],
+  imports: [ModuleSourcesComponent, AdminModuleListComponent, AsyncPipe],
 })
 export class AdminModulesComponent implements OnInit {
   zone = inject(NgZone);
@@ -37,11 +40,18 @@ export class AdminModulesComponent implements OnInit {
   public isLoading$: Observable<boolean>;
   public matcher = new ModuleErrorStateMatcher();
   public isLinear = false;
-  public failedSources: ModuleSource[] = [];
-  public noSources = false;
+  public sources: ModuleSource[] = [];
+  /** False when the API could not list its sources. */
+  public sourcesListed = true;
+  /**
+   * What is being refreshed: source names, Module Paths, GitLab project IDs,
+   * or ALL_SOURCES. Only those buttons wait, not every Refresh on the page.
+   */
+  public refreshing = new Set<string>();
 
+  /** Syncing and deleting Modules need ManageModules, as the API requires. */
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageWorkspaces,
+    SystemPermission.ManageModules,
   );
 
   /**
@@ -54,31 +64,34 @@ export class AdminModulesComponent implements OnInit {
   }
 
   /**
-   * Load the Modules. Listing them is what syncs the sources, so ask how that
-   * went once it is done. When the user asked for the sync, also say in a snack
-   * bar which sources failed.
+   * Load the Modules. Listing them is what reads the sources, so ask how that
+   * went once it is done. When the user asked for the refresh, also say in a
+   * snack bar which sources failed.
    */
-  load(userRequested = false) {
+  load(userRequested = false, forceUpdate = false, done?: string) {
+    // With the versions, so the list can show each Module's latest one.
     this.moduleService
-      .load(false, true)
+      .load(true, true, forceUpdate)
       .pipe(
         take(1),
-        finalize(() => this.loadSources(userRequested)),
+        finalize(() => {
+          if (done) {
+            this.stopRefreshing(done);
+          }
+          this.loadSources(userRequested);
+        }),
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
   }
 
-  /** When an API instance last synced a source, in the viewer's time zone. */
-  syncTime(value: string): string {
-    return new Date(value).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short',
-    });
+  /**
+   * Re-read every source and every version, so a moved tag or a changed
+   * caster.json without a new tag is picked up too.
+   */
+  refreshAll() {
+    this.refreshing = new Set([...this.refreshing, ALL_SOURCES]);
+    this.load(true, true, ALL_SOURCES);
   }
 
   private loadSources(userRequested = false) {
@@ -88,28 +101,28 @@ export class AdminModulesComponent implements OnInit {
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe({
         next: (sources) => {
-          this.failedSources = sources.filter((s) => s.error);
-          this.noSources = !sources.length;
-          if (userRequested && this.failedSources.length) {
-            this.showSyncFailures(this.failedSources);
+          this.sources = sources ?? [];
+          this.sourcesListed = true;
+          const failed = this.sources.filter((s) => s.error);
+          if (userRequested && failed.length) {
+            this.showRefreshFailures(failed);
           }
         },
-        // An API that does not report its sources yet: show no warning
-        // rather than an error.
+        // An API that does not report its sources yet: say so, not an error.
         error: () => {
-          this.failedSources = [];
-          this.noSources = false;
+          this.sources = [];
+          this.sourcesListed = false;
         },
       });
   }
 
-  /** One snack bar for every failed source; the warnings above the list have the details. */
-  private showSyncFailures(sources: ModuleSource[]) {
+  /** One snack bar for every failed source; the Module Sources list says why. */
+  private showRefreshFailures(sources: ModuleSource[]) {
     const names = sources.map((s) => s.name);
     const message =
       names.length === 1
-        ? `Module source ${names[0]} failed to sync`
-        : `Module sources ${names.join(', ')} failed to sync`;
+        ? `Module source ${names[0]} couldn't be read`
+        : `Module sources ${names.join(', ')} couldn't be read`;
     this.snackBar.open(message, 'Dismiss', {
       duration: 5000,
       verticalPosition: 'top',
@@ -122,7 +135,12 @@ export class AdminModulesComponent implements OnInit {
     this.moduleService.loadModuleById(id).pipe(take(1)).subscribe();
   }
 
-  createOrUpdateById(id: string) {
+  /**
+   * Re-read one source by its name, one Module by its Path, or add one GitLab
+   * project by its ID, then reload the list.
+   */
+  refresh(id: string) {
+    this.refreshing = new Set([...this.refreshing, id]);
     // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService
       .createOrUpdateModuleById(id)
@@ -132,7 +150,7 @@ export class AdminModulesComponent implements OnInit {
           const message =
             error.error?.title ||
             error.message ||
-            'Failed to update the Modules';
+            'Couldn\'t refresh the Modules';
           this.snackBar.open(message, 'Dismiss', {
             duration: 5000,
             verticalPosition: 'top',
@@ -140,8 +158,15 @@ export class AdminModulesComponent implements OnInit {
           });
           return EMPTY;
         }),
+        finalize(() => this.stopRefreshing(id)),
       )
       .subscribe(() => this.load());
+  }
+
+  private stopRefreshing(id: string) {
+    const next = new Set(this.refreshing);
+    next.delete(id);
+    this.refreshing = next;
   }
 
   deleteModule(id: string) {
