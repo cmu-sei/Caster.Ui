@@ -4,12 +4,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import {
+  AfterViewInit,
   Component,
   OnInit,
   ChangeDetectionStrategy,
   Input,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import {
   MatTableDataSource,
@@ -23,7 +25,13 @@ import {
   MatHeaderRow,
   MatRowDef,
   MatRow,
+  MatNoDataRow,
 } from '@angular/material/table';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatTooltip } from '@angular/material/tooltip';
 import {
   BehaviorSubject,
   combineLatest,
@@ -41,9 +49,11 @@ import { PartitionService } from 'src/app/vlans/state/partition/partition.servic
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
 import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AsyncPipe, KeyValuePipe } from '@angular/common';
 
 @Component({
@@ -52,6 +62,13 @@ import { AsyncPipe, KeyValuePipe } from '@angular/common';
   styleUrls: ['./project-vlans.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FormsModule,
+    MatIcon,
+    MatIconButton,
+    MatInput,
+    MatSuffix,
+    MatTooltip,
+    MatNoDataRow,
     MatTable,
     MatSort,
     MatColumnDef,
@@ -61,11 +78,12 @@ import { AsyncPipe, KeyValuePipe } from '@angular/common';
     MatCellDef,
     MatCell,
     MatFormField,
-    MatLabel,
     MatSelect,
     MatOption,
     MatOptgroup,
     MatProgressBar,
+    MatCard,
+    MatProgressSpinner,
     MatHeaderRowDef,
     MatHeaderRow,
     MatRowDef,
@@ -74,7 +92,7 @@ import { AsyncPipe, KeyValuePipe } from '@angular/common';
     KeyValuePipe,
   ],
 })
-export class ProjectVlansComponent implements OnInit {
+export class ProjectVlansComponent implements OnInit, AfterViewInit {
   private projectService = inject(ProjectService);
   private poolService = inject(PoolService);
   private partitionService = inject(PartitionService);
@@ -86,6 +104,7 @@ export class ProjectVlansComponent implements OnInit {
   }
 
   readonly canEdit = input<boolean>(undefined);
+  readonly isLoading = input<boolean>(false);
 
   dataSource = new MatTableDataSource<Project>();
   partitionOptions$: Observable<Map<Pool, Partition[]>>;
@@ -104,6 +123,21 @@ export class ProjectVlansComponent implements OnInit {
   // #endregion
 
   displayedColumns: string[] = ['name', 'partition'];
+
+  readonly sort = viewChild(MatSort);
+
+  filterString = '';
+
+  constructor() {
+    // The Partition column holds a select, so sort it by the assigned
+    // partition's name rather than by its id.
+    this.dataSource.sortingDataAccessor = (project, column) =>
+      column === 'partition'
+        ? (this.partitionQuery.getEntity(project.partitionId)?.name ?? '')
+        : project[column];
+    this.dataSource.filterPredicate = (project, filter) =>
+      (project.name ?? '').toLowerCase().includes(filter);
+  }
 
   ngOnInit(): void {
     forkJoin([
@@ -127,6 +161,19 @@ export class ProjectVlansComponent implements OnInit {
         return map;
       }),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort();
+  }
+
+  applyFilter(filterValue: string) {
+    this.filterString = filterValue;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  clearFilter() {
+    this.applyFilter('');
   }
 
   updatePartition(projectId: string, partitionId: string) {
