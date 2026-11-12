@@ -130,13 +130,16 @@ describe('EnvironmentSetService', () => {
   });
 
   /**
-   * Verifies: unassign() drops the set from that project's list and re-reads the set.
-   * Interacts with: unassignEnvironmentSet and getEnvironmentSet (stubs).
-   * Data: project p1 holds s1 and s2; s1 is removed.
+   * Verifies: unassign() reads the project's sets back from the API, so a set still given through the project's group stays, and re-reads the set.
+   * Interacts with: unassignEnvironmentSet, getProjectEnvironmentSets and getEnvironmentSet (stubs).
+   * Data: project p1 holds s1 and s2; s1 is removed, and the API answers with s2.
    */
   it('unassign() drops the set from the project', async () => {
     const api = {
       unassignEnvironmentSet: vi.fn(() => of<unknown>(null)),
+      getProjectEnvironmentSets: vi.fn(() =>
+        of([{ environmentSetId: 's2', projectId: 'p1', name: 'B' }]),
+      ),
       getEnvironmentSet: vi.fn(() =>
         of<EnvironmentSet>({ id: 's1', name: 'A', projects: [] }),
       ),

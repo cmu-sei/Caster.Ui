@@ -157,7 +157,16 @@ describe('AdminContainerComponent', () => {
       { system: [SystemPermission.ManageProjects] },
       ['Projects'],
     ],
-    ['ViewProjects', { system: [SystemPermission.ViewProjects] }, []],
+    [
+      'ViewProjects',
+      { system: [SystemPermission.ViewProjects] },
+      ['Project Groups'],
+    ],
+    [
+      'ManageProjectGroups',
+      { system: [SystemPermission.ManageProjectGroups] },
+      ['Project Groups'],
+    ],
     [
       'ViewWorkspaces',
       { system: [SystemPermission.ViewWorkspaces] },

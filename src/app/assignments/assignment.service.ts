@@ -8,6 +8,7 @@ import {
   AssignmentChange,
   AssignmentOperation,
   AssignmentsService,
+  ProjectGroupsService,
   ProjectsService,
 } from 'src/app/generated/caster-api';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
@@ -22,12 +23,26 @@ export class AssignmentService {
   private api = inject(AssignmentsService);
   private environmentSetService = inject(EnvironmentSetService);
   private projectsService = inject(ProjectsService);
+  private projectGroupsService = inject(ProjectGroupsService);
 
   /** Every project the user can see, to assign to. */
   projectItems(): Observable<AssignmentItem[]> {
     return this.projectsService.getAllProjects(false).pipe(
       map((projects) =>
         (projects ?? []).map((x) => ({
+          id: x.id,
+          name: x.name ?? '',
+          detail: x.description,
+        })),
+      ),
+    );
+  }
+
+  /** Every project group the user can see, to assign to. */
+  groupItems(): Observable<AssignmentItem[]> {
+    return this.projectGroupsService.getProjectGroups().pipe(
+      map((groups) =>
+        (groups ?? []).map((x) => ({
           id: x.id,
           name: x.name ?? '',
           detail: x.description,
@@ -45,7 +60,7 @@ export class AssignmentService {
     return this.api.editAssignments({ changes }).pipe(
       switchMap(() =>
         this.environmentSetService.assignmentsChanged(
-          changes.map((x) => x.projectId),
+          changes.map((x) => x.projectId).filter((x) => !!x),
           changes.map((x) => x.environmentSetId).filter((x) => !!x),
         ),
       ),
@@ -125,6 +140,82 @@ export function connectionProjectChanges(
     ...diff.remove.map((projectId) => ({
       operation: AssignmentOperation.Remove,
       projectId,
+      connectionName,
+    })),
+  ];
+}
+
+/** One project group's set changes. */
+export function groupSetChanges(
+  projectGroupId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((environmentSetId) => ({
+      operation: AssignmentOperation.Add,
+      projectGroupId,
+      environmentSetId,
+    })),
+    ...diff.remove.map((environmentSetId) => ({
+      operation: AssignmentOperation.Remove,
+      projectGroupId,
+      environmentSetId,
+    })),
+  ];
+}
+
+/** One project group's connection changes, by connection name. */
+export function groupConnectionChanges(
+  projectGroupId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((connectionName) => ({
+      operation: AssignmentOperation.Add,
+      projectGroupId,
+      connectionName,
+    })),
+    ...diff.remove.map((connectionName) => ({
+      operation: AssignmentOperation.Remove,
+      projectGroupId,
+      connectionName,
+    })),
+  ];
+}
+
+/** One set's changes across project groups, by group id. */
+export function setGroupChanges(
+  environmentSetId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((projectGroupId) => ({
+      operation: AssignmentOperation.Add,
+      projectGroupId,
+      environmentSetId,
+    })),
+    ...diff.remove.map((projectGroupId) => ({
+      operation: AssignmentOperation.Remove,
+      projectGroupId,
+      environmentSetId,
+    })),
+  ];
+}
+
+/** One connection's changes across project groups, by group id. */
+export function connectionGroupChanges(
+  connectionName: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((projectGroupId) => ({
+      operation: AssignmentOperation.Add,
+      projectGroupId,
+      connectionName,
+    })),
+    ...diff.remove.map((projectGroupId) => ({
+      operation: AssignmentOperation.Remove,
+      projectGroupId,
       connectionName,
     })),
   ];

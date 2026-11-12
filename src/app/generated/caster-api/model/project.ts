@@ -37,5 +37,9 @@ export interface Project {
      * The vlan partition this project is a part of.
      */
     partitionId?: string | null;
+    /**
+     * The project group this project is in, if any.
+     */
+    projectGroupId?: string | null;
 }
 

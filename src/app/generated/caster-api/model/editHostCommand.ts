@@ -42,5 +42,9 @@ export interface EditHostCommand {
      * The Id of the Project to assign this Host to
      */
     projectId?: string | null;
+    /**
+     * The Id of the project group to assign this Host to, instead of a Project
+     */
+    projectGroupId?: string | null;
 }
 

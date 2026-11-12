@@ -59,6 +59,7 @@ const admin: PermissionGrants = {
 async function renderDialog(
   grants: PermissionGrants,
   editAssignments = vi.fn(() => of<unknown>(null)),
+  projectSets: unknown[] = [],
 ) {
   const projectInventory = {
     getProjectInventoryConnections: vi.fn(() =>
@@ -83,7 +84,7 @@ async function renderDialog(
   const sets = {
     getEnvironmentSets: vi.fn(() => of([proxmoxSet])),
     getEnvironmentSet: vi.fn(() => of(proxmoxSet)),
-    getProjectEnvironmentSets: vi.fn(() => of([])),
+    getProjectEnvironmentSets: vi.fn(() => of(projectSets)),
   };
   const assignments = { editAssignments };
   const inventoryState = {
@@ -226,5 +227,32 @@ describe('ProjectEnvironmentComponent', () => {
     expect(
       screen.getByRole('button', { name: 'Save 1 change' }),
     ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a set the project gets through its group is checked, locked and named as such, and isn't sent as a change.
+   * Data: Proxmox comes through group Lab only.
+   */
+  it('locks what comes through the group', async () => {
+    const { user } = await renderDialog(admin, undefined, [
+      {
+        environmentSetId: 's1',
+        projectId: 'p1',
+        name: 'Proxmox',
+        isDirect: false,
+        projectGroups: [{ projectGroupId: 'g1', name: 'Lab' }],
+        entries: [],
+      },
+    ]);
+
+    await user.click(
+      screen.getByRole('button', { name: /Change Assignments/ }),
+    );
+
+    const proxmox = screen.getByRole('checkbox', { name: /Proxmox/ });
+    expect(proxmox).toBeChecked();
+    expect(proxmox).toBeDisabled();
+    expect(screen.getByText('via group Lab')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 });

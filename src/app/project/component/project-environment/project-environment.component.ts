@@ -124,20 +124,47 @@ export class ProjectEnvironmentComponent implements OnInit {
   readonly initialConnections = signal<string[]>([]);
   readonly selectedConnections = signal<string[]>([]);
 
+  /** A set the project gets through its group is shown checked, and changed on the group. */
   readonly setItems = computed<AssignmentItem[]>(() =>
-    this.allSets().map((x) => ({
-      id: x.id,
-      name: x.name ?? '',
-      detail: x.description,
-    })),
+    this.allSets().map((x) => {
+      const assigned = (this.projectSets() ?? []).find(
+        (p) => p.environmentSetId === x.id,
+      );
+      const groups = (assigned?.projectGroups ?? []).map((g) => g.name ?? '');
+      return {
+        id: x.id,
+        name: x.name ?? '',
+        detail: x.description,
+        locked: !!assigned && assigned.isDirect === false,
+        notes: groups.map((g) =>
+          assigned?.isDirect === false
+            ? `via group ${g}`
+            : `also via group ${g}`,
+        ),
+      };
+    }),
   );
 
   /** Every configured connection, and any assigned one that has left configuration. Keyed by lower-case name. */
   readonly connectionItems = computed<AssignmentItem[]>(() => {
+    const assignedTo = (name: string | null | undefined) =>
+      this.connections().find((c) => sameName(c.name, name));
+    const viaGroup = (name: string | null | undefined) => {
+      const assigned = assignedTo(name);
+      return {
+        locked: !!assigned && assigned.isDirect === false,
+        notes: (assigned?.projectGroups ?? []).map((g) =>
+          assigned?.isDirect === false
+            ? `via group ${g}`
+            : `also via group ${g}`,
+        ),
+      };
+    };
     const items: AssignmentItem[] = this.allConnections().map((x) => ({
       id: connectionKey(x.name),
       name: x.name ?? '',
       detail: x.enabled === false ? 'Inventory turned off' : null,
+      ...viaGroup(x.name),
     }));
     for (const assigned of this.connections()) {
       if (!items.some((x) => x.id === connectionKey(assigned.name))) {
@@ -146,6 +173,7 @@ export class ProjectEnvironmentComponent implements OnInit {
           name: assigned.name ?? '',
           detail: 'Not configured',
           warn: true,
+          ...viaGroup(assigned.name),
         });
       }
     }
@@ -158,7 +186,12 @@ export class ProjectEnvironmentComponent implements OnInit {
       return [];
     }
 
-    const shown = new Set(this.selectedConnections());
+    const shown = new Set([
+      ...this.selectedConnections(),
+      ...this.connections()
+        .filter((x) => x.isDirect === false)
+        .map((x) => connectionKey(x.name)),
+    ]);
     const configured = this.allConnections();
     const hints: ConnectionHint[] = [];
     for (const id of this.selectedSets()) {
@@ -178,6 +211,13 @@ export class ProjectEnvironmentComponent implements OnInit {
     }
     return hints;
   });
+
+  /** Whether the project gets anything through its group. */
+  readonly throughGroup = computed(
+    () =>
+      (this.projectSets() ?? []).some((x) => x.isDirect === false) ||
+      this.connections().some((x) => x.isDirect === false),
+  );
 
   private readonly setDiff = computed(() =>
     this.canManageSets()
@@ -224,14 +264,18 @@ export class ProjectEnvironmentComponent implements OnInit {
       .subscribe();
   }
 
-  /** Starts from what is assigned now. */
+  /** Starts from what is assigned to the project itself; what comes through its group stays. */
   edit(): void {
     this.initialSets.set(
-      (this.projectSets() ?? []).map((x) => x.environmentSetId),
+      (this.projectSets() ?? [])
+        .filter((x) => x.isDirect !== false)
+        .map((x) => x.environmentSetId),
     );
     this.selectedSets.set(this.initialSets());
     this.initialConnections.set(
-      this.connections().map((x) => connectionKey(x.name)),
+      this.connections()
+        .filter((x) => x.isDirect !== false)
+        .map((x) => connectionKey(x.name)),
     );
     this.selectedConnections.set(this.initialConnections());
     this.error.set(null);

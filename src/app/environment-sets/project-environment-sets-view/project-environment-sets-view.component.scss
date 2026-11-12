@@ -99,3 +99,9 @@ mat-panel-description {
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+
+.via {
+  margin-left: 8px;
+  font-size: 0.85em;
+  color: var(--mat-sys-on-surface-variant);
+}

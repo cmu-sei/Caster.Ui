@@ -16,11 +16,15 @@ import { AssignmentOperation } from './assignmentOperation';
 
 
 /**
- * One assignment to add or remove: an Environment Set or an infrastructure connection, on a project. It names either EnvironmentSetId or ConnectionName.
+ * One assignment to add or remove: an Environment Set or an infrastructure connection, on a project or a project group. It names either ProjectId or ProjectGroupId, and either EnvironmentSetId or ConnectionName.
  */
 export interface AssignmentChange { 
     operation?: AssignmentOperation;
-    projectId?: string;
+    projectId?: string | null;
+    /**
+     * A project group: what it is assigned reaches every project in it.
+     */
+    projectGroupId?: string | null;
     environmentSetId?: string | null;
     /**
      * An infrastructure connection\'s name, matched without regard to case.

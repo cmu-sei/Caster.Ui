@@ -28,6 +28,7 @@ import {
 import { PermissionService } from 'src/app/permissions/permission.service';
 import {
   AssignmentService,
+  connectionGroupChanges,
   connectionProjectChanges,
 } from 'src/app/assignments/assignment.service';
 import {
@@ -160,7 +161,10 @@ export class AdminHypervisorsComponent implements OnInit {
   /** Adds and removes the connection's projects together. */
   assign(connection: InventoryConnection) {
     const name = connection.name ?? '';
-    this.assignmentService.projectItems().subscribe((items) =>
+    forkJoin([
+      this.assignmentService.projectItems(),
+      this.assignmentService.groupItems(),
+    ]).subscribe(([projects, groups]) =>
       this.dialog
         .open<AssignmentDialogComponent, AssignmentDialogData>(
           AssignmentDialogComponent,
@@ -171,16 +175,26 @@ export class AdminHypervisorsComponent implements OnInit {
               sections: [
                 {
                   label: 'Projects',
-                  items,
+                  items: projects,
                   assigned: (connection.projects ?? []).map((x) => x.projectId),
                   searchLabel: 'Search projects',
                   emptyText: 'There are no projects.',
                 },
+                {
+                  label: 'Project Groups',
+                  items: groups,
+                  assigned: (connection.assignedProjectGroups ?? []).map(
+                    (x) => x.projectGroupId,
+                  ),
+                  searchLabel: 'Search project groups',
+                  emptyText: 'There are no project groups.',
+                },
               ],
-              save: ([projects]) =>
-                this.assignmentService.edit(
-                  connectionProjectChanges(name, projects),
-                ),
+              save: ([toProjects, toGroups]) =>
+                this.assignmentService.edit([
+                  ...connectionProjectChanges(name, toProjects),
+                  ...connectionGroupChanges(name, toGroups),
+                ]),
             },
             width: '640px',
             maxWidth: '90vw',

@@ -12,6 +12,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { forkJoin } from 'rxjs';
 import {
   EnvironmentSecrets,
   EnvironmentSet,
@@ -33,6 +34,7 @@ import {
 } from '../environment-set-entry-dialog/environment-set-entry-dialog.component';
 import {
   AssignmentService,
+  setGroupChanges,
   setProjectChanges,
 } from 'src/app/assignments/assignment.service';
 import {
@@ -114,25 +116,40 @@ export class EnvironmentSetDetailComponent {
   /** Adds and removes the set's projects together, checked against the final state. */
   assign(): void {
     const set = this.set();
-    this.assignmentService.projectItems().subscribe((items) =>
+    forkJoin([
+      this.assignmentService.projectItems(),
+      this.assignmentService.groupItems(),
+    ]).subscribe(([projects, groups]) =>
       this.dialog.open<AssignmentDialogComponent, AssignmentDialogData>(
         AssignmentDialogComponent,
         {
           data: {
             title: `Assign ${set.name}`,
             description:
-              "Every workspace in a project gets this set's variables on its next run.",
+              "Every workspace in a project gets this set's variables on its next run. A project group's set reaches every project in it.",
             sections: [
               {
                 label: 'Projects',
-                items,
+                items: projects,
                 assigned: (set.projects ?? []).map((x) => x.projectId),
                 searchLabel: 'Search projects',
                 emptyText: 'There are no projects.',
               },
+              {
+                label: 'Project Groups',
+                items: groups,
+                assigned: (set.projectGroups ?? []).map(
+                  (x) => x.projectGroupId,
+                ),
+                searchLabel: 'Search project groups',
+                emptyText: 'There are no project groups.',
+              },
             ],
-            save: ([projects]) =>
-              this.assignmentService.edit(setProjectChanges(set.id, projects)),
+            save: ([toProjects, toGroups]) =>
+              this.assignmentService.edit([
+                ...setProjectChanges(set.id, toProjects),
+                ...setGroupChanges(set.id, toGroups),
+              ]),
           },
           width: '640px',
           maxWidth: '90vw',

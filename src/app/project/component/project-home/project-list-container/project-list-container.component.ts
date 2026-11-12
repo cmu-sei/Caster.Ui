@@ -21,7 +21,12 @@ import { AsyncPipe } from '@angular/common';
   selector: 'cas-project-container',
   templateUrl: './project-list-container.component.html',
   styleUrls: ['./project-list-container.component.scss'],
-  imports: [CrucibleLandingBackgroundDirective, TopbarComponent, ProjectListComponent, AsyncPipe],
+  imports: [
+    CrucibleLandingBackgroundDirective,
+    TopbarComponent,
+    ProjectListComponent,
+    AsyncPipe,
+  ],
 })
 export class ProjectListContainerComponent implements OnInit {
   private projectService = inject(ProjectService);

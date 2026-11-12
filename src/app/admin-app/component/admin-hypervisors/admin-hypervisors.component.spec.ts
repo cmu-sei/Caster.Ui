@@ -12,6 +12,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import {
   AssignmentsService,
   InventoryService as InventoryApiService,
+  ProjectGroupsService,
   ProjectsService,
   SystemPermission,
 } from 'src/app/generated/caster-api';
@@ -139,6 +140,12 @@ async function renderPage(
       { provide: InventoryApiService, useValue: stub },
       { provide: AssignmentsService, useValue: assignments },
       { provide: ProjectsService, useValue: projects },
+      {
+        provide: ProjectGroupsService,
+        useValue: {
+          getProjectGroups: vi.fn(() => of([{ id: 'g1', name: 'Lab' }])),
+        },
+      },
     ],
   });
   await view.fixture.whenStable();
@@ -370,11 +377,11 @@ describe('AdminHypervisorsComponent', () => {
   });
 
   /**
-   * Verifies: ManageInfrastructure holders assign a connection to projects from its card, in one save.
+   * Verifies: ManageInfrastructure holders assign a connection to projects and project groups from its card, in one save.
    * Interacts with: AssignmentsService.editAssignments and ProjectsService.getAllProjects (stubs); the real dialog.
    * Data: Default assigned to Range A; add Range B.
    */
-  it('assigns a connection to projects', async () => {
+  it('assigns a connection to projects and groups', async () => {
     const { user, assignments, api } = await renderPage(
       {
         getInventoryConnections: vi.fn<
@@ -388,9 +395,7 @@ describe('AdminHypervisorsComponent', () => {
       { system: [SystemPermission.ManageInfrastructure] },
     );
 
-    await user.click(
-      screen.getByRole('button', { name: 'Assign Default to projects' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Assign Default' }));
     await user.click(await screen.findByRole('checkbox', { name: /Range B/ }));
     await user.click(screen.getByRole('button', { name: 'Save 1 change' }));
 

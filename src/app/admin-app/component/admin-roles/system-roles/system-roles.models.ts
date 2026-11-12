@@ -51,7 +51,7 @@ export class SystemRolesModel {
     ],
     [
       SystemPermission.ManageInfrastructure,
-      'Allows assigning connections to Projects, and creating Environment Set entries that read a connection.',
+      'Allows assigning connections to Projects and project groups, and creating Environment Set entries that read a connection.',
     ],
     [
       SystemPermission.ViewEnvironmentSets,
@@ -59,7 +59,11 @@ export class SystemRolesModel {
     ],
     [
       SystemPermission.ManageEnvironmentSets,
-      'Allows creating, editing, copying and deleting Environment Sets, and assigning them to Projects.',
+      'Allows creating, editing, copying and deleting Environment Sets, and assigning them to Projects and project groups.',
+    ],
+    [
+      SystemPermission.ManageProjectGroups,
+      'Allows creating, editing and deleting project groups, and managing any group. A holder can make themselves a manager of any group, so grant it as carefully as Manage Environment Sets. Enables the Project Groups Administration panel.',
     ],
     [
       SystemPermission.ManageHosts,

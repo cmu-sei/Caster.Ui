@@ -233,7 +233,19 @@ export class AdminEnvironmentSetsComponent
   }
 
   projectNames(set: EnvironmentSet): string {
-    return (set.projects ?? []).map((x) => x.name).join(', ');
+    return [
+      ...(set.projects ?? []).map((x) => x.name),
+      ...(set.projectGroups ?? []).map((x) => `${x.name} (group)`),
+    ].join(', ');
+  }
+
+  /** How many projects and project groups a set is assigned to, e.g. "2 + 1 group". */
+  assignedCount(set: EnvironmentSet): string {
+    const groups = set.projectGroups?.length ?? 0;
+    const projects = String(set.projects?.length ?? 0);
+    return groups
+      ? `${projects} + ${groups} ${groups === 1 ? 'group' : 'groups'}`
+      : projects;
   }
 
   isSelected(set: EnvironmentSet): boolean {
@@ -358,9 +370,20 @@ export class AdminEnvironmentSetsComponent
   }
 
   deleteSet(set: EnvironmentSet): void {
-    const projects = set.projects ?? [];
-    const message = projects.length
-      ? `Delete ${set.name}? It is assigned to ${projects.length === 1 ? 'this project' : `these ${projects.length} projects`}, which will no longer get its variables on their next runs: ${this.projectNames(set)}.`
+    const projects = set.projects?.length ?? 0;
+    const groups = set.projectGroups?.length ?? 0;
+    const assigned = [
+      projects ? (projects === 1 ? 'a project' : `${projects} projects`) : '',
+      groups
+        ? groups === 1
+          ? 'a project group'
+          : `${groups} project groups`
+        : '',
+    ]
+      .filter((x) => !!x)
+      .join(' and ');
+    const message = assigned
+      ? `Delete ${set.name}? It is assigned to ${assigned}, whose runs will no longer get its variables: ${this.projectNames(set)}.`
       : `Delete ${set.name}? It is not assigned to any project.`;
 
     this.confirmService

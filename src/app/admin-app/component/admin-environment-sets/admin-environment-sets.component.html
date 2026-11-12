@@ -203,9 +203,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 mat-cell
                 *matCellDef="let element"
                 [matTooltip]="projectNames(element)"
-                [matTooltipDisabled]="!element.projects?.length"
+                [matTooltipDisabled]="
+                  !element.projects?.length && !element.projectGroups?.length
+                "
               >
-                {{ element.projects?.length ?? 0 }}
+                {{ assignedCount(element) }}
               </td>
             </ng-container>
 

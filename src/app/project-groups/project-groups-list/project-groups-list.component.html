@@ -1,0 +1,98 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="list">
+  <div class="toolbar">
+    <mat-form-field class="search" subscriptSizing="dynamic">
+      <mat-label>Search Project Groups</mat-label>
+      <mat-icon matPrefix svgIcon="ic_magnify_search" />
+      <input
+        matInput
+        autocomplete="off"
+        [value]="filter()"
+        (input)="filter.set($any($event.target).value)"
+      />
+      @if (filter()) {
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear search"
+          (click)="filter.set('')"
+        >
+          <mat-icon fontIcon="mdi-close-circle-outline" />
+        </button>
+      }
+    </mat-form-field>
+    @if (canManageGroups$ | async) {
+      <button matButton type="button" (click)="create()">
+        <mat-icon fontIcon="mdi-plus" />
+        Add Project Group
+      </button>
+    }
+  </div>
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <ul class="groups">
+    @for (group of visible(); track group.id) {
+      <li [class.expanded]="expandedId() === group.id">
+        <div class="row">
+          <button
+            class="row-toggle"
+            type="button"
+            [attr.aria-expanded]="expandedId() === group.id"
+            (click)="toggle(group)"
+          >
+            <mat-icon
+              class="mdi-18px"
+              [fontIcon]="
+                expandedId() === group.id
+                  ? 'mdi-chevron-down'
+                  : 'mdi-chevron-right'
+              "
+            />
+            <span class="name">{{ group.name }}</span>
+            <span class="secondary">
+              {{ group.projects?.length ?? 0 }}
+              {{ group.projects?.length === 1 ? 'project' : 'projects' }}
+              @if (group.description) {
+                &middot; {{ group.description }}
+              }
+            </span>
+          </button>
+          @if (canManageGroups$ | async) {
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Edit ' + group.name"
+              matTooltip="Rename"
+              (click)="edit(group)"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-square-edit-outline" />
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Delete ' + group.name"
+              matTooltip="Delete"
+              (click)="delete(group)"
+            >
+              <mat-icon class="mdi-18px" fontIcon="mdi-trash-can-outline" />
+            </button>
+          }
+        </div>
+        @if (expandedId() === group.id) {
+          <cas-project-group-detail [group]="group" />
+        }
+      </li>
+    } @empty {
+      <p class="secondary">
+        {{ filter() ? 'No project groups match.' : 'No project groups yet.' }}
+      </p>
+    }
+  </ul>
+</div>
