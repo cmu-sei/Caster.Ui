@@ -28,9 +28,12 @@ import { UsersComponent } from '../admin-users/users.component';
 import { AdminModulesComponent } from '../admin-modules/modules.component';
 import { AdminWorkspacesComponent } from '../admin-workspaces/admin-workspaces.component';
 import { VlansComponent } from '../admin-vlans/vlans.component';
+import { AdminHypervisorsComponent } from '../admin-hypervisors/admin-hypervisors.component';
 import { AdminRolesComponent } from '../admin-roles/admin-roles.component';
 import { AdminGroupsComponent } from '../admin-groups/admin-groups.component';
 import { AdminProjectsComponent } from '../admin-projects/admin-projects.component';
+import { AdminEnvironmentSetsComponent } from '../admin-environment-sets/admin-environment-sets.component';
+import { ProjectGroupsListComponent } from 'src/app/project-groups/project-groups-list/project-groups-list.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -53,9 +56,12 @@ import { AsyncPipe } from '@angular/common';
     AdminModulesComponent,
     AdminWorkspacesComponent,
     VlansComponent,
+    AdminHypervisorsComponent,
     AdminRolesComponent,
     AdminGroupsComponent,
     AdminProjectsComponent,
+    AdminEnvironmentSetsComponent,
+    ProjectGroupsListComponent,
     AsyncPipe,
   ],
 })
@@ -76,9 +82,12 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
   public vlansText = 'VLANs';
+  public connectionsText = 'Connections';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
   public projectsText = 'Projects';
+  public environmentSetsText = 'Environment Sets';
+  public projectGroupsText = 'Project Groups';
   public showStatus = this.projectsText;
   public theme$: Observable<Theme>;
   TopbarView = TopbarView;
@@ -157,6 +166,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Sets the display to Connections
+   */
+  adminGotoConnections(): void {
+    this.navigateToSection(this.connectionsText);
+  }
+
+  /**
    * Sets the display to Roles
    */
   adminGotoRoles(): void {
@@ -175,6 +191,20 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoProjects(): void {
     this.navigateToSection(this.projectsText);
+  }
+
+  /**
+   * Sets the display to Project Groups
+   */
+  adminGotoProjectGroups(): void {
+    this.navigateToSection(this.projectGroupsText);
+  }
+
+  /**
+   * Sets the display to Environment Sets
+   */
+  adminGotoEnvironmentSets(): void {
+    this.navigateToSection(this.environmentSetsText);
   }
 
   private navigateToSection(sectionName: string) {

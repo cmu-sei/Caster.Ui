@@ -13,6 +13,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { ClipboardModule } from 'ngx-clipboard';
@@ -167,4 +168,21 @@ describe('PartitionComponent', () => {
       expect(list.canEdit()).toBe(canEdit);
     },
   );
+
+  /**
+   * Verifies: the copy confirmation names the partition whose ID was copied.
+   * Interacts with: MatSnackBar.open (spied).
+   * Data: partition Range.
+   */
+  it('says which partition it copied the ID of', async () => {
+    const { fixture } = await renderPartition(false);
+    const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+
+    fixture.componentInstance.onClipboardSuccess();
+
+    expect(open).toHaveBeenCalledWith(
+      'Copied the ID of Range to clipboard',
+      'Dismiss',
+    );
+  });
 });

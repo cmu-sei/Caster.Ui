@@ -1,0 +1,48 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="data.title"
+  [submitLabel]="submitLabel()"
+  loadingLabel="Saving"
+  [loading]="saving()"
+  [errorMessage]="error()"
+  [submitDisabled]="changeCount() === 0 || saving()"
+  (submit)="save()"
+>
+  <div crucibleDialogContent>
+    @if (data.description) {
+      <p class="secondary">{{ data.description }}</p>
+    }
+    @if (data.sections.length === 1) {
+      <ng-container
+        *ngTemplateOutlet="list; context: { $implicit: 0 }"
+      ></ng-container>
+    } @else {
+      <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+        @for (section of data.sections; track section.label; let i = $index) {
+          <mat-tab [label]="section.label">
+            <div class="tab-body">
+              <ng-container
+                *ngTemplateOutlet="list; context: { $implicit: i }"
+              ></ng-container>
+            </div>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    }
+  </div>
+</crucible-dialog>
+
+<ng-template #list let-i>
+  <cas-assignment-checklist
+    [items]="data.sections[i].items"
+    [initial]="data.sections[i].assigned"
+    [selected]="selections[i]()"
+    (selectedChange)="selections[i].set($event)"
+    [searchLabel]="data.sections[i].searchLabel ?? 'Search'"
+    [emptyText]="data.sections[i].emptyText ?? 'Nothing to assign.'"
+  />
+</ng-template>

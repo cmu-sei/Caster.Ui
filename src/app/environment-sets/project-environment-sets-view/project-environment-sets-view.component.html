@@ -1,0 +1,227 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="view">
+  <div class="toolbar">
+    <mat-form-field class="filter" subscriptSizing="dynamic">
+      <mat-label>Filter</mat-label>
+      <input
+        matInput
+        autocomplete="off"
+        [value]="filter()"
+        (input)="filter.set($any($event.target).value)"
+      />
+      @if (filter()) {
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear filter"
+          (click)="filter.set('')"
+        >
+          <mat-icon fontIcon="mdi-close-circle-outline" />
+        </button>
+      }
+    </mat-form-field>
+    <button
+      matButton
+      type="button"
+      [attr.aria-expanded]="showHelp()"
+      (click)="showHelp.set(!showHelp())"
+    >
+      <mat-icon fontIcon="mdi-information-outline" />
+      How these reach your runs
+    </button>
+  </div>
+
+  @if (showHelp()) {
+    <div class="help" role="note">
+      <p>
+        Admins assign Environment Sets to give this project's Terraform runs
+        credentials and settings without putting them in files. Every workspace
+        in the project gets them.
+      </p>
+      <ul>
+        <li>
+          <strong>Environment variables</strong> need no code: providers read
+          them from the environment (for example
+          <code>PROXMOX_VE_API_TOKEN</code>).
+        </li>
+        <li>
+          <strong>Terraform variables</strong> need a declaration: copy it, then
+          use <code>var.&lt;name&gt;</code>. They are never secrets: Terraform
+          saves variable values in state and plan files, which project members
+          can read.
+        </li>
+        <li>
+          Secret values, including hypervisor credentials from a connection, are
+          never shown here, and are replaced with <code>***</code> in run
+          output. A run fails before Terraform starts if a value is missing.
+        </li>
+      </ul>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <p class="missing" role="alert">{{ message }}</p>
+  }
+
+  @if (sets(); as all) {
+    @if (all.length === 0) {
+      <p class="secondary">No Environment Sets are assigned to this project.</p>
+    } @else if (visibleSets().length === 0) {
+      <p class="secondary">No variables match the filter.</p>
+    }
+  }
+
+  <mat-accordion multi displayMode="flat">
+    @for (set of visibleSets(); track set.environmentSetId) {
+      <mat-expansion-panel
+        [expanded]="isExpanded(set)"
+        (opened)="setExpanded(set, true)"
+        (closed)="setExpanded(set, false)"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ set.name }}
+            @for (
+              group of set.projectGroups ?? [];
+              track group.projectGroupId
+            ) {
+              <span class="via">via group {{ group.name }}</span>
+            }
+          </mat-panel-title>
+          <mat-panel-description>
+            <span class="secondary">
+              {{ set.entries?.length ?? 0 }}
+              {{ set.entries?.length === 1 ? 'variable' : 'variables' }}
+            </span>
+            @if (set.isComplete) {
+              <span class="status ok">
+                <mat-icon class="mdi-18px" fontIcon="mdi-check-circle" />
+                Complete
+              </span>
+            } @else {
+              <span class="status missing">
+                <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
+                {{ missingCount(set) }} missing
+              </span>
+            }
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="set-bar">
+          <span class="secondary">{{ set.description }}</span>
+          <span class="set-actions">
+            <button
+              matButton
+              type="button"
+              [matTooltip]="
+                hasDeclarations(set)
+                  ? 'Copy the declarations this set needs, with its environment variables listed in a comment'
+                  : 'Copy a comment listing this set\'s environment variables'
+              "
+              (click)="copySet(set)"
+            >
+              <mat-icon fontIcon="mdi-content-copy" />
+              Copy set
+            </button>
+          </span>
+        </div>
+
+        @if (!set.isComplete) {
+          <p class="missing">
+            Runs in this project fail until an admin supplies the missing
+            values.
+          </p>
+        }
+
+        <table class="entries">
+          <thead>
+            <tr>
+              <th scope="col">Variable</th>
+              <th scope="col">Kind</th>
+              <th scope="col">Value</th>
+              <th scope="col">
+                <span class="visually-hidden">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of set.entries; track entry.id) {
+              <tr>
+                <td>
+                  <code [matTooltip]="deliveredAs(entry)">{{
+                    variableLabel(entry)
+                  }}</code>
+                </td>
+                <td>{{ kindLabel(entry) }}</td>
+                <td>
+                  <ng-container
+                    [ngTemplateOutlet]="value"
+                    [ngTemplateOutletContext]="{ $implicit: entry }"
+                  />
+                </td>
+                <td class="actions">
+                  <ng-container
+                    [ngTemplateOutlet]="actions"
+                    [ngTemplateOutletContext]="{ $implicit: entry }"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+</div>
+
+<ng-template #value let-entry>
+  @if (entry.isSecret || entry.valueSource === Source.Secret) {
+    @if (entry.isAvailable) {
+      <span class="status">
+        <mat-icon class="mdi-18px ok" fontIcon="mdi-lock" />
+        Secret · available
+      </span>
+    } @else {
+      <span class="status missing">
+        <mat-icon class="mdi-18px" fontIcon="mdi-alert-circle" />
+        Secret · missing
+      </span>
+    }
+  } @else if (entry.valueSource === Source.Connection) {
+    <span class="status" [class.missing]="!entry.isAvailable">
+      <mat-icon
+        class="mdi-18px"
+        [class.ok]="entry.isAvailable"
+        [fontIcon]="
+          entry.isAvailable ? 'mdi-server-network' : 'mdi-alert-circle'
+        "
+      />
+      {{ entry.connectionField }} of connection
+      <code>{{ entry.connectionName }}</code>
+      @if (!entry.isAvailable) {
+        · missing
+      }
+    </span>
+  } @else {
+    <code class="plain-value">{{ entry.value }}</code>
+  }
+</ng-template>
+
+<ng-template #actions let-entry>
+  <span class="entry-actions">
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="copyTooltip(entry)"
+      [matTooltip]="copyTooltip(entry)"
+      (click)="copyEntry(entry)"
+    >
+      <mat-icon class="mdi-18px" fontIcon="mdi-content-copy" />
+    </button>
+  </span>
+</ng-template>

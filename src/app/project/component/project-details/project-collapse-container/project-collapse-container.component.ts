@@ -49,6 +49,7 @@ import { MatDivider } from '@angular/material/list';
 import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
 import { ProjectComponent } from '../project/project.component';
 import { AsyncPipe } from '@angular/common';
+import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
 
@@ -70,6 +71,7 @@ const LEFT_SIDEBAR_MIN_WIDTH = 250;
     MatSidenavContent,
     TopbarComponent,
     ProjectComponent,
+    InventoryPanelComponent,
     AsyncPipe,
   ],
 })

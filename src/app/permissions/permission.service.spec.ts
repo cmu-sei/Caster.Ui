@@ -99,8 +99,9 @@ const allSystemPermissions = Object.values(SystemPermission);
 const viewPermissions = allSystemPermissions.filter((p) =>
   p.startsWith('View'),
 );
+// ManageProjectGroups reaches the admin area on its own, for the Project Groups page.
 const nonViewPermissions = allSystemPermissions.filter(
-  (p) => !p.startsWith('View'),
+  (p) => !p.startsWith('View') && p !== SystemPermission.ManageProjectGroups,
 );
 
 // ---------------------------------------------------------------------------

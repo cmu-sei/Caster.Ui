@@ -1,0 +1,37 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+.detail {
+  padding: 8px 16px 16px;
+}
+
+.tab-body {
+  padding-top: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.memberships {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+}
+
+.secondary {
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: 0;
+}
+
+.error {
+  color: var(--mat-sys-error);
+}

@@ -1,0 +1,169 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<div class="detail">
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+    <mat-tab label="Projects">
+      <div class="tab-body">
+        @if (group().canManage) {
+          <p class="secondary">
+            You can add the projects you manage. A project moves out of any
+            other group, and keeps its own memberships and sets.
+          </p>
+        }
+        <cas-assignment-checklist
+          [items]="projectItems()"
+          [initial]="initialProjects()"
+          [(selected)]="selectedProjects"
+          [editable]="!!group().canManage"
+          searchLabel="Search projects"
+          emptyText="No projects yet."
+        />
+        @if (group().canManage) {
+          <div class="actions">
+            @if (canCreateProjects()) {
+              <button matButton type="button" (click)="createProject()">
+                <mat-icon fontIcon="mdi-folder-plus-outline" />
+                New Project in Group
+              </button>
+            }
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: projectChanges(), tab: 'projects' }
+              "
+            />
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    @if (group().canManage) {
+      <mat-tab label="Memberships">
+        <div class="tab-body">
+          <p class="secondary">
+            Each membership's role applies in every project of the group. A
+            Manager, or any role with Manage Project, manages the group.
+          </p>
+          <div class="memberships">
+            <cas-project-membership-list
+              [users]="nonMembers()"
+              [groups]="groupNonMembers()"
+              [canEdit]="true"
+              (createMembership)="addMembership($event)"
+            />
+            <cas-project-member-list
+              [memberships]="membershipRows()"
+              [users]="members()"
+              [groups]="groupMembers()"
+              [roles]="roles()"
+              [canEdit]="true"
+              (deleteMembership)="removeMembership($event)"
+              (editMembership)="changeRole($event)"
+            />
+          </div>
+        </div>
+      </mat-tab>
+    }
+
+    <mat-tab label="Environment Sets">
+      <div class="tab-body">
+        <p class="secondary">
+          Every project in the group gets these sets as well as its own.
+        </p>
+        <cas-assignment-checklist
+          [items]="setItems()"
+          [initial]="initialSets()"
+          [(selected)]="selectedSets"
+          [editable]="canManageSets()"
+          searchLabel="Search Environment Sets"
+          emptyText="None."
+        />
+        @if (canManageSets()) {
+          <div class="actions">
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: setChanges(), tab: 'sets' }
+              "
+            />
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Connections">
+      <div class="tab-body">
+        <p class="secondary">
+          Every project in the group sees these connections' inventory as well
+          as its own.
+        </p>
+        <cas-assignment-checklist
+          [items]="connectionItems()"
+          [initial]="initialConnections()"
+          [(selected)]="selectedConnections"
+          [editable]="canManageConnections()"
+          searchLabel="Search connections"
+          emptyText="None."
+        />
+        @if (canManageConnections()) {
+          <div class="actions">
+            <span class="spacer"></span>
+            <ng-container
+              *ngTemplateOutlet="
+                saveButton;
+                context: { changes: connectionChanges(), tab: 'connections' }
+              "
+            />
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    @if (canManageVlans()) {
+      <mat-tab label="VLANs">
+        <div class="tab-body">
+          <p class="secondary">
+            The group's projects acquire VLANs from their own partition, then
+            this one, then the default.
+          </p>
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Partition</mat-label>
+            <mat-select
+              [value]="partition()"
+              (selectionChange)="setPartition($event.value)"
+            >
+              <mat-option value="">None (the default)</mat-option>
+              @for (p of partitions(); track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+</div>
+
+<ng-template #saveButton let-changes="changes" let-tab="tab">
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="changes.add.length + changes.remove.length === 0 || saving()"
+    (click)="saveTab(tab)"
+  >
+    {{
+      saving()
+        ? 'Saving'
+        : saveLabel(changes.add.length + changes.remove.length)
+    }}
+  </button>
+</ng-template>

@@ -1,0 +1,128 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="
+    data.projectName ? 'Environment: ' + data.projectName : 'Environment'
+  "
+  [hideDefaultActions]="true"
+>
+  <div crucibleDialogContent>
+    @if (error(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+
+    <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+      <mat-tab label="Environment Sets">
+        <div class="tab-body">
+          @if (editing() && canManageSets()) {
+            @if (throughGroup()) {
+              <p class="secondary">
+                What the project gets through its group is changed on the group.
+              </p>
+            }
+            <cas-assignment-checklist
+              [items]="setItems()"
+              [initial]="initialSets()"
+              [(selected)]="selectedSets"
+              searchLabel="Search Environment Sets"
+              emptyText="There are no Environment Sets. Create them in Administration."
+            />
+            @for (hint of hints(); track hint.connectionName) {
+              <div class="hint" role="note">
+                <mat-icon class="mdi-18px" fontIcon="mdi-lightbulb-outline" />
+                <span
+                  >{{ hint.setName }} reads {{ hint.connectionName }}, whose
+                  inventory this project doesn't show.</span
+                >
+                <button matButton type="button" (click)="showConnection(hint)">
+                  Also show {{ hint.connectionName }}
+                </button>
+              </div>
+            }
+          } @else {
+            <cas-project-environment-sets-view [projectId]="data.projectId" />
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Connections">
+        <div class="tab-body">
+          <p class="secondary">
+            The infrastructure connections whose templates, ISOs and networks
+            this project's Inventory panel lists. They give inventory, not
+            credentials.
+          </p>
+          @if (editing() && canManageInfrastructure()) {
+            <cas-assignment-checklist
+              [items]="connectionItems()"
+              [initial]="initialConnections()"
+              [(selected)]="selectedConnections"
+              searchLabel="Search connections"
+              emptyText="No infrastructure connections are configured."
+            />
+          } @else if (connections().length) {
+            <ul class="items">
+              @for (connection of connections(); track connection.name) {
+                <li>
+                  <mat-icon class="mdi-18px" fontIcon="mdi-server-network" />
+                  {{ connection.name }}
+                  <span
+                    class="status"
+                    [class.missing]="connection.status === 'Missing'"
+                    >{{ connectionStatus(connection) }}</span
+                  >
+                  @for (group of connection.projectGroups ?? []; track group) {
+                    <span class="status">via group {{ group }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="secondary">
+              No connections are assigned to this project.
+            </p>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <div crucibleDialogActions>
+    @if (editing()) {
+      <button matButton="outlined" type="button" (click)="cancel()">
+        Cancel
+      </button>
+      <button
+        matButton="filled"
+        type="button"
+        [disabled]="changeCount() === 0 || saving()"
+        (click)="save()"
+      >
+        {{ saving() ? 'Saving' : saveLabel() }}
+      </button>
+    } @else {
+      @if (canChange()) {
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="!loaded()"
+          (click)="edit()"
+        >
+          <mat-icon fontIcon="mdi-pencil" />
+          Change Assignments
+        </button>
+      }
+      <button
+        matButton="filled"
+        type="button"
+        cdkFocusInitial
+        (click)="close()"
+      >
+        Close
+      </button>
+    }
+  </div>
+</crucible-dialog>

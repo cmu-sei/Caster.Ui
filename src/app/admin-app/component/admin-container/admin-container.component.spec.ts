@@ -39,6 +39,7 @@ import { AdminWorkspacesComponent } from 'src/app/admin-app/component/admin-work
 import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
 import { UsersComponent } from 'src/app/admin-app/component/admin-users/users.component';
 import { VlansComponent } from 'src/app/admin-app/component/admin-vlans/vlans.component';
+import { AdminHypervisorsComponent } from 'src/app/admin-app/component/admin-hypervisors/admin-hypervisors.component';
 
 @Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
@@ -58,6 +59,8 @@ class ModulesStub {}
 class WorkspacesStub {}
 @Component({ selector: 'cas-vlans', template: '' })
 class VlansStub {}
+@Component({ selector: 'cas-admin-hypervisors', template: '' })
+class HypervisorsStub {}
 @Component({ selector: 'cas-admin-roles', template: '' })
 class RolesStub {}
 @Component({ selector: 'cas-admin-groups', template: '' })
@@ -93,6 +96,7 @@ async function renderContainer(
       { replace: AdminModulesComponent, with: ModulesStub },
       { replace: AdminWorkspacesComponent, with: WorkspacesStub },
       { replace: VlansComponent, with: VlansStub },
+      { replace: AdminHypervisorsComponent, with: HypervisorsStub },
       { replace: AdminRolesComponent, with: RolesStub },
       { replace: AdminGroupsComponent, with: GroupsStub },
       { replace: AdminProjectsComponent, with: ProjectsStub },
@@ -153,7 +157,16 @@ describe('AdminContainerComponent', () => {
       { system: [SystemPermission.ManageProjects] },
       ['Projects'],
     ],
-    ['ViewProjects', { system: [SystemPermission.ViewProjects] }, []],
+    [
+      'ViewProjects',
+      { system: [SystemPermission.ViewProjects] },
+      ['Project Groups'],
+    ],
+    [
+      'ManageProjectGroups',
+      { system: [SystemPermission.ManageProjectGroups] },
+      ['Project Groups'],
+    ],
     [
       'ViewWorkspaces',
       { system: [SystemPermission.ViewWorkspaces] },
@@ -162,6 +175,13 @@ describe('AdminContainerComponent', () => {
     ['ManageWorkspaces', { system: [SystemPermission.ManageWorkspaces] }, []],
     ['ViewVlans', { system: [SystemPermission.ViewVlans] }, ['VLANs']],
     ['ManageVlans', { system: [SystemPermission.ManageVlans] }, []],
+    ['ViewHosts', { system: [SystemPermission.ViewHosts] }, []],
+    [
+      'ViewInfrastructure',
+      { system: [SystemPermission.ViewInfrastructure] },
+      ['Connections'],
+    ],
+    ['ManageHosts', { system: [SystemPermission.ManageHosts] }, []],
     ['ViewModules', { system: [SystemPermission.ViewModules] }, ['Modules']],
     ['ManageModules', { system: [SystemPermission.ManageModules] }, []],
     ['ViewUsers', { system: [SystemPermission.ViewUsers] }, ['Users']],
@@ -191,9 +211,9 @@ describe('AdminContainerComponent', () => {
   });
 
   /**
-   * Verifies: a user with every View permission and ManageProjects sees all seven sections in order.
+   * Verifies: a user with every View permission and ManageProjects sees all eight sections in order.
    * Interacts with: PermissionService.permissions$ and canViewGroupsAdmin (real).
-   * Data: ManageProjects plus the View permissions for workspaces, VLANs, modules, users, roles and groups.
+   * Data: ManageProjects plus the View permissions for workspaces, VLANs, infrastructure, modules, users, roles and groups.
    */
   it('lists every section for a full administrator', async () => {
     await renderContainer({
@@ -201,9 +221,11 @@ describe('AdminContainerComponent', () => {
         SystemPermission.ManageProjects,
         SystemPermission.ViewWorkspaces,
         SystemPermission.ViewVlans,
+        SystemPermission.ViewInfrastructure,
         SystemPermission.ViewModules,
         SystemPermission.ViewUsers,
         SystemPermission.ViewRoles,
+        SystemPermission.ViewEnvironmentSets,
         SystemPermission.ViewGroups,
       ],
     });
@@ -215,6 +237,8 @@ describe('AdminContainerComponent', () => {
       'Modules',
       'Users',
       'Roles',
+      'Connections',
+      'Environment Sets',
       'Groups',
     ]);
   });
@@ -269,6 +293,11 @@ describe('AdminContainerComponent', () => {
       permission: SystemPermission.ViewVlans,
     },
     {
+      section: 'Connections',
+      page: 'cas-admin-hypervisors',
+      permission: SystemPermission.ViewInfrastructure,
+    },
+    {
       section: 'Modules',
       page: 'cas-admin-modules',
       permission: SystemPermission.ViewModules,
@@ -310,6 +339,11 @@ describe('AdminContainerComponent', () => {
       section: 'VLANs',
       page: 'cas-vlans',
       permission: SystemPermission.ManageVlans,
+    },
+    {
+      section: 'Connections',
+      page: 'cas-admin-hypervisors',
+      permission: SystemPermission.ManageHosts,
     },
     {
       section: 'Modules',
