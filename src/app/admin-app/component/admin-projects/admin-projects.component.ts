@@ -207,11 +207,12 @@ export class AdminProjectsComponent implements OnInit {
   }
 
   applyFilter(value: string) {
-    this.filterString = value.trim().toLowerCase();
-    this.dataSource.filter = this.filterString;
+    // Lowercase only the filter: filterString is bound to the Search box.
+    this.dataSource.filter = value.trim().toLowerCase();
   }
 
   clearFilter() {
+    this.filterString = '';
     this.applyFilter('');
   }
 

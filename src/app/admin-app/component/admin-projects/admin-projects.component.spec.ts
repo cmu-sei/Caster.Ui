@@ -205,6 +205,27 @@ describe('AdminProjectsComponent', () => {
     expect(screen.getByText('There are no Projects yet')).toBeInTheDocument();
   });
 
+  /**
+   * Verifies: Search keeps what was typed, ignores case when matching, and Clear Search empties the box.
+   * Interacts with: the Search input's ngModel, applyFilter, clearFilter.
+   * Data: Range and Lab; search "RANGE".
+   */
+  it('keeps the search text as typed and matches without case', async () => {
+    const { user } = await renderAdminProjects();
+    const search = screen.getByPlaceholderText('Search') as HTMLInputElement;
+
+    await user.type(search, 'RANGE');
+
+    expect(search.value).toBe('RANGE');
+    expect(rowOf('Range')).toBeInTheDocument();
+    expect(screen.queryByRole('row', { name: /\bLab\b/ })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Clear Search' }));
+
+    expect(search.value).toBe('');
+    expect(rowOf('Lab')).toBeInTheDocument();
+  });
+
   it('says when no project matches the search', async () => {
     const { user } = await renderAdminProjects();
 
