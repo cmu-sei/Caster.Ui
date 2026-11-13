@@ -3,20 +3,223 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-@if (!selectedProjectId) {
-  <cas-project-list
-    class="background w-100 h-100"
-    [projects]="projects$ | async"
-    [isLoading]="loading$ | async"
-    [manageMode]="true"
-    (selectedProjectId)="selectedProjectId = $event"
+<div class="toolbar">
+  <mat-icon
+    class="mdi-24px sp-icon"
+    fontIcon="mdi-notebook"
+    role="img"
+    aria-hidden="false"
+    aria-label="Projects"
+    matTooltip="Every Project in Caster. Click a Project to see and change its memberships."
   />
-}
+  <mat-form-field class="search-field" subscriptSizing="dynamic">
+    <input
+      matInput
+      [(ngModel)]="filterString"
+      (keyup)="applyFilter($event.target.value)"
+      placeholder="Search"
+      aria-label="Search"
+    />
+    @if (!!filterString) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear Search"
+        matTooltip="Clear Search"
+        (click)="clearFilter()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
+      </button>
+    }
+  </mat-form-field>
+  <mat-paginator
+    [pageIndex]="0"
+    [pageSize]="20"
+    [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
+  />
+</div>
 
-@if (selectedProjectId) {
-  <cas-project-memberships
-    [projectId]="selectedProjectId"
-    [embedded]="true"
-    (goBack)="selectedProjectId = null"
-  />
-}
+<div class="table-container">
+  <table
+    mat-table
+    matSort
+    matSortActive="name"
+    matSortDirection="asc"
+    multiTemplateDataRows
+    [dataSource]="dataSource"
+    [trackBy]="trackById"
+  >
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+        @if (canCreate()) {
+          <button
+            mat-icon-button
+            aria-label="Add New Project"
+            matTooltip="Add New Project"
+            (click)="create()"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+          </button>
+        } @else {
+          <span
+            class="disabled-action"
+            matTooltip="Adding a Project needs the CreateProjects permission"
+          >
+            <button
+              mat-icon-button
+              disabled
+              aria-label="Add New Project (not available)"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+            </button>
+          </span>
+        }
+      </th>
+      <td mat-cell *matCellDef="let project">
+        <a
+          mat-icon-button
+          [routerLink]="['/projects', project.id]"
+          target="_blank"
+          (click)="$event.stopPropagation()"
+          [attr.aria-label]="'Open ' + project.name"
+          [matTooltip]="'Open ' + project.name + ' in a new tab'"
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-open-in-new" />
+        </a>
+        @if (canManage(project)) {
+          <button
+            mat-icon-button
+            (click)="$event.stopPropagation(); rename(project)"
+            [attr.aria-label]="'Rename ' + project.name"
+            [matTooltip]="'Rename ' + project.name"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
+          </button>
+          <button
+            mat-icon-button
+            (click)="$event.stopPropagation(); delete(project)"
+            [attr.aria-label]="'Delete ' + project.name"
+            [matTooltip]="'Delete ' + project.name"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+          </button>
+        } @else {
+          <span
+            class="disabled-action"
+            matTooltip="Renaming and deleting a Project need the ManageProjects permission, or ManageProject on this Project"
+          >
+            <button
+              mat-icon-button
+              disabled
+              [attr.aria-label]="'Rename ' + project.name + ' (not available)'"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-square-edit-outline" />
+            </button>
+            <button
+              mat-icon-button
+              disabled
+              [attr.aria-label]="'Delete ' + project.name + ' (not available)'"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
+            </button>
+          </span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="The Project's name"
+      >
+        Name
+      </th>
+      <td mat-cell *matCellDef="let project">{{ project.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="description">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="What the Project is for"
+      >
+        Description
+      </th>
+      <td mat-cell *matCellDef="let project">{{ project.description }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="dateCreated">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="date-cell"
+        matTooltip="When the Project was created, in your time zone"
+      >
+        Created
+      </th>
+      <td mat-cell *matCellDef="let project" class="date-cell">
+        {{ formatCreated(project.dateCreated) }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="expandedDetail">
+      <td
+        mat-cell
+        *matCellDef="let project"
+        [attr.colspan]="displayedColumns.length"
+      >
+        @if (isExpanded(project)) {
+          <div class="detail" (click)="$event.stopPropagation()">
+            <cas-project-memberships
+              [projectId]="project.id"
+              [showTitle]="false"
+            />
+          </div>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr
+      mat-row
+      *matRowDef="let project; columns: displayedColumns"
+      class="element-row"
+      [class.expanded]="isExpanded(project)"
+      [attr.aria-expanded]="isExpanded(project)"
+      (click)="toggle(project)"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let project; columns: ['expandedDetail']"
+      class="detail-row"
+    ></tr>
+    <tr class="mat-mdc-row" *matNoDataRow>
+      @if (!loading()) {
+        <td
+          class="mat-mdc-cell no-data"
+          [attr.colspan]="displayedColumns.length"
+        >
+          @if (filterString) {
+            No Projects match "{{ filterString }}"
+          } @else {
+            There are no Projects yet
+          }
+        </td>
+      }
+    </tr>
+  </table>
+
+  @if (loading()) {
+    <div class="loading">
+      <mat-progress-spinner
+        color="primary"
+        mode="indeterminate"
+        diameter="48"
+      />
+    </div>
+  }
+</div>

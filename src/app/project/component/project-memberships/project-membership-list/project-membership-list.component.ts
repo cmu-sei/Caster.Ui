@@ -38,12 +38,7 @@ import {
 } from 'src/app/generated/caster-api';
 import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { MatIcon } from '@angular/material/icon';
-import {
-  MatFormField,
-  MatLabel,
-  MatPrefix,
-  MatSuffix,
-} from '@angular/material/form-field';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
@@ -60,8 +55,6 @@ import { MatTooltip } from '@angular/material/tooltip';
     MatToolbarRow,
     MatIcon,
     MatFormField,
-    MatLabel,
-    MatPrefix,
     MatInput,
     FormsModule,
     MatIconButton,

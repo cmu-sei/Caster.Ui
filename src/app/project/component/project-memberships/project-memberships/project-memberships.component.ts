@@ -12,7 +12,7 @@ import {
   output,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { ProjectQuery, ProjectService } from 'src/app/project/state';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
@@ -66,6 +66,9 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
 
   readonly returnLabel = input('Return');
 
+  /** False where the host already names the project, e.g. an admin table row. */
+  readonly showTitle = input(true);
+
   readonly goBack = output();
 
   project$: Observable<Project>;
@@ -106,10 +109,12 @@ export class ProjectMembershipsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    this.project$ = this.projectQuery.selectEntity(this.projectId()).pipe(
-      filter((x) => x != null),
-      tap((x) => (this.canEdit$ = this.permissionService.canEditProject(x.id))),
-    );
+    this.project$ = this.projectQuery
+      .selectEntity(this.projectId())
+      .pipe(filter((x) => x != null));
+    // Set here, not when the title subscribes to project$: a host that
+    // hides the title would otherwise leave the lists read-only.
+    this.canEdit$ = this.permissionService.canManageProject(this.projectId());
   }
 
   selectUsers(members: boolean) {
