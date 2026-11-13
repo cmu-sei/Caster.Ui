@@ -194,14 +194,14 @@ export class AdminProjectsComponent implements OnInit {
       .subscribe();
   }
 
-  /** Rename and Delete need EditProjects, or EditProject on that project, as the API requires. */
-  canEdit(project: Project): boolean {
+  /** Rename and Delete need ManageProjects, or ManageProject on that project, as the API requires. */
+  canManage(project: Project): boolean {
     return (
-      this.systemPermissions().includes(SystemPermission.EditProjects) ||
+      this.systemPermissions().includes(SystemPermission.ManageProjects) ||
       this.projectPermissions().some(
         (claim) =>
           claim.projectId === project.id &&
-          claim.permissions?.includes(ProjectPermission.EditProject),
+          claim.permissions?.includes(ProjectPermission.ManageProject),
       )
     );
   }

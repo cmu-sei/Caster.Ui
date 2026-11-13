@@ -86,7 +86,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         >
           <mat-icon class="mdi-24px" fontIcon="mdi-open-in-new" />
         </a>
-        @if (canEdit(project)) {
+        @if (canManage(project)) {
           <button
             mat-icon-button
             (click)="$event.stopPropagation(); rename(project)"
@@ -106,7 +106,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         } @else {
           <span
             class="disabled-action"
-            matTooltip="Renaming and deleting a Project need the EditProjects permission, or EditProject on this Project"
+            matTooltip="Renaming and deleting a Project need the ManageProjects permission, or ManageProject on this Project"
           >
             <button
               mat-icon-button

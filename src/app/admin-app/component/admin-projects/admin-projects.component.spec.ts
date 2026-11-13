@@ -306,16 +306,32 @@ describe('AdminProjectsComponent', () => {
     });
 
     /**
-     * Verifies: Rename and Delete need EditProjects, or EditProject on that project, as the API requires; ManageProjects alone is not enough.
+     * Verifies: Rename and Delete need ManageProjects, or ManageProject on that project, as the API requires; EditProjects and EditProject are not enough.
      * Interacts with: PermissionService (real) over stubbed system and project claims.
      * Data: the grants in the row; Range is p1.
      */
     it.each([
       {
-        label: 'EditProjects',
-        grants: { system: [SystemPermission.EditProjects] },
+        label: 'ManageProjects',
+        grants: { system: [SystemPermission.ManageProjects] },
         range: true,
         lab: true,
+      },
+      {
+        label: 'ManageProject on Range',
+        grants: {
+          projects: [
+            { projectId: 'p1', permissions: [ProjectPermission.ManageProject] },
+          ],
+        },
+        range: true,
+        lab: false,
+      },
+      {
+        label: 'EditProjects only',
+        grants: { system: [SystemPermission.EditProjects] },
+        range: false,
+        lab: false,
       },
       {
         label: 'EditProject on Range',
@@ -324,12 +340,6 @@ describe('AdminProjectsComponent', () => {
             { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
           ],
         },
-        range: true,
-        lab: false,
-      },
-      {
-        label: 'ManageProjects only',
-        grants: { system: [SystemPermission.ManageProjects] },
         range: false,
         lab: false,
       },
@@ -408,11 +418,11 @@ describe('AdminProjectsComponent', () => {
     /**
      * Verifies: Rename saves the new name and description without expanding the row, and confirms it.
      * Interacts with: MatDialog.open (stub), ProjectsService.editProject (stub).
-     * Data: EditProjects; Range renamed to Range 2.
+     * Data: ManageProjects; Range renamed to Range 2.
      */
     it('renames a project', async () => {
       const { fixture, projectsApi, user } = await renderAdminProjects(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         { named: { nameValue: 'Range 2', descriptionValue: 'Bigger' } },
       );
 
@@ -433,11 +443,11 @@ describe('AdminProjectsComponent', () => {
     /**
      * Verifies: Delete asks first, deletes the project once confirmed, removes its row and confirms it; cancelling deletes nothing.
      * Interacts with: CrucibleDialogService.confirm (stub), ProjectsService.deleteProject (stub).
-     * Data: EditProjects; Range.
+     * Data: ManageProjects; Range.
      */
     it('deletes a project after confirmation', async () => {
       const { projectsApi, confirm, user } = await renderAdminProjects(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         { confirmAnswer: true },
       );
 
@@ -459,7 +469,7 @@ describe('AdminProjectsComponent', () => {
 
     it('deletes nothing when the confirmation is cancelled', async () => {
       const { projectsApi, user } = await renderAdminProjects(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         { confirmAnswer: false },
       );
 
@@ -477,7 +487,7 @@ describe('AdminProjectsComponent', () => {
      */
     it('shows why the API refused a delete', async () => {
       await renderAdminProjects(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         {
           confirmAnswer: true,
           remove: () =>
