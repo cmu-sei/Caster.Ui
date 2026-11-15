@@ -249,8 +249,7 @@ export class WorkspaceContainerComponent
       )
       .pipe(
         take(1),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      )
+             )
       .subscribe();
   }
 
@@ -260,8 +259,7 @@ export class WorkspaceContainerComponent
       .rejectRun(this.workspaceId(), run.id)
       .pipe(
         take(1),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      )
+             )
       .subscribe();
   }
 
@@ -284,8 +282,7 @@ export class WorkspaceContainerComponent
             .cancelRun(this.workspaceId(), run.id, this.forceCancel)
             .pipe(
               take(1),
-              // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-            )
+                         )
             .subscribe();
         }
       });
@@ -314,8 +311,7 @@ export class WorkspaceContainerComponent
       .saveState(run.id)
       .pipe(
         take(1),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      )
+             )
       .subscribe();
   }
 

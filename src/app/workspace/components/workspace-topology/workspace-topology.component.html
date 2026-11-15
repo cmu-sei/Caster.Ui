@@ -52,7 +52,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Fit to view"
       (click)="fit()"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-fit-to-page-outline" />
     </button>
     <button
       mat-icon-button
@@ -63,7 +63,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon
         class="mdi-24px"
         [fontIcon]="layoutStyle === 'tree' ? 'mdi-graph-outline' : 'mdi-file-tree-outline'"
-      ></mat-icon>
+      />
     </button>
     @if (canEdit()) {
     <button
@@ -73,7 +73,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       [disabled]="!hasSavedPositions"
       (click)="resetLayout()"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-restore"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-restore" />
     </button>
     }
     <button
@@ -82,7 +82,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Copy image"
       (click)="copyImage()"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-content-copy"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
     </button>
     <button
       mat-icon-button
@@ -90,7 +90,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Download image"
       [matMenuTriggerFor]="downloadMenu"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-download"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-download" />
     </button>
     <mat-menu #downloadMenu="matMenu">
       <button mat-menu-item (click)="downloadImage('png')">PNG image</button>
@@ -105,7 +105,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-icon
         class="mdi-24px"
         [fontIcon]="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-      ></mat-icon>
+      />
     </button>
     <button
       mat-icon-button
@@ -113,7 +113,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       aria-label="Print"
       (click)="print()"
     >
-      <mat-icon class="mdi-24px" fontIcon="mdi-printer"></mat-icon>
+      <mat-icon class="mdi-24px" fontIcon="mdi-printer" />
     </button>
     }
   </div>
@@ -123,8 +123,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
     @if (loading) {
     <div class="message">
-      <mat-progress-spinner diameter="40" mode="indeterminate">
-      </mat-progress-spinner>
+      <mat-progress-spinner diameter="40" mode="indeterminate" />
     </div>
     } @else if (error) {
     <div class="message">Topology unavailable: {{ error }}</div>
@@ -155,7 +154,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           @for (option of roleOptions; track option.role) {
           <mat-option [value]="option.role">
             <svg class="role-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path [attr.d]="option.path"></path>
+              <path [attr.d]="option.path" />
             </svg>
             {{ option.label }}
           </mat-option>

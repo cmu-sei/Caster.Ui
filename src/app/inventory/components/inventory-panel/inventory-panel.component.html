@@ -13,7 +13,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="d-flex flex-row justify-content-start align-items-center">
-          <mat-icon class="mdi-18px" fontIcon="mdi-server-network"></mat-icon>
+          <mat-icon class="mdi-18px" fontIcon="mdi-server-network" />
           <strong>INVENTORY</strong>
         </div>
       </mat-panel-title>
@@ -43,7 +43,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       }
 
       <mat-form-field class="search-field" subscriptSizing="dynamic">
-        <mat-icon matPrefix svgIcon="ic_magnify_search"></mat-icon>
+        <mat-icon matPrefix svgIcon="ic_magnify_search" />
         <input
           matInput
           [(ngModel)]="filterString"
@@ -61,7 +61,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon
               class="mdi-18px"
               fontIcon="mdi-close-circle-outline"
-            ></mat-icon>
+            />
           </button>
         }
       </mat-form-field>
@@ -75,9 +75,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         aria-label="Refresh inventory"
       >
         @if (refreshing$ | async) {
-          <mat-spinner diameter="18"></mat-spinner>
+          <mat-spinner diameter="18" />
         } @else {
-          <mat-icon class="mdi-18px" fontIcon="mdi-refresh"></mat-icon>
+          <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
         }
       </button>
     </div>
@@ -101,7 +101,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </p>
     } @else {
       @for (descriptor of categories$ | async; track descriptor.category) {
-        <cas-inventory-list [descriptor]="descriptor"></cas-inventory-list>
+        <cas-inventory-list [descriptor]="descriptor" />
       }
     }
 

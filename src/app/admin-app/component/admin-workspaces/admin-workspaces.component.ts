@@ -109,8 +109,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      .subscribe();
+           .subscribe();
 
     this.workspaceService
       .loadAllActiveRuns()
@@ -121,8 +120,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
         }),
         finalize(() => this.loading.set(false)),
       )
-      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      .subscribe();
+           .subscribe();
     this.activeRuns$ = this.workspaceQuery.activeRuns$();
     this.expandedRuns$ = this.workspaceQuery.expandedRuns$();
 
@@ -196,8 +194,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
         }),
         finalize(() => this.changingLocking.set(false)),
       )
-      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      .subscribe((enabled) =>
+           .subscribe((enabled) =>
         this.notify(
           enabled
             ? 'Workspace operations are enabled'

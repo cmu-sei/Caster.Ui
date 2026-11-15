@@ -17,7 +17,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon
               class="mdi-18px"
               [fontIcon]="descriptor().icon"
-            ></mat-icon>
+            />
             <span class="panel-header"
               ><strong>{{ descriptor().label }}</strong></span
             >
@@ -29,7 +29,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 class="mdi-18px stale-icon"
                 fontIcon="mdi-clock-alert-outline"
                 [matTooltip]="staleMessage(state)"
-              ></mat-icon>
+              />
             }
             @if (state.loaded && !state.available) {
               <mat-icon
@@ -38,7 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 [matTooltip]="
                   state.error || descriptor().fallbackUnavailableMessage
                 "
-              ></mat-icon>
+              />
             }
           </div>
         </mat-panel-title>
@@ -50,13 +50,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon
               class="mdi-18px"
               fontIcon="mdi-clock-alert-outline"
-            ></mat-icon>
+            />
             <span class="state-text">{{ staleMessage(state) }}</span>
           </div>
         }
         @if (!state.loaded || state.loading) {
           <div class="state-row">
-            <mat-spinner diameter="16"></mat-spinner>
+            <mat-spinner diameter="16" />
             <span class="state-text">Loading&hellip;</span>
           </div>
         } @else if (!state.available) {
@@ -70,7 +70,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-icon
               class="mdi-18px"
               fontIcon="mdi-information-outline"
-            ></mat-icon>
+            />
             <span class="state-text">{{
               state.error || descriptor().fallbackUnavailableMessage
             }}</span>
@@ -111,7 +111,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                           mode="determinate"
                           [value]="use.percent"
                           [attr.aria-label]="item.name + ' used'"
-                        ></mat-progress-bar>
+                        />
                         <span class="item-path"
                           >{{ formatBytes(use.total - use.used) }} free of
                           {{ formatBytes(use.total) }}</span
@@ -133,7 +133,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       <mat-icon
                         class="mdi-18px"
                         fontIcon="mdi-content-copy"
-                      ></mat-icon>
+                      />
                     </button>
                     @if (terraformOf(item); as snippets) {
                       @if (snippets.length === 1) {
@@ -154,7 +154,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                           <mat-icon
                             class="mdi-18px"
                             fontIcon="mdi-code-braces"
-                          ></mat-icon>
+                          />
                         </button>
                       } @else {
                         <button
@@ -168,7 +168,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                           <mat-icon
                             class="mdi-18px"
                             fontIcon="mdi-code-braces"
-                          ></mat-icon>
+                          />
                         </button>
                         <mat-menu #terraformMenu="matMenu">
                           @for (s of snippets; track s.provider) {

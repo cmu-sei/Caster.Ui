@@ -35,7 +35,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ClipboardModule } from 'ngx-clipboard';
-import { NgClass, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
@@ -66,7 +66,6 @@ export interface Action {
     MatCellDef,
     MatCell,
     ClipboardModule,
-    NgClass,
     MatHeaderRowDef,
     MatHeaderRow,
     MatRowDef,

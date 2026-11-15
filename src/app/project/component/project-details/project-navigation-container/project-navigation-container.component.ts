@@ -115,8 +115,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
               dir.projectId === this.projectId && dir.parentId === null,
           });
 
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-          this.projectService
+                   this.projectService
             .loadProject(this.projectId)
             .pipe(
               take(1),
@@ -132,8 +131,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
               }),
             )
             .subscribe();
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-          this.directoryService
+                   this.directoryService
             .loadDirectories(this.projectId)
             .pipe(
               take(1),
@@ -223,8 +221,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   createNewDirectory(dirId?: string) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.nameDialog('Add Directory', '', { nameValue: '' })
+       this.nameDialog('Add Directory', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
         if (result) {

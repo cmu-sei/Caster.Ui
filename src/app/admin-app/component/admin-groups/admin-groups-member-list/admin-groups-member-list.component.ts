@@ -127,7 +127,7 @@ export class AdminGroupsMemberListComponent
 
   // Read reactively: the current user's id is populated asynchronously once auth
   // resolves, so a synchronous snapshot at construction time can be empty.
-  private currentUserId = toSignal(
+  private readonly currentUserId = toSignal(
     this.currentUserQuery.select((s) => s.id),
     { initialValue: '' },
   );
