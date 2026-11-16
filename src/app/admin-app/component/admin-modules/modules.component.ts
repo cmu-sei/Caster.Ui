@@ -65,8 +65,7 @@ export class AdminModulesComponent implements OnInit {
         take(1),
         finalize(() => this.loadSources(userRequested)),
       )
-      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      .subscribe();
+           .subscribe();
   }
 
   /** When an API instance last synced a source, in the viewer's time zone. */
@@ -85,8 +84,7 @@ export class AdminModulesComponent implements OnInit {
     this.modulesService
       .getModuleSources()
       .pipe(take(1))
-      // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      .subscribe({
+           .subscribe({
         next: (sources) => {
           this.failedSources = sources.filter((s) => s.error);
           this.noSources = !sources.length;
@@ -118,13 +116,11 @@ export class AdminModulesComponent implements OnInit {
   }
 
   loadById(id: string) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.loadModuleById(id).pipe(take(1)).subscribe();
+       this.moduleService.loadModuleById(id).pipe(take(1)).subscribe();
   }
 
   createOrUpdateById(id: string) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService
+       this.moduleService
       .createOrUpdateModuleById(id)
       .pipe(
         take(1),
@@ -145,8 +141,7 @@ export class AdminModulesComponent implements OnInit {
   }
 
   deleteModule(id: string) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.delete(id).pipe(take(1)).subscribe();
+       this.moduleService.delete(id).pipe(take(1)).subscribe();
   }
 } // End Class
 

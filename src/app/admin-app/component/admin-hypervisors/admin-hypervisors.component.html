@@ -5,13 +5,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 @if (loading()) {
   <div class="state-row">
-    <mat-spinner diameter="18"></mat-spinner>
+    <mat-spinner diameter="18" />
     <span>Loading&hellip;</span>
   </div>
 } @else if (error(); as message) {
   <mat-card appearance="outlined">
     <div class="state-row">
-      <mat-icon class="mdi-18px" fontIcon="mdi-information-outline"></mat-icon>
+      <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
       <span>{{ message }}</span>
     </div>
   </mat-card>
@@ -34,9 +34,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [attr.aria-label]="'Refresh ' + view.connection.name"
         >
           @if (view.refreshing) {
-            <mat-spinner diameter="18"></mat-spinner>
+            <mat-spinner diameter="18" />
           } @else {
-            <mat-icon class="mdi-18px" fontIcon="mdi-refresh"></mat-icon>
+            <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
           }
         </button>
       </div>
@@ -84,12 +84,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
       @if (view.connection.error; as problem) {
         <div class="state-row">
-          <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline"></mat-icon>
+          <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline" />
           <span>{{ problem }}</span>
         </div>
       } @else if (view.loading && !view.hosts && !view.datastores) {
         <div class="state-row">
-          <mat-spinner diameter="18"></mat-spinner>
+          <mat-spinner diameter="18" />
           <span>Loading&hellip;</span>
         </div>
       } @else {
@@ -100,7 +100,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon
                 class="mdi-18px"
                 fontIcon="mdi-information-outline"
-              ></mat-icon>
+              />
               <span>Hosts could not be read right now.</span>
             </div>
           } @else if (!view.hosts.available) {
@@ -108,7 +108,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon
                 class="mdi-18px"
                 fontIcon="mdi-information-outline"
-              ></mat-icon>
+              />
               <span>{{
                 view.hosts.error || 'Host use is not available.'
               }}</span>
@@ -119,7 +119,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <mat-icon
                   class="mdi-18px"
                   fontIcon="mdi-clock-alert-outline"
-                ></mat-icon>
+                />
                 <span
                   >Could not refresh. Showing the last read.
                   {{ view.hosts.error }}</span
@@ -154,7 +154,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                             [class]="level(host.cpuPercent)"
                             [value]="host.cpuPercent"
                             [attr.aria-label]="'CPU on ' + item.name"
-                          ></mat-progress-bar>
+                          />
                           <small
                             >{{ host.cpuPercent }}%
                             @if (host.cpuCount !== null) {
@@ -172,7 +172,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                             [class]="level(memory.percent)"
                             [value]="memory.percent"
                             [attr.aria-label]="'Memory on ' + item.name"
-                          ></mat-progress-bar>
+                          />
                           <small
                             >{{ memory.percent }}% &middot;
                             {{ formatBytes(memory.used) }} of
@@ -199,7 +199,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon
                 class="mdi-18px"
                 fontIcon="mdi-information-outline"
-              ></mat-icon>
+              />
               <span>Storage could not be read right now.</span>
             </div>
           } @else if (!view.datastores.available) {
@@ -207,7 +207,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <mat-icon
                 class="mdi-18px"
                 fontIcon="mdi-information-outline"
-              ></mat-icon>
+              />
               <span>{{
                 view.datastores.error || 'Storage use is not available.'
               }}</span>
@@ -240,7 +240,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                           [class]="level(use.percent)"
                           [value]="use.percent"
                           [attr.aria-label]="'Storage ' + item.name"
-                        ></mat-progress-bar>
+                        />
                         <small
                           >{{ use.percent }}% &middot;
                           {{ formatBytes(use.used) }} of

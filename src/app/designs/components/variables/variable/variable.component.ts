@@ -38,7 +38,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { ClipboardModule } from 'ngx-clipboard';
 import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
-import { NgClass, AsyncPipe, KeyValuePipe } from '@angular/common';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
 import { MatInput } from '@angular/material/input';
 import { MatSelect, MatOption } from '@angular/material/select';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
@@ -62,7 +62,6 @@ import { CdkTextareaAutosize } from '@angular/cdk/text-field';
     ReactiveFormsModule,
     MatFormField,
     MatLabel,
-    NgClass,
     MatInput,
     MatHint,
     MatSelect,

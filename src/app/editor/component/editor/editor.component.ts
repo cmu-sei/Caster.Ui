@@ -413,8 +413,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   insertModuleFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService
+       this.moduleService
       .createVersionSnippet(event)
       .pipe(take(1))
       .subscribe((snippet) => {
@@ -424,14 +423,12 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getModuleFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
+       this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
     this.selectedModule$ = this.moduleQuery.selectByModuleId(event.id);
   }
 
   getVersionFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.fileVersionService
+       this.fileVersionService
       .loadFileVersionById(event.id)
       .pipe(take(1))
       .subscribe();

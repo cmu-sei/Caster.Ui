@@ -13,7 +13,7 @@ import {
   OnChanges,
   inject,
   input,
-  viewChild,
+  viewChild, OnDestroy,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -92,7 +92,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
     MatNoDataRow,
   ],
 })
-export class VlanListComponent implements OnInit, OnChanges {
+export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private confirmService = inject(CrucibleDialogService);
   private vlanService = inject(VlanService);

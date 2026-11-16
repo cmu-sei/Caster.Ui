@@ -34,7 +34,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <mat-icon class="mdi-24px" fontIcon="mdi-alert-circle" />
       </button>
     }
-    <span [ngClass]="promptForReload ? 'alert' : ''">
+    <span [class]="promptForReload ? 'alert' : ''">
       {{ selectedModule().name }}
     </span>
   </div>
@@ -59,7 +59,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <div class="flex-grow-1 d-flex flex-column module-fields">
       <mat-card appearance="outlined">
         <mat-form-field>
-          <mat-label [ngClass]="nameChanged ? 'changed-hint' : ''"
+          <mat-label [class]="nameChanged ? 'changed-hint' : ''"
             >Name of this instance</mat-label
           >
           <input
@@ -104,7 +104,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 >
               }
               <mat-label
-                [ngClass]="moduleField.changed ? 'changed-hint' : ''"
+                [class]="moduleField.changed ? 'changed-hint' : ''"
                 >{{ moduleField.name }}</mat-label
               >
               @if (!moduleField.isMultiLine()) {

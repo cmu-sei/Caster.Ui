@@ -19,7 +19,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (data.sections.length === 1) {
       <ng-container
         *ngTemplateOutlet="list; context: { $implicit: 0 }"
-      ></ng-container>
+      />
     } @else {
       <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
         @for (section of data.sections; track section.label; let i = $index) {
@@ -27,7 +27,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <div class="tab-body">
               <ng-container
                 *ngTemplateOutlet="list; context: { $implicit: i }"
-              ></ng-container>
+              />
             </div>
           </mat-tab>
         }

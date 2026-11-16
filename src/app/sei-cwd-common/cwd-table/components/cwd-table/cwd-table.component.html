@@ -66,7 +66,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     >
       <mat-expansion-panel-header
         class="mat-mdc-row"
-        [ngClass]="!getRowStyle() ? '' : getRowStyle()(item)"
+        [class]="!getRowStyle() ? '' : getRowStyle()(item)"
       >
         @for (key of displayedColumns(); track key; let idx = $index) {
           @switch (idx) {
