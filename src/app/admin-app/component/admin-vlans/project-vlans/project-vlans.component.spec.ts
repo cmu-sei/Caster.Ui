@@ -4,7 +4,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,7 +25,10 @@ import { ProjectVlansComponent } from './project-vlans.component';
 
 const projects: Project[] = [{ id: 'p1', name: 'Range', partitionId: null }];
 
-async function renderProjectVlans(canEdit: boolean) {
+async function renderProjectVlans(
+  canEdit: boolean,
+  shownProjects: Project[] = projects,
+) {
   const projectsApi = {
     getAllProjects: vi.fn((_onlyMine?: boolean) =>
       of<Project[]>(structuredClone(projects)),
@@ -32,7 +37,10 @@ async function renderProjectVlans(canEdit: boolean) {
   const vlansApi = {
     getPools: vi.fn(() => of<Pool[]>([{ id: 'pool1', name: 'Main' }])),
     getPartitions: vi.fn(() =>
-      of<Partition[]>([{ id: 'part1', name: 'Blue', poolId: 'pool1' }]),
+      of<Partition[]>([
+        { id: 'part1', name: 'Blue', poolId: 'pool1' },
+        { id: 'part2', name: 'Amber', poolId: 'pool1' },
+      ]),
     ),
     assignPartition: vi.fn((_id: string) =>
       of<Project>({ id: 'p1', name: 'Range', partitionId: 'part1' }),
@@ -50,7 +58,7 @@ async function renderProjectVlans(canEdit: boolean) {
       { provide: ProjectsService, useValue: projectsApi },
       { provide: VlansService, useValue: vlansApi },
     ],
-    inputs: { projects, canEdit },
+    inputs: { projects: shownProjects, canEdit },
   });
   return { ...view, vlansApi, user: userEvent.setup() };
 }
@@ -63,6 +71,7 @@ describe('ProjectVlansComponent', () => {
    */
   it('assigns a partition when canEdit is true', async () => {
     const { vlansApi, user } = await renderProjectVlans(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.click(within(screen.getByRole('table')).getByRole('combobox'));
     await user.click(await screen.findByRole('option', { name: 'Blue' }));
@@ -70,6 +79,36 @@ describe('ProjectVlansComponent', () => {
     expect(vlansApi.assignPartition).toHaveBeenCalledWith('part1', {
       projectId: 'p1',
     });
+    expect(snack).toHaveBeenCalledWith(
+      'Assigned Blue to Range',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: a failed assignment shows the API's problem in a snack bar instead of the error dialog.
+   * Interacts with: VlansService.assignPartition (stub throwing a 403 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: project Range; partition Blue; canEdit true; the API answers 403 Forbidden.
+   */
+  it('shows why assigning a partition failed', async () => {
+    const { vlansApi, user } = await renderProjectVlans(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.assignPartition.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({ status: 403, error: { title: 'Forbidden' } }),
+      ),
+    );
+
+    await user.click(within(screen.getByRole('table')).getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'Blue' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not change the Partition of Range: Forbidden',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -86,5 +125,95 @@ describe('ProjectVlansComponent', () => {
       'aria-disabled',
       'true',
     );
+  });
+
+  /**
+   * Verifies: the Name and Partition headers sort the table, Partition by the assigned partition's name.
+   * Interacts with: MatSort wired to the data source, the partition sortingDataAccessor, real PartitionQuery.
+   * Data: projects Range (Blue), Zulu (Amber) and Alpha (none); pool Main with partitions Blue and Amber.
+   */
+  it('sorts the projects by name and by partition name', async () => {
+    const { user } = await renderProjectVlans(true, [
+      { id: 'p1', name: 'Range', partitionId: 'part1' },
+      { id: 'p2', name: 'Zulu', partitionId: 'part2' },
+      { id: 'p3', name: 'Alpha', partitionId: null },
+    ]);
+    const names = () =>
+      within(screen.getByRole('table'))
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => within(row).getAllByRole('cell')[0].textContent.trim());
+
+    expect(names()).toEqual(['Range', 'Zulu', 'Alpha']);
+    await user.click(screen.getByRole('button', { name: /Name$/ }));
+    expect(names()).toEqual(['Alpha', 'Range', 'Zulu']);
+    await user.click(screen.getByRole('button', { name: 'Partition' }));
+    expect(names()).toEqual(['Alpha', 'Zulu', 'Range']);
+  });
+
+  /**
+   * Verifies: Search narrows the projects by name, says when nothing matches, and Clear restores them; each partition select is named for its project.
+   * Interacts with: applyFilter/clearFilter, the name-only filterPredicate, the matNoDataRow, the select aria-label.
+   * Data: projects Range and Alpha; searches "alp" then "alpz".
+   */
+  it('filters the projects by name', async () => {
+    const { user } = await renderProjectVlans(true, [
+      { id: 'p1', name: 'Range', partitionId: 'part1' },
+      { id: 'p3', name: 'Alpha', partitionId: null },
+    ]);
+    const table = screen.getByRole('table');
+    const search = screen.getByPlaceholderText('Search');
+
+    expect(
+      within(table).getByRole('combobox', { name: 'Partition for Range' }),
+    ).toBeInTheDocument();
+    await user.type(search, 'alp');
+    expect(within(table).queryByText('Range')).not.toBeInTheDocument();
+    expect(within(table).getByText('Alpha')).toBeInTheDocument();
+
+    await user.type(search, 'z');
+    expect(
+      within(table).getByText('No data matching the filter "alpz"'),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(within(table).getByText('Range')).toBeInTheDocument();
+    expect(within(table).getByText('Alpha')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: with no projects the table says so, and About project partitions explains the assignment.
+   * Interacts with: the matNoDataRow, MatTooltip on the info button (read as its description).
+   * Data: no projects; canEdit false.
+   */
+  it('says when there are no projects and explains the tab', async () => {
+    await renderProjectVlans(false, []);
+
+    expect(
+      within(screen.getByRole('table')).getByText(
+        'There are currently no Projects',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'About project partitions' }),
+    ).toHaveAccessibleDescription(
+      /^Assign a Partition to each Project.*project group's Partition.*Default Partition/,
+    );
+  });
+
+  /**
+   * Verifies: while the projects load a spinner shows and the empty message waits.
+   * Interacts with: the isLoading input.
+   * Data: no projects; isLoading true.
+   */
+  it('shows a spinner while the projects load', async () => {
+    const { fixture } = await renderProjectVlans(true, []);
+    fixture.componentRef.setInput('isLoading', true);
+    fixture.detectChanges();
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(
+      screen.queryByText('There are currently no Projects'),
+    ).not.toBeInTheDocument();
   });
 });

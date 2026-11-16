@@ -13,7 +13,8 @@ import {
   OnChanges,
   inject,
   input,
-  viewChild, OnDestroy,
+  viewChild,
+  OnDestroy,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -31,17 +32,13 @@ import {
   MatNoDataRow,
 } from '@angular/material/table';
 import { Observable, Subject } from 'rxjs';
-import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, finalize, take, takeUntil } from 'rxjs/operators';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MatFormField,
-  MatLabel,
-  MatPrefix,
-  MatSuffix,
-} from '@angular/material/form-field';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -62,9 +59,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
   imports: [
     MatFormField,
     MatTooltip,
-    MatLabel,
     MatIcon,
-    MatPrefix,
     MatInput,
     FormsModule,
     ReactiveFormsModule,
@@ -96,6 +91,7 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private confirmService = inject(CrucibleDialogService);
   private vlanService = inject(VlanService);
+  private feedback = inject(VlanFeedbackService);
 
   readonly showUnassigned = input(true);
   readonly partitions = input<Partition[]>(undefined);
@@ -195,18 +191,18 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   recalculateDisplayedColumns() {
-    this.displayedColumns = [].concat(
-      this.canEdit() ? this.preEditColumns : [],
-      this.viewColumns,
-      this.canEdit() ? this.postEditColumns : [],
-    );
+    this.displayedColumns = [
+      ...(this.canEdit() ? this.preEditColumns : []),
+      ...this.viewColumns,
+      ...(this.canEdit() ? this.postEditColumns : []),
+    ];
   }
 
   clearFilter() {
     this.filterControl.setValue('');
   }
 
-  toggleInUse(vlan: Vlan) {
+  toggleInUse(vlan: Vlan, checkbox?: MatCheckbox) {
     this.confirmService
       .confirm({
         title: 'Confirm VLAN',
@@ -218,19 +214,54 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
       .subscribe((confirmed) => {
         if (confirmed) {
           if (vlan.inUse) {
-            this.execute(vlan, this.vlanService.release(vlan));
+            this.execute(
+              vlan,
+              this.vlanService.release(vlan),
+              `VLAN ${vlan.vlanId} is no longer in use`,
+              `Could not release VLAN ${vlan.vlanId}`,
+              () => this.resetCheckbox(checkbox, vlan.inUse),
+            );
           } else {
-            this.execute(vlan, this.vlanService.acquire(vlan));
+            this.execute(
+              vlan,
+              this.vlanService.acquire(vlan),
+              `VLAN ${vlan.vlanId} is now in use`,
+              `Could not mark VLAN ${vlan.vlanId} in use`,
+              () => this.resetCheckbox(checkbox, vlan.inUse),
+            );
           }
+        } else {
+          this.resetCheckbox(checkbox, vlan.inUse);
         }
       });
   }
 
-  toggleReserved(vlan: Vlan) {
+  toggleReserved(vlan: Vlan, checkbox?: MatCheckbox) {
+    const onError = () => this.resetCheckbox(checkbox, vlan.reserved);
     if (vlan.reserved) {
-      this.execute(vlan, this.vlanService.unreserve(vlan));
+      this.execute(
+        vlan,
+        this.vlanService.unreserve(vlan),
+        `VLAN ${vlan.vlanId} is no longer reserved`,
+        `Could not unreserve VLAN ${vlan.vlanId}`,
+        onError,
+      );
     } else {
-      this.execute(vlan, this.vlanService.reserve(vlan));
+      this.execute(
+        vlan,
+        this.vlanService.reserve(vlan),
+        `VLAN ${vlan.vlanId} is now reserved`,
+        `Could not reserve VLAN ${vlan.vlanId}`,
+        onError,
+      );
+    }
+  }
+
+  /** Put a toggled checkbox back when its change was cancelled or failed. */
+  private resetCheckbox(checkbox: MatCheckbox | undefined, checked: boolean) {
+    if (checkbox) {
+      checkbox.checked = checked;
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -250,6 +281,8 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
               vlan.partitionId,
               null,
             ),
+            `Removed VLAN ${vlan.vlanId} from this Partition`,
+            `Could not remove VLAN ${vlan.vlanId} from this Partition`,
           );
         }
       });
@@ -264,21 +297,34 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.vlanService
-            .reassign(
-              this.selection.selected,
-              this.vlans.find((x) => x.id == this.selection.selected[0])
-                .partitionId,
-              toPartitionId,
+          const count = this.selection.selected.length;
+          this.feedback
+            .report(
+              this.vlanService.reassign(
+                this.selection.selected,
+                this.vlans.find((x) => x.id == this.selection.selected[0])
+                  .partitionId,
+                toPartitionId,
+              ),
+              `Reassigned ${VlanFeedbackService.vlans(count)}`,
+              `Could not reassign ${VlanFeedbackService.vlans(count)}`,
             )
             .subscribe();
         }
       });
   }
 
-  editTag(id: string, target) {
-    this.vlanService
-      .partialEdit(id, { tag: target.value })
+  editTag(id: string, target: EventTarget | null) {
+    const vlanId = this.vlans.find((v) => v.id === id)?.vlanId;
+    const tag = (target as HTMLInputElement).value;
+    this.feedback
+      .report(
+        this.vlanService.partialEdit(id, { tag }),
+        tag
+          ? `Tagged VLAN ${vlanId} "${tag}"`
+          : `Cleared the tag of VLAN ${vlanId}`,
+        `Could not change the tag of VLAN ${vlanId}`,
+      )
       .subscribe(() => (this.editingId = null));
   }
 
@@ -293,26 +339,21 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.vlanService
-            .bulkReserve(reserve, this.selection.selected)
-            .pipe(
-              tap((x) => {
-                if (!x.success) {
-                  this.confirmService
-                    .confirm({
-                      title: 'Failure',
-                      message: `The following ${
-                        x.notUpdated.length
-                      } Vlans were not successfully updated: ${this.vlans
-                        .filter((y) => x.notUpdated.includes(y.id))
-                        .map((x) => x.vlanId)}`,
-                      confirmText: '',
-                      cancelText: 'OK',
-                    })
-                    .afterClosed()
-                    .subscribe();
-                }
-              }),
+          const count = this.selection.selected.length;
+          const action = reserve ? 'reserve' : 'unreserve';
+          this.feedback
+            .report(
+              this.vlanService.bulkReserve(reserve, this.selection.selected),
+              (result) =>
+                result.success
+                  ? `${reserve ? 'Reserved' : 'Unreserved'} ${VlanFeedbackService.vlans(count)}`
+                  : `Could not ${action} ${VlanFeedbackService.vlans(
+                      result.notUpdated.length,
+                    )}: ${this.vlans
+                      .filter((y) => result.notUpdated.includes(y.id))
+                      .map((y) => y.vlanId)
+                      .join(', ')}`,
+              `Could not ${action} ${VlanFeedbackService.vlans(count)}`,
             )
             .subscribe();
         }
@@ -345,11 +386,17 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
     this.tableHeight = `${height}px`;
   }
 
-  private execute(vlan: Vlan, sub: Observable<any>) {
+  private execute(
+    vlan: Vlan,
+    sub: Observable<any>,
+    success: string,
+    failure: string,
+    onError?: () => void,
+  ) {
     this.loading.set(vlan.id, true);
-    sub
+    this.feedback
+      .report(sub.pipe(take(1)), success, failure, onError)
       .pipe(
-        take(1),
         finalize(() => {
           this.loading.set(vlan.id, false);
           this.changeDetector.markForCheck();
