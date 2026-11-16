@@ -121,9 +121,10 @@ export class PoolListComponent {
     'infrastructure. Each Pool can be sub-divided into Partitions of various ' +
     'sizes. Partitions can be assigned to Projects and when a VLAN is ' +
     "requested in a Workspace, it will be pulled from the available VLANs in its Project's " +
-    'assigned Partition. A system-wide Default Partition can be selected, ' +
-    'which will cause VLANs to be allocated from that Partition if no ' +
-    'Project or Partition are specified in a request.';
+    "assigned Partition, or else its project group's Partition. A system-wide " +
+    'Default Partition can be selected, which will cause VLANs to be allocated ' +
+    'from that Partition when neither has one, or when no Project or Partition ' +
+    'is specified in a request.';
 
   readonly displayedColumns = [
     'actions',
@@ -194,7 +195,13 @@ export class PoolListComponent {
   }
 
   createPool() {
-    this.poolService.create().subscribe();
+    this.feedback
+      .report(
+        this.poolService.create(),
+        (pool) => `Added ${pool.name}`,
+        'Could not add a Pool',
+      )
+      .subscribe();
   }
 
   renamePool(pool: Pool) {
@@ -205,7 +212,7 @@ export class PoolListComponent {
     });
     dialogRef.componentInstance.title = 'Rename ' + pool.name;
     dialogRef.componentInstance.message = '';
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result?: { nameValue: string }) => {
       if (result) {
         this.feedback
           .report(
@@ -231,8 +238,8 @@ export class PoolListComponent {
           this.poolService
             .delete(pool.id, false)
             .pipe(
-              catchError((error) => {
-                if (error?.status == 409) {
+              catchError((error: unknown) => {
+                if (VlanFeedbackService.status(error) === 409) {
                   this.confirmForceDelete(pool);
                 } else {
                   this.feedback.show(

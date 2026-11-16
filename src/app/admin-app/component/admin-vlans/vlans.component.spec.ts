@@ -70,9 +70,8 @@ describe('VlansComponent', () => {
     const { fixture, signalR } = await renderVlans(manage);
 
     expect(signalR.joinVlansAdmin).toHaveBeenCalled();
-    const pools: PoolsStub = fixture.debugElement.query(
-      By.directive(PoolsStub),
-    ).componentInstance;
+    const pools: PoolsStub = fixture.debugElement.query(By.directive(PoolsStub))
+      .componentInstance as PoolsStub;
     expect(pools.canEdit()).toBe(true);
   });
 
@@ -84,9 +83,8 @@ describe('VlansComponent', () => {
   it('keeps the pools read-only without ManageVlans', async () => {
     const { fixture } = await renderVlans(viewOnly);
 
-    const pools: PoolsStub = fixture.debugElement.query(
-      By.directive(PoolsStub),
-    ).componentInstance;
+    const pools: PoolsStub = fixture.debugElement.query(By.directive(PoolsStub))
+      .componentInstance as PoolsStub;
     expect(pools.canEdit()).toBe(false);
   });
 
@@ -108,7 +106,7 @@ describe('VlansComponent', () => {
 
       const projectVlans: ProjectVlansStub = fixture.debugElement.query(
         By.directive(ProjectVlansStub),
-      ).componentInstance;
+      ).componentInstance as ProjectVlansStub;
       expect(projectVlans.canEdit()).toBe(canEdit);
     },
   );
@@ -127,7 +125,7 @@ describe('VlansComponent', () => {
     await fixture.whenStable();
     const projectVlans: ProjectVlansStub = fixture.debugElement.query(
       By.directive(ProjectVlansStub),
-    ).componentInstance;
+    ).componentInstance as ProjectVlansStub;
     expect(projectVlans.isLoading()).toBe(true);
 
     store.setLoading(false);

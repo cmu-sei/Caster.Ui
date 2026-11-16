@@ -48,6 +48,7 @@ import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatFormField, MatSuffix } from '@angular/material/form-field';
 import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
@@ -98,6 +99,7 @@ export class ProjectVlansComponent implements OnInit, AfterViewInit {
   private partitionService = inject(PartitionService);
   private poolQuery = inject(PoolQuery);
   private partitionQuery = inject(PartitionQuery);
+  private feedback = inject(VlanFeedbackService);
 
   @Input() set projects(projects: Project[]) {
     this.dataSource.data = projects;
@@ -134,7 +136,7 @@ export class ProjectVlansComponent implements OnInit, AfterViewInit {
     this.dataSource.sortingDataAccessor = (project, column) =>
       column === 'partition'
         ? (this.partitionQuery.getEntity(project.partitionId)?.name ?? '')
-        : project[column];
+        : String(project[column as keyof typeof project] ?? '');
     this.dataSource.filterPredicate = (project, filter) =>
       (project.name ?? '').toLowerCase().includes(filter);
   }
@@ -179,10 +181,20 @@ export class ProjectVlansComponent implements OnInit, AfterViewInit {
   updatePartition(projectId: string, partitionId: string) {
     this.setLoading(projectId, true);
 
-    this.projectService
-      .assignPartition(projectId, partitionId)
+    const name =
+      this.dataSource.data.find((p) => p.id === projectId)?.name ??
+      'the Project';
+    this.feedback
+      .report(
+        this.projectService
+          .assignPartition(projectId, partitionId)
+          .pipe(take(1)),
+        partitionId
+          ? `Assigned ${this.partitionQuery.getEntity(partitionId)?.name ?? 'the Partition'} to ${name}`
+          : `${name} no longer has a Partition of its own`,
+        `Could not change the Partition of ${name}`,
+      )
       .pipe(
-        take(1),
         finalize(() => {
           // make sure progress bar is shown
           timer(500).subscribe(() => this.setLoading(projectId, false));

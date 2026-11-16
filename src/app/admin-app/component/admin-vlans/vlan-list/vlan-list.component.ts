@@ -13,7 +13,8 @@ import {
   OnChanges,
   inject,
   input,
-  viewChild, OnDestroy,
+  viewChild,
+  OnDestroy,
 } from '@angular/core';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
@@ -31,7 +32,7 @@ import {
   MatNoDataRow,
 } from '@angular/material/table';
 import { Observable, Subject } from 'rxjs';
-import { debounceTime, finalize, take, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, finalize, take, takeUntil } from 'rxjs/operators';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
@@ -190,11 +191,11 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   recalculateDisplayedColumns() {
-    this.displayedColumns = [].concat(
-      this.canEdit() ? this.preEditColumns : [],
-      this.viewColumns,
-      this.canEdit() ? this.postEditColumns : [],
-    );
+    this.displayedColumns = [
+      ...(this.canEdit() ? this.preEditColumns : []),
+      ...this.viewColumns,
+      ...(this.canEdit() ? this.postEditColumns : []),
+    ];
   }
 
   clearFilter() {
@@ -296,21 +297,26 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.vlanService
-            .reassign(
-              this.selection.selected,
-              this.vlans.find((x) => x.id == this.selection.selected[0])
-                .partitionId,
-              toPartitionId,
+          const count = this.selection.selected.length;
+          this.feedback
+            .report(
+              this.vlanService.reassign(
+                this.selection.selected,
+                this.vlans.find((x) => x.id == this.selection.selected[0])
+                  .partitionId,
+                toPartitionId,
+              ),
+              `Reassigned ${VlanFeedbackService.vlans(count)}`,
+              `Could not reassign ${VlanFeedbackService.vlans(count)}`,
             )
             .subscribe();
         }
       });
   }
 
-  editTag(id: string, target) {
+  editTag(id: string, target: EventTarget | null) {
     const vlanId = this.vlans.find((v) => v.id === id)?.vlanId;
-    const tag = target.value;
+    const tag = (target as HTMLInputElement).value;
     this.feedback
       .report(
         this.vlanService.partialEdit(id, { tag }),
@@ -333,26 +339,21 @@ export class VlanListComponent implements OnInit, OnChanges, OnDestroy {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.vlanService
-            .bulkReserve(reserve, this.selection.selected)
-            .pipe(
-              tap((x) => {
-                if (!x.success) {
-                  this.confirmService
-                    .confirm({
-                      title: 'Failure',
-                      message: `The following ${
-                        x.notUpdated.length
-                      } Vlans were not successfully updated: ${this.vlans
-                        .filter((y) => x.notUpdated.includes(y.id))
-                        .map((x) => x.vlanId)}`,
-                      confirmText: '',
-                      cancelText: 'OK',
-                    })
-                    .afterClosed()
-                    .subscribe();
-                }
-              }),
+          const count = this.selection.selected.length;
+          const action = reserve ? 'reserve' : 'unreserve';
+          this.feedback
+            .report(
+              this.vlanService.bulkReserve(reserve, this.selection.selected),
+              (result) =>
+                result.success
+                  ? `${reserve ? 'Reserved' : 'Unreserved'} ${VlanFeedbackService.vlans(count)}`
+                  : `Could not ${action} ${VlanFeedbackService.vlans(
+                      result.notUpdated.length,
+                    )}: ${this.vlans
+                      .filter((y) => result.notUpdated.includes(y.id))
+                      .map((y) => y.vlanId)
+                      .join(', ')}`,
+              `Could not ${action} ${VlanFeedbackService.vlans(count)}`,
             )
             .subscribe();
         }

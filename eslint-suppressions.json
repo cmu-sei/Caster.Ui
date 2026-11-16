@@ -356,9 +356,6 @@
     }
   },
   "src/app/admin-app/component/admin-vlans/partition-list/partition-list.component.spec.ts": {
-    "@typescript-eslint/no-unsafe-return": {
-      "count": 2
-    },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -379,7 +376,7 @@
       "count": 1
     },
     "@typescript-eslint/no-unused-vars": {
-      "count": 2
+      "count": 1
     }
   },
   "src/app/admin-app/component/admin-vlans/partition/partition.component.ts": {
@@ -387,7 +384,7 @@
       "count": 1
     },
     "@angular-eslint/prefer-signals": {
-      "count": 2
+      "count": 1
     },
     "@typescript-eslint/adjacent-overload-signatures": {
       "count": 1
@@ -395,39 +392,14 @@
     "@typescript-eslint/no-empty-function": {
       "count": 1
     },
-    "@typescript-eslint/no-unsafe-argument": {
-      "count": 2
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     },
     "@typescript-eslint/no-unsafe-call": {
+      "count": 4
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
       "count": 6
-    },
-    "@typescript-eslint/no-unsafe-member-access": {
-      "count": 7
-    }
-  },
-  "src/app/admin-app/component/admin-vlans/pool-list-item/pool-list-item.component.spec.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/admin-app/component/admin-vlans/pool-list-item/pool-list-item.component.ts": {
-    "@angular-eslint/no-empty-lifecycle-method": {
-      "count": 1
-    },
-    "@typescript-eslint/no-deprecated": {
-      "count": 1
-    },
-    "@typescript-eslint/no-empty-function": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unsafe-member-access": {
-      "count": 2
     }
   },
   "src/app/admin-app/component/admin-vlans/pool-list/pool-list.component.spec.ts": {
@@ -436,11 +408,8 @@
     }
   },
   "src/app/admin-app/component/admin-vlans/pool-list/pool-list.component.ts": {
-    "@angular-eslint/no-empty-lifecycle-method": {
-      "count": 1
-    },
-    "@typescript-eslint/no-empty-function": {
-      "count": 1
+    "@typescript-eslint/no-deprecated": {
+      "count": 8
     }
   },
   "src/app/admin-app/component/admin-vlans/pools/pools.component.spec.ts": {
@@ -475,20 +444,6 @@
     },
     "@typescript-eslint/no-unsafe-argument": {
       "count": 1
-    },
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unsafe-member-access": {
-      "count": 1
-    },
-    "@typescript-eslint/restrict-template-expressions": {
-      "count": 1
-    }
-  },
-  "src/app/admin-app/component/admin-vlans/vlans.component.spec.ts": {
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 3
     }
   },
   "src/app/admin-app/component/admin-workspaces/active-runs/active-runs.component.html": {

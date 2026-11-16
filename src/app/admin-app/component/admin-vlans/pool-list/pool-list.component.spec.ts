@@ -7,7 +7,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -50,7 +51,7 @@ async function renderPoolList(
     partialEditPool: vi.fn((id: string, command: { name?: string }) =>
       of<Pool>({ ...pools[0], id, name: command.name }),
     ),
-    deletePool: vi.fn((_id: string) => of<unknown>(null)),
+    deletePool: vi.fn(() => of<unknown>(null)),
   } satisfies ApiStub<VlansService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
@@ -81,8 +82,10 @@ async function renderPoolList(
   /** The pool rows (not the header, detail or no-data rows), in order. */
   const poolRows = (): HTMLElement[] =>
     Array.from(
-      view.fixture.nativeElement.querySelectorAll('tr.element-row'),
-    ) as HTMLElement[];
+      (view.fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        'tr.element-row',
+      ),
+    );
   const poolNames = () =>
     poolRows().map((r) => within(r).getAllByRole('cell')[1].textContent.trim());
   const partitionLists = (): PartitionListStub[] =>
@@ -151,9 +154,39 @@ describe('PoolListComponent', () => {
     expect(
       within(poolRows()[0]).getByRole('button', { name: 'Delete Main' }),
     ).toBeEnabled();
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
     await user.click(screen.getByRole('button', { name: 'Add New Pool' }));
 
     expect(vlansApi.createPool).toHaveBeenCalledWith({ name: 'New Pool' });
+    expect(snack).toHaveBeenCalledWith(
+      'Added New Pool',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: a failed Add New Pool shows the API's problem in a snack bar instead of the error dialog.
+   * Interacts with: VlansService.createPool (stub throwing a 403 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: canEdit true; the API answers 403 Forbidden.
+   */
+  it('shows why adding a pool failed', async () => {
+    const { vlansApi, user } = await renderPoolList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.createPool.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({ status: 403, error: { title: 'Forbidden' } }),
+      ),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Add New Pool' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not add a Pool: Forbidden',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -257,6 +290,45 @@ describe('PoolListComponent', () => {
     expect(partitionLists().map((p) => p.poolId())).toEqual(['pool2']);
 
     await user.click(poolRows()[1]);
+    expect(partitionLists()).toEqual([]);
+  });
+
+  /**
+   * Verifies: a click on a row's actions, where a disabled Rename or Delete passes it, leaves the pool closed.
+   * Interacts with: the stopPropagation on the actions group, toggleExpand on the row.
+   * Data: pools Main and Lab; canEdit false.
+   */
+  it('keeps a pool closed when its disabled actions are clicked', async () => {
+    const { poolRows, partitionLists, user } = await renderPoolList(false);
+
+    await user.click(
+      within(poolRows()[0]).getByRole('group', { name: 'Main actions' }),
+    );
+
+    expect(partitionLists()).toEqual([]);
+    expect(poolRows()[0]).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  /**
+   * Verifies: a focused pool row opens with Enter and closes with Space, and keys on its buttons don't toggle it.
+   * Interacts with: the row's tabindex and keydown.enter / keydown.space handlers, the keydown stopPropagation on the actions group.
+   * Data: pools Main and Lab; canEdit true.
+   */
+  it('opens and closes a pool from the keyboard', async () => {
+    const { poolRows, partitionLists, user } = await renderPoolList(true);
+
+    poolRows()[0].focus();
+    await user.keyboard('{Enter}');
+    expect(partitionLists().map((p) => p.poolId())).toEqual(['pool1']);
+
+    await user.keyboard(' ');
+    expect(partitionLists()).toEqual([]);
+
+    within(poolRows()[0])
+      .getByRole('group', { name: 'Main actions' })
+      .dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+      );
     expect(partitionLists()).toEqual([]);
   });
 

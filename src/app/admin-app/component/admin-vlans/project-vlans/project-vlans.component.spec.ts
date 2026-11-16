@@ -4,7 +4,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
@@ -69,6 +71,7 @@ describe('ProjectVlansComponent', () => {
    */
   it('assigns a partition when canEdit is true', async () => {
     const { vlansApi, user } = await renderProjectVlans(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
 
     await user.click(within(screen.getByRole('table')).getByRole('combobox'));
     await user.click(await screen.findByRole('option', { name: 'Blue' }));
@@ -76,6 +79,36 @@ describe('ProjectVlansComponent', () => {
     expect(vlansApi.assignPartition).toHaveBeenCalledWith('part1', {
       projectId: 'p1',
     });
+    expect(snack).toHaveBeenCalledWith(
+      'Assigned Blue to Range',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: a failed assignment shows the API's problem in a snack bar instead of the error dialog.
+   * Interacts with: VlansService.assignPartition (stub throwing a 403 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: project Range; partition Blue; canEdit true; the API answers 403 Forbidden.
+   */
+  it('shows why assigning a partition failed', async () => {
+    const { vlansApi, user } = await renderProjectVlans(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.assignPartition.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({ status: 403, error: { title: 'Forbidden' } }),
+      ),
+    );
+
+    await user.click(within(screen.getByRole('table')).getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'Blue' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not change the Partition of Range: Forbidden',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**
@@ -163,7 +196,9 @@ describe('ProjectVlansComponent', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'About project partitions' }),
-    ).toHaveAccessibleDescription(/^Assign a Partition to each Project/);
+    ).toHaveAccessibleDescription(
+      /^Assign a Partition to each Project.*project group's Partition.*Default Partition/,
+    );
   });
 
   /**

@@ -6,6 +6,20 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
+/** A problem details body, as the API returns for a failed request. */
+interface ProblemDetails {
+  title?: string;
+  detail?: string;
+  errors?: Record<string, string | string[]>;
+}
+
+/** The parts of an HttpErrorResponse (or any thrown error) the messages use. */
+interface ApiError {
+  status?: number;
+  message?: string;
+  error?: ProblemDetails | null;
+}
+
 /**
  * Snack bar feedback for the VLAN admin actions, in the same style as the
  * Modules admin page. Failures are shown here and swallowed, so they do not
@@ -46,8 +60,8 @@ export class VlanFeedbackService {
   }
 
   /** The problem title and detail (or validation messages) of an API error. */
-  static describe(error: any): string {
-    const problem = error?.error;
+  static describe(error: unknown): string {
+    const { error: problem, message } = (error ?? {}) as ApiError;
     const parts: string[] = [];
     if (problem?.title) {
       parts.push(problem.title);
@@ -57,13 +71,18 @@ export class VlanFeedbackService {
     }
     if (problem?.errors && typeof problem.errors === 'object') {
       for (const messages of Object.values(problem.errors)) {
-        parts.push(...[].concat(messages));
+        parts.push(...([] as string[]).concat(messages));
       }
     }
     if (parts.length === 0) {
-      parts.push(error?.message || 'Unknown error');
+      parts.push(message || 'Unknown error');
     }
     return parts.join(' ');
+  }
+
+  /** The HTTP status of an API error, if it has one. */
+  static status(error: unknown): number | undefined {
+    return (error as ApiError | null)?.status;
   }
 
   /** "1 VLAN" / "5 VLANs". */

@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { screen } from '@testing-library/angular';
+import { fireEvent, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -42,7 +42,10 @@ const partition: Partition = {
   isDefault: false,
 };
 
-async function renderPartition(canEdit: boolean) {
+async function renderPartition(
+  canEdit: boolean,
+  overrides: Partial<Partition> = {},
+) {
   const vlansApi = {
     setDefaultPartition: vi.fn((_id: string) => of<unknown>(null)),
     addVlansToPartition: vi.fn((_id: string, command: { vlans?: number }) =>
@@ -81,7 +84,7 @@ async function renderPartition(canEdit: boolean) {
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
       },
     ],
-    inputs: { partition, canEdit },
+    inputs: { partition: { ...partition, ...overrides }, canEdit },
   });
   TestBed.inject(VlanStore).set([
     { id: 'v1', vlanId: 100, partitionId: 'part1', poolId: 'pool1' },
@@ -106,7 +109,7 @@ describe('PartitionComponent', () => {
     const snack = vi.spyOn(MatSnackBar.prototype, 'open');
     await user.click(
       screen.getByRole('button', {
-        name: /^Make this the Default Partition: Projects without a partition/,
+        name: /^Make this the Default Partition: Projects with no partition of their own or from their project group/,
       }),
     );
 
@@ -245,9 +248,9 @@ describe('PartitionComponent', () => {
   /**
    * Verifies: Add and Remove VLANs stay disabled for a blank, zero, negative, fractional or too large amount, so nothing is sent.
    * Interacts with: setAmount() and the [disabled]="!amount()" bindings.
-   * Data: amounts "", 0, -2, 1.5 and 5000; canEdit true.
+   * Data: amounts "", 0, -2, 1.5, 4097 and 5000; canEdit true.
    */
-  it.each(['', '0', '-2', '1.5', '5000'])(
+  it.each(['', '0', '-2', '1.5', '4097', '5000'])(
     'refuses the amount "%s"',
     async (typed) => {
       const { vlansApi, user } = await renderPartition(true);
@@ -265,6 +268,23 @@ describe('PartitionComponent', () => {
   );
 
   /**
+   * Verifies: the smallest and largest counts the API accepts, 1 and 4096, enable Add and Remove VLANs and are sent as numbers.
+   * Interacts with: setAmount() and the [disabled]="!amount()" bindings, VlansService.addVlansToPartition (stub).
+   * Data: amounts 1 and 4096; canEdit true.
+   */
+  it.each([1, 4096])('accepts the amount %d', async (count) => {
+    const { vlansApi, user } = await renderPartition(true);
+
+    await user.type(screen.getByRole('spinbutton'), String(count));
+    expect(screen.getByRole('button', { name: 'Remove VLANs' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Add VLANs' }));
+
+    expect(vlansApi.addVlansToPartition).toHaveBeenCalledWith('part1', {
+      vlans: count,
+    });
+  });
+
+  /**
    * Verifies: typing in the amount field (including space and Enter) and clicking it or the action area around the disabled buttons leave the panel closed.
    * Interacts with: the stopPropagation on the header's action area, MatExpansionPanelHeader's click and keydown toggles.
    * Data: partition Range; canEdit true; keys "2", space, Enter.
@@ -278,35 +298,66 @@ describe('PartitionComponent', () => {
     await user.type(amount, '2 {Enter}');
     await user.clear(amount);
     // A disabled button passes the click to its parent, the action area.
-    await user.click(amount.closest('.action-buttons') as HTMLElement);
+    await user.click(amount.closest<HTMLElement>('.action-buttons'));
 
     expect(header).toHaveAttribute('aria-expanded', 'false');
   });
 
   /**
-   * Verifies: without canEdit the partition hides Rename, the VLAN amount controls and Delete, and Set Default does not call the API.
-   * Interacts with: the canEdit checks in the template and in setDefault().
-   * Data: partition Range; canEdit false.
+   * Verifies: without canEdit the partition hides Rename, the VLAN amount controls, Delete and the Set Default button.
+   * Interacts with: the canEdit checks in the template.
+   * Data: partition Range (not default); canEdit false.
    */
   it('shows the partition read-only when canEdit is false', async () => {
-    const { vlansApi, user } = await renderPartition(false);
+    await renderPartition(false);
 
     expect(screen.getByText('Range')).toBeVisible();
+    for (const name of ['Rename', 'Add VLANs', 'Delete Range']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+    }
     expect(
-      screen.queryByRole('button', { name: 'Rename' }),
+      screen.queryByRole('button', { name: /Default Partition/ }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('The Default Partition')).toBeNull();
+  });
+
+  /**
+   * Verifies: without canEdit the Default Partition is marked, not offered as an action.
+   * Interacts with: the read-only default mark in the template.
+   * Data: partition Range, the default; canEdit false.
+   */
+  it('marks the Default Partition when canEdit is false', async () => {
+    await renderPartition(false, { isDefault: true });
+
+    expect(screen.getByLabelText('The Default Partition')).toBeVisible();
     expect(
-      screen.queryByRole('button', { name: 'Add VLANs' }),
+      screen.queryByRole('button', { name: /Default Partition/ }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Delete Range' }),
-    ).not.toBeInTheDocument();
-    await user.click(
-      screen.getByRole('button', {
-        name: /^Make this the Default Partition: Projects without a partition/,
-      }),
-    );
-    expect(vlansApi.setDefaultPartition).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies: Enter and Space on the header's buttons neither toggle the panel nor are cancelled, so the browser still presses the button.
+   * Interacts with: the keydown stopPropagation on the header's action group, MatExpansionPanelHeader._keydown (which reads keyCode, so the keys are dispatched with it).
+   * Data: partition Range (not default); canEdit true; Enter and Space on Set Default and Copy partition_id.
+   */
+  it('leaves header keys to the header buttons', async () => {
+    await renderPartition(true);
+    const header = screen.getByRole('button', { expanded: false });
+    const buttons = [
+      screen.getByRole('button', { name: /^Make this the Default Partition/ }),
+      screen.getByRole('button', { name: 'Copy the partition_id of Range' }),
+    ];
+
+    for (const button of buttons) {
+      for (const [key, keyCode] of [
+        ['Enter', 13],
+        [' ', 32],
+      ] as const) {
+        expect(fireEvent.keyDown(button, { key, keyCode })).toBe(true);
+      }
+    }
+
+    expect(header).toHaveAttribute('aria-expanded', 'false');
   });
 
   /**
@@ -330,19 +381,23 @@ describe('PartitionComponent', () => {
   );
 
   /**
-   * Verifies: the copy confirmation names the partition whose partition_id was copied.
-   * Interacts with: MatSnackBar.open (spied).
-   * Data: partition Range.
+   * Verifies: Copy partition_id copies a ready-to-paste crucible_vlan line, and the confirmation names the partition.
+   * Interacts with: partitionIdLine (the copy button's cbContent), VlanFeedbackService.show, MatSnackBar.open (spied).
+   * Data: partition Range (id part1).
    */
-  it('says which partition it copied the partition_id of', async () => {
+  it('copies the partition_id line and says which partition it copied', async () => {
     const { fixture } = await renderPartition(false);
     const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
 
+    expect(fixture.componentInstance.partitionIdLine).toBe(
+      'partition_id = "part1"',
+    );
     fixture.componentInstance.onClipboardSuccess();
 
     expect(open).toHaveBeenCalledWith(
       'Copied the partition_id of Range',
       'Dismiss',
+      expect.anything(),
     );
   });
 });

@@ -6,7 +6,9 @@ import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,10 +70,10 @@ async function renderPartitionList(
   const partitions = (): PartitionStub[] =>
     view.fixture.debugElement
       .queryAll(By.directive(PartitionStub))
-      .map((d) => d.componentInstance);
+      .map((d) => d.componentInstance as PartitionStub);
   const vlanList = (): VlanListStub | undefined =>
     view.fixture.debugElement.query(By.directive(VlanListStub))
-      ?.componentInstance;
+      ?.componentInstance as VlanListStub | undefined;
   return { ...view, vlansApi, partitions, vlanList, user: userEvent.setup() };
 }
 
@@ -88,10 +90,40 @@ describe('PartitionListComponent', () => {
     expect(partitions().map((p) => p.partition()?.id)).toEqual(['part1']);
     expect(partitions().map((p) => p.canEdit())).toEqual([true]);
 
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
     await user.click(screen.getByRole('button', { name: 'Add New Partition' }));
     expect(vlansApi.createPartition).toHaveBeenCalledWith('pool1', {
       name: 'New Partition',
     });
+    expect(snack).toHaveBeenCalledWith(
+      'Added New Partition',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: a failed Add New Partition shows the API's problem in a snack bar instead of the error dialog.
+   * Interacts with: VlansService.createPartition (stub throwing a 403 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: pool pool1; canEdit true; the API answers 403 Forbidden.
+   */
+  it('shows why adding a partition failed', async () => {
+    const { vlansApi, user } = await renderPartitionList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.createPartition.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({ status: 403, error: { title: 'Forbidden' } }),
+      ),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Add New Partition' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not add a Partition: Forbidden',
+      'Dismiss',
+      expect.anything(),
+    );
   });
 
   /**

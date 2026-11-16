@@ -38,7 +38,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           mat-icon-button
           class="primary-color"
           aria-label="About project partitions"
-          matTooltip="Assign a Partition to each Project. Requested VLANs for that Project will be taken from the assigned Partition, or the system-wide Default Partition."
+          matTooltip="Assign a Partition to each Project. Requested VLANs for that Project are taken from the assigned Partition, else from its project group's Partition, else from the system-wide Default Partition."
           matTooltipShowDelay="0"
           (click)="$event.stopPropagation()"
         >
@@ -62,7 +62,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-option>-- None --</mat-option>
             @for (
               option of partitionOptions$ | async | keyvalue;
-              track option
+              track option.key.id
             ) {
               <mat-optgroup [label]="option.key.name">
                 @for (partition of option.value; track partition.id) {

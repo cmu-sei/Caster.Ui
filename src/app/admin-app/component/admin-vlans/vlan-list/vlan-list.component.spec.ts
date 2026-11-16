@@ -18,7 +18,12 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
-import { Partition, Vlan, VlansService } from 'src/app/generated/caster-api';
+import {
+  Partition,
+  ReserveVlansResult,
+  Vlan,
+  VlansService,
+} from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -50,6 +55,12 @@ async function renderVlanList(
         of<Vlan>({ ...vlans[0], id, ...command }),
     ),
     acquireVlan: vi.fn(() => of<Vlan>({ ...vlans[0], inUse: true })),
+    reserveVlans: vi.fn(() =>
+      of<ReserveVlansResult>({ success: true, notUpdated: [] }),
+    ),
+    reassignVlans: vi.fn(() =>
+      of<Vlan[]>([{ ...vlans[0], partitionId: 'part2' }]),
+    ),
   } satisfies ApiStub<VlansService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
@@ -85,7 +96,85 @@ async function renderVlanList(
   return { ...view, vlansApi, confirm, row, user: userEvent.setup() };
 }
 
+/** Select VLAN 100 and open the selection menu. */
+async function openSelectionMenu(
+  row: HTMLElement,
+  user: ReturnType<typeof userEvent.setup>,
+) {
+  await user.click(
+    within(row).getByRole('checkbox', { name: 'Select VLAN 100' }),
+  );
+  await user.click(screen.getByRole('button', { name: '1 Selected' }));
+}
+
 describe('VlanListComponent', () => {
+  /**
+   * Verifies: Reserve on the selection reserves it through the API and, when the API couldn't update some, names them in a snack bar instead of a dialog.
+   * Interacts with: VlansService.reserveVlans (stub reporting VLAN v1 not updated), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: VLAN 100 selected; canEdit true.
+   */
+  it('names the selected VLANs it could not reserve', async () => {
+    const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+    vlansApi.reserveVlans.mockReturnValue(
+      of<ReserveVlansResult>({ success: false, notUpdated: ['v1'] }),
+    );
+
+    await openSelectionMenu(row, user);
+    await user.click(screen.getByRole('menuitem', { name: 'Reserve' }));
+
+    expect(vlansApi.reserveVlans).toHaveBeenCalledWith({
+      reserved: true,
+      vlanIds: ['v1'],
+    });
+    expect(snack).toHaveBeenCalledWith(
+      'Could not reserve 1 VLAN: 100',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
+  /**
+   * Verifies: Reassign on the selection moves it to the chosen partition and says so; a failure shows the API's problem in a snack bar.
+   * Interacts with: VlansService.reassignVlans (stub, then a stub throwing a 403 ProblemDetails), VlanFeedbackService, MatSnackBar (real, open spied).
+   * Data: VLAN 100 in part1 selected; target partition Red (part2); canEdit true.
+   */
+  it('reports reassigning the selected VLANs', async () => {
+    const { vlansApi, row, user } = await renderVlanList(true);
+    const snack = vi.spyOn(MatSnackBar.prototype, 'open');
+
+    await openSelectionMenu(row, user);
+    await user.click(screen.getByRole('menuitem', { name: 'Reassign' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Red' }));
+
+    expect(vlansApi.reassignVlans).toHaveBeenCalledWith({
+      fromPartitionId: 'part1',
+      toPartitionId: 'part2',
+      vlanIds: ['v1'],
+    });
+    expect(snack).toHaveBeenCalledWith(
+      'Reassigned 1 VLAN',
+      'Dismiss',
+      expect.anything(),
+    );
+
+    vlansApi.reassignVlans.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({ status: 403, error: { title: 'Forbidden' } }),
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: '1 Selected' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Reassign' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Red' }));
+
+    expect(snack).toHaveBeenCalledWith(
+      'Could not reassign 1 VLAN: Forbidden',
+      'Dismiss',
+      expect.anything(),
+    );
+  });
+
   /**
    * Verifies: with canEdit the selection menu, row checkboxes, In Use, Reserved, Edit Tag and Remove controls are all available.
    * Interacts with: the canEdit bindings and the select/actions columns.

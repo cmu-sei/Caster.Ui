@@ -13,7 +13,6 @@ import {
   signal,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
@@ -66,7 +65,6 @@ export class PartitionComponent implements OnInit {
   private vlanService = inject(VlanService);
   private vlanQuery = inject(VlanQuery);
   private confirmService = inject(CrucibleDialogService);
-  private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private feedback = inject(VlanFeedbackService);
 
@@ -93,7 +91,12 @@ export class PartitionComponent implements OnInit {
   get defaultTooltip(): string {
     return this.partition?.isDefault
       ? 'Stop using this as the Default Partition'
-      : 'Make this the Default Partition: Projects without a partition take VLANs from it';
+      : 'Make this the Default Partition: Projects with no partition of their own or from their project group take VLANs from it';
+  }
+
+  /** A ready-to-paste line for the provider's crucible_vlan resource. */
+  get partitionIdLine(): string {
+    return `partition_id = "${this.partition.id}"`;
   }
 
   /** The VLAN count to add or remove: a whole number from 1 to 4096, else null. */
@@ -226,9 +229,6 @@ export class PartitionComponent implements OnInit {
   }
 
   onClipboardSuccess() {
-    this.snackBar.open(
-      `Copied the partition_id of ${this.partition.name}`,
-      'Dismiss',
-    );
+    this.feedback.show(`Copied the partition_id of ${this.partition.name}`);
   }
 }

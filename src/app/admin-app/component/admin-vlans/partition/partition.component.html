@@ -7,49 +7,59 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   <mat-expansion-panel-header>
     <mat-panel-title class="title">
       @if (partition) {
-        <button
-          mat-icon-button
-          [attr.aria-label]="defaultTooltip"
-          [matTooltip]="defaultTooltip"
-          (click)="
-            partition?.isDefault
-              ? unsetDefault($event, partition.id)
-              : setDefault($event, partition.id)
-          "
-        >
-          @if (partition?.isDefault) {
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-check-circle"
-              color="primary"
-            />
-          }
-          @if (!partition?.isDefault) {
-            <mat-icon
-              class="mdi-24px"
-              fontIcon="mdi-check-circle-outline"
-              color="primary"
-            />
-          }
-        </button>
-        <button
-          mat-icon-button
-          ngxClipboard
-          [cbContent]="'partition_id = &quot;' + partition.id + '&quot;'"
-          (cbOnSuccess)="onClipboardSuccess()"
+        <!-- Clicks and keys on these controls must not toggle the panel, even on a disabled button. -->
+        <div
+          class="action-buttons"
+          role="group"
+          [attr.aria-label]="partition.name + ' actions'"
           (click)="$event.stopPropagation()"
-          [matTooltip]="'Copy partition_id for crucible_vlan: ' + partition.id"
-          [attr.aria-label]="'Copy the partition_id of ' + partition.name"
+          (keydown)="$event.stopPropagation()"
         >
-          <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
-        </button>
-        @if (canEdit()) {
-          <!-- Clicks and keys here must not toggle the panel, even on a disabled button. -->
-          <div
-            class="action-buttons"
-            (click)="$event.stopPropagation()"
-            (keydown)="$event.stopPropagation()"
+          @if (canEdit()) {
+            <button
+              mat-icon-button
+              [attr.aria-label]="defaultTooltip"
+              [matTooltip]="defaultTooltip"
+              (click)="
+                partition.isDefault
+                  ? unsetDefault($event, partition.id)
+                  : setDefault($event, partition.id)
+              "
+            >
+              <mat-icon
+                class="mdi-24px"
+                [fontIcon]="
+                  partition.isDefault
+                    ? 'mdi-check-circle'
+                    : 'mdi-check-circle-outline'
+                "
+                color="primary"
+              />
+            </button>
+          } @else if (partition.isDefault) {
+            <mat-icon
+              class="mdi-24px default-mark primary-color"
+              fontIcon="mdi-check-circle"
+              aria-hidden="false"
+              aria-label="The Default Partition"
+              matTooltip="The Default Partition"
+            />
+          } @else {
+            <span class="default-mark" aria-hidden="true"></span>
+          }
+          <button
+            mat-icon-button
+            ngxClipboard
+            [cbContent]="partitionIdLine"
+            (cbOnSuccess)="onClipboardSuccess()"
+            [matTooltip]="
+              'Copy partition_id for crucible_vlan: ' + partition.id
+            "
+            [attr.aria-label]="'Copy the partition_id of ' + partition.name"
           >
+            <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
+          </button>
+          @if (canEdit()) {
             <button
               mat-icon-button
               color="primary"
@@ -104,8 +114,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             >
               <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
             </button>
-          </div>
-        }
+          }
+        </div>
         <span class="name">{{ partition?.name }}</span>
       }
     </mat-panel-title>
