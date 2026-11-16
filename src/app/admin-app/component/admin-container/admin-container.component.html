@@ -129,6 +129,66 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </button>
           </mat-list-item>
         }
+        @if (permissions.includes(SystemPermission.ViewInfrastructure)) {
+          <mat-list-item id="wrapper showhand" (click)="adminGotoConnections()">
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-server-network"
+            />
+            {{ connectionsText }}
+            <button
+              [attr.aria-label]="connectionsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
+        @if (permissions.includes(SystemPermission.ViewEnvironmentSets)) {
+          <mat-list-item
+            id="wrapper showhand"
+            (click)="adminGotoEnvironmentSets()"
+          >
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-key-variant"
+            />
+            {{ environmentSetsText }}
+            <button
+              [attr.aria-label]="environmentSetsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
+        @if (
+          permissions.includes(SystemPermission.ViewProjects) ||
+          permissions.includes(SystemPermission.ManageProjectGroups)
+        ) {
+          <mat-list-item
+            id="wrapper showhand"
+            (click)="adminGotoProjectGroups()"
+          >
+            <mat-icon
+              matListItemIcon
+              class="mat-list-item-icon"
+              fontIcon="mdi-folder-multiple-outline"
+            />
+            {{ projectGroupsText }}
+            <button
+              [attr.aria-label]="projectGroupsText"
+              mat-icon-button
+              class="pull-right"
+            >
+              <mat-icon fontIcon="mdi-menu-right" />
+            </button>
+          </mat-list-item>
+        }
         @if (canViewGroups$ | async) {
           <mat-list-item id="wrapper showhand" (click)="adminGotoGroups()">
             <mat-icon
@@ -193,10 +253,29 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <cas-vlans />
           }
           @if (
+            showStatus === connectionsText &&
+            permissions.includes(SystemPermission.ViewInfrastructure)
+          ) {
+            <cas-admin-hypervisors />
+          }
+          @if (
             showStatus === rolesText &&
             permissions.includes(SystemPermission.ViewRoles)
           ) {
             <cas-admin-roles />
+          }
+          @if (
+            showStatus === environmentSetsText &&
+            permissions.includes(SystemPermission.ViewEnvironmentSets)
+          ) {
+            <cas-admin-environment-sets />
+          }
+          @if (
+            showStatus === projectGroupsText &&
+            (permissions.includes(SystemPermission.ViewProjects) ||
+              permissions.includes(SystemPermission.ManageProjectGroups))
+          ) {
+            <cas-project-groups-list />
           }
           @if (showStatus === groupsText && (canViewGroups$ | async)) {
             <cas-admin-groups />

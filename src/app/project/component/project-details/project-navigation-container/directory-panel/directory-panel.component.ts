@@ -63,7 +63,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatBadge } from '@angular/material/badge';
 import { MatList, MatListItem, MatDivider } from '@angular/material/list';
 import { MatTooltip } from '@angular/material/tooltip';
-import { NgClass, AsyncPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { WorkspaceEditContainerComponent as WorkspaceEditContainerComponent_1 } from '../../../../../workspace/components/workspace-edit-container/workspace-edit-container.component';
 import { DirectoryEditContainerComponent as DirectoryEditContainerComponent_1 } from '../../../../../directories/components/directory-edit-container/directory-edit-container.component';
 import { FilesFilterPipe } from '../../../../pipes/files-filter-pipe';
@@ -90,7 +90,6 @@ const TERMINAL_RUN_STATUSES: RunStatus[] = [
     MatListItem,
     MatTooltip,
     MatDivider,
-    NgClass,
     MatMenuTrigger,
     MatMenu,
     MatMenuContent,
@@ -713,8 +712,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.fileService
         .export(obj.object.id)
         .pipe(take(1))
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-        .subscribe((result) => {
+               .subscribe((result) => {
           FileDownloadUtils.downloadFile(result.blob, result.filename);
         });
     } else {

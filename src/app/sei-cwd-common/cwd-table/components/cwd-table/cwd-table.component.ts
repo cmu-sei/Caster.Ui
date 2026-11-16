@@ -37,7 +37,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
-import { NgTemplateOutlet, NgClass, AsyncPipe } from '@angular/common';
+import { NgTemplateOutlet, AsyncPipe } from '@angular/common';
 import {
   MatAccordion,
   MatExpansionPanel,
@@ -66,7 +66,6 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     MatSortHeader,
     MatExpansionPanel,
     MatExpansionPanelHeader,
-    NgClass,
     MatCard,
     MatProgressSpinner,
     AsyncPipe,

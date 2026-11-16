@@ -8,6 +8,8 @@ import { firstValueFrom, of, Subject } from 'rxjs';
 import * as signalR from '@microsoft/signalr';
 import { ComnAuthService, ComnSettingsService } from '@cmusei/crucible-common';
 import {
+  EnvironmentSet,
+  ProjectEnvironmentSet,
   Design,
   DesignModule,
   Directory,
@@ -35,6 +37,7 @@ import { VariablesQuery } from '../../designs/state/variables/variables.query';
 import { DirectoryQuery } from '../../directories/state/directory.query';
 import { FileQuery } from '../../files/state/file.query';
 import { FileStore } from '../../files/state/file.store';
+import { EnvironmentSetService } from '../../environment-sets/environment-set.service';
 import { GroupMembershipService } from '../../groups/group-membership.service';
 import { ProjectMembershipService } from '../../project/state/project-membership.service';
 import { ProjectObjectType, Tab } from '../../project/state/project.model';
@@ -296,6 +299,8 @@ describe('SignalRService', () => {
         ...crud('Role'),
         ...crud('GroupMembership'),
         ...crud('ProjectMembership'),
+        ...crud('EnvironmentSet'),
+        'ProjectEnvironmentSetsUpdated',
       ]);
       expect(hub.start).toHaveBeenCalledTimes(1);
       // RunDeleted is not listened to; see agent-docs/ui-test-bugs/caster.ui.md, API gaps noticed.
@@ -397,6 +402,10 @@ describe('SignalRService', () => {
       { join: (s) => s.joinDesign('de1'), expected: ['JoinDesign', 'de1'] },
       { join: (s) => s.joinVlansAdmin(), expected: ['JoinVlansAdmin'] },
       { join: (s) => s.joinRolesAdmin(), expected: ['JoinRolesAdmin'] },
+      {
+        join: (s) => s.joinEnvironmentSetsAdmin(),
+        expected: ['JoinEnvironmentSetsAdmin'],
+      },
     ];
 
     const leaves: Array<{
@@ -420,6 +429,10 @@ describe('SignalRService', () => {
       { leave: (s) => s.leaveDesign('de1'), expected: ['LeaveDesign', 'de1'] },
       { leave: (s) => s.leaveVlansAdmin(), expected: ['LeaveVlansAdmin'] },
       { leave: (s) => s.leaveRolesAdmin(), expected: ['LeaveRolesAdmin'] },
+      {
+        leave: (s) => s.leaveEnvironmentSetsAdmin(),
+        expected: ['LeaveEnvironmentSetsAdmin'],
+      },
     ];
 
     /**
@@ -514,6 +527,7 @@ describe('SignalRService', () => {
         ['JoinVlansAdmin'],
         ['JoinRolesAdmin'],
         ['JoinProjectAdmin', 'p1'],
+        ['JoinEnvironmentSetsAdmin'],
       ]);
     });
 
@@ -587,99 +601,99 @@ describe('SignalRService', () => {
     }> = [
       {
         method: 'joinProject',
-        line: 141,
+        line: 150,
         act: (s) => s.joinProject('p1'),
         expected: ['JoinProject', 'p1'],
       },
       {
         method: 'leaveProject',
-        line: 148,
+        line: 157,
         act: (s) => s.leaveProject('p1'),
         expected: ['LeaveProject', 'p1'],
       },
       {
         method: 'joinProjectAdmin',
-        line: 156,
+        line: 165,
         act: (s) => s.joinProjectAdmin('p1'),
         expected: ['JoinProjectAdmin', 'p1'],
       },
       {
         method: 'leaveProjectAdmin',
-        line: 163,
+        line: 172,
         act: (s) => s.leaveProjectAdmin('p1'),
         expected: ['LeaveProjectAdmin', 'p1'],
       },
       {
         method: 'joinGroup',
-        line: 171,
+        line: 180,
         act: (s) => s.joinGroup('g1'),
         expected: ['JoinGroup', 'g1'],
       },
       {
         method: 'leaveGroup',
-        line: 178,
+        line: 187,
         act: (s) => s.leaveGroup('g1'),
         expected: ['LeaveGroup', 'g1'],
       },
       {
         method: 'JoinGroups (re-join JoinWorkspace)',
-        line: 107,
+        line: 112,
         arrange: (s) => s.joinWorkspace('stale'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinWorkspace', 'stale'],
       },
       {
         method: 'joinWorkspacesAdmin',
-        line: 208,
+        line: 217,
         act: (s) => s.joinWorkspacesAdmin(),
         expected: ['JoinWorkspacesAdmin'],
       },
       {
         method: 'leaveWorkspacesAdmin',
-        line: 215,
+        line: 224,
         act: (s) => s.leaveWorkspacesAdmin(),
         expected: ['LeaveWorkspacesAdmin'],
       },
       {
         method: 'JoinGroups (re-join JoinDesign)',
-        line: 119,
+        line: 124,
         arrange: (s) => s.joinDesign('de1'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'joinDesign',
-        line: 223,
+        line: 232,
         act: (s) => s.joinDesign('de1'),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'leaveDesign',
-        line: 230,
+        line: 239,
         act: (s) => s.leaveDesign('de1'),
         expected: ['LeaveDesign', 'de1'],
       },
       {
         method: 'joinVlansAdmin',
-        line: 238,
+        line: 247,
         act: (s) => s.joinVlansAdmin(),
         expected: ['JoinVlansAdmin'],
       },
       {
         method: 'leaveVlansAdmin',
-        line: 245,
+        line: 254,
         act: (s) => s.leaveVlansAdmin(),
         expected: ['LeaveVlansAdmin'],
       },
       {
         method: 'joinRolesAdmin',
-        line: 253,
+        line: 262,
         act: (s) => s.joinRolesAdmin(),
         expected: ['JoinRolesAdmin'],
       },
       {
         method: 'leaveRolesAdmin',
-        line: 260,
+        line: 269,
         act: (s) => s.leaveRolesAdmin(),
         expected: ['LeaveRolesAdmin'],
       },
@@ -1240,6 +1254,53 @@ describe('SignalRService', () => {
         ...design,
         N: undefined,
       });
+    });
+  });
+
+  describe('environment set events', () => {
+    /**
+     * Verifies: EnvironmentSetCreated and EnvironmentSetUpdated upsert the whole set, and EnvironmentSetDeleted removes it.
+     * Interacts with: EnvironmentSetService.upsert/remove (real), EnvironmentSetService.sets$.
+     * Data: set 'es1' created, renamed, then deleted.
+     */
+    it('EnvironmentSet events add, replace and remove sets', async () => {
+      const { hub } = await connected();
+      const sets = TestBed.inject(EnvironmentSetService);
+      const set: EnvironmentSet = { id: 'es1', name: 'vSphere', entries: [] };
+
+      hub.trigger('EnvironmentSetCreated', set);
+      expect(await firstValueFrom(sets.sets$)).toEqual([set]);
+
+      hub.trigger('EnvironmentSetUpdated', { ...set, name: 'vCenter' });
+      expect(await firstValueFrom(sets.sets$)).toEqual([
+        { ...set, name: 'vCenter' },
+      ]);
+
+      hub.trigger('EnvironmentSetDeleted', 'es1');
+      expect(await firstValueFrom(sets.sets$)).toEqual([]);
+    });
+
+    /**
+     * Verifies: ProjectEnvironmentSetsUpdated replaces that project's sets and leaves other projects' alone.
+     * Interacts with: EnvironmentSetService.projectSetsUpdated (real), EnvironmentSetService.projectSets$.
+     * Data: project p1 gets one set; p2 was never loaded.
+     */
+    it('ProjectEnvironmentSetsUpdated replaces the project sets', async () => {
+      const { hub } = await connected();
+      const sets = TestBed.inject(EnvironmentSetService);
+      const projectSet: ProjectEnvironmentSet = {
+        environmentSetId: 'es1',
+        projectId: 'p1',
+        name: 'vSphere',
+        entries: [],
+      };
+
+      hub.trigger('ProjectEnvironmentSetsUpdated', 'p1', [projectSet]);
+
+      expect(await firstValueFrom(sets.projectSets$('p1'))).toEqual([
+        projectSet,
+      ]);
+      expect(await firstValueFrom(sets.projectSets$('p2'))).toBeNull();
     });
   });
 

@@ -328,4 +328,21 @@ describe('PartitionComponent', () => {
       expect(list.canEdit()).toBe(canEdit);
     },
   );
+
+  /**
+   * Verifies: the copy confirmation names the partition whose partition_id was copied.
+   * Interacts with: MatSnackBar.open (spied).
+   * Data: partition Range.
+   */
+  it('says which partition it copied the partition_id of', async () => {
+    const { fixture } = await renderPartition(false);
+    const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+
+    fixture.componentInstance.onClipboardSuccess();
+
+    expect(open).toHaveBeenCalledWith(
+      'Copied the partition_id of Range',
+      'Dismiss',
+    );
+  });
 });

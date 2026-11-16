@@ -1,11 +1,96 @@
-/*
-Copyright 2021 Carnegie Mellon University. All Rights Reserved.
- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-*/
+// Copyright 2021 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding-right: 16px;
+}
+
+.sp-icon {
+  margin-left: 20px;
+  margin-right: 12px;
+  min-width: 30px;
+  color: var(--mat-sys-primary);
+}
+
+.search-field {
+  width: 300px;
+}
+
+mat-paginator {
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+.mat-column-actions {
+  width: 144px;
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+/* Holds a disabled button's tooltip, which a disabled button can't show. */
+.disabled-action {
+  display: inline-block;
+}
+
+.date-cell {
+  white-space: nowrap;
+  min-width: 190px;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+.element-row {
+  cursor: pointer;
+}
+
+.element-row td,
+.element-row.expanded td {
+  border-bottom-width: 0;
+}
+
+.detail {
+  padding-bottom: 8px;
+  cursor: default;
+}
+
+.no-data {
+  padding: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
 }

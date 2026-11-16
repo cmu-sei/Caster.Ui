@@ -841,15 +841,7 @@ describe('WorkspaceService', () => {
       {
         method: 'loadAllActiveRuns',
         apis: () => ({ runs: { getRuns: vi.fn(boom) } }),
-        // Subscribes itself with no error callback, so the error escapes to
-        // rxjs (in the app, to the ErrorHandler, ErrorService).
-        failed: async (s) => {
-          const escaped = captureUnhandledRxErrors();
-          s.loadAllActiveRuns();
-          await flush();
-          expect(escaped).toHaveLength(1);
-          return escaped[0];
-        },
+        failed: viaSubscriber((s) => s.loadAllActiveRuns()),
       },
       {
         method: 'loadResourcesByWorkspaceId',
@@ -864,12 +856,10 @@ describe('WorkspaceService', () => {
     ];
 
     /**
-     * Verifies: each loading-tracked call hands on the API error (to its
-     *   subscriber, or unhandled for loadAllActiveRuns) and leaves the
-     *   store's loading flag on.
+     * Verifies: each loading-tracked call hands on the API error to its
+     *   subscriber and leaves the store's loading flag on.
      * Interacts with: the named generated API method (throwError stub);
-     *   WorkspaceStore.setLoading; captureUnhandledRxErrors for
-     *   loadAllActiveRuns.
+     *   WorkspaceStore.setLoading.
      * Data: stored w1 (loading false); the API errors with 'boom'.
      */
     it.each(rows)(
@@ -1249,7 +1239,7 @@ describe('WorkspaceService', () => {
       const { service, store, query } = setup({ runs: runsApi }, [ws()]);
       store.setLoading(true);
 
-      service.loadAllActiveRuns();
+      service.loadAllActiveRuns().subscribe();
 
       expect(runsApi.getRuns).toHaveBeenCalledWith(true);
       expect(query.getEntity('w1').name).toBe('Alpha');
@@ -1455,7 +1445,7 @@ describe('WorkspaceService', () => {
       } satisfies ApiStub<WorkspacesService>;
       const { service, query } = setup({ workspaces: workspacesApi });
 
-      service.loadLockingStatus();
+      service.loadLockingStatus().subscribe();
       expect(query.getValue().lockingEnabled).toBe(true);
 
       service.lockingEnabledUpdated(false);
@@ -1475,12 +1465,12 @@ describe('WorkspaceService', () => {
       } satisfies ApiStub<WorkspacesService>;
       const { service, query } = setup({ workspaces: workspacesApi });
 
-      service.setLockingEnabled(true);
+      service.setLockingEnabled(true).subscribe();
       expect(workspacesApi.enableWorkspaceLocking).toHaveBeenCalledTimes(1);
       expect(workspacesApi.disableWorkspaceLocking).not.toHaveBeenCalled();
       expect(query.getValue().lockingEnabled).toBe(true);
 
-      service.setLockingEnabled(false);
+      service.setLockingEnabled(false).subscribe();
       expect(workspacesApi.disableWorkspaceLocking).toHaveBeenCalledTimes(1);
       expect(query.getValue().lockingEnabled).toBe(false);
     });

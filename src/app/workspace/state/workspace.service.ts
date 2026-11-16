@@ -348,28 +348,29 @@ export class WorkspaceService {
     );
   }
 
-  loadAllActiveRuns(): void {
+  /**
+   * Load every active run into its workspace. The caller subscribes, so it can
+   * say in its own way when the API fails instead of the global error dialog.
+   */
+  loadAllActiveRuns(): Observable<Run[]> {
     this.workspaceStore.setLoading(true);
 
-    this.runsService
-      .getRuns(true)
-      .pipe(
-        tap((runs) => {
-          const uniqueWorkspaceids = runs
-            .map((r) => r.workspaceId)
-            .filter((v, i, a) => a.indexOf(v) === i);
+    return this.runsService.getRuns(true).pipe(
+      take(1),
+      tap((runs) => {
+        const uniqueWorkspaceids = runs
+          .map((r) => r.workspaceId)
+          .filter((v, i, a) => a.indexOf(v) === i);
 
-          uniqueWorkspaceids.forEach((x) => {
-            const workspace: Workspace = { id: x, runs: [] };
-            this.workspaceStore.add(workspace);
-          });
+        uniqueWorkspaceids.forEach((x) => {
+          const workspace: Workspace = { id: x, runs: [] };
+          this.workspaceStore.add(workspace);
+        });
 
-          runs.forEach((r) => this.runUpdated(r));
-          this.workspaceStore.setLoading(false);
-        }),
-        take(1),
-      )
-      .subscribe();
+        runs.forEach((r) => this.runUpdated(r));
+        this.workspaceStore.setLoading(false);
+      }),
+    );
   }
 
   loadResourcesByWorkspaceId(id: string): Observable<any> {
@@ -493,27 +494,24 @@ export class WorkspaceService {
     this.workspaceStore.ui.upsert(id, { workspaceView: view });
   }
 
-  loadLockingStatus() {
-    this.workspacesService
-      .getWorkspaceLockingStatus()
-      .pipe(take(1))
-      .subscribe((lockingStatus) => {
-        this.workspaceStore.update({ lockingEnabled: lockingStatus });
-      });
+  /** Read whether workspace operations are allowed; the caller subscribes. */
+  loadLockingStatus(): Observable<boolean> {
+    return this.workspacesService.getWorkspaceLockingStatus().pipe(
+      take(1),
+      tap((lockingStatus) => this.lockingEnabledUpdated(lockingStatus)),
+    );
   }
 
-  setLockingEnabled(status: boolean) {
-    let result: Observable<boolean>;
+  /** Allow or stop workspace operations; the caller subscribes. */
+  setLockingEnabled(status: boolean): Observable<boolean> {
+    const result = status
+      ? this.workspacesService.enableWorkspaceLocking()
+      : this.workspacesService.disableWorkspaceLocking();
 
-    if (status) {
-      result = this.workspacesService.enableWorkspaceLocking();
-    } else {
-      result = this.workspacesService.disableWorkspaceLocking();
-    }
-
-    result.pipe(take(1)).subscribe((lockingStatus) => {
-      this.lockingEnabledUpdated(lockingStatus);
-    });
+    return result.pipe(
+      take(1),
+      tap((lockingStatus) => this.lockingEnabledUpdated(lockingStatus)),
+    );
   }
 
   lockingEnabledUpdated(status: boolean) {

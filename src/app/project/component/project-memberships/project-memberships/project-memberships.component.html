@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-@if (project$ | async; as project) {
+@if (showTitle() && (project$ | async); as project) {
   <div class="d-flex justify-content-center align-items-center">
     @if (embedded() || showReturnButton()) {
       <button

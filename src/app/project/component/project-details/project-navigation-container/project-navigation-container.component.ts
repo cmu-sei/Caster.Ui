@@ -36,6 +36,11 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { AsyncPipe } from '@angular/common';
 
+import {
+  ProjectEnvironmentComponent,
+  ProjectEnvironmentData,
+} from '../../project-environment/project-environment.component';
+
 const NAME_VALUE = 'nameValue';
 
 @Component({
@@ -81,12 +86,21 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
     viewChild<TemplateRef<ProjectImportComponent>>('importDialog');
   private importDialogRef: MatDialogRef<ProjectImportComponent>;
 
+  openEnvironment(project: Project) {
+    this.dialog.open<ProjectEnvironmentComponent, ProjectEnvironmentData>(
+      ProjectEnvironmentComponent,
+      {
+        data: { projectId: project.id, projectName: project.name },
+        width: '880px',
+        maxWidth: '90vw',
+      },
+    );
+  }
+
   ngOnInit() {
     this.routerQuery
       .select('state')
-      .pipe(
-        takeUntil(this.unsubscribe$),
-      )
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe((state) => {
         this.projectId = state.params.id;
         // ?workspace=<id> opens that workspace and ?directory=<id> expands that directory,
@@ -101,8 +115,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
               dir.projectId === this.projectId && dir.parentId === null,
           });
 
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-          this.projectService
+                   this.projectService
             .loadProject(this.projectId)
             .pipe(
               take(1),
@@ -118,8 +131,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
               }),
             )
             .subscribe();
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-          this.directoryService
+                   this.directoryService
             .loadDirectories(this.projectId)
             .pipe(
               take(1),
@@ -162,14 +174,15 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
         this.router.navigate([], {
           queryParams: { workspace: null, directory: null },
           queryParamsHandling: 'merge',
-          replaceUrl: true
+          replaceUrl: true,
         });
       });
   }
 
   private openWorkspaceTab(workspaceId: string) {
     const workspace = this.workspaceQuery.getEntity(workspaceId);
-    const directory = workspace && this.directoryQuery.getEntity(workspace.directoryId);
+    const directory =
+      workspace && this.directoryQuery.getEntity(workspace.directoryId);
     if (workspace && directory?.projectId === this.projectId) {
       this.directoryService.expandTo(directory.id);
       this.projectService.openTab(workspace, ProjectObjectType.WORKSPACE);
@@ -190,7 +203,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   private linkNotFound(kind: string) {
     this.snackBar.open(`The linked ${kind} is not in this project`, 'Dismiss', {
       duration: 5000,
-      verticalPosition: 'top'
+      verticalPosition: 'top',
     });
   }
 
@@ -208,8 +221,7 @@ export class ProjectNavigationContainerComponent implements OnInit, OnDestroy {
   }
 
   createNewDirectory(dirId?: string) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-    this.nameDialog('Add Directory', '', { nameValue: '' })
+       this.nameDialog('Add Directory', '', { nameValue: '' })
       .pipe(take(1))
       .subscribe((result) => {
         if (result) {

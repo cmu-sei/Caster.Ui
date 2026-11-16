@@ -1,0 +1,107 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.filter {
+  flex: 1;
+  min-width: 160px;
+}
+
+.help {
+  margin-bottom: 12px;
+  color: var(--mat-sys-on-surface-variant);
+
+  p,
+  ul {
+    margin: 0 0 6px;
+  }
+}
+
+mat-panel-description {
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.set-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.set-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.entries {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: 4px 8px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+  }
+}
+
+.entry-actions {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.plain-value {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ok {
+  color: var(--mat-sys-primary);
+}
+
+.missing {
+  color: var(--mat-sys-error);
+}
+
+.secondary {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.via {
+  margin-left: 8px;
+  font-size: 0.85em;
+  color: var(--mat-sys-on-surface-variant);
+}

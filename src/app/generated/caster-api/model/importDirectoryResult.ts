@@ -21,5 +21,13 @@ export interface ImportDirectoryResult {
      * A list of Files that were unable to be updated because they were locked or the current user does not have permission to lock them
      */
     lockedFiles?: Array<string> | null;
+    /**
+     * A list of settings carried by the archive that could not be applied
+     */
+    skippedSettings?: Array<string> | null;
+    /**
+     * A list of non-fatal problems found with the archive
+     */
+    warnings?: Array<string> | null;
 }
 
