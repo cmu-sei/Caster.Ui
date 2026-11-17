@@ -99,6 +99,36 @@ describe('AiTerraformDraftDialogComponent', () => {
   });
 
   /**
+   * Verifies: the review says what the draft was checked against in the inventory, the names it did not find there,
+   * and the topology the model says the files build.
+   * Interacts with: FilesService.draftTerraformWithAi, the grounding panel.
+   * Data: a Proxmox inventory without the dmz bridge; a plan of one segment and one machine.
+   */
+  it('shows the inventory grounding and the topology plan for review', async () => {
+    const { user } = await renderDialog(undefined, {
+      draftTerraformWithAi: vi.fn(() =>
+        of({
+          ...structuredClone(DRAFT),
+          inventory: {
+            checked: true,
+            connections: [{ name: 'default', hypervisor: 'Proxmox', lastUpdated: '2026-10-29T14:05:00Z', stale: false, unavailable: [], truncated: false }],
+            found: [{ kind: 'Template', name: 'kali-2026', where: 'main.tf', connection: 'default' }],
+            unknown: [{ kind: 'Network', name: 'dmz', where: 'network.tf' }],
+          },
+          topology: { segments: [{ name: 'red', role: 'Attacker', cidr: '10.66.0.0/24' }], machines: [{ name: 'kali', role: 'Attacker', interfaces: [{ segment: 'red' }] }] },
+        } satisfies AiTerraformDraft)
+      ),
+    });
+
+    await draft(user);
+
+    expect(screen.getByRole('heading', { name: 'Infrastructure inventory' })).toBeInTheDocument();
+    expect(screen.getByLabelText('In the inventory')).toHaveTextContent('kali-2026');
+    expect(screen.getByRole('list', { name: 'Not in the inventory' })).toHaveTextContent('Network dmz is not in the inventory (network.tf)');
+    expect(screen.getByText('Topology plan: 1 segment, 1 machine')).toBeInTheDocument();
+  });
+
+  /**
    * Verifies: only the kept files are applied, with the hash of what the draft replaced, and the dialog closes with the saved files and their content.
    * Interacts with: the Keep checkboxes, FilesService.applyAiTerraformDraft, dialogRef.close.
    * Data: network.tf unticked; main.tf applied with hash HASH1.

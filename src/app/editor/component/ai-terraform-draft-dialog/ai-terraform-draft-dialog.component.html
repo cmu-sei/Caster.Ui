@@ -53,6 +53,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
           }
         </ul>
       }
+      <cas-ai-draft-grounding [inventory]="draft.inventory" [topology]="draft.topology" />
       @for (row of rows; track row.file.name) {
         <mat-expansion-panel class="file" [expanded]="rows.length === 1">
           <mat-expansion-panel-header>

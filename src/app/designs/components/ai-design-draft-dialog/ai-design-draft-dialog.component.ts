@@ -18,6 +18,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AiDraftGroundingComponent } from 'src/app/shared/components/ai-draft-grounding/ai-draft-grounding.component';
 import {
   CrucibleDialogComponent,
   CrucibleDialogContentDirective,
@@ -90,6 +91,7 @@ export function isPlaceholder(value: string): boolean {
     MatOption,
     MatIcon,
     MatTooltip,
+    AiDraftGroundingComponent,
   ],
 })
 export class AiDesignDraftDialogComponent implements OnInit {
