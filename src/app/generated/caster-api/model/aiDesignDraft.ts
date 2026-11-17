@@ -27,6 +27,10 @@ export interface AiDesignDraft {
     summary?: string | null;
     modules?: Array<AiDraftModule> | null;
     /**
+     * What the model decided that the request did not say, one plain sentence each: what it chose and why.
+     */
+    assumptions?: Array<string> | null;
+    /**
      * What was dropped or changed from the model\'s answer, and what still needs a planner\'s attention.
      */
     warnings?: Array<string> | null;

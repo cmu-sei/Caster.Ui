@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Component, input } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { screen } from '@testing-library/angular';
+import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -48,6 +48,7 @@ class EditorStub {
 // main.tf replaced, network.tf new, and a warning about a declaration
 const DRAFT: AiTerraformDraft = {
   summary: 'Adds an attacker VM on the red network.',
+  assumptions: ["Reuses the first attacker's template and sizing."],
   warnings: [
     'variable "node" is declared more than once (main.tf, range/provider.tf); the plan will fail.',
   ],
@@ -120,6 +121,29 @@ describe('AiTerraformDraftDialogComponent', () => {
    * Interacts with: FilesService.draftTerraformWithAi, the diff and editor stubs.
    * Data: main.tf replacing "# empty", new network.tf, a duplicate-declaration warning.
    */
+  /**
+   * Verifies: the draft's assumptions are listed on their own, apart from the warnings to check.
+   * Interacts with: FilesService.draftTerraformWithAi.
+   * Data: DRAFT with one assumption and one warning.
+   */
+  it('lists the assumptions apart from the warnings', async () => {
+    const { user } = await renderDialog();
+
+    await draft(user);
+
+    const assumptions = screen.getByRole('region', { name: 'Assumptions' });
+    expect(
+      within(assumptions).getByText(
+        "Reuses the first attacker's template and sizing.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('list', { name: 'Check before applying' }),
+      ).queryByText(/Reuses the first attacker/),
+    ).not.toBeInTheDocument();
+  });
+
   it('drafts the files and shows each for review', async () => {
     const { filesApi, fixture, user } = await renderDialog();
 

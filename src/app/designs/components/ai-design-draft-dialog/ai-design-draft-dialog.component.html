@@ -81,12 +81,28 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [disabled]="loading"
         >
           <mat-icon fontIcon="mdi-arrow-left" />
-          Change prompt
+          Return to prompt
         </button>
       </div>
 
       @if (draft?.summary) {
         <p class="dialog-message">{{ draft.summary }}</p>
+      }
+
+      @if (draft?.assumptions?.length) {
+        <section class="draft-assumptions" aria-label="Assumptions">
+          <p class="assumptions-title">
+            <strong>Assumptions</strong>
+            <span class="assumptions-hint">
+              what the draft decided that the request did not say
+            </span>
+          </p>
+          <ul>
+            @for (assumption of draft.assumptions; track $index) {
+              <li>{{ assumption }}</li>
+            }
+          </ul>
+        </section>
       }
 
       @if (draft?.warnings?.length) {

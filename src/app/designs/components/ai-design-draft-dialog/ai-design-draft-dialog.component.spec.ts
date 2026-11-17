@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { screen } from '@testing-library/angular';
+import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +34,7 @@ import { AiDesignDraftDialogComponent } from './ai-design-draft-dialog.component
 const DRAFT: AiDesignDraft = {
   designName: 'Small office',
   summary: 'One network and a workstation.',
+  assumptions: ['Uses vSphere, the only configured hypervisor.'],
   warnings: ['Dropped a module that is not in the catalog: pfsense'],
   snippet: 'module "office_net" {}',
   modules: [
@@ -121,6 +122,27 @@ async function draft(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('AiDesignDraftDialogComponent', () => {
+  /**
+   * Verifies: the draft's assumptions are listed on their own, apart from its warnings.
+   * Interacts with: DesignsService.draftDesignWithAi.
+   * Data: DRAFT with one assumption and one warning.
+   */
+  it('lists the assumptions apart from the warnings', async () => {
+    const { user } = await renderDraftDialog(stubApi());
+
+    await draft(user);
+
+    const assumptions = screen.getByRole('region', { name: 'Assumptions' });
+    expect(
+      within(assumptions).getByText(
+        'Uses vSphere, the only configured hypervisor.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Dropped a module that is not in the catalog/),
+    ).not.toBe(assumptions);
+  });
+
   /**
    * Verifies: Draft waits for a prompt, sends it for the directory, then shows the draft's name, warnings,
    * a blank required row for the variable the model left out and a mark on the placeholder. Neither
@@ -263,7 +285,7 @@ describe('AiDesignDraftDialogComponent', () => {
       expect.objectContaining({ hypervisors: ['Proxmox'] }),
     );
 
-    await user.click(screen.getByRole('button', { name: 'Change prompt' }));
+    await user.click(screen.getByRole('button', { name: 'Return to prompt' }));
     await user.click(screen.getByRole('combobox', { name: 'Hypervisor' }));
     await user.click(screen.getByRole('option', { name: 'Both' }));
     expect(
