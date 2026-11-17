@@ -41,6 +41,8 @@ export class GitlabProjectDialogComponent {
   private formBuilder = inject(NonNullableFormBuilder);
 
   public form = this.formBuilder.group({
+    // Angular's own validators are static methods that Angular calls unbound
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     projectId: ['', [Validators.required, Validators.pattern(/^\s*\d+\s*$/)]],
   });
 

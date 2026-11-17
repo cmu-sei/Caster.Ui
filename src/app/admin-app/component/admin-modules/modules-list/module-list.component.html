@@ -64,7 +64,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               <button
                 mat-icon-button
                 disabled
-                [attr.aria-label]="'Refresh ' + item.name + ' (not available for GitLab Modules)'"
+                [attr.aria-label]="
+                  'Refresh ' + item.name + ' (not available for GitLab Modules)'
+                "
               >
                 <mat-icon class="mdi-18px" fontIcon="mdi-refresh" />
               </button>
@@ -88,7 +90,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               disabled
-              [attr.aria-label]="'Copy the Terraform source of ' + item.name + ' (no version yet)'"
+              [attr.aria-label]="
+                'Copy the Terraform source of ' +
+                item.name +
+                ' (no version yet)'
+              "
             >
               <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
             </button>

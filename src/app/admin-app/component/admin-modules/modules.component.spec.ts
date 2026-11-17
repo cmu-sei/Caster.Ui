@@ -1,7 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Component, input, output } from '@angular/core';
@@ -95,10 +95,8 @@ async function renderModules(
       of<Module[]>([{ id: 'mod1', name: 'vm', path: 'local/vm' }]),
     ),
     getModuleSources: vi.fn(() => sources()),
-    createTerrraformModuleFromRepository: vi.fn(
-      (_command?: CreateModuleRepositoryCommand) => sync(),
-    ),
-    deleteModule: vi.fn((_id: string) => remove()),
+    createTerrraformModuleFromRepository: vi.fn(() => sync()),
+    deleteModule: vi.fn(() => remove()),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(AdminModulesComponent, {
     childStubs: [
@@ -111,12 +109,10 @@ async function renderModules(
       { provide: ModulesService, useValue: modulesApi },
     ],
   });
-  const list: ModuleListStub = view.fixture.debugElement.query(
-    By.directive(ModuleListStub),
-  ).componentInstance;
-  const panel: ModuleSourcesStub = view.fixture.debugElement.query(
-    By.directive(ModuleSourcesStub),
-  ).componentInstance;
+  const list = view.fixture.debugElement.query(By.directive(ModuleListStub))
+    .componentInstance as ModuleListStub;
+  const panel = view.fixture.debugElement.query(By.directive(ModuleSourcesStub))
+    .componentInstance as ModuleSourcesStub;
   return { ...view, list, panel, modulesApi };
 }
 

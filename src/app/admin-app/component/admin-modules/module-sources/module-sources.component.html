@@ -3,7 +3,10 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<mat-expansion-panel class="mat-elevation-z0 sources-panel" [expanded]="failing() > 0 || !sources()?.length">
+<mat-expansion-panel
+  class="mat-elevation-z0 sources-panel"
+  [expanded]="failing() > 0 || !sources()?.length"
+>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-source-repository" />
@@ -45,7 +48,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </div>
 
   @if (!listed()) {
-    <p class="sources-empty">This Caster API doesn't report its module sources.</p>
+    <p class="sources-empty">
+      This Caster API doesn't report its module sources.
+    </p>
   } @else if (!sources()?.length) {
     <p class="sources-empty">
       No module sources are configured, so there are no Modules to list. An
@@ -93,7 +98,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 mat-icon-button
                 ngxClipboard
                 [cbContent]="url"
-                [attr.aria-label]="'Copy the ' + source.name + ' repository URL'"
+                [attr.aria-label]="
+                  'Copy the ' + source.name + ' repository URL'
+                "
                 [matTooltip]="'Copy repository URL: ' + url"
                 matTooltipClass="wide-tooltip"
               >

@@ -85,7 +85,7 @@ async function renderSources({
 }
 
 function rowOf(name: string): HTMLElement {
-  return screen.getByText(name).closest('li')!;
+  return screen.getByText(name).closest('li');
 }
 
 function text(element: HTMLElement): string {
