@@ -30,6 +30,8 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
     flex: none;
     width: 18px;
     height: 18px;
+    // the glyph takes its line height from the list item, so pin it to the box
+    line-height: 18px;
     margin-top: 0.1rem;
     color: var(--mat-sys-tertiary, currentColor);
   }
