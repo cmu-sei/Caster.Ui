@@ -7,6 +7,13 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   background-color: darkred;
 }
 
+.placeholders {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--mat-sys-tertiary);
+}
+
 .edit-content {
   width: 25vw;
 }

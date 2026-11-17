@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { fireEvent, screen } from '@testing-library/angular';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,8 +17,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { DirectoryStore } from 'src/app/directories/state/directory.store';
 import { FileStore } from 'src/app/files/state/file.store';
+import { FileService } from 'src/app/files/state/file.service';
+import { AiTerraformDraftDialogComponent } from 'src/app/editor/component/ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
 import {
   Directory,
+  ModelFile,
   ProjectPermission,
   SystemPermission,
 } from 'src/app/generated/caster-api';
@@ -166,6 +169,39 @@ describe('DirectoryPanelComponent', () => {
       });
     },
   );
+
+  /**
+   * Verifies: with an EditProject claim the panel offers Draft Terraform with AI, which opens the draft dialog for this directory and passes the saved files on to the open editors.
+   * Interacts with: MatDialog.open (spy), FileService.fileUpdated (spy).
+   * Data: directory network (dir1) in project p1; the dialog closes with main.tf saved.
+   */
+  it('drafts Terraform for the directory with AI', async () => {
+    const view = await renderPanel({
+      projects: [
+        { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
+      ],
+    });
+    const saved: ModelFile[] = [
+      { id: 'f1', name: 'main.tf', content: 'module "kali" {}' },
+    ];
+    const { dialogRef } = dialogRefStub<unknown, ModelFile[]>(saved);
+    const open = vi
+      .spyOn(view.fixture.componentInstance['dialog'] as MatDialog, 'open')
+      .mockReturnValue(dialogRef as any);
+    const fileUpdated = vi
+      .spyOn(TestBed.inject(FileService), 'fileUpdated')
+      .mockImplementation(() => undefined);
+
+    fireEvent.click(screen.getByText('Draft Terraform with AI'));
+
+    expect(open).toHaveBeenCalledWith(
+      AiTerraformDraftDialogComponent,
+      expect.objectContaining({
+        data: { directoryId: 'dir1', directoryName: 'network' },
+      }),
+    );
+    expect(fileUpdated).toHaveBeenCalledWith(saved[0]);
+  });
 
   /**
    * Verifies: without EditProjects or an EditProject claim on this project no Add link renders.

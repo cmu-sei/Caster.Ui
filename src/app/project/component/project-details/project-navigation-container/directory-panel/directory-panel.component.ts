@@ -47,6 +47,14 @@ import { WorkspaceEditContainerComponent } from 'src/app/workspace/components/wo
 import { DirectoryEditContainerComponent } from 'src/app/directories/components/directory-edit-container/directory-edit-container.component';
 import { DesignQuery } from 'src/app/designs/state/design.query';
 import { DesignService } from 'src/app/designs/state/design.service';
+import {
+  AiTerraformDraftDialogComponent,
+  AiTerraformDraftDialogData,
+} from 'src/app/editor/component/ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
+import {
+  AiDesignDraftDialogComponent,
+  AiDesignDraftDialogData,
+} from 'src/app/designs/components/ai-design-draft-dialog/ai-design-draft-dialog.component';
 import { Validators } from '@angular/forms';
 import { ValidatorPatterns } from 'src/app/shared/models/validator-patterns';
 import { PermissionService } from 'src/app/permissions/permission.service';
@@ -532,6 +540,43 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         this.designService.create(newDesign);
       }
     });
+  }
+
+  // the saved files go into the store with their content, so an open tab shows them at once
+  draftTerraformWithAi(dir: Directory) {
+    this.dialog
+      .open<AiTerraformDraftDialogComponent, AiTerraformDraftDialogData, ModelFile[]>(
+        AiTerraformDraftDialogComponent,
+        {
+          data: { directoryId: dir.id, directoryName: dir.name },
+          width: '1000px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      )
+      .afterClosed()
+      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
+  }
+
+  draftDesignWithAi(dir: Directory) {
+    this.dialog
+      .open<AiDesignDraftDialogComponent, AiDesignDraftDialogData, Design>(
+        AiDesignDraftDialogComponent,
+        {
+          data: { directoryId: dir.id, directoryName: dir.name },
+          width: '800px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      )
+      .afterClosed()
+      .subscribe((design) => {
+        if (design) {
+          // SignalR adds it too; add() skips an id that is already there
+          this.designService.add(design);
+          this.openDesign(design);
+        }
+      });
   }
 
   renameDesign(design: Design) {

@@ -10,6 +10,9 @@ import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { FileQuery } from 'src/app/files/state/file.query';
+import { AiTerraformDraftDialogComponent } from '../ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -107,6 +110,7 @@ async function renderEditor(
   file: Partial<ModelFile> = {},
   sidebar: Sidebar = {},
   settings: Record<string, unknown> = {},
+  aiFiles: ModelFile[] = undefined,
 ) {
   const filesApi = {
     getFileVersions: vi.fn((_fileId: string) => of<FileVersion[]>([])),
@@ -118,6 +122,8 @@ async function renderEditor(
   } satisfies ApiStub<FilesService>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(true);
   const confirm = vi.fn(() => dialogRef);
+  const aiDialog = dialogRefStub<unknown, ModelFile[]>(aiFiles);
+  const openDialog = vi.fn(() => aiDialog.dialogRef);
   const view = await renderComponent(EditorComponent, {
     childStubs: [
       { replace: ModuleListComponent, with: ModuleListStub },
@@ -144,6 +150,7 @@ async function renderEditor(
         provide: ComnSettingsService,
         useValue: { settings: { Hotkeys: {}, ...settings } },
       },
+      { provide: MatDialog, useValue: { open: openDialog } },
     ],
     inputs: {
       fileId: 'f1',
@@ -174,7 +181,7 @@ async function renderEditor(
   ]);
   store.ui.update('f1', { isSaved: false });
   view.fixture.detectChanges();
-  return { ...view, filesApi, confirm, user: userEvent.setup() };
+  return { ...view, filesApi, confirm, openDialog, user: userEvent.setup() };
 }
 
 // Minimal Monaco: the EndOfLineSequence enum (with its reverse mapping) and
@@ -446,5 +453,61 @@ describe('EditorComponent', () => {
     } finally {
       delete (window as any).monaco;
     }
+  });
+
+  /**
+   * Verifies: a saved directory file offers Edit with AI, which opens the draft dialog for that file, and the
+   * saved files' content reaches the open editor.
+   * Interacts with: MatDialog.open (stub), FileService.fileUpdated, FileQuery.
+   * Data: main.tf (f1) in dir-1 with no unsaved edits; the dialog saves "module kali".
+   */
+  it('edits a saved directory file with AI', async () => {
+    const { openDialog, user } = await renderEditor(
+      { canEdit: true },
+      { directoryId: 'dir-1', content: 'old', editorContent: 'old' },
+      {},
+      {},
+      [{ id: 'f1', name: 'main.tf', directoryId: 'dir-1', content: 'module "kali" {}', editorContent: 'module "kali" {}' }],
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Edit this file with AI' }));
+
+    expect(openDialog).toHaveBeenCalledWith(AiTerraformDraftDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({ directoryId: 'dir-1', fileId: 'f1', fileName: 'main.tf' }),
+    }));
+    expect(TestBed.inject(FileQuery).getEntity('f1').content).toBe('module "kali" {}');
+  });
+
+  /**
+   * Verifies: Edit with AI waits for unsaved edits to be saved or discarded, so the draft never overwrites them.
+   * Interacts with: the editorContent !== content binding.
+   * Data: main.tf with unsaved edits ("old" saved, "new" in the editor); canEdit true.
+   */
+  it('disables Edit with AI while the file has unsaved edits', async () => {
+    await renderEditor({ canEdit: true });
+
+    expect(screen.getByRole('button', { name: 'Edit this file with AI' })).toBeDisabled();
+  });
+
+  /**
+   * Verifies: a workspace's own file gets no Edit with AI; the draft writes the directory's files.
+   * Interacts with: the !file.workspaceId condition.
+   * Data: main.tf in workspace ws-1; canEdit true.
+   */
+  it('offers no Edit with AI for a workspace file', async () => {
+    await renderEditor({ canEdit: true }, { workspaceId: 'ws-1', content: 'old', editorContent: 'old' });
+
+    expect(screen.queryByRole('button', { name: 'Edit this file with AI' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a designer who may not edit the file gets no Edit with AI.
+   * Interacts with: the canEdit() condition.
+   * Data: a saved directory file; canEdit false.
+   */
+  it('offers no Edit with AI without canEdit', async () => {
+    await renderEditor({ canEdit: false }, { content: 'old', editorContent: 'old' });
+
+    expect(screen.queryByRole('button', { name: 'Edit this file with AI' })).not.toBeInTheDocument();
   });
 });
