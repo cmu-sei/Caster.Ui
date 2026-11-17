@@ -1,0 +1,157 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="title"
+  submitLabel="Save"
+  loadingLabel="Saving"
+  [loading]="saving()"
+  [errorMessage]="error()"
+  [submitDisabled]="changeCount() === 0 || saving()"
+  (submit)="save()"
+>
+  <div crucibleDialogContent>
+    <p class="secondary">
+      Changes apply to every selected set that has the entry. Kind and name
+      identify an entry, so editing changes its value and source, not its name.
+      Everything is checked and saved together.
+    </p>
+
+    <table class="rows">
+      <thead>
+        <tr>
+          <th scope="col">Variable</th>
+          <th scope="col">In</th>
+          <th scope="col">Value</th>
+          <th scope="col">Add where missing</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.name) {
+          @let change = this.change(row);
+          <tr [class.deleted]="change?.operation === Operation.Delete">
+            <td>
+              <code>{{ variableLabel(row.entry) }}</code>
+            </td>
+            <td [matTooltip]="setNames(row)">
+              {{ row.setIds.length }} of {{ data.sets.length }}
+            </td>
+            <td>
+              @if (change) {
+                @if (change.operation === Operation.Delete) {
+                  <span class="pending">Removed from all</span>
+                } @else {
+                  <span class="pending">{{ describe(change) }}</span>
+                }
+              } @else if (row.mixed) {
+                <span class="secondary">Mixed</span>
+              } @else {
+                <span class="secondary">Same in each</span>
+              }
+            </td>
+            <td>
+              @if (row.setIds.length < data.sets.length) {
+                <mat-checkbox
+                  [checked]="addsToOthers(row)"
+                  [disabled]="
+                    change?.operation === Operation.Delete || locked(row)
+                  "
+                  [matTooltip]="
+                    locked(row)
+                      ? lockedText
+                      : row.mixed && !change
+                        ? 'Add to ' +
+                          missingFrom(row) +
+                          ': the sets differ, so pick the value first'
+                        : 'Add to ' + missingFrom(row)
+                  "
+                  (change)="toggleAddToOthers(row, $event)"
+                  [aria-label]="
+                    'Add ' + variableLabel(row.entry) + ' where missing'
+                  "
+                />
+              }
+            </td>
+            <td class="actions">
+              @if (change) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Undo"
+                  [attr.aria-label]="
+                    'Undo the change to ' + variableLabel(row.entry)
+                  "
+                  (click)="undo(row.name)"
+                >
+                  <mat-icon class="mdi-18px" fontIcon="mdi-undo" />
+                </button>
+              }
+              <button
+                mat-icon-button
+                type="button"
+                [matTooltip]="
+                  locked(row) ? lockedText : 'Edit in every set that has it'
+                "
+                [attr.aria-label]="'Edit ' + variableLabel(row.entry)"
+                [disabled]="locked(row)"
+                (click)="edit(row)"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-square-edit-outline" />
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Remove from every set"
+                [attr.aria-label]="'Remove ' + variableLabel(row.entry)"
+                (click)="remove(row)"
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-trash-can-outline" />
+              </button>
+            </td>
+          </tr>
+        }
+        @for (change of newEntries(); track change.targetName) {
+          <tr>
+            <td>
+              <code>{{
+                change.kind === 'TerraformVariable'
+                  ? 'var.' + change.targetName
+                  : change.targetName
+              }}</code>
+            </td>
+            <td>New</td>
+            <td>
+              <span class="pending">{{ describe(change) }}</span>
+            </td>
+            <td>All</td>
+            <td class="actions">
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Undo"
+                [attr.aria-label]="'Undo adding ' + change.targetName"
+                (click)="
+                  undo(
+                    change.kind === 'TerraformVariable'
+                      ? 'TF_VAR_' + change.targetName
+                      : change.targetName
+                  )
+                "
+              >
+                <mat-icon class="mdi-18px" fontIcon="mdi-undo" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <button matButton type="button" (click)="addEntry()">
+      <mat-icon fontIcon="mdi-plus" />
+      Add Entry to All
+    </button>
+  </div>
+</crucible-dialog>

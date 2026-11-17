@@ -101,4 +101,19 @@ describe('ProjectMemberListComponent', () => {
       within(table).queryByRole('button', { name: 'Remove Ada' }),
     ).not.toBeInTheDocument();
   });
+  /**
+   * Verifies: the search field matches the other admin lists: a Search placeholder with no floating label or magnifier, and a Clear Search button once something is typed.
+   * Interacts with: the toolbar search field.
+   * Data: "a" typed.
+   */
+  it('has the standard search field', async () => {
+    const { user } = await renderMemberList(true);
+
+    const search = screen.getByPlaceholderText('Search');
+    expect(document.querySelector('[matPrefix], mat-label')).toBeNull();
+    await user.type(search, 'a');
+    expect(
+      screen.getByRole('button', { name: 'Clear Search' }),
+    ).toBeInTheDocument();
+  });
 });

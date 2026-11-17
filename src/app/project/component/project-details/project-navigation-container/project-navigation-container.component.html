@@ -31,6 +31,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     }
     <div
       class="nav-background d-flex flex-row justify-content-start align-items-center"
+      (click)="openEnvironment(project)"
+    >
+      <mat-icon
+        title="Environment"
+        class="add-icon mdi-18px icon"
+        fontIcon="mdi-tune-variant"
+        matTooltip="Environment Sets and connections assigned to {{
+          project.name
+        }}"
+      />
+      <a
+        class="add-link"
+        matTooltip="Environment Sets and connections assigned to {{
+          project.name
+        }}"
+        >Environment</a
+      >
+    </div>
+    <div
+      class="nav-background d-flex flex-row justify-content-start align-items-center"
     >
       <mat-icon
         (click)="exportProject()"

@@ -333,8 +333,7 @@ export class WorkspaceContainerComponent
       .saveState(run.id)
       .pipe(
         take(1),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
-      )
+             )
       .subscribe();
   }
 

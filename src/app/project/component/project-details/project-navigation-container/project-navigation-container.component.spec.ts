@@ -162,7 +162,9 @@ describe('ProjectNavigationContainerComponent', () => {
    * Data: workspace ws1 in directory dir1 of project p1.
    */
   it('opens the workspace a link names', async () => {
-    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const navigate = vi
+      .spyOn(Router.prototype, 'navigate')
+      .mockResolvedValue(true);
     const view = await renderNavigation({}, { workspace: 'ws1' });
 
     expect(openTabIds(view)).toEqual(['ws1']);
@@ -180,7 +182,9 @@ describe('ProjectNavigationContainerComponent', () => {
    * Data: workspace ws9, not among p1's directories.
    */
   it('says so when the linked workspace is not in the project', async () => {
-    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const navigate = vi
+      .spyOn(Router.prototype, 'navigate')
+      .mockResolvedValue(true);
     const view = await renderNavigation({}, { workspace: 'ws9' });
 
     expect(openTabIds(view)).toEqual([]);
@@ -197,12 +201,20 @@ describe('ProjectNavigationContainerComponent', () => {
    * Data: directory dir2 under dir1 in project p1.
    */
   it('expands the directory a link names', async () => {
-    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const navigate = vi
+      .spyOn(Router.prototype, 'navigate')
+      .mockResolvedValue(true);
     const view = await renderNavigation({}, { directory: 'dir2' });
     const directories = view.fixture.debugElement.injector.get(DirectoryQuery);
 
-    expect(directories.ui.getEntity('dir2')).toMatchObject({ isExpanded: true, isWorkspacesExpanded: true });
-    expect(directories.ui.getEntity('dir1')).toMatchObject({ isExpanded: true, isDirectoriesExpanded: true });
+    expect(directories.ui.getEntity('dir2')).toMatchObject({
+      isExpanded: true,
+      isWorkspacesExpanded: true,
+    });
+    expect(directories.ui.getEntity('dir1')).toMatchObject({
+      isExpanded: true,
+      isDirectoriesExpanded: true,
+    });
     expect(openTabIds(view)).toEqual([]);
     expect(navigate).toHaveBeenCalled();
     navigate.mockRestore();
@@ -214,7 +226,9 @@ describe('ProjectNavigationContainerComponent', () => {
    * Data: directory dir9, not among p1's directories.
    */
   it('says so when the linked directory is not in the project', async () => {
-    const navigate = vi.spyOn(Router.prototype, 'navigate').mockResolvedValue(true);
+    const navigate = vi
+      .spyOn(Router.prototype, 'navigate')
+      .mockResolvedValue(true);
     await renderNavigation({}, { directory: 'dir9' });
 
     expect(

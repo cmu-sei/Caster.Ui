@@ -34,7 +34,7 @@ import {
   MatCardActions,
   MatCardContent,
 } from '@angular/material/card';
-import { NgClass, AsyncPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
@@ -48,7 +48,6 @@ import { ModuleOutputsComponent } from '../../module-outputs/module-outputs.comp
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCard,
-    NgClass,
     MatCardHeader,
     MatCardTitle,
     MatCardSubtitle,
