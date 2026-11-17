@@ -33,6 +33,9 @@ export interface AiDraftModule {
     source?: string | null;
     values?: Array<ModuleValue> | null;
     missingRequiredVariables?: Array<string> | null;
+    /**
+     * The variables whose values are placeholders, for the planner to replace before the Design can be enabled. A required variable the model left out is one of them.
+     */
     placeholders?: Array<string> | null;
 }
 

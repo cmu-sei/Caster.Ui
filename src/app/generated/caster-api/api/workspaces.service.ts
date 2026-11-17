@@ -397,7 +397,7 @@ export class WorkspacesService {
     }
 
     /**
-     * Save where nodes sit in a Workspace\'s topology view, and their roles
+     * Save where nodes sit in a Workspace\&#39;s topology view, and their roles
      * @param id The Id of the Workspace
      * @param editWorkspaceTopologyLayoutCommand The nodes to save, by node id
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

@@ -16,6 +16,9 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  */
 
 
+/**
+ * What the draft dialog needs to know before it asks for a prompt.
+ */
 export interface AiDesignDraftOptions { 
     enabled?: boolean;
     /**

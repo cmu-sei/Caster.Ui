@@ -18,7 +18,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 export interface CreateModuleRepositoryCommand { 
     /**
-     * Repository ID of the Module.
+     * Identifies the Module to sync. For a git module source this is the source Name, or Name/subdirectory for a source using the Subdirectories layout. For the legacy Gitlab source it is the Gitlab project id, unchanged.
      */
     id?: string | null;
 }

@@ -25,5 +25,9 @@ export interface DraftTerraformWithAiCommand {
      * The Directory\'s file the designer has open, which the draft changes first. Empty to draft for the whole Directory.
      */
     fileId?: string | null;
+    /**
+     * Hypervisors the Terraform builds on: Proxmox, vSphere or both, which picks the inventory the draft is grounded in. Empty means the ones the Directory\'s files already use, or else every hypervisor configured for Terraform runs.
+     */
+    hypervisors?: Array<string> | null;
 }
 
