@@ -26,17 +26,29 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectAssistantComponent } from './project-assistant.component';
 
-// Monaco cannot load in jsdom; the stubs keep what each editor is given
+interface EditorOptionsStub {
+  theme?: string;
+}
+interface EditorModelStub {
+  code?: string;
+  value?: string;
+  language?: string;
+}
+
+// Monaco cannot load in jsdom; the stubs keep what each editor is given. Their selectors are
+// the library's, not the app's.
+// eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'ngx-monaco-diff-editor', template: '' })
 class DiffEditorStub {
-  readonly options = input<any>();
-  readonly originalModel = input<any>();
-  readonly modifiedModel = input<any>();
+  readonly options = input<EditorOptionsStub>();
+  readonly originalModel = input<EditorModelStub>();
+  readonly modifiedModel = input<EditorModelStub>();
 }
+// eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'ngx-monaco-editor', template: '' })
 class EditorStub {
-  readonly options = input<any>();
-  readonly model = input<any>();
+  readonly options = input<EditorOptionsStub>();
+  readonly model = input<EditorModelStub>();
 }
 
 // the project page holds the panel in an OnPush view, below the root
@@ -101,7 +113,9 @@ const ANSWER: AiAssistResult = {
 };
 
 async function renderPanel(
-  api: Partial<Record<'askAiAssistant' | 'applyAiAssistantChanges', any>> = {},
+  api: Partial<
+    Record<'askAiAssistant' | 'applyAiAssistantChanges', unknown>
+  > = {},
   inputs: { projectId: string; directoryId?: string; workspaceId?: string } = {
     projectId: 'p1',
     directoryId: 'lab',
@@ -109,7 +123,7 @@ async function renderPanel(
   },
   unsavedFiles: string[] = [],
 ) {
-  const assistApi = {
+  const defaultApi = {
     askAiAssistant: vi.fn(() => of(structuredClone(ANSWER))),
     applyAiAssistantChanges: vi.fn(() =>
       of({
@@ -131,8 +145,9 @@ async function renderPanel(
         ],
       }),
     ),
-    ...api,
   } satisfies ApiStub<AiAssistService>;
+  // a test's own stub keeps the default's type, so its calls stay typed
+  const assistApi = { ...defaultApi, ...(api as Partial<typeof defaultApi>) };
   const workspacesApi = {
     getWorkspace: vi.fn((id: string) =>
       of({ id, name: id, terraformVersion: '1.5.7', runs: [] }),
@@ -410,7 +425,7 @@ describe('ProjectAssistantComponent', () => {
     fixture.detectChanges();
     await ask(user, 'and another');
 
-    expect(assistApi.askAiAssistant.mock.calls.map((c) => c[0])).toEqual([
+    expect(assistApi.askAiAssistant.mock.calls.map((c) => (c as unknown[])[0])).toEqual([
       'range',
       'range',
     ]);

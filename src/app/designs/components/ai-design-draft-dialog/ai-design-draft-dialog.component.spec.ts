@@ -17,7 +17,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { of, throwError } from 'rxjs';
-import { AiDesignDraft, AiDesignDraftOptions, Design, DesignsService } from 'src/app/generated/caster-api';
+import {
+  AiDesignDraft,
+  AiDesignDraftOptions,
+  CreateDesignFromAiDraftCommand,
+  Design,
+  DesignsService,
+} from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -32,17 +38,33 @@ const DRAFT: AiDesignDraft = {
   snippet: 'module "office_net" {}',
   modules: [
     {
-      moduleId: 'mod-net', moduleName: 'vsphere-network', moduleVersion: '1.2.0', hypervisor: 'vSphere',
-      source: 'crucible-modules', name: 'office_net',
-      purpose: 'The office LAN', values: [{ name: 'cidr', value: '10.0.0.0/24' }, { name: 'vlan', value: '' }],
+      moduleId: 'mod-net',
+      moduleName: 'vsphere-network',
+      moduleVersion: '1.2.0',
+      hypervisor: 'vSphere',
+      source: 'crucible-modules',
+      name: 'office_net',
+      purpose: 'The office LAN',
+      values: [
+        { name: 'cidr', value: '10.0.0.0/24' },
+        { name: 'vlan', value: '' },
+      ],
       missingRequiredVariables: [],
     },
     {
-      moduleId: 'mod-vm', moduleName: 'vsphere-vm', moduleVersion: '2.0.1', hypervisor: null,
-      source: 'crucible-modules', name: 'ws1',
+      moduleId: 'mod-vm',
+      moduleName: 'vsphere-vm',
+      moduleVersion: '2.0.1',
+      hypervisor: null,
+      source: 'crucible-modules',
+      name: 'ws1',
       purpose: 'A workstation',
-      values: [{ name: 'network', value: 'module.office_net.id' }, { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' }],
-      missingRequiredVariables: ['image'], placeholders: ['template'],
+      values: [
+        { name: 'network', value: 'module.office_net.id' },
+        { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' },
+      ],
+      missingRequiredVariables: ['image'],
+      placeholders: ['template'],
     },
   ],
 };
@@ -64,23 +86,37 @@ async function renderDraftDialog(designsApi: ApiStub<DesignsService>) {
     ],
     providers: [
       { provide: MatDialogRef, useValue: dialogRef },
-      { provide: MAT_DIALOG_DATA, useValue: { directoryId: 'dir-1', directoryName: 'Range' } },
+      {
+        provide: MAT_DIALOG_DATA,
+        useValue: { directoryId: 'dir-1', directoryName: 'Range' },
+      },
       { provide: DesignsService, useValue: designsApi },
     ],
   });
   return { ...view, close, user: userEvent.setup() };
 }
 
-function stubApi(draft: AiDesignDraft = DRAFT, options: AiDesignDraftOptions = { enabled: true, configuredHypervisors: ['vSphere'] }) {
+function stubApi(
+  draft: AiDesignDraft = DRAFT,
+  options: AiDesignDraftOptions = {
+    enabled: true,
+    configuredHypervisors: ['vSphere'],
+  },
+) {
   return {
-    getAiDesignDraftOptions: vi.fn((_directoryId: string) => of(options)),
-    draftDesignWithAi: vi.fn((_directoryId: string) => of(structuredClone(draft))),
-    createDesignFromAiDraft: vi.fn((_directoryId: string) => of<Design>({ id: 'design-1', name: 'Small office', enabled: false })),
+    getAiDesignDraftOptions: vi.fn(() => of(options)),
+    draftDesignWithAi: vi.fn(() => of(structuredClone(draft))),
+    createDesignFromAiDraft: vi.fn(() =>
+      of<Design>({ id: 'design-1', name: 'Small office', enabled: false }),
+    ),
   } satisfies ApiStub<DesignsService>;
 }
 
 async function draft(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByRole('textbox', { name: 'Describe the environment' }), 'A small office');
+  await user.type(
+    screen.getByRole('textbox', { name: 'Describe the environment' }),
+    'A small office',
+  );
   await user.click(screen.getByRole('button', { name: 'Draft' }));
 }
 
@@ -99,13 +135,29 @@ describe('AiDesignDraftDialogComponent', () => {
     expect(screen.getByRole('button', { name: 'Draft' })).toBeDisabled();
     await draft(user);
 
-    expect(api.draftDesignWithAi).toHaveBeenCalledWith('dir-1', { prompt: 'A small office', designName: null, hypervisors: [] });
-    expect(screen.getByRole('textbox', { name: 'Design name' })).toHaveValue('Small office');
-    expect(screen.getByText('Dropped a module that is not in the catalog: pfsense')).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'image (required)' })).toHaveValue('');
-    expect(screen.getByText(/left blank, it is saved as a placeholder/)).toBeInTheDocument();
-    expect(screen.getByText('Placeholder: replace before enabling')).toBeInTheDocument();
-    expect(screen.getByText('Incomplete: replace these before enabling')).toBeInTheDocument();
+    expect(api.draftDesignWithAi).toHaveBeenCalledWith('dir-1', {
+      prompt: 'A small office',
+      designName: null,
+      hypervisors: [],
+    });
+    expect(screen.getByRole('textbox', { name: 'Design name' })).toHaveValue(
+      'Small office',
+    );
+    expect(
+      screen.getByText('Dropped a module that is not in the catalog: pfsense'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'image (required)' }),
+    ).toHaveValue('');
+    expect(
+      screen.getByText(/left blank, it is saved as a placeholder/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Placeholder: replace before enabling'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Incomplete: replace these before enabling'),
+    ).toBeInTheDocument();
     expect(screen.getByText('ws1: template, image')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Design' })).toBeEnabled();
   });
@@ -118,14 +170,27 @@ describe('AiDesignDraftDialogComponent', () => {
   it('says when the design was not checked against the inventory', async () => {
     const api = stubApi({
       ...DRAFT,
-      inventory: { checked: false, reason: 'Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.', connections: [], found: [], unknown: [] },
+      inventory: {
+        checked: false,
+        reason:
+          'Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.',
+        connections: [],
+        found: [],
+        unknown: [],
+      },
     });
     const { user } = await renderDraftDialog(api);
 
     await draft(user);
 
-    expect(screen.getByRole('heading', { name: 'Infrastructure inventory' })).toBeInTheDocument();
-    expect(screen.getByText('Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Infrastructure inventory' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Not checked against the infrastructure inventory: listing it needs the ViewHosts permission.',
+      ),
+    ).toBeInTheDocument();
   });
 
   /**
@@ -141,18 +206,15 @@ describe('AiDesignDraftDialogComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Design' }));
 
-    expect(api.createDesignFromAiDraft).toHaveBeenCalledWith('dir-1', expect.objectContaining({
-      modules: expect.arrayContaining([
-        expect.objectContaining({
-          name: 'ws1',
-          values: [
-            { name: 'network', value: 'module.office_net.id' },
-            { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' },
-            { name: 'image', value: '' },
-          ],
-        }),
-      ]),
-    }));
+    expect(api.createDesignFromAiDraft).toHaveBeenCalledTimes(1);
+    const [directoryId, command] = api.createDesignFromAiDraft.mock
+      .calls[0] as unknown as [string, CreateDesignFromAiDraftCommand];
+    expect(directoryId).toBe('dir-1');
+    expect(command.modules?.find((m) => m.name === 'ws1')?.values).toEqual([
+      { name: 'network', value: 'module.office_net.id' },
+      { name: 'template', value: 'REPLACE_WITH_WS_TEMPLATE' },
+      { name: 'image', value: '' },
+    ]);
   });
 
   /**
@@ -164,12 +226,20 @@ describe('AiDesignDraftDialogComponent', () => {
   it('drafts for the only configured hypervisor and labels each module', async () => {
     const { user } = await renderDraftDialog(stubApi());
 
-    expect(screen.getByText(/Drafting for vSphere, the only hypervisor/)).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: 'Hypervisor' })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Drafting for vSphere, the only hypervisor/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: 'Hypervisor' }),
+    ).not.toBeInTheDocument();
     await draft(user);
 
-    expect(screen.getByText(/vSphere\s*·\s*crucible-modules/)).toBeInTheDocument();
-    expect(screen.getByText(/Any hypervisor\s*·\s*crucible-modules/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/vSphere\s*·\s*crucible-modules/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Any hypervisor\s*·\s*crucible-modules/),
+    ).toBeInTheDocument();
   });
 
   /**
@@ -179,20 +249,31 @@ describe('AiDesignDraftDialogComponent', () => {
    * Data: configuredHypervisors ["Proxmox", "vSphere"]; picks Proxmox, then Both.
    */
   it('asks which hypervisor when more than one is configured', async () => {
-    const api = stubApi(DRAFT, { enabled: true, configuredHypervisors: ['Proxmox', 'vSphere'] });
+    const api = stubApi(DRAFT, {
+      enabled: true,
+      configuredHypervisors: ['Proxmox', 'vSphere'],
+    });
     const { user } = await renderDraftDialog(api);
 
     await user.click(screen.getByRole('combobox', { name: 'Hypervisor' }));
     await user.click(screen.getByRole('option', { name: 'Proxmox' }));
     await draft(user);
-    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith('dir-1', expect.objectContaining({ hypervisors: ['Proxmox'] }));
+    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith(
+      'dir-1',
+      expect.objectContaining({ hypervisors: ['Proxmox'] }),
+    );
 
     await user.click(screen.getByRole('button', { name: 'Change prompt' }));
     await user.click(screen.getByRole('combobox', { name: 'Hypervisor' }));
     await user.click(screen.getByRole('option', { name: 'Both' }));
-    expect(screen.getByText(/Each machine stays on its own hypervisor's networks/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Each machine stays on its own hypervisor's networks/),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Draft' }));
-    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith('dir-1', expect.objectContaining({ hypervisors: [] }));
+    expect(api.draftDesignWithAi).toHaveBeenLastCalledWith(
+      'dir-1',
+      expect.objectContaining({ hypervisors: [] }),
+    );
   });
 
   /**
@@ -201,10 +282,16 @@ describe('AiDesignDraftDialogComponent', () => {
    * Data: configuredHypervisors [].
    */
   it('warns when no hypervisor is configured', async () => {
-    await renderDraftDialog(stubApi(DRAFT, { enabled: true, configuredHypervisors: [] }));
+    await renderDraftDialog(
+      stubApi(DRAFT, { enabled: true, configuredHypervisors: [] }),
+    );
 
-    expect(screen.getByText(/No hypervisor is configured for Terraform runs/)).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: 'Hypervisor' })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/No hypervisor is configured for Terraform runs/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: 'Hypervisor' }),
+    ).not.toBeInTheDocument();
   });
 
   /**
@@ -218,18 +305,33 @@ describe('AiDesignDraftDialogComponent', () => {
     const { user, close } = await renderDraftDialog(api);
     await draft(user);
 
-    await user.type(screen.getByRole('textbox', { name: 'image (required)' }), 'win11');
+    await user.type(
+      screen.getByRole('textbox', { name: 'image (required)' }),
+      'win11',
+    );
     await user.clear(screen.getByRole('textbox', { name: 'template' }));
-    await user.type(screen.getByRole('textbox', { name: 'template' }), 'win11-template');
-    expect(screen.queryByText('Incomplete: replace these before enabling')).not.toBeInTheDocument();
+    await user.type(
+      screen.getByRole('textbox', { name: 'template' }),
+      'win11-template',
+    );
+    expect(
+      screen.queryByText('Incomplete: replace these before enabling'),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Create Design' }));
 
     expect(api.createDesignFromAiDraft).toHaveBeenCalledWith('dir-1', {
       name: 'Small office',
       modules: [
-        { moduleId: 'mod-net', name: 'office_net', moduleVersion: '1.2.0', values: [{ name: 'cidr', value: '10.0.0.0/24' }] },
         {
-          moduleId: 'mod-vm', name: 'ws1', moduleVersion: '2.0.1',
+          moduleId: 'mod-net',
+          name: 'office_net',
+          moduleVersion: '1.2.0',
+          values: [{ name: 'cidr', value: '10.0.0.0/24' }],
+        },
+        {
+          moduleId: 'mod-vm',
+          name: 'ws1',
+          moduleVersion: '2.0.1',
           values: [
             { name: 'network', value: 'module.office_net.id' },
             { name: 'template', value: 'win11-template' },
@@ -238,7 +340,9 @@ describe('AiDesignDraftDialogComponent', () => {
         },
       ],
     });
-    expect(close).toHaveBeenCalledWith(expect.objectContaining({ id: 'design-1' }));
+    expect(close).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'design-1' }),
+    );
   });
 
   /**
@@ -257,7 +361,9 @@ describe('AiDesignDraftDialogComponent', () => {
 
     await user.clear(names[1]);
     await user.type(names[1], '1ws');
-    expect(screen.getByText(/^Start with a letter or underscore/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Start with a letter or underscore/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Remove 1ws' }));
     expect(screen.getAllByRole('textbox', { name: 'Name' }).length).toBe(1);
@@ -271,14 +377,26 @@ describe('AiDesignDraftDialogComponent', () => {
    */
   it('shows the API error and stays open', async () => {
     const api = stubApi();
-    api.draftDesignWithAi.mockReturnValue(throwError(() => new HttpErrorResponse({
-      status: 409, statusText: 'Conflict', error: { title: 'AI drafting is not enabled on this server.', status: 409 },
-    })));
+    api.draftDesignWithAi.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            statusText: 'Conflict',
+            error: {
+              title: 'AI drafting is not enabled on this server.',
+              status: 409,
+            },
+          }),
+      ),
+    );
     const { user, close } = await renderDraftDialog(api);
 
     await draft(user);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('AI drafting is not enabled on this server.');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'AI drafting is not enabled on this server.',
+    );
     expect(screen.getByRole('button', { name: 'Draft' })).toBeEnabled();
     expect(close).not.toHaveBeenCalled();
   });

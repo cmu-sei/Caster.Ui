@@ -15,40 +15,76 @@ import { AiTerraformDraft, FilesService } from 'src/app/generated/caster-api';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { AiTerraformDraftDialogComponent, AiTerraformDraftDialogData } from './ai-terraform-draft-dialog.component';
+import {
+  AiTerraformDraftDialogComponent,
+  AiTerraformDraftDialogData,
+} from './ai-terraform-draft-dialog.component';
 
-// Monaco cannot load in jsdom; the stubs keep what each editor is given
+interface EditorOptionsStub {
+  theme?: string;
+}
+interface EditorModelStub {
+  code?: string;
+  value?: string;
+  language?: string;
+}
+
+// Monaco cannot load in jsdom; the stubs keep what each editor is given. Their selectors are
+// the library's, not the app's.
+// eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'ngx-monaco-diff-editor', template: '' })
 class DiffEditorStub {
-  readonly options = input<any>();
-  readonly originalModel = input<any>();
-  readonly modifiedModel = input<any>();
+  readonly options = input<EditorOptionsStub>();
+  readonly originalModel = input<EditorModelStub>();
+  readonly modifiedModel = input<EditorModelStub>();
 }
+// eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'ngx-monaco-editor', template: '' })
 class EditorStub {
-  readonly options = input<any>();
-  readonly model = input<any>();
+  readonly options = input<EditorOptionsStub>();
+  readonly model = input<EditorModelStub>();
 }
 
 // main.tf replaced, network.tf new, and a warning about a declaration
 const DRAFT: AiTerraformDraft = {
   summary: 'Adds an attacker VM on the red network.',
-  warnings: ['variable "node" is declared more than once (main.tf, range/provider.tf); the plan will fail.'],
+  warnings: [
+    'variable "node" is declared more than once (main.tf, range/provider.tf); the plan will fail.',
+  ],
   files: [
-    { name: 'main.tf', purpose: 'The VMs', content: 'module "kali" {}\n', existingFileId: 'file-1', existingContent: '# empty\n', existingContentHash: 'HASH1' },
-    { name: 'network.tf', purpose: 'The red network', content: 'resource "proxmox_network" "red" {}\n' },
+    {
+      name: 'main.tf',
+      purpose: 'The VMs',
+      content: 'module "kali" {}\n',
+      existingFileId: 'file-1',
+      existingContent: '# empty\n',
+      existingContentHash: 'HASH1',
+    },
+    {
+      name: 'network.tf',
+      purpose: 'The red network',
+      content: 'resource "proxmox_network" "red" {}\n',
+    },
   ],
 };
 
 async function renderDialog(
-  data: AiTerraformDraftDialogData = { directoryId: 'dir-1', directoryName: 'Range' },
-  api: Partial<Record<keyof FilesService, any>> = {},
-  theme = new BehaviorSubject<Theme>(Theme.LIGHT)
+  data: AiTerraformDraftDialogData = {
+    directoryId: 'dir-1',
+    directoryName: 'Range',
+  },
+  api: Partial<Record<keyof FilesService, unknown>> = {},
+  theme = new BehaviorSubject<Theme>(Theme.LIGHT),
 ) {
   const { dialogRef, close } = dialogRefStub<AiTerraformDraftDialogComponent>();
   const filesApi = {
     draftTerraformWithAi: vi.fn(() => of(structuredClone(DRAFT))),
-    applyAiTerraformDraft: vi.fn(() => of([{ id: 'file-1', name: 'main.tf' }, { id: 'file-2', name: 'network.tf' }])),
+    applyAiTerraformDraft: vi.fn(() =>
+      of([
+        { id: 'file-1', name: 'main.tf' },
+        { id: 'file-2', name: 'network.tf' },
+      ]),
+    ),
     ...api,
   };
   const view = await renderComponent(AiTerraformDraftDialogComponent, {
@@ -67,8 +103,14 @@ async function renderDialog(
   return { ...view, close, filesApi, theme, user: userEvent.setup() };
 }
 
-async function draft(user: ReturnType<typeof userEvent.setup>, label = 'Describe the infrastructure') {
-  await user.type(screen.getByRole('textbox', { name: label }), 'Add an attacker VM');
+async function draft(
+  user: ReturnType<typeof userEvent.setup>,
+  label = 'Describe the infrastructure',
+) {
+  await user.type(
+    screen.getByRole('textbox', { name: label }),
+    'Add an attacker VM',
+  );
   await user.click(screen.getByRole('button', { name: 'Draft' }));
 }
 
@@ -83,19 +125,37 @@ describe('AiTerraformDraftDialogComponent', () => {
 
     await draft(user);
 
-    expect(filesApi.draftTerraformWithAi).toHaveBeenCalledWith('dir-1', { prompt: 'Add an attacker VM', fileId: null });
-    expect(screen.getByText('Adds an attacker VM on the red network.')).toBeInTheDocument();
-    expect(screen.getByText(/variable "node" is declared more than once/)).toBeInTheDocument();
+    expect(filesApi.draftTerraformWithAi).toHaveBeenCalledWith('dir-1', {
+      prompt: 'Add an attacker VM',
+      fileId: null,
+    });
+    expect(
+      screen.getByText('Adds an attacker VM on the red network.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/variable "node" is declared more than once/),
+    ).toBeInTheDocument();
     expect(screen.getByText('Replaces')).toBeInTheDocument();
     expect(screen.getByText('New')).toBeInTheDocument();
     for (const name of ['main.tf', 'network.tf']) {
       await user.click(screen.getByText(name));
     }
-    const diff = fixture.debugElement.query(By.directive(DiffEditorStub)).componentInstance as DiffEditorStub;
-    expect(diff.originalModel()).toEqual({ code: '# empty\n', language: 'hcl' });
-    expect(diff.modifiedModel()).toEqual({ code: 'module "kali" {}\n', language: 'hcl' });
-    const editor = fixture.debugElement.query(By.directive(EditorStub)).componentInstance as EditorStub;
-    expect(editor.model()).toEqual({ value: 'resource "proxmox_network" "red" {}\n', language: 'hcl' });
+    const diff = fixture.debugElement.query(By.directive(DiffEditorStub))
+      .componentInstance as DiffEditorStub;
+    expect(diff.originalModel()).toEqual({
+      code: '# empty\n',
+      language: 'hcl',
+    });
+    expect(diff.modifiedModel()).toEqual({
+      code: 'module "kali" {}\n',
+      language: 'hcl',
+    });
+    const editor = fixture.debugElement.query(By.directive(EditorStub))
+      .componentInstance as EditorStub;
+    expect(editor.model()).toEqual({
+      value: 'resource "proxmox_network" "red" {}\n',
+      language: 'hcl',
+    });
   });
 
   /**
@@ -111,21 +171,54 @@ describe('AiTerraformDraftDialogComponent', () => {
           ...structuredClone(DRAFT),
           inventory: {
             checked: true,
-            connections: [{ name: 'default', hypervisor: 'Proxmox', lastUpdated: '2026-10-29T14:05:00Z', stale: false, unavailable: [], truncated: false }],
-            found: [{ kind: 'Template', name: 'kali-2026', where: 'main.tf', connection: 'default' }],
+            connections: [
+              {
+                name: 'default',
+                hypervisor: 'Proxmox',
+                lastUpdated: '2026-10-29T14:05:00Z',
+                stale: false,
+                unavailable: [],
+                truncated: false,
+              },
+            ],
+            found: [
+              {
+                kind: 'Template',
+                name: 'kali-2026',
+                where: 'main.tf',
+                connection: 'default',
+              },
+            ],
             unknown: [{ kind: 'Network', name: 'dmz', where: 'network.tf' }],
           },
-          topology: { segments: [{ name: 'red', role: 'Attacker', cidr: '10.66.0.0/24' }], machines: [{ name: 'kali', role: 'Attacker', interfaces: [{ segment: 'red' }] }] },
-        } satisfies AiTerraformDraft)
+          topology: {
+            segments: [{ name: 'red', role: 'Attacker', cidr: '10.66.0.0/24' }],
+            machines: [
+              {
+                name: 'kali',
+                role: 'Attacker',
+                interfaces: [{ segment: 'red' }],
+              },
+            ],
+          },
+        } satisfies AiTerraformDraft),
       ),
     });
 
     await draft(user);
 
-    expect(screen.getByRole('heading', { name: 'Infrastructure inventory' })).toBeInTheDocument();
-    expect(screen.getByLabelText('In the inventory')).toHaveTextContent('kali-2026');
-    expect(screen.getByRole('list', { name: 'Not in the inventory' })).toHaveTextContent('Network dmz is not in the inventory (network.tf)');
-    expect(screen.getByText('Topology plan: 1 segment, 1 machine')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Infrastructure inventory' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('In the inventory')).toHaveTextContent(
+      'kali-2026',
+    );
+    expect(
+      screen.getByRole('list', { name: 'Not in the inventory' }),
+    ).toHaveTextContent('Network dmz is not in the inventory (network.tf)');
+    expect(
+      screen.getByText('Topology plan: 1 segment, 1 machine'),
+    ).toBeInTheDocument();
   });
 
   /**
@@ -135,7 +228,9 @@ describe('AiTerraformDraftDialogComponent', () => {
    */
   it('applies the kept files and closes with what was saved', async () => {
     const { filesApi, close, user } = await renderDialog(undefined, {
-      applyAiTerraformDraft: vi.fn(() => of([{ id: 'file-1', name: 'main.tf' }])),
+      applyAiTerraformDraft: vi.fn(() =>
+        of([{ id: 'file-1', name: 'main.tf' }]),
+      ),
     });
     await draft(user);
 
@@ -143,9 +238,23 @@ describe('AiTerraformDraftDialogComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Apply 1 file' }));
 
     expect(filesApi.applyAiTerraformDraft).toHaveBeenCalledWith('dir-1', {
-      files: [{ name: 'main.tf', content: 'module "kali" {}\n', existingFileId: 'file-1', existingContentHash: 'HASH1' }],
+      files: [
+        {
+          name: 'main.tf',
+          content: 'module "kali" {}\n',
+          existingFileId: 'file-1',
+          existingContentHash: 'HASH1',
+        },
+      ],
     });
-    expect(close).toHaveBeenCalledWith([{ id: 'file-1', name: 'main.tf', content: 'module "kali" {}\n', editorContent: 'module "kali" {}\n' }]);
+    expect(close).toHaveBeenCalledWith([
+      {
+        id: 'file-1',
+        name: 'main.tf',
+        content: 'module "kali" {}\n',
+        editorContent: 'module "kali" {}\n',
+      },
+    ]);
   });
 
   /**
@@ -156,14 +265,25 @@ describe('AiTerraformDraftDialogComponent', () => {
   it('says why the files could not be saved', async () => {
     const { close, user } = await renderDialog(undefined, {
       applyAiTerraformDraft: vi.fn(() =>
-        throwError(() => new HttpErrorResponse({ status: 409, error: { title: 'main.tf has changed since the draft was written. Draft again.' } }))
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 409,
+              error: {
+                title:
+                  'main.tf has changed since the draft was written. Draft again.',
+              },
+            }),
+        ),
       ),
     });
     await draft(user);
 
     await user.click(screen.getByRole('button', { name: 'Apply 2 files' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('main.tf has changed since the draft was written. Draft again.');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'main.tf has changed since the draft was written. Draft again.',
+    );
     expect(close).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Apply 2 files' })).toBeEnabled();
   });
@@ -174,12 +294,20 @@ describe('AiTerraformDraftDialogComponent', () => {
    * Data: file main.tf (file-1) in directory Range.
    */
   it('drafts a change to the open file', async () => {
-    const { filesApi, user } = await renderDialog({ directoryId: 'dir-1', directoryName: 'Range', fileId: 'file-1', fileName: 'main.tf' });
+    const { filesApi, user } = await renderDialog({
+      directoryId: 'dir-1',
+      directoryName: 'Range',
+      fileId: 'file-1',
+      fileName: 'main.tf',
+    });
 
     expect(screen.getByText('Edit main.tf with AI')).toBeInTheDocument();
     await draft(user, 'What should change?');
 
-    expect(filesApi.draftTerraformWithAi).toHaveBeenCalledWith('dir-1', { prompt: 'Add an attacker VM', fileId: 'file-1' });
+    expect(filesApi.draftTerraformWithAi).toHaveBeenCalledWith('dir-1', {
+      prompt: 'Add an attacker VM',
+      fileId: 'file-1',
+    });
   });
 
   /**
@@ -187,11 +315,13 @@ describe('AiTerraformDraftDialogComponent', () => {
    * Interacts with: CurrentUserQuery.userTheme$, the editors' options.
    * Data: light, then dark.
    */
-  it('shows the code in the designer\'s theme', async () => {
+  it("shows the code in the designer's theme", async () => {
     const { fixture, theme, user } = await renderDialog();
     await draft(user);
     await user.click(screen.getByText('main.tf'));
-    const diff = () => fixture.debugElement.query(By.directive(DiffEditorStub)).componentInstance as DiffEditorStub;
+    const diff = () =>
+      fixture.debugElement.query(By.directive(DiffEditorStub))
+        .componentInstance as DiffEditorStub;
 
     expect(diff().options().theme).toBe('vs-light');
     theme.next(Theme.DARK);

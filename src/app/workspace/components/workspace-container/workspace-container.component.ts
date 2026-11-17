@@ -135,15 +135,21 @@ export class WorkspaceContainerComponent
 
   /** Shows why a run action was refused, in the API's words, instead of the error dialog. */
   private reportFailure<T>(action: string): OperatorFunction<T, T> {
-    return catchError((error) => {
-      const reason = error?.error?.title || error?.error?.detail || error?.message;
-      this.snackBar.open(`Could not ${action}: ${reason}`, 'Dismiss', {
-        duration: 8000,
-        verticalPosition: 'top',
-        horizontalPosition: 'center',
-      });
-      return EMPTY;
-    });
+    return catchError(
+      (error: {
+        error?: { title?: string; detail?: string };
+        message?: string;
+      }) => {
+        const reason =
+          error?.error?.title || error?.error?.detail || error?.message;
+        this.snackBar.open(`Could not ${action}: ${reason}`, 'Dismiss', {
+          duration: 8000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+        });
+        return EMPTY;
+      },
+    );
   }
 
   ngOnInit() {
@@ -265,7 +271,6 @@ export class WorkspaceContainerComponent
       .pipe(
         take(1),
         this.reportFailure('plan'),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
   }
@@ -277,7 +282,6 @@ export class WorkspaceContainerComponent
       .pipe(
         take(1),
         this.reportFailure('reject'),
-        // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       )
       .subscribe();
   }
@@ -302,7 +306,6 @@ export class WorkspaceContainerComponent
             .pipe(
               take(1),
               this.reportFailure('cancel'),
-              // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
             )
             .subscribe();
         }

@@ -170,7 +170,12 @@ export class ProjectAssistantComponent {
           ...this.editorOptions,
           theme: theme === Theme.DARK ? 'vs-dark' : 'vs-light',
         };
-        (window as any).monaco?.editor.setTheme(this.editorOptions.theme);
+        // Monaco puts itself on window when it loads
+        (
+          window as unknown as {
+            monaco?: { editor: { setTheme(name: string): void } };
+          }
+        ).monaco?.editor.setTheme(this.editorOptions.theme);
       });
 
     // the panel follows the open tab until the planner starts a conversation, which stays on its directory
@@ -410,15 +415,19 @@ export class ProjectAssistantComponent {
     }
   }
 
-  private getErrorMessage(err: any, fallback: string): string {
+  private getErrorMessage(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse && err.status === 0) {
       return 'The API could not be reached.';
     }
-    const title = err?.error?.title;
-    const detail = err?.error?.detail;
+    const failure = err as {
+      error?: { title?: string; detail?: string };
+      message?: string;
+    } | null;
+    const title = failure?.error?.title;
+    const detail = failure?.error?.detail;
     if (title) {
       return detail && detail !== title ? `${title} ${detail}` : title;
     }
-    return err?.message || fallback;
+    return failure?.message || fallback;
   }
 }

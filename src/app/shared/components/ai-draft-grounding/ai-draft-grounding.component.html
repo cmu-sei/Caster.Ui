@@ -27,7 +27,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
         <ul class="unknown" aria-label="Not in the inventory">
           @for (ref of unknown(); track $index) {
             <li>
-              <mat-icon class="mdi-18px" fontIcon="mdi-help-circle-outline"></mat-icon>
+              <mat-icon class="mdi-18px" fontIcon="mdi-help-circle-outline" />
               <span>{{ kind(ref.kind) }} <strong>{{ ref.name }}</strong> is not in the inventory ({{ ref.where }})</span>
             </li>
           }

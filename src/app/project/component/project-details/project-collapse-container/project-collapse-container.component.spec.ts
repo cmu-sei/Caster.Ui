@@ -184,9 +184,8 @@ describe('ProjectCollapseContainerComponent', () => {
   it('gives the AI usage panel the active project', async () => {
     const { fixture } = await renderContainer();
 
-    const usage: ProjectAiUsageStub = fixture.debugElement.query(
-      By.directive(ProjectAiUsageStub),
-    ).componentInstance;
+    const usage = fixture.debugElement.query(By.directive(ProjectAiUsageStub))
+      .componentInstance as ProjectAiUsageStub;
     expect(usage.projectId()).toBe('p1');
   });
 
@@ -219,7 +218,7 @@ describe('ProjectCollapseContainerComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Ask AI' }));
     fixture.detectChanges();
 
-    const panel: ProjectAssistantStub = assistant().componentInstance;
+    const panel = assistant().componentInstance as ProjectAssistantStub;
     expect(panel.projectId()).toBe('p1');
     expect(screen.getByRole('button', { name: 'Ask AI' })).toHaveAttribute(
       'aria-pressed',

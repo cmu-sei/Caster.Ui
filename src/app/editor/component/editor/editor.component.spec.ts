@@ -12,7 +12,10 @@ import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { FileQuery } from 'src/app/files/state/file.query';
-import { AiTerraformDraftDialogComponent } from '../ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
+import {
+  AiTerraformDraftDialogComponent,
+  AiTerraformDraftDialogData,
+} from '../ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -472,9 +475,12 @@ describe('EditorComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Edit this file with AI' }));
 
-    expect(openDialog).toHaveBeenCalledWith(AiTerraformDraftDialogComponent, expect.objectContaining({
-      data: expect.objectContaining({ directoryId: 'dir-1', fileId: 'f1', fileName: 'main.tf' }),
-    }));
+    const [component, config] = openDialog.mock.calls[0] as unknown as [
+      unknown,
+      { data: AiTerraformDraftDialogData },
+    ];
+    expect(component).toBe(AiTerraformDraftDialogComponent);
+    expect(config.data).toMatchObject({ directoryId: 'dir-1', fileId: 'f1', fileName: 'main.tf' });
     expect(TestBed.inject(FileQuery).getEntity('f1').content).toBe('module "kali" {}');
   });
 

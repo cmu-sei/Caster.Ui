@@ -141,7 +141,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       style="margin-left: 2%"
                     >
                       <mat-icon
+                        role="button"
+                        tabindex="0"
                         (click)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.enter)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.space)="draftTerraformWithAi(parentDirectory); $event.preventDefault()"
                         matTooltip="Draft Terraform for {{
                           parentDirectory.name
                         }} from a description"
@@ -153,7 +157,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         matTooltip="Draft Terraform for {{
                           parentDirectory.name
                         }} from a description"
+                        role="button"
+                        tabindex="0"
                         (click)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.enter)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.space)="draftTerraformWithAi(parentDirectory); $event.preventDefault()"
                       >
                         Draft Terraform with AI
                       </a>
@@ -440,7 +448,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       style="margin-left: 2%"
                     >
                       <mat-icon
+                        role="button"
+                        tabindex="0"
                         (click)="draftDesignWithAi(parentDirectory)"
+                        (keydown.enter)="draftDesignWithAi(parentDirectory)"
+                        (keydown.space)="draftDesignWithAi(parentDirectory); $event.preventDefault()"
                         matTooltip="Draft a Design for {{
                           parentDirectory.name
                         }} from a description, using Caster's modules"
@@ -452,7 +464,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         matTooltip="Draft a Design for {{
                           parentDirectory.name
                         }} from a description, using Caster's modules"
+                        role="button"
+                        tabindex="0"
                         (click)="draftDesignWithAi(parentDirectory)"
+                        (keydown.enter)="draftDesignWithAi(parentDirectory)"
+                        (keydown.space)="draftDesignWithAi(parentDirectory); $event.preventDefault()"
                       >
                         Draft Design with AI
                       </a>

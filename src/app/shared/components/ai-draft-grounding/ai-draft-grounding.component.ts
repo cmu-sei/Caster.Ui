@@ -101,7 +101,7 @@ export class AiDraftGroundingComponent {
 
   readonly totals = computed(() => {
     const t = this.topology()?.totals;
-    if (!t || !t.machines) return '';
+    if (!t?.machines) return '';
     const sized = t.sized === t.machines ? '' : ` (${t.sized} of ${t.machines} sized)`;
     const free = t.datastoreFreeGiB != null ? `; ${t.datastoreFreeGiB} GiB free on the datastores` : '';
     return `${t.cpu} vCPU, ${this.gib(t.memoryMiB)} GiB memory, ${t.diskGiB} GiB disk${sized}${free}`;

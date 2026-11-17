@@ -1,7 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
@@ -108,11 +108,10 @@ export class AiDesignDraftDialogComponent implements OnInit {
   draft: AiDesignDraft;
   modules: DraftModuleRow[] = [];
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: AiDesignDraftDialogData,
-    private dialogRef: MatDialogRef<AiDesignDraftDialogComponent, Design>,
-    private designsService: DesignsService
-  ) {}
+  data = inject<AiDesignDraftDialogData>(MAT_DIALOG_DATA);
+  private dialogRef =
+    inject<MatDialogRef<AiDesignDraftDialogComponent, Design>>(MatDialogRef);
+  private designsService = inject(DesignsService);
 
   ngOnInit() {
     this.designsService
@@ -121,7 +120,8 @@ export class AiDesignDraftDialogComponent implements OnInit {
       .subscribe({
         next: (options) => {
           this.configuredHypervisors = options.configuredHypervisors ?? [];
-          if (!options.enabled) this.errorMessage = 'AI drafting is not enabled on this server.';
+          if (!options.enabled)
+            this.errorMessage = 'AI drafting is not enabled on this server.';
         },
         // the draft still works without the options; the server then targets every configured hypervisor
         error: () => (this.configuredHypervisors = null),
@@ -130,7 +130,11 @@ export class AiDesignDraftDialogComponent implements OnInit {
 
   /** The hypervisors the draft asks for; empty lets the server use every configured one. */
   get requestedHypervisors(): string[] {
-    if (!this.configuredHypervisors?.length || this.hypervisor === BOTH_HYPERVISORS) return [];
+    if (
+      !this.configuredHypervisors?.length ||
+      this.hypervisor === BOTH_HYPERVISORS
+    )
+      return [];
     return [this.hypervisor];
   }
 
@@ -245,7 +249,8 @@ export class AiDesignDraftDialogComponent implements OnInit {
       const names = row.values
         .filter((v) => this.isMissing(row, v) || this.isPlaceholder(v))
         .map((v) => v.name);
-      if (names.length) items.push(`${row.name || row.moduleName}: ${names.join(', ')}`);
+      if (names.length)
+        items.push(`${row.name || row.moduleName}: ${names.join(', ')}`);
     }
     return items;
   }
@@ -267,9 +272,13 @@ export class AiDesignDraftDialogComponent implements OnInit {
   reviewProblems(): string[] {
     const problems: string[] = [];
     if (!this.designName.trim()) problems.push('The design needs a name.');
-    if (this.modules.length === 0) problems.push('The design needs at least one module.');
+    if (this.modules.length === 0)
+      problems.push('The design needs at least one module.');
     for (const row of this.modules) {
-      if (this.nameProblem(row)) problems.push(`${row.name || row.moduleName}: ${this.nameProblem(row)}.`);
+      if (this.nameProblem(row))
+        problems.push(
+          `${row.name || row.moduleName}: ${this.nameProblem(row)}.`,
+        );
     }
     return problems;
   }
@@ -277,7 +286,10 @@ export class AiDesignDraftDialogComponent implements OnInit {
 
 /** Every drafted value, then a blank row for each required variable the model left out. */
 function toRow(m: AiDraftModule): DraftModuleRow {
-  const values = (m.values ?? []).map((v) => ({ name: v.name, value: v.value ?? '' }));
+  const values = (m.values ?? []).map((v) => ({
+    name: v.name,
+    value: v.value ?? '',
+  }));
   const required = m.missingRequiredVariables ?? [];
   for (const name of required) {
     if (!values.some((v) => v.name === name)) values.push({ name, value: '' });
@@ -297,16 +309,26 @@ function toRow(m: AiDraftModule): DraftModuleRow {
 
 /** The API's problem details as one line per message; the dialog stays open to fix them. */
 export function errorText(err: unknown): string {
-  if (err instanceof HttpErrorResponse && err.error && typeof err.error === 'object') {
-    const details = err.error;
+  if (
+    err instanceof HttpErrorResponse &&
+    err.error &&
+    typeof err.error === 'object'
+  ) {
+    const details = err.error as {
+      errors?: Record<string, string[]>;
+      detail?: string;
+      title?: string;
+    };
     const messages: string[] = [];
     if (details.errors) {
-      for (const key of Object.keys(details.errors)) messages.push(...[].concat(details.errors[key]));
+      for (const key of Object.keys(details.errors))
+        messages.push(...details.errors[key]);
     }
     if (details.detail) messages.push(details.detail);
     if (messages.length) return messages.join('\n');
     if (details.title) return details.title;
   }
-  if (err instanceof HttpErrorResponse) return `${err.status} ${err.statusText}`.trim();
+  // HTTP/2 has no status text, so the status stands alone
+  if (err instanceof HttpErrorResponse) return `${err.status}`;
   return 'Something went wrong. Try again.';
 }

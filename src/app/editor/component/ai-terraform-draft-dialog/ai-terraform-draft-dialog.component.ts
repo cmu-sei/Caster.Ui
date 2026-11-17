@@ -3,7 +3,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Component, Inject, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -84,18 +84,35 @@ export class AiTerraformDraftDialogComponent {
   rows: DraftFileRow[] = [];
 
   // the code follows the designer's light or dark theme, as the file editor's does
-  editorOptions = { theme: 'vs-light', readOnly: true, automaticLayout: true, minimap: { enabled: false }, scrollBeyondLastLine: false };
+  editorOptions = {
+    theme: 'vs-light',
+    readOnly: true,
+    automaticLayout: true,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+  };
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: AiTerraformDraftDialogData,
-    private dialogRef: MatDialogRef<AiTerraformDraftDialogComponent, ModelFile[]>,
-    private filesService: FilesService
-  ) {
+  data = inject<AiTerraformDraftDialogData>(MAT_DIALOG_DATA);
+  private dialogRef =
+    inject<MatDialogRef<AiTerraformDraftDialogComponent, ModelFile[]>>(
+      MatDialogRef,
+    );
+  private filesService = inject(FilesService);
+
+  constructor() {
     inject(CurrentUserQuery)
       .userTheme$.pipe(takeUntilDestroyed())
       .subscribe((theme) => {
-        this.editorOptions = { ...this.editorOptions, theme: theme === Theme.DARK ? 'vs-dark' : 'vs-light' };
-        (window as any).monaco?.editor.setTheme(this.editorOptions.theme);
+        this.editorOptions = {
+          ...this.editorOptions,
+          theme: theme === Theme.DARK ? 'vs-dark' : 'vs-light',
+        };
+        // Monaco puts itself on window when it loads
+        (
+          window as unknown as {
+            monaco?: { editor: { setTheme(name: string): void } };
+          }
+        ).monaco?.editor.setTheme(this.editorOptions.theme);
       });
   }
 
@@ -109,11 +126,15 @@ export class AiTerraformDraftDialogComponent {
 
   get submitLabel(): string {
     const count = this.kept.length;
-    return this.step === 'prompt' ? 'Draft' : `Apply ${count} ${count === 1 ? 'file' : 'files'}`;
+    return this.step === 'prompt'
+      ? 'Draft'
+      : `Apply ${count} ${count === 1 ? 'file' : 'files'}`;
   }
 
   get submitDisabled(): boolean {
-    return this.step === 'prompt' ? !this.canDraft : !this.kept.length || this.loading;
+    return this.step === 'prompt'
+      ? !this.canDraft
+      : !this.kept.length || this.loading;
   }
 
   submit() {
@@ -128,7 +149,10 @@ export class AiTerraformDraftDialogComponent {
     this.loading = true;
     this.errorMessage = '';
     this.filesService
-      .draftTerraformWithAi(this.data.directoryId, { prompt: this.prompt, fileId: this.data.fileId ?? null })
+      .draftTerraformWithAi(this.data.directoryId, {
+        prompt: this.prompt,
+        fileId: this.data.fileId ?? null,
+      })
       .pipe(take(1))
       .subscribe({
         next: (draft) => {
@@ -159,15 +183,20 @@ export class AiTerraformDraftDialogComponent {
       .pipe(take(1))
       .subscribe({
         // the answer leaves out content, as file lists do; the open editor needs what was saved
-        next: (files) =>
+        next: (files: ModelFile[]) =>
           this.dialogRef.close(
             files.map((saved) => {
-              const content = this.kept.find((r) => r.file.name === saved.name)?.file.content ?? saved.content;
+              const content =
+                this.kept.find((r) => r.file.name === saved.name)?.file
+                  .content ?? saved.content;
               return { ...saved, content, editorContent: content };
-            })
+            }),
           ),
         error: (err) => {
-          this.errorMessage = this.getErrorMessage(err, 'The files could not be saved.');
+          this.errorMessage = this.getErrorMessage(
+            err,
+            'The files could not be saved.',
+          );
           this.loading = false;
         },
       });
@@ -182,22 +211,32 @@ export class AiTerraformDraftDialogComponent {
   }
 
   language(name: string): string {
-    return /\.(tf|tfvars)$/i.test(name) ? 'hcl' : /\.ya?ml$/i.test(name) ? 'yaml' : /\.sh$/i.test(name) ? 'shell' : 'plaintext';
+    return /\.(tf|tfvars)$/i.test(name)
+      ? 'hcl'
+      : /\.ya?ml$/i.test(name)
+        ? 'yaml'
+        : /\.sh$/i.test(name)
+          ? 'shell'
+          : 'plaintext';
   }
 
   close() {
     this.dialogRef.close();
   }
 
-  private getErrorMessage(err: any, fallback: string): string {
+  private getErrorMessage(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse && err.status === 0) {
       return 'The API could not be reached.';
     }
-    const title = err?.error?.title;
-    const detail = err?.error?.detail;
+    const failure = err as {
+      error?: { title?: string; detail?: string };
+      message?: string;
+    } | null;
+    const title = failure?.error?.title;
+    const detail = failure?.error?.detail;
     if (title) {
       return detail && detail !== title ? `${title} ${detail}` : title;
     }
-    return err?.message || fallback;
+    return failure?.message || fallback;
   }
 }

@@ -176,7 +176,7 @@ describe('DirectoryPanelComponent', () => {
    * Data: directory network (dir1) in project p1; the dialog closes with main.tf saved.
    */
   it('drafts Terraform for the directory with AI', async () => {
-    const view = await renderPanel({
+    await renderPanel({
       projects: [
         { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
       ],
@@ -186,8 +186,8 @@ describe('DirectoryPanelComponent', () => {
     ];
     const { dialogRef } = dialogRefStub<unknown, ModelFile[]>(saved);
     const open = vi
-      .spyOn(view.fixture.componentInstance['dialog'] as MatDialog, 'open')
-      .mockReturnValue(dialogRef as any);
+      .spyOn(TestBed.inject(MatDialog), 'open')
+      .mockReturnValue(dialogRef);
     const fileUpdated = vi
       .spyOn(TestBed.inject(FileService), 'fileUpdated')
       .mockImplementation(() => undefined);
