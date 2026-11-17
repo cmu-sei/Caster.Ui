@@ -41,7 +41,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
         @if (draft.summary) {
           <p class="summary">{{ draft.summary }}</p>
         }
-        <button matButton type="button" (click)="startOver()" [disabled]="loading">Reword and redraft</button>
+        <button matButton type="button" (click)="startOver()" [disabled]="loading">Return to prompt</button>
       </div>
       @if (draft.warnings?.length) {
         <ul class="warnings" aria-label="Check before applying">
