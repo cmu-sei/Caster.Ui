@@ -50,6 +50,21 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  // a long note must not squeeze the icon narrower than its glyph
+  mat-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.1rem;
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
