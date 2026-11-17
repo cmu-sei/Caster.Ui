@@ -26,7 +26,7 @@ export interface DesignModule {
     enabled?: boolean;
     readonly values?: Array<ModuleValue> | null;
     /**
-     * The variables whose value is still a placeholder, to replace before the Design can be enabled.
+     * The variables whose values are still placeholders to fill in. The Design cannot be enabled while an enabled module has any.
      */
     readonly placeholders?: Array<string> | null;
 }

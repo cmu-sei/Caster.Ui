@@ -7,6 +7,7 @@ import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
+import { AiAssistService } from './api/aiAssist.service';
 import { AppliesService } from './api/applies.service';
 import { AssignmentsService } from './api/assignments.service';
 import { DesignsService } from './api/designs.service';
