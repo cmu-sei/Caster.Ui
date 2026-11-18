@@ -14,8 +14,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
-import { filter, shareReplay, take, tap } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { EMPTY, Observable, OperatorFunction } from 'rxjs';
+import { catchError, filter, shareReplay, take, tap } from 'rxjs/operators';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
@@ -96,6 +97,7 @@ export class WorkspaceContainerComponent
   currentUserQuery = inject(CurrentUserQuery);
   private dialog = inject(MatDialog);
   private permissionService = inject(PermissionService);
+  private snackBar = inject(MatSnackBar);
 
   readonly workspaceId = input<string>(undefined);
   readonly breadcrumb = input<Breadcrumb[]>(undefined);
@@ -130,6 +132,25 @@ export class WorkspaceContainerComponent
   readonly errorDialog = viewChild<TemplateRef<OutputComponent>>('errorDialog');
   private errorDialogRef: MatDialogRef<OutputComponent>;
   public errorMessage: string;
+
+  /** Shows why a run action was refused, in the API's words, instead of the error dialog. */
+  private reportFailure<T>(action: string): OperatorFunction<T, T> {
+    return catchError(
+      (error: {
+        error?: { title?: string; detail?: string };
+        message?: string;
+      }) => {
+        const reason =
+          error?.error?.title || error?.error?.detail || error?.message;
+        this.snackBar.open(`Could not ${action}: ${reason}`, 'Dismiss', {
+          duration: 8000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+        });
+        return EMPTY;
+      },
+    );
+  }
 
   ngOnInit() {
     this.loading$ = this.workspaceQuery.selectLoading().pipe(
@@ -249,7 +270,8 @@ export class WorkspaceContainerComponent
       )
       .pipe(
         take(1),
-             )
+        this.reportFailure('plan'),
+      )
       .subscribe();
   }
 
@@ -259,7 +281,8 @@ export class WorkspaceContainerComponent
       .rejectRun(this.workspaceId(), run.id)
       .pipe(
         take(1),
-             )
+        this.reportFailure('reject'),
+      )
       .subscribe();
   }
 
@@ -282,7 +305,8 @@ export class WorkspaceContainerComponent
             .cancelRun(this.workspaceId(), run.id, this.forceCancel)
             .pipe(
               take(1),
-                         )
+              this.reportFailure('cancel'),
+            )
             .subscribe();
         }
       });
@@ -293,7 +317,7 @@ export class WorkspaceContainerComponent
     // TODO: Unsubscribe from this.
     this.workspaceService
       .applyRun(this.workspaceId(), run.id)
-      .pipe()
+      .pipe(this.reportFailure('apply'))
       .subscribe();
   }
 
@@ -302,6 +326,7 @@ export class WorkspaceContainerComponent
     // TODO: Unsubscribe from this.
     this.workspaceService
       .createPlanRun(this.workspaceId(), true, null, null)
+      .pipe(this.reportFailure('plan the destroy'))
       .subscribe();
   }
 
