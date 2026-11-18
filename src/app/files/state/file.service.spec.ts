@@ -620,6 +620,31 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: a tab's first load, or a directory's file list, answering after the delete does not bring the file back.
+     * Interacts with: loadFile and loadFilesByDirectory answered late; fileDeleted.
+     * Data: both reads of f1 start; the file is deleted; both answer.
+     */
+    it('does not bring back a deleted file with a late load or list', () => {
+      const one = new Subject<ModelFile>();
+      const list = new Subject<ModelFile[]>();
+      const { service, query } = setup(
+        {
+          getFile: vi.fn(() => one),
+          getFilesByDirectory: vi.fn(() => list),
+        },
+        [file({ content: null, dateSaved: T1 })],
+      );
+      service.loadFile('f1').subscribe();
+      service.loadFilesByDirectory('d1').subscribe();
+
+      service.fileDeleted('f1');
+      one.next(file({ content: 'A', dateSaved: T1 }));
+      list.next([file({ content: null, dateSaved: T1 })]);
+
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
      * Verifies: save times are ordered past the millisecond, as the server sends them.
      * Data: stored 'B' at .1239 of a second; an older 'A' at .1231 of the same second.
      */

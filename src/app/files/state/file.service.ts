@@ -26,6 +26,9 @@ export class FileService {
   loadFile(fileId: string): Observable<ModelFile> {
     return this.filesService.getFile(fileId).pipe(
       tap((file) => {
+        if (this.deleted.has(fileId)) {
+          return;
+        }
         file.editorContent = file.content;
         // the content held is now this file's, at its save time
         this.contentSavedAt.delete(fileId);
@@ -196,7 +199,11 @@ export class FileService {
     });
   }
 
+  // every write of a file the server sent comes through here or loadFile, so neither brings back a deleted file
   private upsertFile(file: ModelFile) {
+    if (this.deleted.has(file.id)) {
+      return;
+    }
     this.fileStore.upsert(
       file.id,
       (f) => ({
