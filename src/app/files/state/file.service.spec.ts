@@ -585,6 +585,39 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: a read that answers after the file was deleted does not bring it back.
+     * Interacts with: refreshFile; FilesService.getFile answered late; fileDeleted.
+     * Data: the read of f1 starts; the file is deleted; the read answers.
+     */
+    it('does not bring back a file deleted while it was read', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.fileDeleted('f1');
+      answer.next(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
+     * Verifies: a deleted file that the server sends again, as when it is restored, is shown again.
+     * Data: near miss of the test above: after the delete, a FileUpdated event brings f1.
+     */
+    it('shows a deleted file again when the server sends it', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.fileDeleted('f1');
+
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1').content).toBe('B');
+    });
+
+    /**
      * Verifies: save times are ordered past the millisecond, as the server sends them.
      * Data: stored 'B' at .1239 of a second; an older 'A' at .1231 of the same second.
      */
