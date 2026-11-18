@@ -247,9 +247,7 @@ export class WorkspaceContainerComponent
         this.resourcesToReplace,
         this.resourcesToTarget,
       )
-      .pipe(
-        take(1),
-             )
+      .pipe(take(1))
       .subscribe();
   }
 
@@ -257,9 +255,7 @@ export class WorkspaceContainerComponent
     event.stopPropagation();
     this.workspaceService
       .rejectRun(this.workspaceId(), run.id)
-      .pipe(
-        take(1),
-             )
+      .pipe(take(1))
       .subscribe();
   }
 
@@ -280,9 +276,7 @@ export class WorkspaceContainerComponent
         if (confirmed) {
           this.workspaceService
             .cancelRun(this.workspaceId(), run.id, this.forceCancel)
-            .pipe(
-              take(1),
-                         )
+            .pipe(take(1))
             .subscribe();
         }
       });
@@ -307,12 +301,7 @@ export class WorkspaceContainerComponent
 
   saveState(event: Event, run: Run) {
     event.stopPropagation();
-    this.workspaceService
-      .saveState(run.id)
-      .pipe(
-        take(1),
-             )
-      .subscribe();
+    this.workspaceService.saveState(run.id).pipe(take(1)).subscribe();
   }
 
   taint(event: Event, item: Resource) {

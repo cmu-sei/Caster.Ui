@@ -109,7 +109,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-           .subscribe();
+      .subscribe();
 
     this.workspaceService
       .loadAllActiveRuns()
@@ -120,7 +120,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
         }),
         finalize(() => this.loading.set(false)),
       )
-           .subscribe();
+      .subscribe();
     this.activeRuns$ = this.workspaceQuery.activeRuns$();
     this.expandedRuns$ = this.workspaceQuery.expandedRuns$();
 
@@ -148,13 +148,11 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
               this.projectsApi.getProject(directory.projectId).pipe(
                 map((project) => project.name),
                 catchError(() => of(null)),
-                map(
-                  (projectName): RunWorkspace => ({
-                    name: workspace.name,
-                    projectId: directory.projectId,
-                    projectName,
-                  }),
-                ),
+                map((projectName): RunWorkspace => ({
+                  name: workspace.name,
+                  projectId: directory.projectId,
+                  projectName,
+                })),
               ),
             ),
             catchError(() =>
@@ -194,7 +192,7 @@ export class AdminWorkspacesComponent implements OnInit, OnDestroy {
         }),
         finalize(() => this.changingLocking.set(false)),
       )
-           .subscribe((enabled) =>
+      .subscribe((enabled) =>
         this.notify(
           enabled
             ? 'Workspace operations are enabled'

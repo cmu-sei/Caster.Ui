@@ -26,11 +26,7 @@ that are displayed.
 The components are standalone. Import the ones your component uses.
 
 ```typescript
-import {
-  CwdToolbarComponent,
-  CwdToolbarActionItemComponent,
-  CwdToolbarNavigationItemComponent,
-} from './sei-cwd-common/cwd-toolbar';
+import { CwdToolbarComponent, CwdToolbarActionItemComponent, CwdToolbarNavigationItemComponent } from './sei-cwd-common/cwd-toolbar';
 
 @Component({
   selector: 'app-root',
@@ -106,7 +102,11 @@ takes a theme argument but does not use its colors.
 @import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 
 html {
-  @include mat.theme((color: mat.$azure-palette));
+  @include mat.theme(
+    (
+      color: mat.$azure-palette,
+    )
+  );
 }
 
 @include cwd-toolbar-theme(());

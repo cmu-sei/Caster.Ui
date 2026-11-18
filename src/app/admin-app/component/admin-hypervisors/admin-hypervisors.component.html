@@ -97,18 +97,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <h3>Hosts</h3>
           @if (!view.hosts) {
             <div class="state-row">
-              <mat-icon
-                class="mdi-18px"
-                fontIcon="mdi-information-outline"
-              />
+              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
               <span>Hosts could not be read right now.</span>
             </div>
           } @else if (!view.hosts.available) {
             <div class="state-row">
-              <mat-icon
-                class="mdi-18px"
-                fontIcon="mdi-information-outline"
-              />
+              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
               <span>{{
                 view.hosts.error || 'Host use is not available.'
               }}</span>
@@ -116,10 +110,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           } @else {
             @if (view.hosts.stale) {
               <div class="state-row stale">
-                <mat-icon
-                  class="mdi-18px"
-                  fontIcon="mdi-clock-alert-outline"
-                />
+                <mat-icon class="mdi-18px" fontIcon="mdi-clock-alert-outline" />
                 <span
                   >Could not refresh. Showing the last read.
                   {{ view.hosts.error }}</span
@@ -196,18 +187,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           <h3>Storage</h3>
           @if (!view.datastores) {
             <div class="state-row">
-              <mat-icon
-                class="mdi-18px"
-                fontIcon="mdi-information-outline"
-              />
+              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
               <span>Storage could not be read right now.</span>
             </div>
           } @else if (!view.datastores.available) {
             <div class="state-row">
-              <mat-icon
-                class="mdi-18px"
-                fontIcon="mdi-information-outline"
-              />
+              <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
               <span>{{
                 view.datastores.error || 'Storage use is not available.'
               }}</span>

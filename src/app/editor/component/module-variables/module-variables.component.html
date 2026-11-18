@@ -103,10 +103,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   >Changed</mat-hint
                 >
               }
-              <mat-label
-                [class]="moduleField.changed ? 'changed-hint' : ''"
-                >{{ moduleField.name }}</mat-label
-              >
+              <mat-label [class]="moduleField.changed ? 'changed-hint' : ''">{{
+                moduleField.name
+              }}</mat-label>
               @if (!moduleField.isMultiLine()) {
                 <input
                   matInput

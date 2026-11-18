@@ -14,10 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <mat-expansion-panel-header>
         <mat-panel-title>
           <div class="d-flex flex-row justify-content-start align-items-center">
-            <mat-icon
-              class="mdi-18px"
-              [fontIcon]="descriptor().icon"
-            />
+            <mat-icon class="mdi-18px" [fontIcon]="descriptor().icon" />
             <span class="panel-header"
               ><strong>{{ descriptor().label }}</strong></span
             >
@@ -47,10 +44,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <div class="category-body">
         @if (state.loaded && !state.loading && state.available && state.stale) {
           <div class="state-row stale">
-            <mat-icon
-              class="mdi-18px"
-              fontIcon="mdi-clock-alert-outline"
-            />
+            <mat-icon class="mdi-18px" fontIcon="mdi-clock-alert-outline" />
             <span class="state-text">{{ staleMessage(state) }}</span>
           </div>
         }
@@ -67,10 +61,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             toast, no endless spinner.
             -->
           <div class="state-row unavailable">
-            <mat-icon
-              class="mdi-18px"
-              fontIcon="mdi-information-outline"
-            />
+            <mat-icon class="mdi-18px" fontIcon="mdi-information-outline" />
             <span class="state-text">{{
               state.error || descriptor().fallbackUnavailableMessage
             }}</span>
@@ -130,10 +121,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       matTooltip="Copy name: {{ item.name }}"
                       [attr.aria-label]="'Copy name of ' + item.name"
                     >
-                      <mat-icon
-                        class="mdi-18px"
-                        fontIcon="mdi-content-copy"
-                      />
+                      <mat-icon class="mdi-18px" fontIcon="mdi-content-copy" />
                     </button>
                     @if (terraformOf(item); as snippets) {
                       @if (snippets.length === 1) {
