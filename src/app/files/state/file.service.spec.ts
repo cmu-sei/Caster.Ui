@@ -603,18 +603,20 @@ describe('FileService', () => {
     });
 
     /**
-     * Verifies: a deleted file that the server sends again, as when it is restored, is shown again.
-     * Data: near miss of the test above: after the delete, a FileUpdated event brings f1.
+     * Verifies: the answer to a save made before the delete, arriving after it, does not bring the file back.
+     * Interacts with: fileUpdated; fileDeleted.
+     * Data: f1 saved as 'B' (event first), then deleted, then the save's answer arrives.
      */
-    it('shows a deleted file again when the server sends it', () => {
+    it('does not bring back a deleted file with a late save answer', () => {
       const { service, query } = setup({}, [
         file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
       ]);
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
       service.fileDeleted('f1');
 
       service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
 
-      expect(query.getEntity('f1').content).toBe('B');
+      expect(query.getEntity('f1')).toBeUndefined();
     });
 
     /**

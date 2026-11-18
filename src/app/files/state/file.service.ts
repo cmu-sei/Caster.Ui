@@ -19,7 +19,7 @@ export class FileService {
   private fileQuery = inject(FileQuery);
   // when the content held for each file was saved, apart from its other details
   private contentSavedAt = new Map<string, string>();
-  // files deleted here, so a read that answers after the delete cannot bring one back
+  // files deleted while this page was open, so an answer that arrives after the delete cannot bring one back
   private deleted = new Set<string>();
   private filesService = inject(FilesService);
 
@@ -39,9 +39,6 @@ export class FileService {
   refreshFile(fileId: string): Observable<ModelFile> {
     return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
       tap((file: ModelFile) => {
-        if (this.deleted.has(fileId)) {
-          return;
-        }
         const prev = this.fileQuery.getEntity(fileId);
         // only the content is taken: a lock or unlock does not change the save time, so the lock in a read that answers
         // late cannot be told from a newer one, and the events and lock answers keep the lock
@@ -143,8 +140,10 @@ export class FileService {
    * - a tab with unsaved edits keeps them, and stays unsaved until they match what is saved.
    */
   fileUpdated(file: ModelFile) {
-    // the server sent this file, so it exists again
-    this.deleted.delete(file.id);
+    // Caster cannot restore a deleted file, so anything about one that arrives after its delete is older than it
+    if (this.deleted.has(file.id)) {
+      return;
+    }
     const prev = this.fileQuery.getEntity(file.id);
     if (prev) {
       // The content and the other details (name, lock) are ordered apart: a rename stamps a save time without sending
