@@ -17,7 +17,6 @@ export * from './aiBriefAttacker';
 export * from './aiBriefOrganization';
 export * from './aiBriefSegment';
 export * from './aiBriefSite';
-export * from './aiBriefSource';
 export * from './aiBriefSystem';
 export * from './aiBriefTeam';
 export * from './aiDesignDraft';

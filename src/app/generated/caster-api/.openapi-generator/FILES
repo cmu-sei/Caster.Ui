@@ -50,7 +50,6 @@ model/aiBriefAttacker.ts
 model/aiBriefOrganization.ts
 model/aiBriefSegment.ts
 model/aiBriefSite.ts
-model/aiBriefSource.ts
 model/aiBriefSystem.ts
 model/aiBriefTeam.ts
 model/aiDesignDraft.ts

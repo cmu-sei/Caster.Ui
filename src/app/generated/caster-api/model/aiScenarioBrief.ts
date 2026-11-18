@@ -18,7 +18,6 @@ import { AiBriefSystem } from './aiBriefSystem';
 import { AiBriefAttacker } from './aiBriefAttacker';
 import { AiBriefSegment } from './aiBriefSegment';
 import { AiBriefTeam } from './aiBriefTeam';
-import { AiBriefSource } from './aiBriefSource';
 import { AiBriefOrganization } from './aiBriefOrganization';
 
 
@@ -28,7 +27,6 @@ import { AiBriefOrganization } from './aiBriefOrganization';
 export interface AiScenarioBrief { 
     title?: string | null;
     summary?: string | null;
-    source?: AiBriefSource;
     organizations?: Array<AiBriefOrganization> | null;
     /**
      * The network segments the scenario needs, including its key cyber terrain.
