@@ -67,11 +67,15 @@ export class FileService {
 
   setFiles(files: ModelFile[]) {
     this.contentSavedAt.clear();
-    this.fileStore.set(files);
+    this.fileStore.set(files.filter((f) => !this.deleted.has(f.id)));
   }
 
   add(file: ModelFile) {
-    this.filesService.createFile(file).subscribe((f) => {
+    this.filesService.createFile(file).subscribe((f: ModelFile) => {
+      // the new file is announced before this answer, and may be deleted in between
+      if (this.deleted.has(f.id)) {
+        return;
+      }
       f.editorContent = f.content;
       this.fileStore.add(f);
     });
@@ -199,7 +203,7 @@ export class FileService {
     });
   }
 
-  // every write of a file the server sent comes through here or loadFile, so neither brings back a deleted file
+  // every write to the store skips a deleted file: here, loadFile, setFiles and add
   private upsertFile(file: ModelFile) {
     if (this.deleted.has(file.id)) {
       return;

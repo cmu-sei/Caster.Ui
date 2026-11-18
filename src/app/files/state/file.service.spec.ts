@@ -645,6 +645,25 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: a create answer or a project's file list arriving after the delete does not bring the file back.
+     * Interacts with: add (FilesService.createFile answered late); setFiles; fileDeleted.
+     * Data: f1 is created and announced, then deleted; then the create answer and an older project list arrive.
+     */
+    it('does not bring back a deleted file with a late create answer or list', () => {
+      const created = new Subject<ModelFile>();
+      const { service, query } = setup({ createFile: vi.fn(() => created) });
+      service.add(file({ content: 'A' }));
+      service.fileUpdated(file({ content: 'A', dateSaved: T1 }));
+
+      service.fileDeleted('f1');
+      created.next(file({ content: 'A', dateSaved: T1 }));
+      expect(query.getEntity('f1')).toBeUndefined();
+
+      service.setFiles([file({ content: null, dateSaved: T1 })]);
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
      * Verifies: save times are ordered past the millisecond, as the server sends them.
      * Data: stored 'B' at .1239 of a second; an older 'A' at .1231 of the same second.
      */
