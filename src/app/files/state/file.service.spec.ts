@@ -502,7 +502,7 @@ describe('FileService', () => {
     });
 
     /**
-     * Verifies: a file with no open editor gets the new content and no buffer, so opening its tab shows it.
+     * Verifies: a file not opened yet gets the new content in its buffer too, so its tab opens on it, not blank.
      * Data: stored f1 listed without content or buffer; an added file read for the first time.
      */
     it('stores the content of a file that is not open', async () => {
@@ -514,7 +514,94 @@ describe('FileService', () => {
       await firstValueFrom(service.refreshFile('f1'));
 
       expect(query.getEntity('f1').content).toBe('ai');
-      expect(query.getEntity('f1').editorContent).toBeUndefined();
+      // the tab opens on this content, since a file with content is not loaded again
+      expect(query.getEntity('f1').editorContent).toBe('ai');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a rename between a save and its delayed answer does not make the save look older and drop it.
+     * Data: stored f1 clean on 'A' at T1; a rename event (no content) stamped T3, then the AI's 'B' at T2.
+     */
+    it('takes content saved before a rename that arrives after it', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(
+        file({ name: 'renamed.tf', content: null, dateSaved: T3 }),
+      );
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        name: 'renamed.tf',
+        content: 'B',
+        editorContent: 'B',
+      });
+    });
+
+    /**
+     * Verifies: a read that answers late with an older lock state neither unlocks the file in the store nor discards edits.
+     * Interacts with: refreshFile; FilesService.getFile answered late.
+     * Data: the read starts while f1 is unlocked; the planner locks it (u1) and types 'C'; the read answers unlocked.
+     */
+    it('keeps the lock and edits when a late read shows an older lock', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.fileUpdated(
+        file({ content: null, lockedById: 'u1', dateSaved: T1 }),
+      );
+      service.updateEditorContent('f1', 'C');
+      answer.next(file({ content: 'B', lockedById: null, dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        lockedById: 'u1',
+        content: 'B',
+        editorContent: 'C',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: opening a tab loads the file at its save time, so an older answer after that is dropped.
+     * Interacts with: loadFile; fileUpdated.
+     * Data: 'A' at T1, a rename at T3, the tab loads 'C' at T3, then the AI's older 'B' at T2 arrives.
+     */
+    it('drops content older than what a tab loaded', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'C', dateSaved: T3 }))) },
+        [file({ content: 'A', editorContent: 'A', dateSaved: T1 })],
+      );
+      service.fileUpdated(file({ content: null, dateSaved: T3 }));
+      await firstValueFrom(service.loadFile('f1'));
+
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1').content).toBe('C');
+    });
+
+    /**
+     * Verifies: save times are ordered past the millisecond, as the server sends them.
+     * Data: stored 'B' at .1239 of a second; an older 'A' at .1231 of the same second.
+     */
+    it('orders save times that differ below a millisecond', () => {
+      const { service, query } = setup({}, [
+        file({
+          content: 'B',
+          editorContent: 'B',
+          dateSaved: '2026-11-18T10:00:05.1239Z',
+        }),
+      ]);
+
+      service.fileUpdated(
+        file({ content: 'A', dateSaved: '2026-11-18T10:00:05.1231Z' }),
+      );
+
+      expect(query.getEntity('f1').content).toBe('B');
     });
   });
 
@@ -530,9 +617,10 @@ describe('FileService', () => {
 
       service.fileUpdated(file());
 
+      // the buffer starts as the content, so the file's tab opens on it rather than blank
       expect(query.getEntity('f1')).toEqual({
         ...file(),
-        editorContent: undefined,
+        editorContent: file().content,
       });
       expect(query.ui.getEntity('f1')).toEqual({
         id: 'f1',

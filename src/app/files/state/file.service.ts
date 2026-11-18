@@ -17,12 +17,16 @@ import { FileStore } from './file.store';
 export class FileService {
   private fileStore = inject(FileStore);
   private fileQuery = inject(FileQuery);
+  // when the content held for each file was saved, apart from its other details
+  private contentSavedAt = new Map<string, string>();
   private filesService = inject(FilesService);
 
   loadFile(fileId: string): Observable<ModelFile> {
     return this.filesService.getFile(fileId).pipe(
       tap((file) => {
         file.editorContent = file.content;
+        // the content held is now this file's, at its save time
+        this.contentSavedAt.delete(fileId);
         this.fileStore.upsert(file.id, file);
         this.setSave(fileId, true);
       }),
@@ -32,7 +36,16 @@ export class FileService {
   /** Reads a file again after something else saved it; the store decides what an open tab shows (see fileUpdated). */
   refreshFile(fileId: string): Observable<ModelFile> {
     return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
-      tap((file: ModelFile) => this.fileUpdated(file)),
+      tap((file: ModelFile) => {
+        const prev = this.fileQuery.getEntity(fileId);
+        // only the content is taken: a lock or unlock does not change the save time, so the lock in a read that answers
+        // late cannot be told from a newer one, and the events and lock answers keep the lock
+        this.fileUpdated(
+          prev
+            ? { ...prev, content: file.content, dateSaved: file.dateSaved }
+            : file,
+        );
+      }),
     );
   }
 
@@ -48,6 +61,7 @@ export class FileService {
   }
 
   setFiles(files: ModelFile[]) {
+    this.contentSavedAt.clear();
     this.fileStore.set(files);
   }
 
@@ -125,8 +139,27 @@ export class FileService {
    */
   fileUpdated(file: ModelFile) {
     const prev = this.fileQuery.getEntity(file.id);
-    if (prev && isOlder(file.dateSaved, prev.dateSaved)) {
-      return;
+    if (prev) {
+      // The content and the other details (name, lock) are ordered apart: a rename stamps a save time without sending
+      // content, so content saved before it can still arrive after it and be newer than the content held.
+      // the time of the content held is the file's save time until an update without content moves that on
+      if (prev.content != null && !this.contentSavedAt.has(file.id)) {
+        this.contentSavedAt.set(file.id, prev.dateSaved);
+      }
+      const contentAt =
+        prev.content == null ? undefined : this.contentSavedAt.get(file.id);
+      const newerContent =
+        file.content != null && !isOlder(file.dateSaved, contentAt);
+      if (newerContent) {
+        this.contentSavedAt.set(file.id, file.dateSaved);
+      }
+      if (isOlder(file.dateSaved, prev.dateSaved)) {
+        // older details than those held: keep them, and take only content newer than that held
+        if (!newerContent) {
+          return;
+        }
+        file = { ...prev, content: file.content };
+      }
     }
     // Updates that don't change the content (lock, unlock, rename) arrive with
     // content null. Keep the loaded content: a null makes the open tab reload
@@ -138,7 +171,8 @@ export class FileService {
     if (prev?.lockedById && prev.lockedById !== file.lockedById) {
       // the lock was lost, so edits made under it can no longer be saved
       editorContent = file.content;
-    } else if (editorContent != null && !isFileContentChanged(prev)) {
+    } else if (file.content != null && !isFileContentChanged(prev)) {
+      // a tab with no edits, or a file not opened yet, shows the content it is given
       editorContent = file.content;
     }
     this.upsertFile({ ...file, editorContent });
@@ -185,6 +219,7 @@ export class FileService {
   }
 
   fileDeleted(fileId: string) {
+    this.contentSavedAt.delete(fileId);
     this.fileStore.remove(fileId);
   }
 
@@ -224,5 +259,19 @@ function isOlder(
   saved: string | null | undefined,
   than: string | null | undefined,
 ): boolean {
-  return !!saved && !!than && Date.parse(saved) < Date.parse(than);
+  if (!saved || !than) {
+    return false;
+  }
+  const [a, b] = [saveTime(saved), saveTime(than)];
+  return a.seconds !== b.seconds
+    ? a.seconds < b.seconds
+    : a.fraction < b.fraction;
+}
+
+// The server sends save times to the tenth of a microsecond, past what Date keeps, so the fraction of a second is
+// compared as digits.
+function saveTime(value: string): { seconds: number; fraction: string } {
+  const match = /^([^.]*?)(?:\.(\d+))?(Z|[+-]\d\d:?\d\d)?$/i.exec(value);
+  const seconds = Date.parse((match?.[1] ?? value) + (match?.[3] ?? ''));
+  return { seconds, fraction: (match?.[2] ?? '').padEnd(9, '0') };
 }
