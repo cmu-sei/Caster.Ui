@@ -51,16 +51,16 @@ export class FileService {
         tap((file: ModelFile) => {
           const current = this.fileQuery.getEntity(fileId);
           const typed = current?.editorContent !== before?.editorContent;
-          // typed and saved since the read began: that save is newer than this answer
+          // saved since the read began, so the buffer now equals the content: that save is newer than this answer
           if (
             current &&
-            typed &&
             current.content !== before?.content &&
             isSameContent(current.editorContent, current.content)
           ) {
             return;
           }
-          const edited = wasEdited || typed;
+          // edits held when Apply was pressed, when this read began, or typed while it ran
+          const edited = wasEdited || isFileContentChanged(before) || typed;
           this.fileStore.upsert(file.id, {
             ...file,
             editorContent: edited ? current?.editorContent : file.content,

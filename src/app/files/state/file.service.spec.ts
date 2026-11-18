@@ -115,6 +115,45 @@ describe('FileService', () => {
     });
   });
 
+  describe('refreshFile with edits', () => {
+    /**
+     * Verifies: edits typed while Apply was running, before the read begins, are kept.
+     * Interacts with: FilesService.getFile (stub); isFileContentChanged on the buffer when the read starts.
+     * Data: stored f1 typed to 'B' before refreshFile is called, wasEdited false.
+     */
+    it('keeps edits typed before the read began', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
+        [file({ content: 'old', editorContent: 'B' })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1'));
+
+      expect(query.getEntity('f1').content).toBe('ai content');
+      expect(query.getEntity('f1').editorContent).toBe('B');
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: saving the existing edits while the read is pending drops the older answer.
+     * Interacts with: FilesService.getFile (stub, a Subject answered late); fileUpdated.
+     * Data: stored f1 with unsaved buffer 'B', wasEdited true; the planner saves 'B', then the read of 'A' answers.
+     */
+    it('drops an older answer when the existing edits were saved meanwhile', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'B' }),
+      ]);
+      service.refreshFile('f1', true).subscribe();
+
+      service.fileUpdated(file({ content: 'B' }));
+      answer.next(file({ content: 'A' }));
+
+      expect(query.getEntity('f1').content).toBe('B');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+  });
+
   describe('aiFilesSaved', () => {
     /**
      * Verifies: when the file's own SignalR event arrives before the draft's answer, a tab that was clean still shows the new content.
