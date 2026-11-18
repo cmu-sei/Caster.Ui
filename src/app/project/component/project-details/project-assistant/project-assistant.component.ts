@@ -300,6 +300,9 @@ export class ProjectAssistantComponent {
     this.isApplying.set(true);
     // the files with unsaved edits as Apply is pressed
     const edited = this.fileService.editedFileIds();
+    const editors = new Map(
+      this.fileQuery.getAll().map((f) => [f.id, f.editorContent]),
+    );
     this.aiAssistService
       .applyAiAssistantChanges(directoryId, { changes })
       .pipe(take(1))
@@ -308,7 +311,7 @@ export class ProjectAssistantComponent {
           const results = result.results ?? [];
           this.updateTurn(turnIndex, { results });
           this.isApplying.set(false);
-          this.reload(directoryId, results, edited);
+          this.reload(directoryId, results, edited, editors);
         },
         error: (err) => {
           this.updateTurn(turnIndex, {
@@ -399,6 +402,7 @@ export class ProjectAssistantComponent {
     directoryId: string,
     results: AiAssistChangeResult[],
     edited: Set<string>,
+    editors: Map<string, string>,
   ) {
     const applied = results.filter((r) => r.applied);
     // an added file is read whole; a changed one is read again, keeping edits the planner made meanwhile
@@ -410,7 +414,11 @@ export class ProjectAssistantComponent {
         r.fileId,
     )) {
       this.fileService
-        .refreshFile(result.fileId, edited.has(result.fileId))
+        .refreshFile(
+          result.fileId,
+          edited.has(result.fileId),
+          editors.get(result.fileId),
+        )
         .pipe(take(1))
         .subscribe();
     }

@@ -43,8 +43,13 @@ export class FileService {
    * Reads a file again after something else saved it. Edits the user had, or makes while the read is in flight, are
    * kept, and an answer older than a save the user made meanwhile is dropped.
    * @param wasEdited whether the editor held unsaved edits when the change was started
+   * @param editorAtStart the editor's content when the change was started, to tell typing since from the file's own event
    */
-  refreshFile(fileId: string, wasEdited = false): Observable<ModelFile> {
+  refreshFile(
+    fileId: string,
+    wasEdited = false,
+    editorAtStart?: string,
+  ): Observable<ModelFile> {
     return defer(() => {
       const before = this.fileQuery.getEntity(fileId);
       return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
@@ -59,8 +64,11 @@ export class FileService {
           ) {
             return;
           }
-          // edits held when Apply was pressed, when this read began, or typed while it ran
-          const edited = wasEdited || isFileContentChanged(before) || typed;
+          // edits held when Apply was pressed, typed since, or typed while the read ran
+          const typedSince =
+            editorAtStart !== undefined &&
+            before?.editorContent !== editorAtStart;
+          const edited = wasEdited || typedSince || typed;
           this.fileStore.upsert(file.id, {
             ...file,
             editorContent: edited ? current?.editorContent : file.content,

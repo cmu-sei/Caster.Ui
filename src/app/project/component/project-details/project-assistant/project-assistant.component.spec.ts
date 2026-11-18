@@ -183,6 +183,12 @@ async function renderPanel(
             unsavedFiles.includes(id)
               ? { id, content: 'a', editorContent: 'b' }
               : { id, content: 'a', editorContent: 'a' },
+          getAll: () =>
+            ['main', 'vars'].map((id) =>
+              unsavedFiles.includes(id)
+                ? { id, content: 'a', editorContent: 'b' }
+                : { id, content: 'a', editorContent: 'a' },
+            ),
         },
       },
       { provide: FileService, useValue: fileService },
@@ -339,7 +345,7 @@ describe('ProjectAssistantComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Apply 1 change' }));
 
     expect(assistApi.applyAiAssistantChanges).toHaveBeenCalledTimes(1);
-    expect(fileService.refreshFile).toHaveBeenCalledWith('vars', false);
+    expect(fileService.refreshFile).toHaveBeenCalledWith('vars', false, 'a');
   });
 
   /**
@@ -379,7 +385,7 @@ describe('ProjectAssistantComponent', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Edit main.tf' }),
     ).toBeDisabled();
-    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true);
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true, 'a');
     expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
     // the refused change touched nothing
     expect(workspacesApi.getWorkspace).not.toHaveBeenCalled();
@@ -399,7 +405,7 @@ describe('ProjectAssistantComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Apply 3 changes' }));
 
-    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true);
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true, 'b');
     expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
   });
 
@@ -518,8 +524,11 @@ describe('ProjectAssistantComponent', () => {
           provide: WorkspaceQuery,
           useValue: { selectAll: () => of(WORKSPACES) },
         },
-        { provide: FileQuery, useValue: {} },
-        { provide: FileService, useValue: {} },
+        { provide: FileQuery, useValue: { getAll: () => [] } },
+        {
+          provide: FileService,
+          useValue: { editedFileIds: () => new Set<string>() },
+        },
         { provide: WorkspaceService, useValue: {} },
         {
           provide: CurrentUserQuery,

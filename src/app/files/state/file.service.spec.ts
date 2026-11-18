@@ -127,11 +127,28 @@ describe('FileService', () => {
         [file({ content: 'old', editorContent: 'B' })],
       );
 
-      await firstValueFrom(service.refreshFile('f1'));
+      await firstValueFrom(service.refreshFile('f1', false, 'old'));
 
       expect(query.getEntity('f1').content).toBe('ai content');
       expect(query.getEntity('f1').editorContent).toBe('B');
       expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: a clean tab whose file event arrived before the read still shows the new content.
+     * Interacts with: FilesService.getFile (stub); fileUpdated.
+     * Data: stored f1 with buffer 'A' (clean at Apply), the event set content 'B' first, wasEdited false, editor at start 'A'.
+     */
+    it('shows the new content when the file event arrived first', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'B' }))) },
+        [file({ content: 'B', editorContent: 'A' })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1', false, 'A'));
+
+      expect(query.getEntity('f1').editorContent).toBe('B');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
     });
 
     /**
