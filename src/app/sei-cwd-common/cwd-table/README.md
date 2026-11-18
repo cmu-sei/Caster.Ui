@@ -51,7 +51,12 @@ import { TableItemContentDirective } from '../sei-cwd-common/cwd-table/directive
 @Component({
   selector: 'cas-workspace-container',
   templateUrl: './workspace-container.component.html',
-  imports: [CwdTableComponent, TableActionDirective, TableItemActionDirective, TableItemContentDirective],
+  imports: [
+    CwdTableComponent,
+    TableActionDirective,
+    TableItemActionDirective,
+    TableItemContentDirective,
+  ],
 })
 export class WorkspaceContainerComponent {}
 ```

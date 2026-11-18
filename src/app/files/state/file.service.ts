@@ -124,7 +124,7 @@ export class FileService {
     // Unsaved edits stay unsaved through updates that don't touch them
     this.setSave(
       file.id,
-      !isFileContentChanged(this.fileQuery.getEntity(file.id))
+      !isFileContentChanged(this.fileQuery.getEntity(file.id)),
     );
   }
 

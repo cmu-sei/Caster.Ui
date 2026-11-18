@@ -9,7 +9,7 @@
   "angularCompilerOptions": {
     // Override tsconfig.json to avoid errors
     // while allowing language service to work
-    // TODO: fix all errors caused by setting this 
+    // TODO: fix all errors caused by setting this
     // to true
     "strictTemplates": false
   }

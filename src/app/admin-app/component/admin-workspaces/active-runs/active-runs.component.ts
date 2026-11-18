@@ -95,7 +95,7 @@ export function toRunRow(
     workspace,
     workspaceName:
       workspace?.name ??
-      (workspace === null ? 'Workspace you can\'t view' : 'Loading...'),
+      (workspace === null ? "Workspace you can't view" : 'Loading...'),
     projectName: workspace?.projectName ?? '',
     type: run.isDestroy ? 'Destroy' : 'Plan',
     status: position ? `${label}, number ${position} in line` : label,

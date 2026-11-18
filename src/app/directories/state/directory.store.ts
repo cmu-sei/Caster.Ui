@@ -13,8 +13,7 @@ import { DirectoryUI } from './directory.model';
 import { Directory } from 'src/app/generated/caster-api';
 
 export interface DirectoryUIState
-  extends EntityState<DirectoryUI>,
-    ActiveState {}
+  extends EntityState<DirectoryUI>, ActiveState {}
 export interface DirectoryState extends EntityState<Directory>, ActiveState {}
 
 export const initialDirectoryUIState: DirectoryUI = {

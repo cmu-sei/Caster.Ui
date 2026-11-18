@@ -116,7 +116,7 @@ export class DirectoryService {
         directory.id,
         isTarget
           ? { isExpanded: true, isWorkspacesExpanded: true }
-          : { isExpanded: true, isDirectoriesExpanded: true }
+          : { isExpanded: true, isDirectoriesExpanded: true },
       );
       isTarget = false;
       directory = this.directoryQuery.getEntity(directory.parentId);

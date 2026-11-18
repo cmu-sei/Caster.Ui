@@ -11,15 +11,11 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "typeRoots": ["node_modules/@types"],
     "useDefineForClassFields": false,
     "skipLibCheck": true
   },
-  "exclude": [
-    "../../libraries/**/node_modules"
-  ],
+  "exclude": ["../../libraries/**/node_modules"],
   "angularCompilerOptions": {
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,

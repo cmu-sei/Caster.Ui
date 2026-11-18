@@ -112,7 +112,7 @@ export class ProjectExportComponent implements OnInit {
         this.directoryService
           .export(id, archiveType, includeIds)
           .pipe(take(1))
-                   .subscribe((result) => {
+          .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });
         break;
@@ -121,7 +121,7 @@ export class ProjectExportComponent implements OnInit {
         this.fileService
           .export(id)
           .pipe(take(1))
-                   .subscribe((result) => {
+          .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });
         break;
@@ -130,7 +130,7 @@ export class ProjectExportComponent implements OnInit {
         this.projectService
           .export(id, archiveType, includeIds)
           .pipe(take(1))
-                   .subscribe((result) => {
+          .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });
         break;

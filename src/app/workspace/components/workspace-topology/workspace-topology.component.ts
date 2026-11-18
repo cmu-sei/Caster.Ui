@@ -175,15 +175,15 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         map((runs) => runs.map((r) => `${r.id}:${r.status}`).join(',')),
         distinctUntilChanged(),
         skip(1),
-        debounceTime(500)
+        debounceTime(500),
       );
 
     merge([null], runsChanged$)
       .pipe(
         switchMap(() =>
-          this.workspacesService.getWorkspaceTopology(this.workspaceId())
+          this.workspacesService.getWorkspaceTopology(this.workspaceId()),
         ),
-        takeUntil(this.unsubscribe$)
+        takeUntil(this.unsubscribe$),
       )
       .subscribe({
         next: (topology) => this.show(topology),
@@ -203,7 +203,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     this.authQuery.userTheme$
       .pipe(skip(1), takeUntil(this.unsubscribe$))
       .subscribe(() =>
-        setTimeout(() => this.cy?.style(this.stylesheet() as any))
+        setTimeout(() => this.cy?.style(this.stylesheet() as any)),
       );
   }
 
@@ -247,7 +247,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   /** Whether anyone has moved a node in this layout, so there is a layout to reset. */
   get hasSavedPositions(): boolean {
     return Object.keys(this.topology?.layout ?? {}).some(
-      (id) => !!this.savedPosition(id)
+      (id) => !!this.savedPosition(id),
     );
   }
 
@@ -281,7 +281,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         }
         const [x, y] = POSITION_KEYS[this.layoutStyle];
         Object.entries(this.topology.layout ?? {}).forEach(([id, node]) =>
-          this.remember(id, { ...node, [x]: null, [y]: null })
+          this.remember(id, { ...node, [x]: null, [y]: null }),
         );
         this.saveLayout();
         this.redraw();
@@ -306,17 +306,21 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       document.exitFullscreen();
       return;
     }
-    this.root().nativeElement
-      .requestFullscreen()
+    this.root()
+      .nativeElement.requestFullscreen()
       .catch((err) =>
-        this.snackBar.open(`Could not go full screen: ${err?.message ?? err}`, 'Dismiss')
+        this.snackBar.open(
+          `Could not go full screen: ${err?.message ?? err}`,
+          'Dismiss',
+        ),
       );
   }
 
   /** Esc leaves full screen without the button, so follow the document rather than the toggle. */
   @HostListener('document:fullscreenchange')
   onFullscreenChange() {
-    this.isFullscreen = document.fullscreenElement === this.root().nativeElement;
+    this.isFullscreen =
+      document.fullscreenElement === this.root().nativeElement;
     this.changeDetector.markForCheck();
     // Cytoscape only notices the window resizing, not its container.
     requestAnimationFrame(() => {
@@ -333,7 +337,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       .then(
         () => this.snackBar.open('Copied to clipboard', 'Dismiss'),
         (err) =>
-          this.snackBar.open(`Could not copy the image: ${err?.message ?? err}`, 'Dismiss')
+          this.snackBar.open(
+            `Could not copy the image: ${err?.message ?? err}`,
+            'Dismiss',
+          ),
       );
   }
 
@@ -341,7 +348,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   async downloadImage(format: 'png' | 'svg' = 'png') {
     const blob =
       format === 'svg'
-        ? new Blob([this.inLightStyle(() => topologySvg(this.cy))], { type: 'image/svg+xml' })
+        ? new Blob([this.inLightStyle(() => topologySvg(this.cy))], {
+            type: 'image/svg+xml',
+          })
         : await this.image();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -392,7 +401,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
   private image(): Promise<Blob> {
     // cytoscape draws the PNG before it returns the promise, so the light style can go straight back
     return this.inLightStyle(() =>
-      this.cy.png({ ...this.imageOptions(), output: 'blob-promise' })
+      this.cy.png({ ...this.imageOptions(), output: 'blob-promise' }),
     );
   }
 
@@ -425,7 +434,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
 
   /** What the plan does to the machine as a whole: its own resource or its Player record. */
   actionOf(node: TopologyNode): string {
-    return node.action === 'no-op' && node.console?.action ? 'update' : node.action;
+    return node.action === 'no-op' && node.console?.action
+      ? 'update'
+      : node.action;
   }
 
   /** Which of a machine's two resources the action is, when only one of them changes. */
@@ -534,11 +545,13 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         this.zone.run(() => {
           this.selected = this.nodesById.get(event.target.id());
           this.changeDetector.markForCheck();
-        })
+        }),
       );
       this.cy.on('dragfree', 'node', (event) => {
         // Dragging a module box moves what is in it.
-        const moved = event.target.union(event.target.descendants()).filter('[kind]');
+        const moved = event.target
+          .union(event.target.descendants())
+          .filter('[kind]');
         this.zone.run(() => this.moved(moved.map((n) => n.id())));
       });
       this.cy.on('tap', (event) => {
@@ -614,7 +627,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       n.boundingBox({ includeLabels: true } as any).w + gap;
     const rowHeight =
       Math.max(
-        ...graph.nodes().map((n) => n.boundingBox({ includeLabels: true } as any).h)
+        ...graph
+          .nodes()
+          .map((n) => n.boundingBox({ includeLabels: true } as any).h),
       ) + 40;
     const positions: Record<string, { x: number; y: number }> = {};
     let left = 0;
@@ -633,9 +648,13 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
           .neighborhood('node[kind]')
           .filter((n) => !seen.has(n.id()))
           .sort((a, b) =>
-            (a.data('label') ?? '').localeCompare(b.data('label') ?? '', undefined, {
-              numeric: true,
-            })
+            (a.data('label') ?? '').localeCompare(
+              b.data('label') ?? '',
+              undefined,
+              {
+                numeric: true,
+              },
+            ),
           )
           .toArray() as NodeSingular[];
         next.forEach((n) => seen.add(n.id()));
@@ -657,7 +676,10 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         const own = spans.get(node.id());
         positions[node.id()] = { x: x + own / 2, y: depth * rowHeight };
         const kids = children.get(node.id());
-        const below = kids.reduce((sum, child) => sum + spans.get(child.id()), 0);
+        const below = kids.reduce(
+          (sum, child) => sum + spans.get(child.id()),
+          0,
+        );
         let next = x + (own - below) / 2;
         kids.forEach((child) => {
           place(child, next, depth + 1);
@@ -728,7 +750,9 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
       return;
     }
     const nodes: Record<string, TopologyNodeLayout> = {};
-    this.unsaved.forEach((id) => (nodes[id] = this.topology.layout?.[id] ?? null));
+    this.unsaved.forEach(
+      (id) => (nodes[id] = this.topology.layout?.[id] ?? null),
+    );
     this.unsaved.clear();
 
     this.workspacesService
@@ -737,7 +761,7 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
         error: (err) =>
           this.snackBar.open(
             `Could not save the layout: ${err?.error?.title ?? err?.message ?? err}`,
-            'Dismiss'
+            'Dismiss',
           ),
       });
   }
@@ -750,8 +774,12 @@ export class WorkspaceTopologyComponent implements OnInit, OnDestroy {
     const moduleCounts = new Map<string, number>();
     nodes
       .filter((n) => n.module)
-      .forEach((n) => moduleCounts.set(n.module, (moduleCounts.get(n.module) ?? 0) + 1));
-    const boxed = [...moduleCounts].filter(([, count]) => count > 1).map(([m]) => m);
+      .forEach((n) =>
+        moduleCounts.set(n.module, (moduleCounts.get(n.module) ?? 0) + 1),
+      );
+    const boxed = [...moduleCounts]
+      .filter(([, count]) => count > 1)
+      .map(([m]) => m);
 
     return [
       ...boxed.map((m) => ({

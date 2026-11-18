@@ -24,6 +24,8 @@
     "test:watch": "ng test caster-ui",
     "test:coverage": "ng test caster-ui --watch=false --configuration coverage",
     "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "e2e": "ng e2e caster-ui",
     "swagger:gen": "cross-var $npm_package_config_deleteGeneratedCommand && cross-var curl --insecure http://localhost:4309/swagger/v1/swagger.json --output swagger.json && node_modules/@openapitools/openapi-generator-cli/bin/openapi-generator-cli generate -i ./swagger.json -g typescript-angular -o src/app/generated/caster-api $npm_package_config_openapiArgs",
     "swagger:gen-docker": "cross-env-shell docker run --rm -v $INIT_CWD:/local openapitools/openapi-generator-cli:v6.2.0 generate -i http://host.docker.internal:4309/swagger/v1/swagger.json?format=openapi -g typescript-angular -o /local/src/app/generated/caster-api $npm_package_config_openapiArgs"
@@ -89,7 +91,7 @@
     "jasmine-spec-reporter": "^7.0.0",
     "jsdom": "^28.1.0",
     "patch-package": "^8.0.1",
-    "prettier": "^3.9.10",
+    "prettier": "3.10.1",
     "protractor": "^7.0.0",
     "rimraf": "^3.0.2",
     "rxjs-watcher": "^1.2.2",
