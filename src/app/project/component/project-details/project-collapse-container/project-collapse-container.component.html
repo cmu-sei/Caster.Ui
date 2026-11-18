@@ -120,14 +120,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         @if (canEditProject$ | async) {
           <button
             casTopbarActions
-            mat-button
+            mat-icon-button
             type="button"
             class="ask-ai"
+            title="Ask AI"
+            aria-label="Ask AI"
             [attr.aria-pressed]="assistantOpen()"
             (click)="assistantOpen.set(!assistantOpen())"
           >
-            <mat-icon fontIcon="mdi-creation" />
-            Ask AI
+            <mat-icon class="mdi-24px" fontIcon="mdi-creation" />
           </button>
         }
       </cas-topbar>
