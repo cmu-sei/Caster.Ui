@@ -534,6 +534,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
 
   // the designer reviews the change, and other files it needs, before anything is saved
   editWithAi() {
+    const edited = this.fileService.editedFileIds();
     this.dialog
       .open<AiTerraformDraftDialogComponent, AiTerraformDraftDialogData, ModelFile[]>(AiTerraformDraftDialogComponent, {
         data: {
@@ -547,7 +548,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         maxHeight: '90vh',
       })
       .afterClosed()
-      .subscribe((files) => files && this.fileService.aiFilesSaved(files));
+      .subscribe((files) => files && this.fileService.aiFilesSaved(files, edited));
   }
 
   lockFile() {

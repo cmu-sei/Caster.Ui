@@ -106,7 +106,8 @@ describe('FileService', () => {
       ]);
       service.refreshFile('f1').subscribe();
 
-      service.fileUpdated(file({ content: 'B', editorContent: 'B' }));
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B' }));
       answer.next(file({ content: 'A' }));
 
       expect(query.getEntity('f1').content).toBe('B');
@@ -115,6 +116,27 @@ describe('FileService', () => {
   });
 
   describe('aiFilesSaved', () => {
+    /**
+     * Verifies: when the file's own SignalR event arrives before the draft's answer, a tab that was clean still shows the new content.
+     * Interacts with: fileUpdated; editedFileIds.
+     * Data: stored f1 clean at start; the event installs content 'ai content' beside the old buffer, then the answer arrives.
+     */
+    it('shows the saved content when the file event came first', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
+      const edited = service.editedFileIds();
+      service.fileUpdated(file({ content: 'ai content' }));
+
+      service.aiFilesSaved(
+        [file({ content: 'ai content', editorContent: 'ai content' })],
+        edited,
+      );
+
+      expect(query.getEntity('f1').editorContent).toBe('ai content');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
     /**
      * Verifies: a saved file with no edits open shows what the draft saved.
      * Interacts with: fileUpdated; isFileContentChanged.
@@ -143,9 +165,10 @@ describe('FileService', () => {
         file({ content: 'old', editorContent: 'my edits' }),
       ]);
 
-      service.aiFilesSaved([
-        file({ content: 'ai content', editorContent: 'ai content' }),
-      ]);
+      service.aiFilesSaved(
+        [file({ content: 'ai content', editorContent: 'ai content' })],
+        service.editedFileIds(),
+      );
 
       expect(query.getEntity('f1').content).toBe('ai content');
       expect(query.getEntity('f1').editorContent).toBe('my edits');

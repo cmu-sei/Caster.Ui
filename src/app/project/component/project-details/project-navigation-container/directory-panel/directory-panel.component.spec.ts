@@ -200,7 +200,7 @@ describe('DirectoryPanelComponent', () => {
         data: { directoryId: 'dir1', directoryName: 'network' },
       }),
     );
-    expect(aiFilesSaved).toHaveBeenCalledWith(saved);
+    expect(aiFilesSaved).toHaveBeenCalledWith(saved, expect.any(Set));
   });
 
   /**

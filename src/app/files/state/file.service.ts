@@ -7,7 +7,7 @@ import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FilesService, ModelFile } from '../../generated/caster-api';
-import { isFileContentChanged } from './file-content';
+import { isFileContentChanged, isSameContent } from './file-content';
 import { FileQuery } from './file.query';
 import { FileStore } from './file.store';
 
@@ -29,42 +29,71 @@ export class FileService {
     );
   }
 
+  /** The files whose open editor holds edits that are not saved, to ask before something else saves them. */
+  editedFileIds(): Set<string> {
+    return new Set(
+      this.fileQuery
+        .getAll()
+        .filter((f) => isFileContentChanged(f))
+        .map((f) => f.id),
+    );
+  }
+
   /**
-   * Reads a file again after something else saved it, keeping edits the user has made in the open editor, including
-   * edits made while the read was in flight.
+   * Reads a file again after something else saved it. Edits the user had, or makes while the read is in flight, are
+   * kept, and an answer older than a save the user made meanwhile is dropped.
+   * @param wasEdited whether the editor held unsaved edits when the change was started
    */
-  refreshFile(fileId: string): Observable<ModelFile> {
+  refreshFile(fileId: string, wasEdited = false): Observable<ModelFile> {
     return defer(() => {
-      const started = this.fileQuery.getEntity(fileId)?.content;
+      const before = this.fileQuery.getEntity(fileId);
       return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
         tap((file: ModelFile) => {
           const current = this.fileQuery.getEntity(fileId);
-          // saved or loaded since the read began: that is newer than this answer
-          if (current && current.content !== started) {
+          const typed = current?.editorContent !== before?.editorContent;
+          // typed and saved since the read began: that save is newer than this answer
+          if (
+            current &&
+            typed &&
+            current.content !== before?.content &&
+            isSameContent(current.editorContent, current.content)
+          ) {
             return;
           }
-          const edited = isFileContentChanged(current);
+          const edited = wasEdited || typed;
           this.fileStore.upsert(file.id, {
             ...file,
-            editorContent: edited ? current.editorContent : file.content,
+            editorContent: edited ? current?.editorContent : file.content,
           });
-          this.setSave(fileId, !edited);
+          this.setSave(
+            fileId,
+            !edited || isSameContent(current?.editorContent, file.content),
+          );
         }),
       );
     });
   }
 
-  /** Files an AI draft saved: an open tab shows them, unless it holds edits that are not saved. */
-  aiFilesSaved(files: ModelFile[]) {
+  /**
+   * Files an AI draft saved: an open tab shows them, unless it held edits that were not saved when the draft was
+   * started, which stay in the editor.
+   * @param edited the files with unsaved edits when the draft was started, from editedFileIds
+   */
+  aiFilesSaved(files: ModelFile[], edited = new Set<string>()) {
     files.forEach((file) => {
-      const edited = isFileContentChanged(this.fileQuery.getEntity(file.id));
-      if (edited) {
+      if (edited.has(file.id)) {
         // the saved content is the new one, the editor keeps what the user typed
         const saved = { ...file };
         delete saved.editorContent;
         this.fileUpdated(saved);
+        this.setSave(
+          file.id,
+          !isFileContentChanged(this.fileQuery.getEntity(file.id)),
+        );
       } else {
-        this.fileUpdated(file);
+        // the file's own SignalR event may have arrived first, leaving the old buffer beside the new content
+        this.fileUpdated({ ...file, editorContent: file.content });
+        this.setSave(file.id, true);
       }
     });
   }
