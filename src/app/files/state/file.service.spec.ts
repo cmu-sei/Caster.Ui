@@ -189,6 +189,29 @@ describe('FileService', () => {
     });
   });
 
+  describe('refreshFile after a save and more typing', () => {
+    /**
+     * Verifies: an older answer is dropped when the user saved and then typed again before it arrived.
+     * Interacts with: FilesService.getFile (stub, a Subject answered late); fileUpdated; updateEditorContent.
+     * Data: stored f1 on 'old'; the user types and saves 'B', types 'C', then the read of 'A' answers.
+     */
+    it('drops an older answer although the user typed again after saving', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B' }));
+      service.updateEditorContent('f1', 'C');
+      answer.next(file({ content: 'A' }));
+
+      expect(query.getEntity('f1').content).toBe('B');
+      expect(query.getEntity('f1').editorContent).toBe('C');
+    });
+  });
+
   describe('fileUpdated following a change made elsewhere', () => {
     /**
      * Verifies: a tab with no unsaved edits follows a change from an event, so its buffer is not left on the old content.

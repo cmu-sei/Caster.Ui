@@ -49,11 +49,11 @@ export class FileService {
       return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
         tap((file: ModelFile) => {
           const current = this.fileQuery.getEntity(fileId);
-          // saved since the read began, so the buffer now equals the content: that save is newer than this answer
+          // the content changed since the read began, to something other than this answer: that is newer than it
           if (
             current &&
             current.content !== before?.content &&
-            isSameContent(current.editorContent, current.content)
+            current.content !== file.content
           ) {
             return;
           }
