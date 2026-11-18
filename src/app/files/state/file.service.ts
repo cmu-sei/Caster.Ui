@@ -40,22 +40,15 @@ export class FileService {
   }
 
   /**
-   * Reads a file again after something else saved it. Edits the user had, or makes while the read is in flight, are
+   * Reads a file again after something else saved it. Edits the user has, or makes while the read is in flight, are
    * kept, and an answer older than a save the user made meanwhile is dropped.
-   * @param wasEdited whether the editor held unsaved edits when the change was started
-   * @param editorAtStart the editor's content when the change was started, to tell typing since from the file's own event
    */
-  refreshFile(
-    fileId: string,
-    wasEdited = false,
-    editorAtStart?: string,
-  ): Observable<ModelFile> {
+  refreshFile(fileId: string): Observable<ModelFile> {
     return defer(() => {
       const before = this.fileQuery.getEntity(fileId);
       return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
         tap((file: ModelFile) => {
           const current = this.fileQuery.getEntity(fileId);
-          const typed = current?.editorContent !== before?.editorContent;
           // saved since the read began, so the buffer now equals the content: that save is newer than this answer
           if (
             current &&
@@ -64,13 +57,9 @@ export class FileService {
           ) {
             return;
           }
-          // edits held when Apply was pressed, typed since, or typed while the read ran
-          // a file with no editor at Apply was opened since, so any difference in its buffer is the user's
-          const typedSince =
-            editorAtStart === undefined
-              ? isFileContentChanged(before)
-              : before?.editorContent !== editorAtStart;
-          const edited = wasEdited || typedSince || typed;
+          const edited =
+            isFileContentChanged(before) ||
+            current?.editorContent !== before?.editorContent;
           this.fileStore.upsert(file.id, {
             ...file,
             editorContent: edited ? current?.editorContent : file.content,
@@ -195,6 +184,17 @@ export class FileService {
     // the file, and that reload overwrites unsaved edits.
     if (file.content == null && prev?.content != null) {
       file = { ...file, content: prev.content };
+    }
+    // A tab with no unsaved edits follows a change made elsewhere, such as an AI save: leaving its buffer on the old
+    // content would read as an edit, and saving it would write the old content back.
+    if (
+      prev &&
+      !isFileContentChanged(prev) &&
+      file.editorContent === undefined &&
+      file.content != null &&
+      !isSameContent(prev.content, file.content)
+    ) {
+      file = { ...file, editorContent: file.content };
     }
     if (prev?.lockedById && prev.lockedById !== file.lockedById) {
       file = { ...file, editorContent: file.content };

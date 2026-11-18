@@ -298,11 +298,6 @@ export class ProjectAssistantComponent {
       return;
     }
     this.isApplying.set(true);
-    // the files with unsaved edits as Apply is pressed
-    const edited = this.fileService.editedFileIds();
-    const editors = new Map(
-      this.fileQuery.getAll().map((f) => [f.id, f.editorContent]),
-    );
     this.aiAssistService
       .applyAiAssistantChanges(directoryId, { changes })
       .pipe(take(1))
@@ -311,7 +306,7 @@ export class ProjectAssistantComponent {
           const results = result.results ?? [];
           this.updateTurn(turnIndex, { results });
           this.isApplying.set(false);
-          this.reload(directoryId, results, edited, editors);
+          this.reload(directoryId, results);
         },
         error: (err) => {
           this.updateTurn(turnIndex, {
@@ -398,12 +393,7 @@ export class ProjectAssistantComponent {
 
   // the files and workspaces the changes touched, so the open tabs and lists show them; an open file with unsaved
   // edits keeps them
-  private reload(
-    directoryId: string,
-    results: AiAssistChangeResult[],
-    edited: Set<string>,
-    editors: Map<string, string>,
-  ) {
+  private reload(directoryId: string, results: AiAssistChangeResult[]) {
     const applied = results.filter((r) => r.applied);
     // an added file is read whole; a changed one is read again, keeping edits the planner made meanwhile
     for (const result of applied.filter(
@@ -413,14 +403,7 @@ export class ProjectAssistantComponent {
           r.op === 'workspace.file.edit') &&
         r.fileId,
     )) {
-      this.fileService
-        .refreshFile(
-          result.fileId,
-          edited.has(result.fileId),
-          editors.get(result.fileId),
-        )
-        .pipe(take(1))
-        .subscribe();
+      this.fileService.refreshFile(result.fileId).pipe(take(1)).subscribe();
     }
     for (const result of applied.filter(
       (r) => r.op === 'workspace.version' && r.workspaceId,

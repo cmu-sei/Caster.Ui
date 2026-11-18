@@ -127,7 +127,7 @@ describe('FileService', () => {
         [file({ content: 'old', editorContent: 'B' })],
       );
 
-      await firstValueFrom(service.refreshFile('f1', false, 'old'));
+      await firstValueFrom(service.refreshFile('f1'));
 
       expect(query.getEntity('f1').content).toBe('ai content');
       expect(query.getEntity('f1').editorContent).toBe('B');
@@ -137,15 +137,16 @@ describe('FileService', () => {
     /**
      * Verifies: a clean tab whose file event arrived before the read still shows the new content.
      * Interacts with: FilesService.getFile (stub); fileUpdated.
-     * Data: stored f1 with buffer 'A' (clean at Apply), the event set content 'B' first, wasEdited false, editor at start 'A'.
+     * Data: stored f1 clean on 'A'; the event brings 'B' before the read.
      */
     it('shows the new content when the file event arrived first', async () => {
       const { service, query } = setup(
         { getFile: vi.fn(() => of(file({ content: 'B' }))) },
-        [file({ content: 'B', editorContent: 'A' })],
+        [file({ content: 'A', editorContent: 'A' })],
       );
+      service.fileUpdated(file({ content: 'B' }));
 
-      await firstValueFrom(service.refreshFile('f1', false, 'A'));
+      await firstValueFrom(service.refreshFile('f1'));
 
       expect(query.getEntity('f1').editorContent).toBe('B');
       expect(query.ui.getEntity('f1').isSaved).toBe(true);
@@ -162,7 +163,7 @@ describe('FileService', () => {
         [file({ content: 'old', editorContent: 'typed' })],
       );
 
-      await firstValueFrom(service.refreshFile('f1', false, undefined));
+      await firstValueFrom(service.refreshFile('f1'));
 
       expect(query.getEntity('f1').editorContent).toBe('typed');
       expect(query.ui.getEntity('f1').isSaved).toBe(false);
@@ -178,13 +179,47 @@ describe('FileService', () => {
       const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
         file({ content: 'old', editorContent: 'B' }),
       ]);
-      service.refreshFile('f1', true).subscribe();
+      service.refreshFile('f1').subscribe();
 
       service.fileUpdated(file({ content: 'B' }));
       answer.next(file({ content: 'A' }));
 
       expect(query.getEntity('f1').content).toBe('B');
       expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+  });
+
+  describe('fileUpdated following a change made elsewhere', () => {
+    /**
+     * Verifies: a tab with no unsaved edits follows a change from an event, so its buffer is not left on the old content.
+     * Interacts with: fileUpdated; isFileContentChanged.
+     * Data: stored f1 clean on 'old'; the event brings 'new' content.
+     */
+    it('moves a clean tab to the new content', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
+
+      service.fileUpdated(file({ content: 'new' }));
+
+      expect(query.getEntity('f1').editorContent).toBe('new');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a tab with unsaved edits keeps them when the event arrives.
+     * Interacts with: fileUpdated; isFileContentChanged.
+     * Data: near miss of the test above: stored f1 with buffer 'mine' over 'old'.
+     */
+    it('keeps the edits in a dirty tab', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'mine' }),
+      ]);
+
+      service.fileUpdated(file({ content: 'new' }));
+
+      expect(query.getEntity('f1').editorContent).toBe('mine');
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
     });
   });
 

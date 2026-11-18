@@ -155,7 +155,6 @@ async function renderPanel(
   } satisfies ApiStub<WorkspacesService>;
   const fileService = {
     refreshFile: vi.fn(() => of({})),
-    editedFileIds: vi.fn(() => new Set<string>(['main'])),
     loadFilesByDirectory: vi.fn(() => of([])),
   };
   const workspaceService = { updated: vi.fn() };
@@ -345,7 +344,7 @@ describe('ProjectAssistantComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Apply 1 change' }));
 
     expect(assistApi.applyAiAssistantChanges).toHaveBeenCalledTimes(1);
-    expect(fileService.refreshFile).toHaveBeenCalledWith('vars', false, 'a');
+    expect(fileService.refreshFile).toHaveBeenCalledWith('vars');
   });
 
   /**
@@ -385,7 +384,7 @@ describe('ProjectAssistantComponent', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Edit main.tf' }),
     ).toBeDisabled();
-    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true, 'a');
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main');
     expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
     // the refused change touched nothing
     expect(workspacesApi.getWorkspace).not.toHaveBeenCalled();
@@ -405,7 +404,7 @@ describe('ProjectAssistantComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Apply 3 changes' }));
 
-    expect(fileService.refreshFile).toHaveBeenCalledWith('main', true, 'b');
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main');
     expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
   });
 
