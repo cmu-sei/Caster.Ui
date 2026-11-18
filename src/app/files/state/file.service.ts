@@ -65,9 +65,11 @@ export class FileService {
             return;
           }
           // edits held when Apply was pressed, typed since, or typed while the read ran
+          // a file with no editor at Apply was opened since, so any difference in its buffer is the user's
           const typedSince =
-            editorAtStart !== undefined &&
-            before?.editorContent !== editorAtStart;
+            editorAtStart === undefined
+              ? isFileContentChanged(before)
+              : before?.editorContent !== editorAtStart;
           const edited = wasEdited || typedSince || typed;
           this.fileStore.upsert(file.id, {
             ...file,

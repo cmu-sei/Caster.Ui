@@ -152,6 +152,23 @@ describe('FileService', () => {
     });
 
     /**
+     * Verifies: edits in a file that was opened while Apply ran, so had no editor at Apply, are kept.
+     * Interacts with: FilesService.getFile (stub); isFileContentChanged.
+     * Data: stored f1 with buffer 'typed' over content 'old'; no editor content was known at Apply.
+     */
+    it('keeps edits in a file opened while the change was applied', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
+        [file({ content: 'old', editorContent: 'typed' })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1', false, undefined));
+
+      expect(query.getEntity('f1').editorContent).toBe('typed');
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
      * Verifies: saving the existing edits while the read is pending drops the older answer.
      * Interacts with: FilesService.getFile (stub, a Subject answered late); fileUpdated.
      * Data: stored f1 with unsaved buffer 'B', wasEdited true; the planner saves 'B', then the read of 'A' answers.
