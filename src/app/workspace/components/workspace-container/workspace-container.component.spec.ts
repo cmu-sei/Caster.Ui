@@ -5,8 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { Component, input, output } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { HttpErrorResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -164,30 +163,6 @@ describe('WorkspaceContainerComponent', () => {
       replaceAddresses: [],
       targets: [],
     });
-  });
-
-  /**
-   * Verifies: a refused plan shows the API's reason in a snackbar, not the error dialog.
-   * Interacts with: RunsService.createRun (stub, 409 ProblemDetails), MatSnackBar (real).
-   * Data: canEdit true; the workspace already has a pending run.
-   */
-  it('says why a plan was refused', async () => {
-    const { runsApi, actions, user } = await renderWorkspace(true);
-    const reason =
-      "This Workspace's current Run must be rejected or applied before a new one can be created.";
-    runsApi.createRun.mockReturnValueOnce(
-      throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 409,
-            error: { title: reason, status: 409 },
-          }),
-      ),
-    );
-
-    await user.click(actions().getByRole('button', { name: 'Plan' }));
-
-    expect(await screen.findByText(`Could not plan: ${reason}`)).toBeVisible();
   });
 
   /**

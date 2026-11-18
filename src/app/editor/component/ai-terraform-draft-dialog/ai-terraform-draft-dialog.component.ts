@@ -5,7 +5,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpErrorResponse } from '@angular/common/http';
+import { aiErrorMessage } from 'src/app/shared/utilities/ai-error-message';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -162,7 +162,7 @@ export class AiTerraformDraftDialogComponent {
           this.loading = false;
         },
         error: (err) => {
-          this.errorMessage = this.getErrorMessage(err, 'The draft failed.');
+          this.errorMessage = aiErrorMessage(err, 'The draft failed.');
           this.loading = false;
         },
       });
@@ -193,7 +193,7 @@ export class AiTerraformDraftDialogComponent {
             }),
           ),
         error: (err) => {
-          this.errorMessage = this.getErrorMessage(
+          this.errorMessage = aiErrorMessage(
             err,
             'The files could not be saved.',
           );
@@ -222,21 +222,5 @@ export class AiTerraformDraftDialogComponent {
 
   close() {
     this.dialogRef.close();
-  }
-
-  private getErrorMessage(err: unknown, fallback: string): string {
-    if (err instanceof HttpErrorResponse && err.status === 0) {
-      return 'The API could not be reached.';
-    }
-    const failure = err as {
-      error?: { title?: string; detail?: string };
-      message?: string;
-    } | null;
-    const title = failure?.error?.title;
-    const detail = failure?.error?.detail;
-    if (title) {
-      return detail && detail !== title ? `${title} ${detail}` : title;
-    }
-    return failure?.message || fallback;
   }
 }

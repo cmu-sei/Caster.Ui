@@ -12,7 +12,7 @@ import {
   untracked,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { HttpErrorResponse } from '@angular/common/http';
+import { aiErrorMessage } from 'src/app/shared/utilities/ai-error-message';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs/operators';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -265,7 +265,7 @@ export class ProjectAssistantComponent {
           this.addTurn({
             role: 'assistant',
             text: '',
-            error: this.getErrorMessage(err, 'The request failed.'),
+            error: aiErrorMessage(err, 'The request failed.'),
           });
           this.isAsking.set(false);
         },
@@ -309,10 +309,7 @@ export class ProjectAssistantComponent {
         },
         error: (err) => {
           this.updateTurn(turnIndex, {
-            error: this.getErrorMessage(
-              err,
-              'The changes could not be applied.',
-            ),
+            error: aiErrorMessage(err, 'The changes could not be applied.'),
           });
           this.isApplying.set(false);
         },
@@ -419,21 +416,5 @@ export class ProjectAssistantComponent {
         .pipe(take(1))
         .subscribe((workspace) => this.workspaceService.updated(workspace));
     }
-  }
-
-  private getErrorMessage(err: unknown, fallback: string): string {
-    if (err instanceof HttpErrorResponse && err.status === 0) {
-      return 'The API could not be reached.';
-    }
-    const failure = err as {
-      error?: { title?: string; detail?: string };
-      message?: string;
-    } | null;
-    const title = failure?.error?.title;
-    const detail = failure?.error?.detail;
-    if (title) {
-      return detail && detail !== title ? `${title} ${detail}` : title;
-    }
-    return failure?.message || fallback;
   }
 }
