@@ -1,6 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+import { AiUsageRefreshService } from 'src/app/shared/utilities/ai-usage-refresh.service';
 import {
   Component,
   computed,
@@ -14,7 +15,7 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { aiErrorMessage } from 'src/app/shared/utilities/ai-error-message';
 import { FormsModule } from '@angular/forms';
-import { take } from 'rxjs/operators';
+import { take, finalize } from 'rxjs/operators';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -35,7 +36,6 @@ import { DirectoryQuery } from 'src/app/directories/state';
 import {
   FileQuery,
   FileService,
-  isFileContentChanged,
 } from 'src/app/files/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 import { CurrentUserQuery } from 'src/app/users/state';
@@ -88,6 +88,7 @@ export interface AssistTurn {
 })
 export class ProjectAssistantComponent {
   private aiAssistService = inject(AiAssistService);
+  private aiUsage = inject(AiUsageRefreshService);
   private workspacesService = inject(WorkspacesService);
   private directoryQuery = inject(DirectoryQuery);
   private workspaceQuery = inject(WorkspaceQuery);
@@ -243,7 +244,10 @@ export class ProjectAssistantComponent {
         workspaceId: this.selectedWorkspaceId() || null,
         history,
       })
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        finalize(() => this.aiUsage.called()),
+      )
       .subscribe({
         next: (result) => {
           this.addTurn({
@@ -394,19 +398,15 @@ export class ProjectAssistantComponent {
   // edits keeps them
   private reload(directoryId: string, results: AiAssistChangeResult[]) {
     const applied = results.filter((r) => r.applied);
-    if (applied.some((r) => r.op === 'file.add')) {
-      this.fileService
-        .loadFilesByDirectory(directoryId)
-        .pipe(take(1))
-        .subscribe();
-    }
+    // an added file is read whole; a changed one is read again, keeping edits the planner made meanwhile
     for (const result of applied.filter(
       (r) =>
-        (r.op === 'file.edit' || r.op === 'workspace.file.edit') && r.fileId,
+        (r.op === 'file.add' ||
+          r.op === 'file.edit' ||
+          r.op === 'workspace.file.edit') &&
+        r.fileId,
     )) {
-      if (!isFileContentChanged(this.fileQuery.getEntity(result.fileId))) {
-        this.fileService.loadFile(result.fileId).pipe(take(1)).subscribe();
-      }
+      this.fileService.refreshFile(result.fileId).pipe(take(1)).subscribe();
     }
     for (const result of applied.filter(
       (r) => r.op === 'workspace.version' && r.workspaceId,

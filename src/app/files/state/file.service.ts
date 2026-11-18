@@ -29,6 +29,39 @@ export class FileService {
     );
   }
 
+  /**
+   * Reads a file again after something else saved it, keeping edits the user has made in the open editor, including
+   * edits made while the read was in flight.
+   */
+  refreshFile(fileId: string): Observable<ModelFile> {
+    return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
+      tap((file: ModelFile) => {
+        const current = this.fileQuery.getEntity(fileId);
+        const edited = isFileContentChanged(current);
+        this.fileStore.upsert(file.id, {
+          ...file,
+          editorContent: edited ? current.editorContent : file.content,
+        });
+        this.setSave(fileId, !edited);
+      }),
+    );
+  }
+
+  /** Files an AI draft saved: an open tab shows them, unless it holds edits that are not saved. */
+  aiFilesSaved(files: ModelFile[]) {
+    files.forEach((file) => {
+      const edited = isFileContentChanged(this.fileQuery.getEntity(file.id));
+      if (edited) {
+        // the saved content is the new one, the editor keeps what the user typed
+        const saved = { ...file };
+        delete saved.editorContent;
+        this.fileUpdated(saved);
+      } else {
+        this.fileUpdated(file);
+      }
+    });
+  }
+
   loadFilesByDirectory(directoryId: string): Observable<ModelFile[]> {
     return this.filesService.getFilesByDirectory(directoryId, false).pipe(
       tap((files) => {
@@ -124,7 +157,7 @@ export class FileService {
     // Unsaved edits stay unsaved through updates that don't touch them
     this.setSave(
       file.id,
-      !isFileContentChanged(this.fileQuery.getEntity(file.id))
+      !isFileContentChanged(this.fileQuery.getEntity(file.id)),
     );
   }
 

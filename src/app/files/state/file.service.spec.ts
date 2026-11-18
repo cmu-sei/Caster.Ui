@@ -54,6 +54,85 @@ function setup(filesApi: ApiStub<FilesService> = {}, files: ModelFile[] = []) {
 const boom = () => throwError(() => new Error('boom'));
 
 describe('FileService', () => {
+  describe('refreshFile', () => {
+    /**
+     * Verifies: a file read again shows the new content in a clean editor and marks it saved.
+     * Interacts with: FilesService.getFile (stub); FileStore.upsert; setSave.
+     * Data: stored f1 with no edits; the API returns new content.
+     */
+    it('shows the new content when the user has no edits', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
+        [file({ content: 'old', editorContent: 'old' })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1'));
+
+      expect(query.getEntity('f1').editorContent).toBe('ai content');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: edits made while the read is in flight are kept, not replaced by the response.
+     * Interacts with: FilesService.getFile (stub, a Subject answered late); updateEditorContent.
+     * Data: stored f1 clean when the read starts; the user types before the answer arrives.
+     */
+    it('keeps edits made while the read was in flight', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup(
+        { getFile: vi.fn(() => answer) },
+        [file({ content: 'old', editorContent: 'old' })],
+      );
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'typed meanwhile');
+      answer.next(file({ content: 'ai content' }));
+
+      expect(query.getEntity('f1').content).toBe('ai content');
+      expect(query.getEntity('f1').editorContent).toBe('typed meanwhile');
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+  });
+
+  describe('aiFilesSaved', () => {
+    /**
+     * Verifies: a saved file with no edits open shows what the draft saved.
+     * Interacts with: fileUpdated; isFileContentChanged.
+     * Data: stored f1 clean; saved f1 with new content and editorContent.
+     */
+    it('shows the saved content in a clean tab', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
+
+      service.aiFilesSaved([
+        file({ content: 'ai content', editorContent: 'ai content' }),
+      ]);
+
+      expect(query.getEntity('f1').editorContent).toBe('ai content');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: unsaved edits in the open tab are not replaced by a saved draft, and the file stays unsaved.
+     * Interacts with: fileUpdated; isFileContentChanged.
+     * Data: near miss of the test above: stored f1 with editor content 'my edits' over 'old'.
+     */
+    it('keeps unsaved edits in the tab', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'my edits' }),
+      ]);
+
+      service.aiFilesSaved([
+        file({ content: 'ai content', editorContent: 'ai content' }),
+      ]);
+
+      expect(query.getEntity('f1').content).toBe('ai content');
+      expect(query.getEntity('f1').editorContent).toBe('my edits');
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+  });
+
   describe('loadFile', () => {
     /**
      * Verifies: loading a file stores it with editorContent copied from the

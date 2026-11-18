@@ -555,7 +555,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         }
       )
       .afterClosed()
-      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
+      .subscribe((files) => files && this.fileService.aiFilesSaved(files));
   }
 
   draftDesignWithAi(dir: Directory) {

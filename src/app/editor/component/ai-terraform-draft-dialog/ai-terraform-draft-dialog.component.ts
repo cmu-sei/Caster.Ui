@@ -3,11 +3,12 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
+import { AiUsageRefreshService } from 'src/app/shared/utilities/ai-usage-refresh.service';
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { aiErrorMessage } from 'src/app/shared/utilities/ai-error-message';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { take } from 'rxjs/operators';
+import { take, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
@@ -98,6 +99,7 @@ export class AiTerraformDraftDialogComponent {
       MatDialogRef,
     );
   private filesService = inject(FilesService);
+  private aiUsage = inject(AiUsageRefreshService);
 
   constructor() {
     inject(CurrentUserQuery)
@@ -153,7 +155,10 @@ export class AiTerraformDraftDialogComponent {
         prompt: this.prompt,
         fileId: this.data.fileId ?? null,
       })
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        finalize(() => this.aiUsage.called()),
+      )
       .subscribe({
         next: (draft) => {
           this.draft = draft;
@@ -171,9 +176,11 @@ export class AiTerraformDraftDialogComponent {
   apply() {
     this.loading = true;
     this.errorMessage = '';
+    // what is saved is what was kept when Apply was pressed, however the checkboxes change while it runs
+    const kept = this.kept;
     this.filesService
       .applyAiTerraformDraft(this.data.directoryId, {
-        files: this.kept.map(({ file }) => ({
+        files: kept.map(({ file }) => ({
           name: file.name,
           content: file.content,
           existingFileId: file.existingFileId ?? null,
@@ -187,7 +194,7 @@ export class AiTerraformDraftDialogComponent {
           this.dialogRef.close(
             files.map((saved) => {
               const content =
-                this.kept.find((r) => r.file.name === saved.name)?.file
+                kept.find((r) => r.file.name === saved.name)?.file
                   .content ?? saved.content;
               return { ...saved, content, editorContent: content };
             }),

@@ -8,6 +8,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import {
@@ -20,6 +21,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatDivider } from '@angular/material/list';
 import { take } from 'rxjs/operators';
 import { ProjectAiUsage, ProjectsService } from 'src/app/generated/caster-api';
+import { AiUsageRefreshService } from 'src/app/shared/utilities/ai-usage-refresh.service';
 
 /**
  * What drafting with AI used in this project: every call to an AI model made
@@ -44,6 +46,7 @@ import { ProjectAiUsage, ProjectsService } from 'src/app/generated/caster-api';
 })
 export class ProjectAiUsageComponent {
   private projectsService = inject(ProjectsService);
+  private refresh = inject(AiUsageRefreshService);
 
   readonly projectId = input<string>(undefined);
   readonly usage = signal<ProjectAiUsage | undefined>(undefined);
@@ -62,6 +65,15 @@ export class ProjectAiUsageComponent {
       this.usage.set(undefined);
       if (projectId) {
         this.load(projectId);
+      }
+    });
+    // a draft or an Ask AI request made since: the first one shows a panel that was hidden
+    effect(() => {
+      if (this.refresh.calls() > 0) {
+        const projectId = untracked(() => this.projectId());
+        if (projectId) {
+          this.load(projectId);
+        }
       }
     });
   }

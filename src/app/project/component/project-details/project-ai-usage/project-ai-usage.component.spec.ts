@@ -8,6 +8,8 @@ import { Observable, of, throwError } from 'rxjs';
 import { ProjectAiUsage, ProjectsService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import { TestBed } from '@angular/core/testing';
+import { AiUsageRefreshService } from 'src/app/shared/utilities/ai-usage-refresh.service';
 import { ProjectAiUsageComponent } from './project-ai-usage.component';
 
 const USAGE: ProjectAiUsage = {
@@ -257,5 +259,27 @@ describe('ProjectAiUsageComponent', () => {
     expect(
       screen.queryByRole('button', { name: /AI USAGE/ }),
     ).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a project with no calls shows no panel, and the first draft or Ask AI request shows it, with no reload of the page.
+   * Interacts with: ProjectsService.getProjectAiUsage, AiUsageRefreshService.
+   * Data: the server answers no calls, then three.
+   */
+  it('shows the panel once the first AI request has been made', async () => {
+    let usage: ProjectAiUsage = { calls: 0, byTask: [] };
+    const { fixture, projectsApi } = await renderUsage(() => of(usage));
+    expect(
+      screen.queryByRole('button', { name: /AI USAGE/ }),
+    ).not.toBeInTheDocument();
+
+    usage = USAGE;
+    TestBed.inject(AiUsageRefreshService).called();
+    fixture.detectChanges();
+
+    expect(projectsApi.getProjectAiUsage).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByRole('button', { name: /AI USAGE/ }),
+    ).toBeInTheDocument();
   });
 });

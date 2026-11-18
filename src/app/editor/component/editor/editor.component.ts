@@ -547,7 +547,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
         maxHeight: '90vh',
       })
       .afterClosed()
-      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
+      .subscribe((files) => files && this.fileService.aiFilesSaved(files));
   }
 
   lockFile() {

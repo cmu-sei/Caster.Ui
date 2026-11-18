@@ -1,10 +1,11 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+import { AiUsageRefreshService } from 'src/app/shared/utilities/ai-usage-refresh.service';
 import { Component, inject, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { take } from 'rxjs/operators';
+import { take, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
@@ -112,6 +113,7 @@ export class AiDesignDraftDialogComponent implements OnInit {
   private dialogRef =
     inject<MatDialogRef<AiDesignDraftDialogComponent, Design>>(MatDialogRef);
   private designsService = inject(DesignsService);
+  private aiUsage = inject(AiUsageRefreshService);
 
   ngOnInit() {
     this.designsService
@@ -180,7 +182,10 @@ export class AiDesignDraftDialogComponent implements OnInit {
         designName: this.designName.trim() || null,
         hypervisors: this.requestedHypervisors,
       })
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        finalize(() => this.aiUsage.called()),
+      )
       .subscribe({
         next: (draft) => {
           this.loading = false;

@@ -154,7 +154,7 @@ async function renderPanel(
     ),
   } satisfies ApiStub<WorkspacesService>;
   const fileService = {
-    loadFile: vi.fn(() => of({})),
+    refreshFile: vi.fn(() => of({})),
     loadFilesByDirectory: vi.fn(() => of([])),
   };
   const workspaceService = { updated: vi.fn() };
@@ -290,7 +290,7 @@ describe('ProjectAssistantComponent', () => {
 
   /**
    * Verifies: a change to a workspace's own file shows as a diff like a directory file's, and applying it reloads that file.
-   * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.loadFile, the diff stub.
+   * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.refreshFile, the diff stub.
    * Data: dev's variables.auto.tfvars, workstations 2 to 4.
    */
   it('shows a workspace file change as a diff and reloads the file when it is applied', async () => {
@@ -338,13 +338,13 @@ describe('ProjectAssistantComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Apply 1 change' }));
 
     expect(assistApi.applyAiAssistantChanges).toHaveBeenCalledTimes(1);
-    expect(fileService.loadFile).toHaveBeenCalledWith('vars');
+    expect(fileService.refreshFile).toHaveBeenCalledWith('vars');
   });
 
   /**
    * Verifies: Apply sends only the kept changes, shows what came of each, and reloads the file and workspace they touched,
    * leaving an open file's unsaved edits alone.
-   * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.loadFile, WorkspacesService.getWorkspace.
+   * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.refreshFile, WorkspacesService.getWorkspace.
    * Data: the new file left out; main.tf applied; the version change refused as stale.
    */
   it('applies the kept changes and shows the result of each', async () => {
@@ -378,13 +378,19 @@ describe('ProjectAssistantComponent', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Edit main.tf' }),
     ).toBeDisabled();
-    expect(fileService.loadFile).toHaveBeenCalledWith('main');
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main');
     expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
     // the refused change touched nothing
     expect(workspacesApi.getWorkspace).not.toHaveBeenCalled();
   });
 
-  it('leaves an open file with unsaved edits as it is', async () => {
+  /**
+   * Verifies: a changed file is read again whatever is open, since the service keeps unsaved edits, so one made while the
+   * read is in flight is kept too.
+   * Interacts with: FileService.refreshFile.
+   * Data: main.tf open with unsaved edits; applying the three changes.
+   */
+  it('reads a changed file through the service that keeps unsaved edits', async () => {
     const { fileService, user } = await renderPanel(undefined, undefined, [
       'main',
     ]);
@@ -392,8 +398,10 @@ describe('ProjectAssistantComponent', () => {
 
     await user.click(screen.getByRole('button', { name: 'Apply 3 changes' }));
 
-    expect(fileService.loadFile).not.toHaveBeenCalled();
+    expect(fileService.refreshFile).toHaveBeenCalledWith('main');
+    expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
   });
+
 
   /**
    * Verifies: a follow-up resends the conversation, the earlier reply with what it proposed and what was applied.
