@@ -231,6 +231,56 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
+   * Verifies: the Ask AI panel stays in the page, opened and closed, so the page takes back its width when it closes.
+   * Interacts with: MatSidenav (real), the Ask AI button.
+   * Data: active project p1 Range; system permission EditProjects.
+   */
+  it('keeps the Ask AI sidenav in the page and closes it, so the page takes its width back', async () => {
+    const user = userEvent.setup();
+    const { fixture } = await renderContainer([SystemPermission.EditProjects]);
+    const sidenav = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        '.assistant-sidenav',
+      );
+    expect(sidenav()).not.toBeNull();
+    expect(sidenav()?.classList).not.toContain('mat-drawer-opened');
+
+    await user.click(screen.getByRole('button', { name: 'Ask AI' }));
+    fixture.detectChanges();
+    expect(sidenav()?.classList).toContain('mat-drawer-opened');
+
+    await user.click(screen.getByRole('button', { name: 'Ask AI' }));
+    fixture.detectChanges();
+    expect(sidenav()?.classList).not.toContain('mat-drawer-opened');
+    expect(sidenav()).not.toBeNull();
+  });
+
+  /**
+   * Verifies: dragging the panel's edge sets its width within what the window allows, and the width is remembered.
+   * Interacts with: the container's resize handlers, localStorage.
+   * Data: widths below the minimum, in range and above 80% of the window.
+   */
+  it('resizes the Ask AI panel within limits and remembers the width', async () => {
+    localStorage.removeItem('caster.askAiPanelWidth');
+    const { fixture } = await renderContainer([SystemPermission.EditProjects]);
+    const container = fixture.componentInstance;
+    const max = Math.floor(window.innerWidth * 0.8);
+
+    expect(container.assistantWidth()).toBe(440);
+    container.assistantResizingFn({ rectangle: { width: 100 } });
+    expect(container.assistantWidth()).toBe(320);
+    container.assistantResizingFn({ rectangle: { width: 600 } });
+    expect(container.assistantWidth()).toBe(Math.min(600, max));
+    container.assistantResizingFn({ rectangle: { width: 100000 } });
+    expect(container.assistantWidth()).toBe(max);
+
+    container.assistantResizeEndFn({ rectangle: { width: 520 } });
+    expect(localStorage.getItem('caster.askAiPanelWidth')).toBe(
+      String(Math.min(520, max)),
+    );
+  });
+
+  /**
    * Verifies: a user who may only view the project is not offered Ask AI.
    * Interacts with: PermissionService.canEditProject (real) over stubbed system permissions.
    * Data: active project p1 Range; system permission ViewProjects only.

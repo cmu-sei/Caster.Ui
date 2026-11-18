@@ -58,6 +58,11 @@ import { ProjectAssistantComponent } from '../project-assistant/project-assistan
 import { MatButton } from '@angular/material/button';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
+const ASSISTANT_DEFAULT_WIDTH = 440;
+const ASSISTANT_MIN_WIDTH = 320;
+// never so wide the tabs have no room
+const ASSISTANT_MAX_VIEWPORT_SHARE = 0.8;
+const ASSISTANT_WIDTH_KEY = 'caster.askAiPanelWidth';
 
 @Component({
   selector: 'cas-project-collapse-container',
@@ -114,6 +119,13 @@ export class ProjectCollapseContainerComponent
   public canEditProject$: Observable<boolean>;
   /** Whether the Ask AI panel is open; it stays open across the project's tabs. */
   readonly assistantOpen = signal(false);
+  /** How wide the Ask AI panel is; the planner drags its left edge to change it. */
+  readonly assistantWidth = signal(
+    this.clampAssistantWidth(
+      Number(localStorage.getItem(ASSISTANT_WIDTH_KEY)) ||
+        ASSISTANT_DEFAULT_WIDTH,
+    ),
+  );
   /** The directory and workspace of the open tab, which Ask AI starts on. */
   readonly assistantScope = signal<{
     directoryId?: string;
@@ -223,6 +235,29 @@ export class ProjectCollapseContainerComponent
         ? event.rectangle.width
         : LEFT_SIDEBAR_MIN_WIDTH;
     this.leftSidebarWidth = width;
+  }
+
+  /** The Ask AI panel's width, within what the window allows. */
+  private clampAssistantWidth(width: number): number {
+    const max = Math.max(
+      ASSISTANT_MIN_WIDTH,
+      Math.floor(window.innerWidth * ASSISTANT_MAX_VIEWPORT_SHARE),
+    );
+    return Math.min(Math.max(width, ASSISTANT_MIN_WIDTH), max);
+  }
+
+  assistantResizingFn(event: { rectangle: { width?: number } }) {
+    this.assistantWidth.set(
+      this.clampAssistantWidth(
+        event.rectangle.width ?? ASSISTANT_DEFAULT_WIDTH,
+      ),
+    );
+  }
+
+  assistantResizeEndFn(event: { rectangle: { width?: number } }) {
+    this.assistantResizingFn(event);
+    // kept for the next page and visit, as a window setting, not a project's
+    localStorage.setItem(ASSISTANT_WIDTH_KEY, String(this.assistantWidth()));
   }
 
   resizeEndFn(event) {

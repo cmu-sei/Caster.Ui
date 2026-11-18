@@ -124,9 +124,17 @@ a {
 }
 
 .assistant-sidenav {
-  width: 440px;
-  max-width: 50vw;
   border-left: solid var(--mat-sys-surface-container);
+}
+
+.resize-handle-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  z-index: 2;
+  cursor: col-resize;
 }
 
 .ask-ai {
