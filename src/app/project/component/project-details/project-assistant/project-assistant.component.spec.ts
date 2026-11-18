@@ -289,6 +289,59 @@ describe('ProjectAssistantComponent', () => {
   });
 
   /**
+   * Verifies: a change to a workspace's own file shows as a diff like a directory file's, and applying it reloads that file.
+   * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.loadFile, the diff stub.
+   * Data: dev's variables.auto.tfvars, workstations 2 to 4.
+   */
+  it('shows a workspace file change as a diff and reloads the file when it is applied', async () => {
+    const workspaceFileAnswer: AiAssistResult = {
+      reply: 'Raised the workstation count.',
+      cause: 'none',
+      changes: [
+        {
+          op: 'workspace.file.edit',
+          label: 'Edit variables.auto.tfvars in dev',
+          fileId: 'vars',
+          fileName: 'variables.auto.tfvars',
+          workspaceId: 'dev',
+          workspaceName: 'dev',
+          content: 'workstations = 4\n',
+          existingContent: 'workstations = 2\n',
+          existingContentHash: 'HASH',
+        },
+      ],
+    };
+    const { fixture, assistApi, fileService, user } = await renderPanel({
+      askAiAssistant: vi.fn(() => of(structuredClone(workspaceFileAnswer))),
+      applyAiAssistantChanges: vi.fn(() =>
+        of({
+          results: [
+            {
+              op: 'workspace.file.edit',
+              label: 'Edit variables.auto.tfvars in dev',
+              applied: true,
+              fileId: 'vars',
+              workspaceId: 'dev',
+            },
+          ],
+        }),
+      ),
+    });
+    await ask(user, 'raise the workstations to 4');
+
+    // a lone file change opens as a diff of itself
+    const diff = fixture.debugElement.query(By.directive(DiffEditorStub))
+      .componentInstance as DiffEditorStub;
+    expect(diff.originalModel()?.code).toBe('workstations = 2\n');
+    expect(diff.modifiedModel()?.code).toBe('workstations = 4\n');
+
+    await user.click(screen.getByRole('button', { name: 'Apply 1 change' }));
+
+    expect(assistApi.applyAiAssistantChanges).toHaveBeenCalledTimes(1);
+    expect(fileService.loadFile).toHaveBeenCalledWith('vars');
+  });
+
+  /**
    * Verifies: Apply sends only the kept changes, shows what came of each, and reloads the file and workspace they touched,
    * leaving an open file's unsaved edits alone.
    * Interacts with: AiAssistService.applyAiAssistantChanges, FileService.loadFile, WorkspacesService.getWorkspace.
@@ -425,10 +478,9 @@ describe('ProjectAssistantComponent', () => {
     fixture.detectChanges();
     await ask(user, 'and another');
 
-    expect(assistApi.askAiAssistant.mock.calls.map((c) => (c as unknown[])[0])).toEqual([
-      'range',
-      'range',
-    ]);
+    expect(
+      assistApi.askAiAssistant.mock.calls.map((c) => (c as unknown[])[0]),
+    ).toEqual(['range', 'range']);
   });
 
   /**

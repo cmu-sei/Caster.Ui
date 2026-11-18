@@ -341,7 +341,12 @@ export class ProjectAssistantComponent {
   }
 
   isFile(change: AiAssistChange): boolean {
-    return change.op === 'file.add' || change.op === 'file.edit';
+    return change.op === 'file.add' || this.isEdit(change);
+  }
+
+  /** A file replaced, whether the directory's or a workspace's own: shown as what changes. */
+  isEdit(change: AiAssistChange): boolean {
+    return change.op === 'file.edit' || change.op === 'workspace.file.edit';
   }
 
   language(name: string): string {
@@ -399,7 +404,8 @@ export class ProjectAssistantComponent {
         .subscribe();
     }
     for (const result of applied.filter(
-      (r) => r.op === 'file.edit' && r.fileId,
+      (r) =>
+        (r.op === 'file.edit' || r.op === 'workspace.file.edit') && r.fileId,
     )) {
       if (!isFileContentChanged(this.fileQuery.getEntity(result.fileId))) {
         this.fileService.loadFile(result.fileId).pipe(take(1)).subscribe();

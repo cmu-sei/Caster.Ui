@@ -127,7 +127,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         {{
                           row.open
                             ? 'Hide'
-                            : row.change.op === 'file.edit'
+                            : isEdit(row.change)
                               ? 'Show changes'
                               : 'Show file'
                         }}
@@ -136,7 +136,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   </div>
                   @if (row.open && isFile(row.change)) {
                     <div class="code">
-                      @if (row.change.op === 'file.edit') {
+                      @if (isEdit(row.change)) {
                         <ngx-monaco-diff-editor
                           [options]="editorOptions"
                           [originalModel]="{
