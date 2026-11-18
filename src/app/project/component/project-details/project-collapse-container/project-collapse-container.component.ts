@@ -55,7 +55,7 @@ import { AsyncPipe } from '@angular/common';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
 import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
 import { ProjectAssistantComponent } from '../project-assistant/project-assistant.component';
-import { MatButton } from '@angular/material/button';
+import { MatIconButton } from '@angular/material/button';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
 const ASSISTANT_DEFAULT_WIDTH = 440;
@@ -85,7 +85,7 @@ const ASSISTANT_WIDTH_KEY = 'caster.askAiPanelWidth';
     InventoryPanelComponent,
     ProjectAiUsageComponent,
     ProjectAssistantComponent,
-    MatButton,
+    MatIconButton,
     AsyncPipe,
   ],
 })

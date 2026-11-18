@@ -231,6 +231,19 @@ describe('ProjectCollapseContainerComponent', () => {
   });
 
   /**
+   * Verifies: the Ask AI button is a real Material icon button, so it is drawn like the bar's other icon buttons.
+   * Interacts with: MatIconButton (real), the Ask AI button.
+   * Data: system permission EditProjects.
+   */
+  it('draws Ask AI as a Material icon button', async () => {
+    await renderContainer([SystemPermission.EditProjects]);
+
+    expect(screen.getByRole('button', { name: 'Ask AI' })).toHaveClass(
+      'mat-mdc-icon-button',
+    );
+  });
+
+  /**
    * Verifies: the Ask AI panel stays in the page, opened and closed, so the page takes back its width when it closes.
    * Interacts with: MatSidenav (real), the Ask AI button.
    * Data: active project p1 Range; system permission EditProjects.
