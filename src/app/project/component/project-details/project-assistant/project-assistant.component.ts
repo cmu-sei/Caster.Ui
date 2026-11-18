@@ -33,7 +33,7 @@ import {
   WorkspacesService,
 } from 'src/app/generated/caster-api';
 import { DirectoryQuery } from 'src/app/directories/state';
-import { FileQuery, FileService } from 'src/app/files/state';
+import { FileService } from 'src/app/files/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 import { CurrentUserQuery } from 'src/app/users/state';
 
@@ -89,7 +89,6 @@ export class ProjectAssistantComponent {
   private workspacesService = inject(WorkspacesService);
   private directoryQuery = inject(DirectoryQuery);
   private workspaceQuery = inject(WorkspaceQuery);
-  private fileQuery = inject(FileQuery);
   private fileService = inject(FileService);
   private workspaceService = inject(WorkspaceService);
 

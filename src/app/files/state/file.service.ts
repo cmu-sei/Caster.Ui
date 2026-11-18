@@ -2,12 +2,12 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable, inject } from '@angular/core';
-import { defer, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
 import { FilesService, ModelFile } from '../../generated/caster-api';
-import { isFileContentChanged, isSameContent } from './file-content';
+import { isFileContentChanged } from './file-content';
 import { FileQuery } from './file.query';
 import { FileStore } from './file.store';
 
@@ -29,72 +29,11 @@ export class FileService {
     );
   }
 
-  /** The files whose open editor holds edits that are not saved, to ask before something else saves them. */
-  editedFileIds(): Set<string> {
-    return new Set(
-      this.fileQuery
-        .getAll()
-        .filter((f) => isFileContentChanged(f))
-        .map((f) => f.id),
-    );
-  }
-
-  /**
-   * Reads a file again after something else saved it. Edits the user has, or makes while the read is in flight, are
-   * kept, and an answer older than a save the user made meanwhile is dropped.
-   */
+  /** Reads a file again after something else saved it; the store decides what an open tab shows (see fileUpdated). */
   refreshFile(fileId: string): Observable<ModelFile> {
-    return defer(() => {
-      const before = this.fileQuery.getEntity(fileId);
-      return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
-        tap((file: ModelFile) => {
-          const current = this.fileQuery.getEntity(fileId);
-          // the content changed since the read began, to something other than this answer: that is newer than it
-          if (
-            current &&
-            current.content !== before?.content &&
-            current.content !== file.content
-          ) {
-            return;
-          }
-          const edited =
-            isFileContentChanged(before) ||
-            current?.editorContent !== before?.editorContent;
-          this.fileStore.upsert(file.id, {
-            ...file,
-            editorContent: edited ? current?.editorContent : file.content,
-          });
-          this.setSave(
-            fileId,
-            !edited || isSameContent(current?.editorContent, file.content),
-          );
-        }),
-      );
-    });
-  }
-
-  /**
-   * Files an AI draft saved: an open tab shows them, unless it held edits that were not saved when the draft was
-   * started, which stay in the editor.
-   * @param edited the files with unsaved edits when the draft was started, from editedFileIds
-   */
-  aiFilesSaved(files: ModelFile[], edited = new Set<string>()) {
-    files.forEach((file) => {
-      if (edited.has(file.id)) {
-        // the saved content is the new one, the editor keeps what the user typed
-        const saved = { ...file };
-        delete saved.editorContent;
-        this.fileUpdated(saved);
-        this.setSave(
-          file.id,
-          !isFileContentChanged(this.fileQuery.getEntity(file.id)),
-        );
-      } else {
-        // the file's own SignalR event may have arrived first, leaving the old buffer beside the new content
-        this.fileUpdated({ ...file, editorContent: file.content });
-        this.setSave(file.id, true);
-      }
-    });
+    return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
+      tap((file: ModelFile) => this.fileUpdated(file)),
+    );
   }
 
   loadFilesByDirectory(directoryId: string): Observable<ModelFile[]> {
@@ -177,29 +116,32 @@ export class FileService {
     });
   }
 
+  /**
+   * Every change to a file from elsewhere comes through here (the server's events, the answer to a save, a file read
+   * again), in whatever order they arrive, so one rule decides what the store and an open tab hold:
+   * - an update older than the stored file, by the server's save time, is dropped, since it would put back old content;
+   * - a tab with no unsaved edits follows the new content;
+   * - a tab with unsaved edits keeps them, and stays unsaved until they match what is saved.
+   */
   fileUpdated(file: ModelFile) {
     const prev = this.fileQuery.getEntity(file.id);
+    if (prev && isOlder(file.dateSaved, prev.dateSaved)) {
+      return;
+    }
     // Updates that don't change the content (lock, unlock, rename) arrive with
     // content null. Keep the loaded content: a null makes the open tab reload
     // the file, and that reload overwrites unsaved edits.
     if (file.content == null && prev?.content != null) {
       file = { ...file, content: prev.content };
     }
-    // A tab with no unsaved edits follows a change made elsewhere, such as an AI save: leaving its buffer on the old
-    // content would read as an edit, and saving it would write the old content back.
-    if (
-      prev &&
-      !isFileContentChanged(prev) &&
-      file.editorContent === undefined &&
-      file.content != null &&
-      !isSameContent(prev.content, file.content)
-    ) {
-      file = { ...file, editorContent: file.content };
-    }
+    let editorContent = prev?.editorContent;
     if (prev?.lockedById && prev.lockedById !== file.lockedById) {
-      file = { ...file, editorContent: file.content };
+      // the lock was lost, so edits made under it can no longer be saved
+      editorContent = file.content;
+    } else if (editorContent != null && !isFileContentChanged(prev)) {
+      editorContent = file.content;
     }
-    this.upsertFile(file);
+    this.upsertFile({ ...file, editorContent });
     // Unsaved edits stay unsaved through updates that don't touch them
     this.setSave(
       file.id,
@@ -275,4 +217,12 @@ export class FileService {
       }),
     );
   }
+}
+
+/** Whether a save time is before another; a file with no save time is never older. */
+function isOlder(
+  saved: string | null | undefined,
+  than: string | null | undefined,
+): boolean {
+  return !!saved && !!than && Date.parse(saved) < Date.parse(than);
 }

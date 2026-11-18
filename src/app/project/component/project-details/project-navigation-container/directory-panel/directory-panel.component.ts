@@ -544,7 +544,6 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
 
   // the saved files go into the store with their content, so an open tab shows them at once
   draftTerraformWithAi(dir: Directory) {
-    const edited = this.fileService.editedFileIds();
     this.dialog
       .open<AiTerraformDraftDialogComponent, AiTerraformDraftDialogData, ModelFile[]>(
         AiTerraformDraftDialogComponent,
@@ -556,7 +555,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
         }
       )
       .afterClosed()
-      .subscribe((files) => files && this.fileService.aiFilesSaved(files, edited));
+      .subscribe((files) => files?.forEach((file) => this.fileService.fileUpdated(file)));
   }
 
   draftDesignWithAi(dir: Directory) {

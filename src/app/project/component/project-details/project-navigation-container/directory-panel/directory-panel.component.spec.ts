@@ -172,7 +172,7 @@ describe('DirectoryPanelComponent', () => {
 
   /**
    * Verifies: with an EditProject claim the panel offers Draft Terraform with AI, which opens the draft dialog for this directory and passes the saved files on to the open editors.
-   * Interacts with: MatDialog.open (spy), FileService.aiFilesSaved (spy).
+   * Interacts with: MatDialog.open (spy), FileService.fileUpdated (spy).
    * Data: directory network (dir1) in project p1; the dialog closes with main.tf saved.
    */
   it('drafts Terraform for the directory with AI', async () => {
@@ -188,8 +188,8 @@ describe('DirectoryPanelComponent', () => {
     const open = vi
       .spyOn(TestBed.inject(MatDialog), 'open')
       .mockReturnValue(dialogRef);
-    const aiFilesSaved = vi
-      .spyOn(TestBed.inject(FileService), 'aiFilesSaved')
+    const fileUpdated = vi
+      .spyOn(TestBed.inject(FileService), 'fileUpdated')
       .mockImplementation(() => undefined);
 
     fireEvent.click(screen.getByText('Draft Terraform with AI'));
@@ -200,7 +200,7 @@ describe('DirectoryPanelComponent', () => {
         data: { directoryId: 'dir1', directoryName: 'network' },
       }),
     );
-    expect(aiFilesSaved).toHaveBeenCalledWith(saved, expect.any(Set));
+    expect(fileUpdated).toHaveBeenCalledWith(saved[0]);
   });
 
   /**

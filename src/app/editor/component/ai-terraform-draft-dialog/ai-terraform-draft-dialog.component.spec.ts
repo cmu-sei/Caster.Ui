@@ -276,7 +276,6 @@ describe('AiTerraformDraftDialogComponent', () => {
         id: 'file-1',
         name: 'main.tf',
         content: 'module "kali" {}\n',
-        editorContent: 'module "kali" {}\n',
       },
     ]);
   });

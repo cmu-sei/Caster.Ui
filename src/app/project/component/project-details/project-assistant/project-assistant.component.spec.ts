@@ -19,7 +19,7 @@ import {
   WorkspacesService,
 } from 'src/app/generated/caster-api';
 import { DirectoryQuery } from 'src/app/directories/state';
-import { FileQuery, FileService } from 'src/app/files/state';
+import { FileService } from 'src/app/files/state';
 import { WorkspaceQuery, WorkspaceService } from 'src/app/workspace/state';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { ApiStub } from 'src/app/test-utils/api-stub';
@@ -121,7 +121,6 @@ async function renderPanel(
     directoryId: 'lab',
     workspaceId: 'dev',
   },
-  unsavedFiles: string[] = [],
 ) {
   const defaultApi = {
     askAiAssistant: vi.fn(() => of(structuredClone(ANSWER))),
@@ -173,22 +172,6 @@ async function renderPanel(
       {
         provide: WorkspaceQuery,
         useValue: { selectAll: () => of(WORKSPACES) },
-      },
-      {
-        provide: FileQuery,
-        // an open file with unsaved edits has editor content that differs from what was saved
-        useValue: {
-          getEntity: (id: string) =>
-            unsavedFiles.includes(id)
-              ? { id, content: 'a', editorContent: 'b' }
-              : { id, content: 'a', editorContent: 'a' },
-          getAll: () =>
-            ['main', 'vars'].map((id) =>
-              unsavedFiles.includes(id)
-                ? { id, content: 'a', editorContent: 'b' }
-                : { id, content: 'a', editorContent: 'a' },
-            ),
-        },
       },
       { provide: FileService, useValue: fileService },
       { provide: WorkspaceService, useValue: workspaceService },
@@ -391,24 +374,6 @@ describe('ProjectAssistantComponent', () => {
   });
 
   /**
-   * Verifies: a changed file is read again whatever is open, since the service keeps unsaved edits, so one made while the
-   * read is in flight is kept too.
-   * Interacts with: FileService.refreshFile.
-   * Data: main.tf open with unsaved edits; applying the three changes.
-   */
-  it('reads a changed file through the service that keeps unsaved edits', async () => {
-    const { fileService, user } = await renderPanel(undefined, undefined, [
-      'main',
-    ]);
-    await ask(user);
-
-    await user.click(screen.getByRole('button', { name: 'Apply 3 changes' }));
-
-    expect(fileService.refreshFile).toHaveBeenCalledWith('main');
-    expect(fileService.loadFilesByDirectory).not.toHaveBeenCalled();
-  });
-
-  /**
    * Verifies: a follow-up resends the conversation, the earlier reply with what it proposed and what was applied.
    * Interacts with: AiAssistService.askAiAssistant, applyAiAssistantChanges.
    * Data: one turn applied, then a second request.
@@ -523,11 +488,7 @@ describe('ProjectAssistantComponent', () => {
           provide: WorkspaceQuery,
           useValue: { selectAll: () => of(WORKSPACES) },
         },
-        { provide: FileQuery, useValue: { getAll: () => [] } },
-        {
-          provide: FileService,
-          useValue: { editedFileIds: () => new Set<string>() },
-        },
+        { provide: FileService, useValue: {} },
         { provide: WorkspaceService, useValue: {} },
         {
           provide: CurrentUserQuery,

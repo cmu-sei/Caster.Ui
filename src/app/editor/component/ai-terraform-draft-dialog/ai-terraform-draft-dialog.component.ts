@@ -189,15 +189,16 @@ export class AiTerraformDraftDialogComponent {
       })
       .pipe(take(1))
       .subscribe({
-        // the answer leaves out content, as file lists do; the open editor needs what was saved
+        // the answer leaves out content, as file lists do, so the saved content goes with it; an open tab follows it
+        // unless it has unsaved edits (FileService.fileUpdated)
         next: (files: ModelFile[]) =>
           this.dialogRef.close(
-            files.map((saved) => {
-              const content =
-                kept.find((r) => r.file.name === saved.name)?.file
-                  .content ?? saved.content;
-              return { ...saved, content, editorContent: content };
-            }),
+            files.map((saved) => ({
+              ...saved,
+              content:
+                kept.find((r) => r.file.name === saved.name)?.file.content ??
+                saved.content,
+            })),
           ),
         error: (err) => {
           this.errorMessage = aiErrorMessage(

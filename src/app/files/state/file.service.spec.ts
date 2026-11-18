@@ -54,259 +54,6 @@ function setup(filesApi: ApiStub<FilesService> = {}, files: ModelFile[] = []) {
 const boom = () => throwError(() => new Error('boom'));
 
 describe('FileService', () => {
-  describe('refreshFile', () => {
-    /**
-     * Verifies: a file read again shows the new content in a clean editor and marks it saved.
-     * Interacts with: FilesService.getFile (stub); FileStore.upsert; setSave.
-     * Data: stored f1 with no edits; the API returns new content.
-     */
-    it('shows the new content when the user has no edits', async () => {
-      const { service, query } = setup(
-        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
-        [file({ content: 'old', editorContent: 'old' })],
-      );
-
-      await firstValueFrom(service.refreshFile('f1'));
-
-      expect(query.getEntity('f1').editorContent).toBe('ai content');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-
-    /**
-     * Verifies: edits made while the read is in flight are kept, not replaced by the response.
-     * Interacts with: FilesService.getFile (stub, a Subject answered late); updateEditorContent.
-     * Data: stored f1 clean when the read starts; the user types before the answer arrives.
-     */
-    it('keeps edits made while the read was in flight', () => {
-      const answer = new Subject<ModelFile>();
-      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-      service.refreshFile('f1').subscribe();
-
-      service.updateEditorContent('f1', 'typed meanwhile');
-      answer.next(file({ content: 'ai content' }));
-
-      expect(query.getEntity('f1').content).toBe('ai content');
-      expect(query.getEntity('f1').editorContent).toBe('typed meanwhile');
-      expect(query.ui.getEntity('f1').isSaved).toBe(false);
-    });
-  });
-
-  describe('refreshFile ordering', () => {
-    /**
-     * Verifies: an answer that arrives after the file was saved is dropped, since the save is newer.
-     * Interacts with: FilesService.getFile (stub, a Subject answered late); updateFileContent.
-     * Data: stored f1 clean; the planner saves 'B' before the read of 'A' answers.
-     */
-    it('drops an answer older than a save made meanwhile', () => {
-      const answer = new Subject<ModelFile>();
-      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-      service.refreshFile('f1').subscribe();
-
-      service.updateEditorContent('f1', 'B');
-      service.fileUpdated(file({ content: 'B' }));
-      answer.next(file({ content: 'A' }));
-
-      expect(query.getEntity('f1').content).toBe('B');
-      expect(query.getEntity('f1').editorContent).toBe('B');
-    });
-  });
-
-  describe('refreshFile with edits', () => {
-    /**
-     * Verifies: edits typed while Apply was running, before the read begins, are kept.
-     * Interacts with: FilesService.getFile (stub); isFileContentChanged on the buffer when the read starts.
-     * Data: stored f1 typed to 'B' before refreshFile is called, wasEdited false.
-     */
-    it('keeps edits typed before the read began', async () => {
-      const { service, query } = setup(
-        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
-        [file({ content: 'old', editorContent: 'B' })],
-      );
-
-      await firstValueFrom(service.refreshFile('f1'));
-
-      expect(query.getEntity('f1').content).toBe('ai content');
-      expect(query.getEntity('f1').editorContent).toBe('B');
-      expect(query.ui.getEntity('f1').isSaved).toBe(false);
-    });
-
-    /**
-     * Verifies: a clean tab whose file event arrived before the read still shows the new content.
-     * Interacts with: FilesService.getFile (stub); fileUpdated.
-     * Data: stored f1 clean on 'A'; the event brings 'B' before the read.
-     */
-    it('shows the new content when the file event arrived first', async () => {
-      const { service, query } = setup(
-        { getFile: vi.fn(() => of(file({ content: 'B' }))) },
-        [file({ content: 'A', editorContent: 'A' })],
-      );
-      service.fileUpdated(file({ content: 'B' }));
-
-      await firstValueFrom(service.refreshFile('f1'));
-
-      expect(query.getEntity('f1').editorContent).toBe('B');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-
-    /**
-     * Verifies: edits in a file that was opened while Apply ran, so had no editor at Apply, are kept.
-     * Interacts with: FilesService.getFile (stub); isFileContentChanged.
-     * Data: stored f1 with buffer 'typed' over content 'old'; no editor content was known at Apply.
-     */
-    it('keeps edits in a file opened while the change was applied', async () => {
-      const { service, query } = setup(
-        { getFile: vi.fn(() => of(file({ content: 'ai content' }))) },
-        [file({ content: 'old', editorContent: 'typed' })],
-      );
-
-      await firstValueFrom(service.refreshFile('f1'));
-
-      expect(query.getEntity('f1').editorContent).toBe('typed');
-      expect(query.ui.getEntity('f1').isSaved).toBe(false);
-    });
-
-    /**
-     * Verifies: saving the existing edits while the read is pending drops the older answer.
-     * Interacts with: FilesService.getFile (stub, a Subject answered late); fileUpdated.
-     * Data: stored f1 with unsaved buffer 'B', wasEdited true; the planner saves 'B', then the read of 'A' answers.
-     */
-    it('drops an older answer when the existing edits were saved meanwhile', () => {
-      const answer = new Subject<ModelFile>();
-      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
-        file({ content: 'old', editorContent: 'B' }),
-      ]);
-      service.refreshFile('f1').subscribe();
-
-      service.fileUpdated(file({ content: 'B' }));
-      answer.next(file({ content: 'A' }));
-
-      expect(query.getEntity('f1').content).toBe('B');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-  });
-
-  describe('refreshFile after a save and more typing', () => {
-    /**
-     * Verifies: an older answer is dropped when the user saved and then typed again before it arrived.
-     * Interacts with: FilesService.getFile (stub, a Subject answered late); fileUpdated; updateEditorContent.
-     * Data: stored f1 on 'old'; the user types and saves 'B', types 'C', then the read of 'A' answers.
-     */
-    it('drops an older answer although the user typed again after saving', () => {
-      const answer = new Subject<ModelFile>();
-      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-      service.refreshFile('f1').subscribe();
-
-      service.updateEditorContent('f1', 'B');
-      service.fileUpdated(file({ content: 'B' }));
-      service.updateEditorContent('f1', 'C');
-      answer.next(file({ content: 'A' }));
-
-      expect(query.getEntity('f1').content).toBe('B');
-      expect(query.getEntity('f1').editorContent).toBe('C');
-    });
-  });
-
-  describe('fileUpdated following a change made elsewhere', () => {
-    /**
-     * Verifies: a tab with no unsaved edits follows a change from an event, so its buffer is not left on the old content.
-     * Interacts with: fileUpdated; isFileContentChanged.
-     * Data: stored f1 clean on 'old'; the event brings 'new' content.
-     */
-    it('moves a clean tab to the new content', () => {
-      const { service, query } = setup({}, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-
-      service.fileUpdated(file({ content: 'new' }));
-
-      expect(query.getEntity('f1').editorContent).toBe('new');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-
-    /**
-     * Verifies: a tab with unsaved edits keeps them when the event arrives.
-     * Interacts with: fileUpdated; isFileContentChanged.
-     * Data: near miss of the test above: stored f1 with buffer 'mine' over 'old'.
-     */
-    it('keeps the edits in a dirty tab', () => {
-      const { service, query } = setup({}, [
-        file({ content: 'old', editorContent: 'mine' }),
-      ]);
-
-      service.fileUpdated(file({ content: 'new' }));
-
-      expect(query.getEntity('f1').editorContent).toBe('mine');
-      expect(query.ui.getEntity('f1').isSaved).toBe(false);
-    });
-  });
-
-  describe('aiFilesSaved', () => {
-    /**
-     * Verifies: when the file's own SignalR event arrives before the draft's answer, a tab that was clean still shows the new content.
-     * Interacts with: fileUpdated; editedFileIds.
-     * Data: stored f1 clean at start; the event installs content 'ai content' beside the old buffer, then the answer arrives.
-     */
-    it('shows the saved content when the file event came first', () => {
-      const { service, query } = setup({}, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-      const edited = service.editedFileIds();
-      service.fileUpdated(file({ content: 'ai content' }));
-
-      service.aiFilesSaved(
-        [file({ content: 'ai content', editorContent: 'ai content' })],
-        edited,
-      );
-
-      expect(query.getEntity('f1').editorContent).toBe('ai content');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-
-    /**
-     * Verifies: a saved file with no edits open shows what the draft saved.
-     * Interacts with: fileUpdated; isFileContentChanged.
-     * Data: stored f1 clean; saved f1 with new content and editorContent.
-     */
-    it('shows the saved content in a clean tab', () => {
-      const { service, query } = setup({}, [
-        file({ content: 'old', editorContent: 'old' }),
-      ]);
-
-      service.aiFilesSaved([
-        file({ content: 'ai content', editorContent: 'ai content' }),
-      ]);
-
-      expect(query.getEntity('f1').editorContent).toBe('ai content');
-      expect(query.ui.getEntity('f1').isSaved).toBe(true);
-    });
-
-    /**
-     * Verifies: unsaved edits in the open tab are not replaced by a saved draft, and the file stays unsaved.
-     * Interacts with: fileUpdated; isFileContentChanged.
-     * Data: near miss of the test above: stored f1 with editor content 'my edits' over 'old'.
-     */
-    it('keeps unsaved edits in the tab', () => {
-      const { service, query } = setup({}, [
-        file({ content: 'old', editorContent: 'my edits' }),
-      ]);
-
-      service.aiFilesSaved(
-        [file({ content: 'ai content', editorContent: 'ai content' })],
-        service.editedFileIds(),
-      );
-
-      expect(query.getEntity('f1').content).toBe('ai content');
-      expect(query.getEntity('f1').editorContent).toBe('my edits');
-      expect(query.ui.getEntity('f1').isSaved).toBe(false);
-    });
-  });
-
   describe('loadFile', () => {
     /**
      * Verifies: loading a file stores it with editorContent copied from the
@@ -624,6 +371,151 @@ describe('FileService', () => {
         expect(query.getEntity('f1').lockedById).toBe(lockedById);
       },
     );
+  });
+
+  /**
+   * A file's saved content reaches the store from the server's events, the answer to a save and a file read again, in
+   * any order. Each case is an order a review found, run through the real store.
+   */
+  describe('changes made elsewhere, in any order', () => {
+    const T1 = '2026-11-18T10:00:00Z';
+    const T2 = '2026-11-18T10:00:05Z';
+    const T3 = '2026-11-18T10:00:09Z';
+
+    /**
+     * Verifies: a tab with no unsaved edits follows content saved elsewhere, such as by AI, and stays saved.
+     * Data: stored f1 clean on 'old'; an event brings 'ai' saved later.
+     */
+    it('moves a clean tab to the new content', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'ai',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a tab with unsaved edits keeps them, and stays unsaved, when content is saved elsewhere.
+     * Data: near miss of the test above: buffer 'mine' over 'old'.
+     */
+    it('keeps the edits in a tab that has them', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'mine', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'mine',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: the file's own event arriving before the answer to the save leaves a clean tab on the new content, saved.
+     * Data: stored f1 clean on 'old'; the event, then the answer, both 'ai' saved at T2.
+     */
+    it('shows the new content when the event comes before the answer', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1').editorContent).toBe('ai');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a read that answers after a newer save is dropped, so it cannot put back the older content.
+     * Interacts with: refreshFile; FilesService.getFile answered late.
+     * Data: the AI saved 'ai' at T2 and the read starts; the planner saves 'B' at T3; then the read answers 'ai' at T2.
+     */
+    it('drops a read older than a save made meanwhile', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'ai', editorContent: 'ai', dateSaved: T2 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B', dateSaved: T3 }));
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'B',
+        editorContent: 'B',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: the older read is dropped although the planner typed again after saving, and the new typing is kept.
+     * Data: near miss of the test above: after saving 'B' the planner types 'C' before the read answers.
+     */
+    it('drops an older read and keeps typing made after a save', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'ai', editorContent: 'ai', dateSaved: T2 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B', dateSaved: T3 }));
+      service.updateEditorContent('f1', 'C');
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'B',
+        editorContent: 'C',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: typing while a change is applied, or while the file is read again, is kept, whenever it started.
+     * Data: stored f1 clean on 'old'; the planner types 'typed', then the read answers 'ai' saved later.
+     */
+    it('keeps typing made while the change was applied or read', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'typed');
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'typed',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: a file with no open editor gets the new content and no buffer, so opening its tab shows it.
+     * Data: stored f1 listed without content or buffer; an added file read for the first time.
+     */
+    it('stores the content of a file that is not open', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'ai', dateSaved: T2 }))) },
+        [file({ content: null, editorContent: undefined, dateSaved: T1 })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1'));
+
+      expect(query.getEntity('f1').content).toBe('ai');
+      expect(query.getEntity('f1').editorContent).toBeUndefined();
+    });
   });
 
   describe('fileUpdated (FileCreated / FileUpdated hub events)', () => {
