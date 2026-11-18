@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { defer, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { FileDownload } from 'src/app/shared/models/file-download';
 import HttpHeaderUtils from 'src/app/shared/utilities/http-header-utils';
@@ -34,17 +34,24 @@ export class FileService {
    * edits made while the read was in flight.
    */
   refreshFile(fileId: string): Observable<ModelFile> {
-    return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
-      tap((file: ModelFile) => {
-        const current = this.fileQuery.getEntity(fileId);
-        const edited = isFileContentChanged(current);
-        this.fileStore.upsert(file.id, {
-          ...file,
-          editorContent: edited ? current.editorContent : file.content,
-        });
-        this.setSave(fileId, !edited);
-      }),
-    );
+    return defer(() => {
+      const started = this.fileQuery.getEntity(fileId)?.content;
+      return (this.filesService.getFile(fileId) as Observable<ModelFile>).pipe(
+        tap((file: ModelFile) => {
+          const current = this.fileQuery.getEntity(fileId);
+          // saved or loaded since the read began: that is newer than this answer
+          if (current && current.content !== started) {
+            return;
+          }
+          const edited = isFileContentChanged(current);
+          this.fileStore.upsert(file.id, {
+            ...file,
+            editorContent: edited ? current.editorContent : file.content,
+          });
+          this.setSave(fileId, !edited);
+        }),
+      );
+    });
   }
 
   /** Files an AI draft saved: an open tab shows them, unless it holds edits that are not saved. */

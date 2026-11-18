@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
 import { ProjectAiUsage, ProjectsService } from 'src/app/generated/caster-api';
 import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
@@ -278,6 +278,29 @@ describe('ProjectAiUsageComponent', () => {
     fixture.detectChanges();
 
     expect(projectsApi.getProjectAiUsage).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByRole('button', { name: /AI USAGE/ }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a slow first answer that arrives after a newer one does not undo it.
+   * Interacts with: ProjectsService.getProjectAiUsage (a Subject answered late), AiUsageRefreshService.
+   * Data: the first request answers no calls after the second has answered three.
+   */
+  it('drops an answer that a newer request has overtaken', async () => {
+    const first = new Subject<ProjectAiUsage>();
+    const second = of(USAGE);
+    let calls = 0;
+    const { fixture } = await renderUsage(() =>
+      ++calls === 1 ? first : second,
+    );
+
+    TestBed.inject(AiUsageRefreshService).called();
+    fixture.detectChanges();
+    first.next({ calls: 0, byTask: [] });
+    fixture.detectChanges();
+
     expect(
       screen.getByRole('button', { name: /AI USAGE/ }),
     ).toBeInTheDocument();

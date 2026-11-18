@@ -86,19 +86,27 @@ export class ProjectAiUsageComponent {
     }
   }
 
+  private latest = 0;
+
   private load(projectId: string) {
+    const request = ++this.latest;
     this.projectsService
       .getProjectAiUsage(projectId)
       .pipe(take(1))
       .subscribe({
         next: (usage) => {
           // an answer for a project the page has since left is dropped
-          if (projectId === this.projectId()) {
+          // and so is an answer that a newer request has overtaken
+          if (projectId === this.projectId() && request === this.latest) {
             this.usage.set(usage?.calls ? usage : undefined);
           }
         },
         // usage is extra information; without it the page is the same
-        error: () => this.usage.set(undefined),
+        error: () => {
+          if (request === this.latest) {
+            this.usage.set(undefined);
+          }
+        },
       });
   }
 

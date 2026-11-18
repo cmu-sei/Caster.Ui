@@ -79,10 +79,9 @@ describe('FileService', () => {
      */
     it('keeps edits made while the read was in flight', () => {
       const answer = new Subject<ModelFile>();
-      const { service, query } = setup(
-        { getFile: vi.fn(() => answer) },
-        [file({ content: 'old', editorContent: 'old' })],
-      );
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
       service.refreshFile('f1').subscribe();
 
       service.updateEditorContent('f1', 'typed meanwhile');
@@ -91,6 +90,27 @@ describe('FileService', () => {
       expect(query.getEntity('f1').content).toBe('ai content');
       expect(query.getEntity('f1').editorContent).toBe('typed meanwhile');
       expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+  });
+
+  describe('refreshFile ordering', () => {
+    /**
+     * Verifies: an answer that arrives after the file was saved is dropped, since the save is newer.
+     * Interacts with: FilesService.getFile (stub, a Subject answered late); updateFileContent.
+     * Data: stored f1 clean; the planner saves 'B' before the read of 'A' answers.
+     */
+    it('drops an answer older than a save made meanwhile', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'old' }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.fileUpdated(file({ content: 'B', editorContent: 'B' }));
+      answer.next(file({ content: 'A' }));
+
+      expect(query.getEntity('f1').content).toBe('B');
+      expect(query.getEntity('f1').editorContent).toBe('B');
     });
   });
 
