@@ -51,7 +51,12 @@ import { TableItemContentDirective } from '../sei-cwd-common/cwd-table/directive
 @Component({
   selector: 'cas-workspace-container',
   templateUrl: './workspace-container.component.html',
-  imports: [CwdTableComponent, TableActionDirective, TableItemActionDirective, TableItemContentDirective],
+  imports: [
+    CwdTableComponent,
+    TableActionDirective,
+    TableItemActionDirective,
+    TableItemContentDirective,
+  ],
 })
 export class WorkspaceContainerComponent {}
 ```
@@ -59,7 +64,15 @@ export class WorkspaceContainerComponent {}
 #### Example
 
 ```html
-<cwd-table [items]="runs" [loading]="loading" [displayedColumns]="['createdAt', 'status', 'actions']" [columnLabels]="{ createdAt: 'Created At', status: 'Status', actions: 'Actions' }" [expandedItems]="expandedRunIds" [trackByPropertyName]="'id'" (expand)="expandRun($event)">
+<cwd-table
+  [items]="runs"
+  [loading]="loading"
+  [displayedColumns]="['createdAt', 'status', 'actions']"
+  [columnLabels]="{ createdAt: 'Created At', status: 'Status', actions: 'Actions' }"
+  [expandedItems]="expandedRunIds"
+  [trackByPropertyName]="'id'"
+  (expand)="expandRun($event)"
+>
   <button *cwdTableAction mat-flat-button (click)="plan()">Plan</button>
 
   <button *cwdTableItemAction="let item" mat-icon-button (click)="cancel(item)">

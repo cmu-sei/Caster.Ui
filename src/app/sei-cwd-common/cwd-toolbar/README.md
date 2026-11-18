@@ -26,12 +26,21 @@ that are displayed.
 The components are standalone. Import the ones your component uses.
 
 ```typescript
-import { CwdToolbarComponent, CwdToolbarActionItemComponent, CwdToolbarNavigationItemComponent } from './sei-cwd-common/cwd-toolbar';
+import {
+  CwdToolbarComponent,
+  CwdToolbarActionItemComponent,
+  CwdToolbarNavigationItemComponent,
+} from './sei-cwd-common/cwd-toolbar';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [CwdToolbarComponent, CwdToolbarActionItemComponent, CwdToolbarNavigationItemComponent, RouterOutlet],
+  imports: [
+    CwdToolbarComponent,
+    CwdToolbarActionItemComponent,
+    CwdToolbarNavigationItemComponent,
+    RouterOutlet,
+  ],
 })
 export class AppComponent {}
 ```
