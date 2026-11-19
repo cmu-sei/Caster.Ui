@@ -26,13 +26,50 @@ export class ProjectPresenceService {
 
   private currentUserQuery = inject(CurrentUserQuery);
 
+  // Arrivals and departures heard while a JoinProject answer is on its way. SignalR can hand the
+  // answer over after events that happened later than it, so the answer must not overwrite them.
+  private heard: { token: symbol; events: (() => void)[] } | null = null;
+
   set(users: PresentUser[]) {
     this.presentUsersSubject.next(
       this.sort(this.withoutMe(this.distinct(users ?? []))),
     );
   }
 
+  /**
+   * Starts holding on to what the hub announces until the answer to JoinProject arrives.
+   * @returns the token to give to {@link applySnapshot} or {@link endSnapshot}.
+   */
+  beginSnapshot(): symbol {
+    const token = Symbol('presence snapshot');
+    this.heard = { token, events: [] };
+    return token;
+  }
+
+  /**
+   * Sets who was present when the project was joined, then applies what was announced since, in order.
+   * Does nothing when a later join has started.
+   */
+  applySnapshot(token: symbol, users: PresentUser[]) {
+    if (this.heard?.token !== token) {
+      return;
+    }
+
+    const events = this.heard.events;
+    this.heard = null;
+    this.set(users);
+    events.forEach((replay) => replay());
+  }
+
+  /** Stops holding on to announcements, when the answer never came. */
+  endSnapshot(token: symbol) {
+    if (this.heard?.token === token) {
+      this.heard = null;
+    }
+  }
+
   arrived(user: PresentUser) {
+    this.heard?.events.push(() => this.arrived(user));
     const users = this.presentUsersSubject
       .getValue()
       .filter((x) => x.id !== user.id);
@@ -40,6 +77,7 @@ export class ProjectPresenceService {
   }
 
   departed(user: PresentUser) {
+    this.heard?.events.push(() => this.departed(user));
     const users = this.presentUsersSubject.getValue();
 
     if (users.some((x) => x.id === user.id)) {

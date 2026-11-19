@@ -93,7 +93,11 @@ export class SignalRService {
       this.JoinGroups();
     });
 
-    // Presence is only as good as the connection; JoinProject refills it.
+    // Presence is only as good as the connection; JoinProject refills it. Anyone who leaves while this
+    // client is reconnecting would otherwise stay listed.
+    this.hubConnection.onreconnecting(() =>
+      this.projectPresenceService.clear(),
+    );
     this.hubConnection.onclose(() => this.projectPresenceService.clear());
 
     this.addHandlers();
@@ -157,13 +161,20 @@ export class SignalRService {
     this.projectId = projectId;
 
     if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection
-        .invoke('JoinProject', projectId)
-        .then((users: PresentUser[]) => {
+      const snapshot = this.projectPresenceService.beginSnapshot();
+
+      this.hubConnection.invoke('JoinProject', projectId).then(
+        (users: PresentUser[]) => {
           if (this.projectId === projectId) {
-            this.projectPresenceService.set(users);
+            this.projectPresenceService.applySnapshot(snapshot, users);
           }
-        });
+        },
+        (error) => {
+          // Left unhandled, as before: only stop holding on to announcements.
+          this.projectPresenceService.endSnapshot(snapshot);
+          throw error;
+        },
+      );
     }
   }
 
