@@ -8,8 +8,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     mat-raised-button
     color="primary"
     (click)="showModuleList = !showModuleList"
-    [disabled]="!canEdit"
-    >
+    [disabled]="!canEdit()"
+  >
     @if (!(showModuleList$ | async)) {
       Add Module
     } @else {
@@ -23,14 +23,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [modules]="modules$ | async"
     [isEditing]="true"
     (getModule)="getModuleFn($event.id)"
-  ></cas-module-list>
+  />
 }
 
 <ng-template #addDialog>
   <cas-module-variables
     [selectedModule]="newModule"
     [name]="newModuleName"
-    [readOnly]="!canEdit"
+    [readOnly]="!canEdit()"
     [variables]="variables$ | async"
     [outputs]="outputs$ | async"
     [isSaving]="saving$ | async"
@@ -38,20 +38,21 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     [requireValues]="true"
     submitButtonText="Add"
     (variablesSelected)="onAddComplete($event)"
-  ></cas-module-variables>
+  />
 </ng-template>
 
 @if (!showModuleList) {
   <div class="d-flex flex-row flex-wrap gap-3">
-    @for (designModule of designModules$ | async; track trackByFn($index, designModule)) {
-      <div
-        class="module"
-        >
+    @for (
+      designModule of designModules$ | async;
+      track trackByFn($index, designModule)
+    ) {
+      <div class="module">
         <cas-design-module
           [designModule]="designModule"
           [module]="moduleQuery.selectByModuleId(designModule.moduleId) | async"
-          [canEdit]="canEdit"
-        ></cas-design-module>
+          [canEdit]="canEdit()"
+        />
       </div>
     }
   </div>

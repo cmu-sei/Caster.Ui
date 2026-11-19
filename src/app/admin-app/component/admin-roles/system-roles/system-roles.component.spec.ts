@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
+import { Provider } from '@angular/core';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { of } from 'rxjs';
@@ -11,6 +12,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
 import {
   SystemPermission,
   SystemRole,
@@ -18,6 +20,7 @@ import {
 } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { ApiStub } from 'src/app/test-utils/api-stub';
+import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import {
   PermissionGrants,
   permissionDataProviders,
@@ -44,7 +47,10 @@ function roles(): SystemRole[] {
   ];
 }
 
-async function renderSystemRoles(grants: PermissionGrants) {
+async function renderSystemRoles(
+  grants: PermissionGrants,
+  providers: Provider[] = [],
+) {
   const rolesApi = {
     getAllSystemRoles: vi.fn(() => of<SystemRole[]>(roles())),
     editSystemRole: vi.fn((_id: string, role: SystemRole) =>
@@ -72,6 +78,7 @@ async function renderSystemRoles(grants: PermissionGrants) {
       ...permissionDataProviders(grants),
       { provide: SystemRolesService, useValue: rolesApi },
       { provide: SignalRService, useValue: signalR },
+      ...providers,
     ],
   });
   await view.fixture.whenStable();
@@ -157,5 +164,55 @@ describe('SystemRolesComponent', () => {
         ],
       }),
     );
+  });
+
+  /**
+   * Verifies: Add New Role opens the name dialog titled "Add Role".
+   * Interacts with: the real MatDialog and NameDialogComponent.
+   * Data: system permission ManageRoles.
+   */
+  it('titles the add dialog Add Role', async () => {
+    const { user } = await renderSystemRoles({
+      system: [SystemPermission.ManageRoles],
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Add New Role' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Add Role' }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: Delete asks "Delete Role" / "Are you sure that you want to delete <name>?" with a Delete button.
+   * Interacts with: CrucibleDialogService.confirm (stub answering false).
+   * Data: system permission ManageRoles; Observer deleted.
+   */
+  it('confirms a delete with the standard wording', async () => {
+    const { dialogRef } = dialogRefStub<unknown, boolean>(false);
+    const confirm = vi.fn(() => dialogRef);
+    const { user } = await renderSystemRoles(
+      { system: [SystemPermission.ManageRoles] },
+      [
+        {
+          provide: CrucibleDialogService,
+          useValue: { confirm } satisfies Pick<
+            CrucibleDialogService,
+            'confirm'
+          >,
+        },
+      ],
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete role Observer' }),
+    );
+
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Role',
+      message: 'Are you sure that you want to delete Observer?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+    });
   });
 });

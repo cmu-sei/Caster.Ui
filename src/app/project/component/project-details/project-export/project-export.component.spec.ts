@@ -76,6 +76,7 @@ describe('ProjectExportComponent', () => {
       'p1',
       'Zip',
       true,
+      undefined,
       'response',
     );
     expect(download).toHaveBeenCalledWith(expect.any(Blob), 'range.zip');

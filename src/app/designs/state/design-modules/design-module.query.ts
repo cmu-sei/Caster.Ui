@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Order, QueryConfig, QueryEntity } from '@datorama/akita';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -16,11 +16,15 @@ import { DesignModuleStore, DesignModuleState } from './design-module.store';
 })
 @Injectable({ providedIn: 'root' })
 export class DesignModuleQuery extends QueryEntity<DesignModuleState> {
-  constructor(
-    protected store: DesignModuleStore,
-    private moduleQuery: ModuleQuery
-  ) {
+  protected store: DesignModuleStore;
+  private moduleQuery = inject(ModuleQuery);
+
+  constructor() {
+    const store = inject(DesignModuleStore);
+
     super(store);
+
+    this.store = store;
   }
 
   getByDesignId(designId: string) {
@@ -33,7 +37,7 @@ export class DesignModuleQuery extends QueryEntity<DesignModuleState> {
 
   getOutputsByDesignId(
     designId: string,
-    excludedDesignModuleId: string = null
+    excludedDesignModuleId: string = null,
   ) {
     return combineLatest([
       this.getByDesignId(designId),
@@ -49,7 +53,7 @@ export class DesignModuleQuery extends QueryEntity<DesignModuleState> {
 
             if (module) {
               const version = module.versions?.find(
-                (x) => x.name == designModule.moduleVersion
+                (x) => x.name == designModule.moduleVersion,
               );
 
               if (version) {
@@ -67,7 +71,7 @@ export class DesignModuleQuery extends QueryEntity<DesignModuleState> {
           });
 
         return outputs;
-      })
+      }),
     );
   }
 }

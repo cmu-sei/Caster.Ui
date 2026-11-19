@@ -4,12 +4,34 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import {
+  AfterViewInit,
   Component,
   OnInit,
   ChangeDetectionStrategy,
   Input,
+  inject,
+  input,
+  viewChild,
 } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow,
+} from '@angular/material/table';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatTooltip } from '@angular/material/tooltip';
 import {
   BehaviorSubject,
   combineLatest,
@@ -26,47 +48,98 @@ import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
 import { PoolQuery } from 'src/app/vlans/state/pool/pool.query';
 import { PoolService } from 'src/app/vlans/state/pool/pool.service';
+import { VlanFeedbackService } from '../vlan-feedback.service';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatCard } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-vlans',
-    templateUrl: './project-vlans.component.html',
-    styleUrls: ['./project-vlans.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project-vlans',
+  templateUrl: './project-vlans.component.html',
+  styleUrls: ['./project-vlans.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    FormsModule,
+    MatIcon,
+    MatIconButton,
+    MatInput,
+    MatSuffix,
+    MatTooltip,
+    MatNoDataRow,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatFormField,
+    MatSelect,
+    MatOption,
+    MatOptgroup,
+    MatProgressBar,
+    MatCard,
+    MatProgressSpinner,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    KeyValuePipe,
+  ],
 })
-export class ProjectVlansComponent implements OnInit {
+export class ProjectVlansComponent implements OnInit, AfterViewInit {
+  private projectService = inject(ProjectService);
+  private poolService = inject(PoolService);
+  private partitionService = inject(PartitionService);
+  private poolQuery = inject(PoolQuery);
+  private partitionQuery = inject(PartitionQuery);
+  private feedback = inject(VlanFeedbackService);
+
   @Input() set projects(projects: Project[]) {
     this.dataSource.data = projects;
   }
 
-  @Input()
-  canEdit: boolean;
+  readonly canEdit = input<boolean>(undefined);
+  readonly isLoading = input<boolean>(false);
 
   dataSource = new MatTableDataSource<Project>();
   partitionOptions$: Observable<Map<Pool, Partition[]>>;
 
   // #region loading
   private loadingSubject = new BehaviorSubject<Map<string, boolean>>(
-    new Map<string, boolean>()
+    new Map<string, boolean>(),
   );
   public loading$ = this.loadingSubject.asObservable();
 
   private setLoading(projectId: string, val: boolean) {
     this.loadingSubject.next(
-      this.loadingSubject.getValue().set(projectId, val)
+      this.loadingSubject.getValue().set(projectId, val),
     );
   }
   // #endregion
 
   displayedColumns: string[] = ['name', 'partition'];
 
-  constructor(
-    private projectService: ProjectService,
-    private poolService: PoolService,
-    private partitionService: PartitionService,
-    private poolQuery: PoolQuery,
-    private partitionQuery: PartitionQuery
-  ) {}
+  readonly sort = viewChild(MatSort);
+
+  filterString = '';
+
+  constructor() {
+    // The Partition column holds a select, so sort it by the assigned
+    // partition's name rather than by its id.
+    this.dataSource.sortingDataAccessor = (project, column) =>
+      column === 'partition'
+        ? (this.partitionQuery.getEntity(project.partitionId)?.name ?? '')
+        : String(project[column as keyof typeof project] ?? '');
+    this.dataSource.filterPredicate = (project, filter) =>
+      (project.name ?? '').toLowerCase().includes(filter);
+  }
 
   ngOnInit(): void {
     forkJoin([
@@ -88,21 +161,44 @@ export class ProjectVlansComponent implements OnInit {
         });
 
         return map;
-      })
+      }),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort();
+  }
+
+  applyFilter(filterValue: string) {
+    this.filterString = filterValue;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  clearFilter() {
+    this.applyFilter('');
   }
 
   updatePartition(projectId: string, partitionId: string) {
     this.setLoading(projectId, true);
 
-    this.projectService
-      .assignPartition(projectId, partitionId)
+    const name =
+      this.dataSource.data.find((p) => p.id === projectId)?.name ??
+      'the Project';
+    this.feedback
+      .report(
+        this.projectService
+          .assignPartition(projectId, partitionId)
+          .pipe(take(1)),
+        partitionId
+          ? `Assigned ${this.partitionQuery.getEntity(partitionId)?.name ?? 'the Partition'} to ${name}`
+          : `${name} no longer has a Partition of its own`,
+        `Could not change the Partition of ${name}`,
+      )
       .pipe(
-        take(1),
         finalize(() => {
           // make sure progress bar is shown
           timer(500).subscribe(() => this.setLoading(projectId, false));
-        })
+        }),
       )
       .subscribe();
   }

@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Vlan } from '../../../generated/caster-api';
 import { recordEmissions } from '../../../test-utils/record-emissions';
@@ -17,7 +18,10 @@ const vlans: Vlan[] = [
 
 function setup() {
   const store = new VlanStore();
-  const query = new VlanQuery(store);
+  const query = runInInjectionContext(
+    Injector.create({ providers: [{ provide: VlanStore, useValue: store }] }),
+    () => new VlanQuery(),
+  );
   store.add(vlans);
   return { store, query };
 }

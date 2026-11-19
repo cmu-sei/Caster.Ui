@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { recordEmissions } from '../../test-utils/record-emissions';
 import { FileVersionQuery } from './fileVersion.query';
 import { FileVersionStore } from './fileVersion.store';
@@ -15,7 +16,12 @@ describe('FileVersionQuery', () => {
    */
   it('selects a version by id and tracks loading', () => {
     const store = new FileVersionStore();
-    const query = new FileVersionQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: FileVersionStore, useValue: store }],
+      }),
+      () => new FileVersionQuery(),
+    );
     const version = recordEmissions(query.selectByFileVersionId('fv1'));
     const loading = recordEmissions(query.isLoading$);
 

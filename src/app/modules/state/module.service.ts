@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 import { ModuleUi } from '.';
@@ -18,15 +18,13 @@ import { ModuleStore } from './module.store';
   providedIn: 'root',
 })
 export class ModuleService {
-  constructor(
-    private moduleStore: ModuleStore,
-    private modulesService: ModulesService
-  ) {}
+  private moduleStore = inject(ModuleStore);
+  private modulesService = inject(ModulesService);
 
   load(
     includeVersions: boolean,
     includeVerionsCount: boolean,
-    includeLatestVersion = false
+    includeLatestVersion = false,
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     const request = includeLatestVersion
@@ -45,14 +43,14 @@ export class ModuleService {
         }),
         tap(() => {
           this.moduleStore.setLoading(false);
-        })
+        }),
       );
   }
 
   loadByDesignId(
     designId: string,
     includeVersions: boolean,
-    includeVersionsCount: boolean
+    includeVersionsCount: boolean,
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     return this.modulesService
@@ -63,7 +61,7 @@ export class ModuleService {
         }),
         tap(() => {
           this.moduleStore.setLoading(false);
-        })
+        }),
       );
   }
 
@@ -103,7 +101,7 @@ export class ModuleService {
       }),
       tap(() => {
         this.moduleStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -124,12 +122,12 @@ export class ModuleService {
       tap(() => {
         this.moduleStore.remove(id);
         this.moduleStore.ui.remove(id);
-      })
+      }),
     );
   }
 
   createVersionSnippet(
-    createSnippetCommand: CreateSnippetCommand
+    createSnippetCommand: CreateSnippetCommand,
   ): Observable<string> {
     return this.modulesService.createSnippet(createSnippetCommand);
   }

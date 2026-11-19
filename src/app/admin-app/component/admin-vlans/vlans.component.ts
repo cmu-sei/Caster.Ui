@@ -8,30 +8,41 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   OnDestroy,
+  inject,
 } from '@angular/core';
 import { SystemPermission } from 'src/app/generated/caster-api';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { ProjectQuery } from 'src/app/project';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
+import { MatTabGroup, MatTab, MatTabContent } from '@angular/material/tabs';
+import { PoolsComponent } from './pools/pools.component';
+import { ProjectVlansComponent } from './project-vlans/project-vlans.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-vlans',
-    templateUrl: './vlans.component.html',
-    styleUrls: ['./vlans.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-vlans',
+  templateUrl: './vlans.component.html',
+  styleUrls: ['./vlans.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatTabGroup,
+    MatTab,
+    MatTabContent,
+    PoolsComponent,
+    ProjectVlansComponent,
+    AsyncPipe,
+  ],
 })
 export class VlansComponent implements OnInit, OnDestroy {
-  public projects$ = this.projectQuery.selectAll();
-  public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageVlans
-  );
+  private projectQuery = inject(ProjectQuery);
+  private signalRService = inject(SignalRService);
+  private permissionService = inject(PermissionService);
 
-  constructor(
-    private projectQuery: ProjectQuery,
-    private signalRService: SignalRService,
-    private permissionService: PermissionService
-  ) {}
+  public projects$ = this.projectQuery.selectAll();
+  public projectsLoading$ = this.projectQuery.selectLoading();
+  public canEdit$ = this.permissionService.hasPermission(
+    SystemPermission.ManageVlans,
+  );
 
   ngOnInit(): void {
     this.signalRService

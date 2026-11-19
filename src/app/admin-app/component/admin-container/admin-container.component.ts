@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   ComnAuthService,
   ComnSettingsService,
@@ -14,14 +14,66 @@ import { CurrentUserQuery, UserService } from '../../../users/state';
 import { TopbarView } from './../../../shared/components/top-bar/topbar.models';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { SystemPermission } from 'src/app/generated/caster-api';
+import {
+  MatSidenavContainer,
+  MatSidenav,
+  MatSidenavContent,
+} from '@angular/material/sidenav';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIcon } from '@angular/material/icon';
+import { MatList, MatListItem, MatListItemIcon } from '@angular/material/list';
+import { MatIconButton } from '@angular/material/button';
+import { TopbarComponent } from '../../../shared/components/top-bar/topbar.component';
+import { UsersComponent } from '../admin-users/users.component';
+import { AdminModulesComponent } from '../admin-modules/modules.component';
+import { AdminWorkspacesComponent } from '../admin-workspaces/admin-workspaces.component';
+import { VlansComponent } from '../admin-vlans/vlans.component';
+import { AdminHypervisorsComponent } from '../admin-hypervisors/admin-hypervisors.component';
+import { AdminRolesComponent } from '../admin-roles/admin-roles.component';
+import { AdminGroupsComponent } from '../admin-groups/admin-groups.component';
+import { AdminProjectsComponent } from '../admin-projects/admin-projects.component';
+import { AdminEnvironmentSetsComponent } from '../admin-environment-sets/admin-environment-sets.component';
+import { ProjectGroupsListComponent } from 'src/app/project-groups/project-groups-list/project-groups-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cas-admin-container',
   templateUrl: './admin-container.component.html',
   styleUrls: ['./admin-container.component.scss'],
-  standalone: false,
+  imports: [
+    MatSidenavContainer,
+    MatSidenav,
+    MatToolbar,
+    RouterLink,
+    MatIcon,
+    MatList,
+    MatListItem,
+    MatListItemIcon,
+    MatIconButton,
+    MatSidenavContent,
+    TopbarComponent,
+    UsersComponent,
+    AdminModulesComponent,
+    AdminWorkspacesComponent,
+    VlansComponent,
+    AdminHypervisorsComponent,
+    AdminRolesComponent,
+    AdminGroupsComponent,
+    AdminProjectsComponent,
+    AdminEnvironmentSetsComponent,
+    ProjectGroupsListComponent,
+    AsyncPipe,
+  ],
 })
 export class AdminContainerComponent implements OnInit, OnDestroy {
+  private authService = inject(ComnAuthService);
+  private settingsService = inject(ComnSettingsService);
+  private userService = inject(UserService);
+  private currentUserQuery = inject(CurrentUserQuery);
+  private routerQuery = inject(RouterQuery);
+  private router = inject(Router);
+  private permissionService = inject(PermissionService);
+
   public username: string;
   public titleText: string;
   public definitionId = '';
@@ -30,9 +82,12 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   public modulesText = 'Modules';
   public workspacesText = 'Workspaces';
   public vlansText = 'VLANs';
+  public connectionsText = 'Connections';
   public rolesText = 'Roles';
   public groupsText = 'Groups';
   public projectsText = 'Projects';
+  public environmentSetsText = 'Environment Sets';
+  public projectGroupsText = 'Project Groups';
   public showStatus = this.projectsText;
   public theme$: Observable<Theme>;
   TopbarView = TopbarView;
@@ -43,15 +98,7 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject();
 
-  constructor(
-    private authService: ComnAuthService,
-    private settingsService: ComnSettingsService,
-    private userService: UserService,
-    private currentUserQuery: CurrentUserQuery,
-    private routerQuery: RouterQuery,
-    private router: Router,
-    private permissionService: PermissionService
-  ) {
+  constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
   }
 
@@ -119,6 +166,13 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Sets the display to Connections
+   */
+  adminGotoConnections(): void {
+    this.navigateToSection(this.connectionsText);
+  }
+
+  /**
    * Sets the display to Roles
    */
   adminGotoRoles(): void {
@@ -137,6 +191,20 @@ export class AdminContainerComponent implements OnInit, OnDestroy {
    */
   adminGotoProjects(): void {
     this.navigateToSection(this.projectsText);
+  }
+
+  /**
+   * Sets the display to Project Groups
+   */
+  adminGotoProjectGroups(): void {
+    this.navigateToSection(this.projectGroupsText);
+  }
+
+  /**
+   * Sets the display to Environment Sets
+   */
+  adminGotoEnvironmentSets(): void {
+    this.navigateToSection(this.environmentSetsText);
   }
 
   private navigateToSection(sectionName: string) {

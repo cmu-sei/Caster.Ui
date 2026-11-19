@@ -55,16 +55,13 @@ const requiredModule: Module = {
   ],
 };
 
-type Inputs = Partial<
-  Pick<
-    ModuleVariablesComponent,
-    | 'selectedModule'
-    | 'name'
-    | 'submitButtonText'
-    | 'requireChanges'
-    | 'requireValues'
-  >
->;
+interface Inputs {
+  selectedModule?: Module;
+  name?: string;
+  submitButtonText?: string;
+  requireChanges?: boolean;
+  requireValues?: boolean;
+}
 
 async function renderModuleVariables(
   readOnly: boolean,
@@ -152,7 +149,7 @@ describe('ModuleVariablesComponent', () => {
     { requireChanges: true, disabled: true },
     { requireChanges: false, disabled: false },
   ])(
-    'sets an untouched form\'s Save disabled to $disabled when requireChanges is $requireChanges',
+    "sets an untouched form's Save disabled to $disabled when requireChanges is $requireChanges",
     async ({ requireChanges, disabled }) => {
       await renderModuleVariables(false, [], { requireChanges });
 

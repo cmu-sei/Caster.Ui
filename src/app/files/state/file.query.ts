@@ -8,7 +8,7 @@ import {
   Order,
 } from '@datorama/akita';
 import { FileState, FileStore, FileUIState } from './file.store';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ModelFile } from '../../generated/caster-api';
 import { Observable } from 'rxjs';
 
@@ -20,9 +20,15 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class FileQuery extends QueryEntity<FileState, ModelFile> {
+  protected store: FileStore;
+
   ui: EntityUIQuery<FileUIState>;
-  constructor(protected store: FileStore) {
+  constructor() {
+    const store = inject(FileStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
   getSelectedVersionId(fileId: string): Observable<string> {

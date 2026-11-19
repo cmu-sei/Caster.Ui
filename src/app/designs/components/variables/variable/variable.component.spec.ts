@@ -66,7 +66,7 @@ async function renderVariable(
     ],
     inputs: { variable: shown, canEdit },
   });
-  return { ...view, variablesApi, user: userEvent.setup() };
+  return { ...view, variablesApi, confirm, user: userEvent.setup() };
 }
 
 describe('VariableComponent', () => {
@@ -93,15 +93,20 @@ describe('VariableComponent', () => {
   });
 
   /**
-   * Verifies: with canEdit, Delete asks for confirmation and deletes the variable.
+   * Verifies: with canEdit, Delete asks "Delete Variable" / "Are you sure that you want to delete <name>?" and deletes the variable.
    * Interacts with: CrucibleDialogService.confirm (stub answering true), VariablesService.deleteVariable (stub).
    * Data: variable region; canEdit true.
    */
   it('deletes the variable after confirmation when canEdit is true', async () => {
-    const { variablesApi, user } = await renderVariable(true, true);
+    const { variablesApi, confirm, user } = await renderVariable(true, true);
 
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'Delete Variable',
+      message: 'Are you sure that you want to delete region?',
+      confirmText: 'Delete',
+    });
     expect(variablesApi.deleteVariable).toHaveBeenCalledWith('v1');
   });
 

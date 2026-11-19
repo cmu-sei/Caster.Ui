@@ -1,10 +1,8 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { enableProdMode } from '@angular/core';
 
-import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
 import { enableAkitaProdMode, HashMap, persistState } from '@datorama/akita';
 import { debounceTime } from 'rxjs/operators';
@@ -13,6 +11,9 @@ import {
   WorkspaceEntityUi,
   WorkspaceUIState,
 } from './app/workspace/state';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { appConfig } from './app/app.config';
 
 export const storage = persistState({
   key: 'akita-project-ui',
@@ -60,6 +61,6 @@ if (environment.production) {
   enableAkitaProdMode();
 }
 
-platformBrowserDynamic()
-  .bootstrapModule(AppModule, { applicationProviders: [provideZoneChangeDetection()], })
-  .catch((err) => console.error(err));
+bootstrapApplication(AppComponent, appConfig).catch((err) =>
+  console.error(err),
+);

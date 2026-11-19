@@ -7,42 +7,42 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
+  inject,
+  input,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Variable } from 'src/app/generated/caster-api';
 import { VariablesQuery } from '../../state/variables/variables.query';
 import { VariableService } from '../../state/variables/variables.service';
+import { MatButton } from '@angular/material/button';
+import { VariableComponent } from './variable/variable.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-variables',
-    templateUrl: './variables.component.html',
-    styleUrls: ['./variables.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-variables',
+  templateUrl: './variables.component.html',
+  styleUrls: ['./variables.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatButton, VariableComponent, AsyncPipe],
 })
 export class VariablesComponent implements OnInit {
-  @Input()
-  public designId: string;
+  private variableService = inject(VariableService);
+  private variablesQuery = inject(VariablesQuery);
 
-  @Input()
-  canEdit: boolean;
+  public readonly designId = input<string>(undefined);
+
+  readonly canEdit = input<boolean>(undefined);
 
   public variables$: Observable<Variable[]>;
 
-  constructor(
-    private variableService: VariableService,
-    private variablesQuery: VariablesQuery
-  ) {}
-
   ngOnInit(): void {
-    this.variables$ = this.variablesQuery.selectByDesignId(this.designId);
+    this.variables$ = this.variablesQuery.selectByDesignId(this.designId());
   }
 
   addVariable() {
     this.variableService
       .create({
-        designId: this.designId,
+        designId: this.designId(),
         name: 'New Variable',
       })
       .subscribe();

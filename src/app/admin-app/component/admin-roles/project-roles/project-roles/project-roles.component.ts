@@ -4,17 +4,50 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 */
 
 import { Component, inject, OnInit } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from '@angular/material/table';
 import { ProjectPermission, ProjectRole } from 'src/app/generated/caster-api';
 import { ProjectRolesModel } from './project-roles.models';
 import { map } from 'rxjs/operators';
 import { ProjectRoleService } from 'src/app/project/state/project-role.service';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-project-roles',
-    templateUrl: './project-roles.component.html',
-    styleUrls: ['./project-roles.component.scss'],
-    standalone: false
+  selector: 'cas-project-roles',
+  templateUrl: './project-roles.component.html',
+  styleUrls: ['./project-roles.component.scss'],
+  imports: [
+    MatTable,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    MatCheckbox,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+  ],
 })
 export class ProjectRolesComponent implements OnInit {
   private projectRoleService = inject(ProjectRoleService);
@@ -32,15 +65,15 @@ export class ProjectRolesComponent implements OnInit {
     map((roles) =>
       roles.sort((a, b) => {
         return a.name.localeCompare(b.name);
-      })
-    )
+      }),
+    ),
   );
 
   public displayedColumns$ = this.roles$.pipe(
     map((x) => {
       const columnNames = x.map((y) => y.name);
       return ['permissions', ...columnNames];
-    })
+    }),
   );
 
   ngOnInit(): void {

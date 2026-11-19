@@ -34,7 +34,7 @@ const HOTKEYS: Record<string, Hotkey> = {
  */
 @Component({
   selector: 'cas-hotkey-host',
-  standalone: false,
+  imports: [CrucibleHotkeyDirective],
   template: `
     @if (showSave) {
       <button type="button" hotkeyAction="FILE_SAVE" (click)="saved()">
@@ -70,7 +70,7 @@ async function setup(hotkeys: Record<string, Hotkey> = HOTKEYS) {
     settings: { Hotkeys: hotkeys },
   };
   const rendered = await renderComponent(HotkeyHostComponent, {
-    declarations: [HotkeyHostComponent, CrucibleHotkeyDirective],
+    imports: [HotkeyHostComponent, CrucibleHotkeyDirective],
     providers: [{ provide: ComnSettingsService, useValue: settings }],
   });
   const hotkeysService = TestBed.inject(HotkeysService);

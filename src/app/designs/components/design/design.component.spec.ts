@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
@@ -16,17 +16,19 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { DesignStore } from '../../state/design.store';
 import { DesignComponent } from './design.component';
+import { DesignModulesComponent } from 'src/app/designs/components/design-modules/design-modules.component';
+import { VariablesComponent } from 'src/app/designs/components/variables/variables.component';
 
-@Component({ selector: 'cas-variables', template: '', standalone: false })
+@Component({ selector: 'cas-variables', template: '' })
 class VariablesStub {
-  @Input() designId: string;
-  @Input() canEdit: boolean;
+  readonly designId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
-@Component({ selector: 'cas-design-modules', template: '', standalone: false })
+@Component({ selector: 'cas-design-modules', template: '' })
 class DesignModulesStub {
-  @Input() designId: string;
-  @Input() canEdit: boolean;
+  readonly designId = input<string>(undefined);
+  readonly canEdit = input<boolean>(undefined);
 }
 
 async function renderDesign(canEdit: boolean) {
@@ -42,7 +44,10 @@ async function renderDesign(canEdit: boolean) {
     'startConnection' | 'joinDesign' | 'leaveDesign'
   >;
   const view = await renderComponent(DesignComponent, {
-    declarations: [VariablesStub, DesignModulesStub],
+    childStubs: [
+      { replace: VariablesComponent, with: VariablesStub },
+      { replace: DesignModulesComponent, with: DesignModulesStub },
+    ],
     imports: [MatExpansionModule, MatTooltipModule],
     providers: [
       { provide: VariablesService, useValue: variablesApi },
@@ -82,9 +87,9 @@ describe('DesignComponent', () => {
   it('passes canEdit true to its modules and variables', async () => {
     const { stub, user } = await renderDesign(true);
 
-    expect(stub(DesignModulesStub).canEdit).toBe(true);
+    expect(stub(DesignModulesStub).canEdit()).toBe(true);
     await user.click(screen.getByRole('button', { name: /Variables/ }));
-    expect(stub(VariablesStub).canEdit).toBe(true);
+    expect(stub(VariablesStub).canEdit()).toBe(true);
   });
 
   /**
@@ -95,9 +100,9 @@ describe('DesignComponent', () => {
   it('passes canEdit false to its modules and variables', async () => {
     const { stub, user } = await renderDesign(false);
 
-    expect(stub(DesignModulesStub).canEdit).toBe(false);
+    expect(stub(DesignModulesStub).canEdit()).toBe(false);
     await user.click(screen.getByRole('button', { name: /Variables/ }));
-    expect(stub(VariablesStub).canEdit).toBe(false);
+    expect(stub(VariablesStub).canEdit()).toBe(false);
   });
 
   /**
@@ -116,6 +121,6 @@ describe('DesignComponent', () => {
       'aria-expanded',
       'false',
     );
-    expect(stub(DesignModulesStub).designId).toBe('d1');
+    expect(stub(DesignModulesStub).designId()).toBe('d1');
   });
 });

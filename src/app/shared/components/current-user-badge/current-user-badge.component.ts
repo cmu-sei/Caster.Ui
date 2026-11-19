@@ -21,7 +21,7 @@ export class CurrentUserBadgeComponent {
 
   private readonly currentUserId = toSignal(
     this.currentUserQuery.select((s) => s.id),
-    { initialValue: '' }
+    { initialValue: '' },
   );
 
   readonly isCurrentUser = computed(() => {

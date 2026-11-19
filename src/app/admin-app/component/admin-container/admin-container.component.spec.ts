@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { screen, within } from '@testing-library/angular';
@@ -26,35 +26,53 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
+import {
+  captureUnhandledRejections,
+  flush,
+} from 'src/app/test-utils/unhandled-rx-errors';
 import { AdminContainerComponent } from './admin-container.component';
+import { AdminGroupsComponent } from 'src/app/admin-app/component/admin-groups/admin-groups.component';
+import { AdminModulesComponent } from 'src/app/admin-app/component/admin-modules/modules.component';
+import { AdminProjectsComponent } from 'src/app/admin-app/component/admin-projects/admin-projects.component';
+import { AdminRolesComponent } from 'src/app/admin-app/component/admin-roles/admin-roles.component';
+import { AdminWorkspacesComponent } from 'src/app/admin-app/component/admin-workspaces/admin-workspaces.component';
+import { TopbarComponent } from 'src/app/shared/components/top-bar/topbar.component';
+import { UsersComponent } from 'src/app/admin-app/component/admin-users/users.component';
+import { VlansComponent } from 'src/app/admin-app/component/admin-vlans/vlans.component';
+import { AdminHypervisorsComponent } from 'src/app/admin-app/component/admin-hypervisors/admin-hypervisors.component';
 
-@Component({ selector: 'cas-topbar', template: '', standalone: false })
+@Component({ selector: 'cas-topbar', template: '' })
 class TopbarStub {
-  @Input() title: string;
-  @Input() topbarView: TopbarView;
-  @Input() sidenav: unknown;
-  @Output() sidenavToggle = new EventEmitter<boolean>();
+  readonly title = input<string>(undefined);
+  readonly topbarView = input<TopbarView>(undefined);
+  readonly sidenav = input<unknown>(undefined);
+  readonly sidenavToggle = output<boolean>();
 }
-@Component({ selector: 'cas-users', template: '', standalone: false })
+@Component({ selector: 'cas-users', template: '' })
 class UsersStub {}
-@Component({ selector: 'cas-admin-modules', template: '', standalone: false })
+@Component({ selector: 'cas-admin-modules', template: '' })
 class ModulesStub {}
 @Component({
   selector: 'cas-admin-workspaces',
   template: '',
-  standalone: false,
 })
 class WorkspacesStub {}
-@Component({ selector: 'cas-vlans', template: '', standalone: false })
+@Component({ selector: 'cas-vlans', template: '' })
 class VlansStub {}
-@Component({ selector: 'cas-admin-roles', template: '', standalone: false })
+@Component({ selector: 'cas-admin-hypervisors', template: '' })
+class HypervisorsStub {}
+@Component({ selector: 'cas-admin-roles', template: '' })
 class RolesStub {}
-@Component({ selector: 'cas-admin-groups', template: '', standalone: false })
+@Component({ selector: 'cas-admin-groups', template: '' })
 class GroupsStub {}
-@Component({ selector: 'cas-admin-projects', template: '', standalone: false })
+@Component({ selector: 'cas-admin-projects', template: '' })
 class ProjectsStub {}
 
-async function renderContainer(grants: PermissionGrants, section?: string) {
+async function renderContainer(
+  grants: PermissionGrants,
+  section?: string,
+  authOverrides: Partial<Pick<ComnAuthService, 'logout'>> = {},
+) {
   // selectQueryParams is overloaded and generic; the container only calls
   // selectQueryParams('section').
   const routerQuery = {
@@ -69,17 +87,19 @@ async function renderContainer(grants: PermissionGrants, section?: string) {
       }),
     ),
     logout: vi.fn(() => Promise.resolve()),
+    ...authOverrides,
   } satisfies Pick<ComnAuthService, 'user$' | 'logout'>;
   const view = await renderComponent(AdminContainerComponent, {
-    declarations: [
-      TopbarStub,
-      UsersStub,
-      ModulesStub,
-      WorkspacesStub,
-      VlansStub,
-      RolesStub,
-      GroupsStub,
-      ProjectsStub,
+    childStubs: [
+      { replace: TopbarComponent, with: TopbarStub },
+      { replace: UsersComponent, with: UsersStub },
+      { replace: AdminModulesComponent, with: ModulesStub },
+      { replace: AdminWorkspacesComponent, with: WorkspacesStub },
+      { replace: VlansComponent, with: VlansStub },
+      { replace: AdminHypervisorsComponent, with: HypervisorsStub },
+      { replace: AdminRolesComponent, with: RolesStub },
+      { replace: AdminGroupsComponent, with: GroupsStub },
+      { replace: AdminProjectsComponent, with: ProjectsStub },
     ],
     imports: [
       MatSidenavModule,
@@ -109,6 +129,24 @@ function navSections(): string[] {
 
 describe('AdminContainerComponent', () => {
   /**
+   * Verifies: calling logout lets its rejected promise escape (current behavior).
+   * Interacts with: ComnAuthService.logout, captureUnhandledRejections.
+   * Data: rendered container; the sign-out redirect rejects.
+   */
+  it('leaves a rejected direct logout unhandled', async () => {
+    const failure = new Error('sign-out redirect failed');
+    const errors = captureUnhandledRejections();
+    const { fixture } = await renderContainer({}, undefined, {
+      logout: () => Promise.reject(failure),
+    });
+
+    fixture.componentInstance.logout();
+    await flush();
+
+    expect(errors).toEqual([failure]);
+  });
+
+  /**
    * Verifies: each sidenav section appears only with its own system permission (Groups also with a ManageMembership claim), and near-miss grants render no section.
    * Interacts with: PermissionService.permissions$ and canViewGroupsAdmin (real), SystemPermissionsService and GroupPermissionsService (stubs).
    * Data: one grant per row; near misses are a sibling permission on the same resource (View instead of Manage, Manage instead of View, EditGroup instead of ManageMembership).
@@ -119,7 +157,16 @@ describe('AdminContainerComponent', () => {
       { system: [SystemPermission.ManageProjects] },
       ['Projects'],
     ],
-    ['ViewProjects', { system: [SystemPermission.ViewProjects] }, []],
+    [
+      'ViewProjects',
+      { system: [SystemPermission.ViewProjects] },
+      ['Project Groups'],
+    ],
+    [
+      'ManageProjectGroups',
+      { system: [SystemPermission.ManageProjectGroups] },
+      ['Project Groups'],
+    ],
     [
       'ViewWorkspaces',
       { system: [SystemPermission.ViewWorkspaces] },
@@ -128,6 +175,13 @@ describe('AdminContainerComponent', () => {
     ['ManageWorkspaces', { system: [SystemPermission.ManageWorkspaces] }, []],
     ['ViewVlans', { system: [SystemPermission.ViewVlans] }, ['VLANs']],
     ['ManageVlans', { system: [SystemPermission.ManageVlans] }, []],
+    ['ViewHosts', { system: [SystemPermission.ViewHosts] }, []],
+    [
+      'ViewInfrastructure',
+      { system: [SystemPermission.ViewInfrastructure] },
+      ['Connections'],
+    ],
+    ['ManageHosts', { system: [SystemPermission.ManageHosts] }, []],
     ['ViewModules', { system: [SystemPermission.ViewModules] }, ['Modules']],
     ['ManageModules', { system: [SystemPermission.ManageModules] }, []],
     ['ViewUsers', { system: [SystemPermission.ViewUsers] }, ['Users']],
@@ -157,9 +211,9 @@ describe('AdminContainerComponent', () => {
   });
 
   /**
-   * Verifies: a user with every View permission and ManageProjects sees all seven sections in order.
+   * Verifies: a user with every View permission and ManageProjects sees all eight sections in order.
    * Interacts with: PermissionService.permissions$ and canViewGroupsAdmin (real).
-   * Data: ManageProjects plus the View permissions for workspaces, VLANs, modules, users, roles and groups.
+   * Data: ManageProjects plus the View permissions for workspaces, VLANs, infrastructure, modules, users, roles and groups.
    */
   it('lists every section for a full administrator', async () => {
     await renderContainer({
@@ -167,9 +221,11 @@ describe('AdminContainerComponent', () => {
         SystemPermission.ManageProjects,
         SystemPermission.ViewWorkspaces,
         SystemPermission.ViewVlans,
+        SystemPermission.ViewInfrastructure,
         SystemPermission.ViewModules,
         SystemPermission.ViewUsers,
         SystemPermission.ViewRoles,
+        SystemPermission.ViewEnvironmentSets,
         SystemPermission.ViewGroups,
       ],
     });
@@ -181,6 +237,8 @@ describe('AdminContainerComponent', () => {
       'Modules',
       'Users',
       'Roles',
+      'Connections',
+      'Environment Sets',
       'Groups',
     ]);
   });
@@ -235,6 +293,11 @@ describe('AdminContainerComponent', () => {
       permission: SystemPermission.ViewVlans,
     },
     {
+      section: 'Connections',
+      page: 'cas-admin-hypervisors',
+      permission: SystemPermission.ViewInfrastructure,
+    },
+    {
       section: 'Modules',
       page: 'cas-admin-modules',
       permission: SystemPermission.ViewModules,
@@ -276,6 +339,11 @@ describe('AdminContainerComponent', () => {
       section: 'VLANs',
       page: 'cas-vlans',
       permission: SystemPermission.ManageVlans,
+    },
+    {
+      section: 'Connections',
+      page: 'cas-admin-hypervisors',
+      permission: SystemPermission.ManageHosts,
     },
     {
       section: 'Modules',

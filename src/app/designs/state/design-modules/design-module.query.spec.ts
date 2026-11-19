@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { DesignModule, Module } from '../../../generated/caster-api';
 import { ModuleQuery } from '../../../modules/state/module.query';
@@ -36,7 +37,14 @@ const vmModule: Module = {
 function setup(designModules: DesignModule[] = [], modules: Module[] = []) {
   const store = new DesignModuleStore();
   const moduleStore = new ModuleStore();
-  const query = new DesignModuleQuery(store, new ModuleQuery(moduleStore));
+  const injector = Injector.create({
+    providers: [
+      { provide: DesignModuleStore, useValue: store },
+      { provide: ModuleStore, useValue: moduleStore },
+      { provide: ModuleQuery, useClass: ModuleQuery },
+    ],
+  });
+  const query = runInInjectionContext(injector, () => new DesignModuleQuery());
   store.add(designModules);
   moduleStore.add(modules);
   return { store, moduleStore, query };

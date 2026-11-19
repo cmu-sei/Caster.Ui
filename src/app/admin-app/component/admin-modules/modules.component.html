@@ -4,24 +4,25 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 @if (noSources) {
-<div class="source-warning" role="status">
-  <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline"></mat-icon>
-  <span>No module source is configured, so no Modules can be synced.</span>
-</div>
-} @for (source of failedSources; track source.name) {
-<div class="source-warning" role="alert">
-  <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline"></mat-icon>
-  <span>
-    Module source <strong>{{ source.name }}</strong> failed to sync.
-    @if (source.lastSuccess) {
-    Showing its Modules from the last successful sync,
-    {{ syncTime(source.lastSuccess) }}.
-    } @else {
-    Showing the Modules already stored.
-    }
-    <span class="source-error">{{ source.error }}</span>
-  </span>
-</div>
+  <div class="source-warning" role="status">
+    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
+    <span>No module source is configured, so no Modules can be synced.</span>
+  </div>
+}
+@for (source of failedSources; track source.name) {
+  <div class="source-warning" role="alert">
+    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
+    <span>
+      Module source <strong>{{ source.name }}</strong> failed to sync.
+      @if (source.lastSuccess) {
+        Showing its Modules from the last successful sync,
+        {{ syncTime(source.lastSuccess) }}.
+      } @else {
+        Showing the Modules already stored.
+      }
+      <span class="source-error">{{ source.error }}</span>
+    </span>
+  </div>
 }
 
 <cas-admin-module-list
@@ -30,5 +31,5 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   [canEdit]="canEdit$ | async"
   (load)="load($event)"
   (loadModuleById)="createOrUpdateById($event)"
-  (delete)="deleteModule($event)">
-</cas-admin-module-list>
+  (delete)="deleteModule($event)"
+/>

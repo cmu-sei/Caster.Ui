@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
@@ -15,12 +15,12 @@ import {
   providedIn: 'root',
 })
 export class ProjectMembershipService {
+  private projectService = inject(ProjectsService);
+
   private projectMembershipsSubject = new BehaviorSubject<ProjectMembership[]>(
-    []
+    [],
   );
   public projectMemberships$ = this.projectMembershipsSubject.asObservable();
-
-  constructor(private projectService: ProjectsService) {}
 
   loadMemberships(projectId: string): Observable<ProjectMembership[]> {
     return this.projectService
@@ -32,7 +32,7 @@ export class ProjectMembershipService {
     return this.projectService.createProjectMembership(projectId, command).pipe(
       tap((x) => {
         this.upsert(x.id, x);
-      })
+      }),
     );
   }
 
@@ -40,7 +40,7 @@ export class ProjectMembershipService {
     return this.projectService.editProjectMembership(command).pipe(
       tap((x) => {
         this.upsert(command.id, x);
-      })
+      }),
     );
   }
 
@@ -48,7 +48,7 @@ export class ProjectMembershipService {
     return this.projectService.deleteProjectMembership(id).pipe(
       tap(() => {
         this.remove(id);
-      })
+      }),
     );
   }
 

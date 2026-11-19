@@ -26,8 +26,8 @@ async function renderAddUserDialog(overrides: { roles?: SystemRole[] } = {}) {
   const { dialogRef, close } = dialogRefStub<AddUserDialogComponent>();
 
   const rendered = await renderComponent(AddUserDialogComponent, {
-    declarations: [AddUserDialogComponent],
     imports: [
+      AddUserDialogComponent,
       ...CRUCIBLE_DIALOG_IMPORTS,
       MatFormFieldModule,
       MatInputModule,

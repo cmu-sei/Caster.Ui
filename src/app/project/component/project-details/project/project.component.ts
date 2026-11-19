@@ -4,30 +4,30 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  input,
+  output,
 } from '@angular/core';
 import { ProjectUI } from '../../../state';
 import { MatTab } from '@angular/material/tabs';
 import { Project } from 'src/app/generated/caster-api';
+import { ProjectTabComponent } from '../project-tab/project-tab.component';
 
 @Component({
-    selector: 'cas-project',
-    templateUrl: './project.component.html',
-    styleUrls: ['./project.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-project',
+  templateUrl: './project.component.html',
+  styleUrls: ['./project.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ProjectTabComponent],
 })
 export class ProjectComponent {
-  @Input() loading: boolean;
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
-  @Output() closeTab: EventEmitter<string> = new EventEmitter<string>();
-  @Output() tabChanged: EventEmitter<{
+  readonly loading = input<boolean>(undefined);
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<{
     index: number;
     tab: MatTab;
-  }> = new EventEmitter<{ index: number; tab: MatTab }>();
-  @Output() breadcrumbClicked: EventEmitter<any> = new EventEmitter<any>();
+  }>();
+  readonly breadcrumbClicked = output<any>();
   constructor() {}
 }

@@ -7,11 +7,13 @@ import {
   Component,
   ComponentFactoryResolver,
   Injector,
-  Input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  TemplateRef,
   ViewContainerRef,
+  inject,
+  input,
+  viewChild,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -23,35 +25,33 @@ import {
   selector: 'cas-cwd-toolbar-action-item',
   templateUrl: './cwd-toolbar-action-item.component.html',
   styleUrls: ['./cwd-toolbar-action-item.component.scss'],
-  standalone: false,
 })
 export class CwdToolbarActionItemComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  private componentFactoryResolver = inject(ComponentFactoryResolver);
+  private injector = inject(Injector);
+  private appRef = inject(ApplicationRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
-  @Input() selector: string;
-  @ViewChild('cwdToolbarAction', { static: true }) cwdActionTmplRef;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private injector: Injector,
-    private appRef: ApplicationRef,
-    private viewContainerRef: ViewContainerRef
-  ) {}
+  readonly selector = input<string>(undefined);
+  readonly cwdActionTmplRef =
+    viewChild<TemplateRef<unknown>>('cwdToolbarAction');
 
   ngOnInit() {}
 
   ngAfterViewInit(): void {
     this.portalOutlet = new DomPortalOutlet(
-      document.querySelector(this.selector),
+      document.querySelector(this.selector()),
       this.appRef,
-      this.injector
+      this.injector,
     );
 
     this.portal = new TemplatePortal(
-      this.cwdActionTmplRef,
-      this.viewContainerRef
+      this.cwdActionTmplRef(),
+      this.viewContainerRef,
     );
     this.portalOutlet.attach(this.portal);
   }

@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ModelFile } from '../../generated/caster-api';
 import { recordEmissions } from '../../test-utils/record-emissions';
@@ -16,7 +17,10 @@ function file(overrides: Partial<ModelFile> = {}): ModelFile {
 
 function setup(files: ModelFile[] = []) {
   const store = new FileStore();
-  const query = new FileQuery(store);
+  const query = runInInjectionContext(
+    Injector.create({ providers: [{ provide: FileStore, useValue: store }] }),
+    () => new FileQuery(),
+  );
   store.add(files);
   return { store, query };
 }

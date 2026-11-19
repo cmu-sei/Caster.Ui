@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { recordEmissions } from '../../test-utils/record-emissions';
 import { DirectoryQuery } from './directory.query';
@@ -15,7 +16,12 @@ describe('DirectoryQuery', () => {
    */
   it('sorts directories by name, ignoring case', async () => {
     const store = new DirectoryStore();
-    const query = new DirectoryQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: DirectoryStore, useValue: store }],
+      }),
+      () => new DirectoryQuery(),
+    );
     store.add([
       { id: 'm', name: 'modules' },
       { id: 'b', name: 'Base' },
@@ -34,7 +40,12 @@ describe('DirectoryQuery', () => {
    */
   it('exposes per-directory UI state', () => {
     const store = new DirectoryStore();
-    const query = new DirectoryQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: DirectoryStore, useValue: store }],
+      }),
+      () => new DirectoryQuery(),
+    );
     store.add({ id: 'd1', name: 'root' });
     const seen = recordEmissions(
       query.ui.selectEntity('d1', (ui) => ui.isExpanded),

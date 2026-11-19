@@ -6,12 +6,14 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.component';
+import { ProjectMembershipsComponent } from '../project-memberships/project-memberships.component';
 
 @Component({
-    selector: 'cas-project-memberships-page',
-    templateUrl: './project-memberships-page.component.html',
-    styleUrls: ['./project-memberships-page.component.scss'],
-    standalone: false
+  selector: 'cas-project-memberships-page',
+  templateUrl: './project-memberships-page.component.html',
+  styleUrls: ['./project-memberships-page.component.scss'],
+  imports: [TopbarComponent, ProjectMembershipsComponent],
 })
 export class ProjectMembershipsPageComponent implements OnInit {
   projectId: string;

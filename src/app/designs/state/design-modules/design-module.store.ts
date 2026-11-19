@@ -13,8 +13,7 @@ import {
 import { DesignModule } from 'src/app/generated/caster-api';
 
 export interface DesignModuleState
-  extends EntityState<DesignModule, string>,
-    ActiveState<string> {}
+  extends EntityState<DesignModule, string>, ActiveState<string> {}
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'design-module' })

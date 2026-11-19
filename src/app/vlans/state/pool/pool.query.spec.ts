@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { PoolQuery } from './pool.query';
 import { PoolStore } from './pool.store';
@@ -16,7 +17,10 @@ describe('PoolQuery', () => {
    */
   it('sorts pools by name', async () => {
     const store = new PoolStore();
-    const query = new PoolQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PoolStore, useValue: store }] }),
+      () => new PoolQuery(),
+    );
     store.add([
       { id: 'l', name: 'lab' },
       { id: 'd', name: 'Default', isDefault: true },

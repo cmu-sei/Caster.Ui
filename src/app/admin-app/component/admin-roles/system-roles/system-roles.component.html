@@ -15,8 +15,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [disabled]="!(canEdit$ | async)"
           aria-label="Add New Role"
           matTooltip="Add New Role"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
         </button>
         <button
           mat-icon-button
@@ -24,8 +24,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           aria-label="About roles"
           matTooltip="Roles can be set on Users or, if enabled in your environment, can be matched to Role Names from the token of the Identity Provider in use."
           matTooltipShowDelay="0"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-information" />
         </button>
       </th>
       <th mat-header-cell *matHeaderCellDef>All</th>
@@ -36,17 +36,15 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           [attr.aria-label]="'About ' + permission"
           [matTooltip]="permissionMap.get(permission)"
           [matTooltipShowDelay]="0"
-          >
-          <mat-icon class="mdi-24px" fontIcon="mdi-information"> </mat-icon>
+        >
+          <mat-icon class="mdi-24px" fontIcon="mdi-information" />
         </button>
         {{ permission }}
       </td>
     </ng-container>
 
     @for (role of roles$ | async; track trackById($index, role)) {
-      <ng-container
-        [matColumnDef]="role.name"
-        >
+      <ng-container [matColumnDef]="role.name">
         <th mat-header-cell *matHeaderCellDef>
           <div class="d-flex">
             <p>{{ role.name }}</p>
@@ -58,11 +56,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   (click)="renameRole(role)"
                   title="Rename Role"
                   [attr.aria-label]="'Rename role ' + role.name"
-                  >
+                >
                   <mat-icon
                     class="mdi-24px"
                     fontIcon="mdi-square-edit-outline"
-                  ></mat-icon>
+                  />
                 </button>
               }
               @if (!role.immutable) {
@@ -72,11 +70,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                   (click)="deleteRole(role)"
                   title="Delete Role"
                   [attr.aria-label]="'Delete role ' + role.name"
-                  >
-                  <mat-icon
-                    class="mdi-24px"
-                    fontIcon="mdi-trash-can-outline"
-                  ></mat-icon>
+                >
+                  <mat-icon class="mdi-24px" fontIcon="mdi-trash-can-outline" />
                 </button>
               }
             }
@@ -89,7 +84,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               [checked]="hasPermission(permission, role)"
               (change)="setPermission(permission, role, $event)"
               [disabled]="role.immutable || !(canEdit$ | async)"
-            ></mat-checkbox>
+            />
           }
         </td>
       </ng-container>

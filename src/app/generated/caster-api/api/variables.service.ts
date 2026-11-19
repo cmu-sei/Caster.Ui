@@ -444,7 +444,7 @@ export class VariablesService {
             }
         }
 
-        let localVarPath = `/api/designss/${this.configuration.encodeParam({name: "designId", value: designId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/variables`;
+        let localVarPath = `/api/designs/${this.configuration.encodeParam({name: "designId", value: designId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/variables`;
         return this.httpClient.request<Array<Variable>>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,

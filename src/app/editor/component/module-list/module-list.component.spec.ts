@@ -2,13 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import {
-  Component,
-  EventEmitter,
-  getDebugNode,
-  Input,
-  Output,
-} from '@angular/core';
+import { Component, getDebugNode, input, output } from '@angular/core';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,18 +15,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CreateSnippetCommand, Module } from 'src/app/generated/caster-api';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ModuleListComponent } from './module-list.component';
+import { ModuleVariablesComponent } from 'src/app/editor/component/module-variables/module-variables.component';
 
 @Component({
   selector: 'cas-module-variables',
   template: '',
-  standalone: false,
 })
 class ModuleVariablesStub {
-  @Input() selectedModule: Module;
-  @Input() readOnly: boolean;
-  @Input() submitButtonText: string;
-  @Input() requireChanges: boolean;
-  @Output() variablesSelected = new EventEmitter<CreateSnippetCommand>();
+  readonly selectedModule = input<Module>(undefined);
+  readonly readOnly = input<boolean>(undefined);
+  readonly submitButtonText = input<string>(undefined);
+  readonly requireChanges = input<boolean>(undefined);
+  readonly variablesSelected = output<CreateSnippetCommand>();
 }
 
 const modules: Module[] = [
@@ -45,7 +39,9 @@ async function renderModuleList(isEditing = true) {
   const getModule = vi.fn<(m: { id: string; name: string }) => void>();
   const insertModule = vi.fn<(c: CreateSnippetCommand) => void>();
   const view = await renderComponent(ModuleListComponent, {
-    declarations: [ModuleVariablesStub],
+    childStubs: [
+      { replace: ModuleVariablesComponent, with: ModuleVariablesStub },
+    ],
     imports: [
       MatCardModule,
       MatFormFieldModule,
@@ -138,10 +134,10 @@ describe('ModuleListComponent', () => {
     const dialog = variablesDialog();
     expect(dialog).toBeDefined();
     expect({
-      selectedModule: dialog?.selectedModule,
-      readOnly: dialog?.readOnly,
-      submitButtonText: dialog?.submitButtonText,
-      requireChanges: dialog?.requireChanges,
+      selectedModule: dialog?.selectedModule(),
+      readOnly: dialog?.readOnly(),
+      submitButtonText: dialog?.submitButtonText(),
+      requireChanges: dialog?.requireChanges(),
     }).toEqual({
       selectedModule: selected,
       readOnly: false,
@@ -173,6 +169,6 @@ describe('ModuleListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(variablesDialog()?.readOnly).toBe(true);
+    expect(variablesDialog()?.readOnly()).toBe(true);
   });
 });

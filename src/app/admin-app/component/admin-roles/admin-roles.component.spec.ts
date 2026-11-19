@@ -9,11 +9,13 @@ import userEvent from '@testing-library/user-event';
 import { MatTabsModule } from '@angular/material/tabs';
 import { renderComponent } from '../../../test-utils/render-component';
 import { AdminRolesComponent } from './admin-roles.component';
+import { ProjectRolesComponent } from 'src/app/admin-app/component/admin-roles/project-roles/project-roles/project-roles.component';
+import { SystemRolesComponent } from 'src/app/admin-app/component/admin-roles/system-roles/system-roles.component';
 
-@Component({ selector: 'cas-system-roles', template: '', standalone: false })
+@Component({ selector: 'cas-system-roles', template: '' })
 class SystemRolesStub {}
 
-@Component({ selector: 'cas-project-roles', template: '', standalone: false })
+@Component({ selector: 'cas-project-roles', template: '' })
 class ProjectRolesStub {}
 
 describe('AdminRolesComponent', () => {
@@ -24,7 +26,10 @@ describe('AdminRolesComponent', () => {
    */
   it('switches between the system and project roles', async () => {
     const { fixture } = await renderComponent(AdminRolesComponent, {
-      declarations: [SystemRolesStub, ProjectRolesStub],
+      childStubs: [
+        { replace: SystemRolesComponent, with: SystemRolesStub },
+        { replace: ProjectRolesComponent, with: ProjectRolesStub },
+      ],
       imports: [MatTabsModule],
     });
 

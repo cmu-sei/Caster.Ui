@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Partition } from '../../../generated/caster-api';
 import { PartitionQuery } from './partition.query';
@@ -9,7 +10,12 @@ import { PartitionStore } from './partition.store';
 
 function setup(partitions: Partition[]) {
   const store = new PartitionStore();
-  const query = new PartitionQuery(store);
+  const query = runInInjectionContext(
+    Injector.create({
+      providers: [{ provide: PartitionStore, useValue: store }],
+    }),
+    () => new PartitionQuery(),
+  );
   store.add(partitions);
   return { store, query };
 }

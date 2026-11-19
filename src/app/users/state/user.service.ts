@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ComnAuthService, Theme } from '@cmusei/crucible-common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -13,13 +13,11 @@ import { CurrentUserStore, UserStore } from './user.store';
   providedIn: 'root',
 })
 export class UserService {
-  constructor(
-    private userStore: UserStore,
-    private currentUserStore: CurrentUserStore,
-    private userQuery: UserQuery,
-    private usersService: UsersService,
-    private authService: ComnAuthService
-  ) {}
+  private userStore = inject(UserStore);
+  private currentUserStore = inject(CurrentUserStore);
+  private userQuery = inject(UserQuery);
+  private usersService = inject(UsersService);
+  private authService = inject(ComnAuthService);
 
   load(): Observable<User[]> {
     this.userStore.setLoading(true);
@@ -29,7 +27,7 @@ export class UserService {
       }),
       tap(() => {
         this.userStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -41,7 +39,7 @@ export class UserService {
       }),
       tap(() => {
         this.userStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -50,7 +48,7 @@ export class UserService {
       tap((u) => {
         this.userStore.add(u);
         this.userStore.ui.upsert(u.id, this.userQuery.ui.getEntity(u.id));
-      })
+      }),
     );
   }
 
@@ -59,7 +57,7 @@ export class UserService {
       tap(() => {
         this.userStore.remove(userId);
         this.userStore.ui.remove(userId);
-      })
+      }),
     );
   }
 
@@ -70,7 +68,7 @@ export class UserService {
         tap((u) => {
           this.userStore.add(u);
           this.userStore.ui.upsert(u.id, this.userQuery.ui.getEntity(u.id));
-        })
+        }),
       )
       .subscribe();
   }

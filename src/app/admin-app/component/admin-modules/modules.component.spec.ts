@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { By } from '@angular/platform-browser';
@@ -22,19 +22,19 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminModulesComponent } from './modules.component';
+import { AdminModuleListComponent } from 'src/app/admin-app/component/admin-modules/modules-list/module-list.component';
 
 @Component({
   selector: 'cas-admin-module-list',
   template: '',
-  standalone: false,
 })
 class ModuleListStub {
-  @Input() modules: Module[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
-  @Output() load = new EventEmitter<boolean>();
-  @Output() loadModuleById = new EventEmitter<string>();
-  @Output() delete = new EventEmitter<string>();
+  readonly modules = input<Module[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly load = output<boolean>();
+  readonly loadModuleById = output<string>();
+  readonly delete = output<string>();
 }
 
 const healthy: ModuleSource = {
@@ -81,7 +81,7 @@ async function renderModules(
     ),
   } satisfies ApiStub<ModulesService>;
   const view = await renderComponent(AdminModulesComponent, {
-    declarations: [ModuleListStub],
+    childStubs: [{ replace: AdminModuleListComponent, with: ModuleListStub }],
     imports: [MatIconModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -119,8 +119,8 @@ describe('AdminModulesComponent', () => {
       undefined,
       true,
     );
-    expect(list.modules.map((m) => m.id)).toEqual(['mod1']);
-    expect(list.isLoading).toBe(false);
+    expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
+    expect(list.isLoading()).toBe(false);
   });
 
   /**
@@ -133,7 +133,7 @@ describe('AdminModulesComponent', () => {
       system: [SystemPermission.ManageWorkspaces],
     });
 
-    expect(list.canEdit).toBe(true);
+    expect(list.canEdit()).toBe(true);
   });
 
   /**
@@ -151,7 +151,7 @@ describe('AdminModulesComponent', () => {
     const { list } = await renderModules({ system });
 
     // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(list.canEdit).toBe(false);
+    expect(list.canEdit()).toBe(false);
   });
 
   describe('module source sync', () => {
@@ -165,9 +165,9 @@ describe('AdminModulesComponent', () => {
 
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
-      expect(
-        modulesApi.getAllModules.mock.invocationCallOrder[0],
-      ).toBeLessThan(modulesApi.getModuleSources.mock.invocationCallOrder[0]);
+      expect(modulesApi.getAllModules.mock.invocationCallOrder[0]).toBeLessThan(
+        modulesApi.getModuleSources.mock.invocationCallOrder[0],
+      );
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
@@ -218,7 +218,7 @@ describe('AdminModulesComponent', () => {
         { sources: () => throwError(() => new Error('404')) },
       );
 
-      expect(list.modules.map((m) => m.id)).toEqual(['mod1']);
+      expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
@@ -327,7 +327,7 @@ describe('AdminModulesComponent', () => {
       expect(
         modulesApi.createTerrraformModuleFromRepository.mock.calls,
       ).toStrictEqual([[{ id: 'gitlab' }]]);
-      expect(list.isLoading).toBe(true);
+      expect(list.isLoading()).toBe(true);
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
 
       answer = [gitlab];
@@ -338,7 +338,7 @@ describe('AdminModulesComponent', () => {
       // Read right away: whenStable() would wait out a snack bar's duration.
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(2);
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
-      expect(list.isLoading).toBe(false);
+      expect(list.isLoading()).toBe(false);
       expect(screen.getAllByRole('alert')).toHaveLength(1);
       expect(
         screen.queryByText('Module source gitlab failed to sync'),
@@ -380,7 +380,7 @@ describe('AdminModulesComponent', () => {
         expect(await screen.findByText(message)).toBeInTheDocument();
         // The snack bar's content stays aria-hidden until it is announced.
         expect(screen.getByText('Dismiss')).toBeInTheDocument();
-        expect(list.isLoading).toBe(false);
+        expect(list.isLoading()).toBe(false);
         expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
         expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
       },

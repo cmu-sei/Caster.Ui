@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Theme } from '@cmusei/crucible-common';
 import { recordEmissions } from '../../test-utils/record-emissions';
@@ -17,7 +18,10 @@ describe('UserQuery', () => {
    */
   it('sorts users, tracks loading and selects by id', async () => {
     const store = new UserStore();
-    const query = new UserQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({ providers: [{ provide: UserStore, useValue: store }] }),
+      () => new UserQuery(),
+    );
     const loading = recordEmissions(query.isLoading$);
     const ada = recordEmissions(query.selectByUserId('a'));
 
@@ -45,7 +49,12 @@ describe('CurrentUserQuery', () => {
    */
   it('selects the user theme', () => {
     const store = new CurrentUserStore();
-    const query = new CurrentUserQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: CurrentUserStore, useValue: store }],
+      }),
+      () => new CurrentUserQuery(),
+    );
     const seen = recordEmissions(query.userTheme$);
 
     store.update({ theme: Theme.DARK });
@@ -60,7 +69,12 @@ describe('CurrentUserQuery', () => {
    */
   it('returns the last route, or / when none is recorded', () => {
     const store = new CurrentUserStore();
-    const query = new CurrentUserQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: CurrentUserStore, useValue: store }],
+      }),
+      () => new CurrentUserQuery(),
+    );
 
     expect(query.getLastRoute()).toBe('/');
 

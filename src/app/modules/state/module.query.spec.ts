@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { recordEmissions } from '../../test-utils/record-emissions';
 import { ModuleQuery } from './module.query';
@@ -9,7 +10,15 @@ import { ModuleStore } from './module.store';
 
 function setup() {
   const store = new ModuleStore();
-  return { store, query: new ModuleQuery(store) };
+  return {
+    store,
+    query: runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: ModuleStore, useValue: store }],
+      }),
+      () => new ModuleQuery(),
+    ),
+  };
 }
 
 describe('ModuleQuery', () => {

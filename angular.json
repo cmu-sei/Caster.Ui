@@ -136,23 +136,16 @@
             ],
             "coverageReporters": ["text", "json", "html"],
             "coverageThresholds": {
-              "statements": 77,
-              "branches": 69,
-              "functions": 75,
-              "lines": 75
+              "statements": 79,
+              "branches": 70,
+              "functions": 77,
+              "lines": 78
             }
           },
           "configurations": {
             "coverage": {
               "coverage": true
             }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": ["src/tsconfig.app.json", "tsconfig.spec.json"],
-            "exclude": ["**/node_modules/**", "src/app/generated/**"]
           }
         }
       }
@@ -172,13 +165,6 @@
             "production": {
               "devServerTarget": "caster-ui:serve:production"
             }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": "e2e/tsconfig.e2e.json",
-            "exclude": ["**/node_modules/**"]
           }
         }
       }

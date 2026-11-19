@@ -20,7 +20,7 @@ import {
   Workspace,
   RunStatus,
 } from '../../generated/caster-api';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   ResourceActions,
   StatusFilter,
@@ -37,10 +37,16 @@ import { map, shareReplay } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
+  protected store: WorkspaceStore;
+
   ui: EntityUIQuery<WorkspaceUIState, WorkspaceEntityUi>;
 
-  constructor(protected store: WorkspaceStore) {
+  constructor() {
+    const store = inject(WorkspaceStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 
@@ -67,14 +73,14 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
               return tmpRuns;
             } else {
               return tmpRuns.filter(
-                (run) => !filtersReduced.includes(run.status)
+                (run) => !filtersReduced.includes(run.status),
               );
             }
           } else {
             return tmpRuns;
           }
         }
-      })
+      }),
     );
   }
 
@@ -92,7 +98,7 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
     } else {
       return this.ui.selectAll().pipe(
         map((w) => w.map((x) => x.expandedRuns)),
-        map((r) => [].concat(...r))
+        map((r) => [].concat(...r)),
       );
     }
   }
@@ -100,7 +106,7 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
   resourceActions$(workspaceId): Observable<string[]> {
     return this.ui.selectEntity(
       workspaceId,
-      (entity) => entity.resourceActions
+      (entity) => entity.resourceActions,
     );
   }
 
@@ -111,7 +117,7 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
   expandedResources$(workspaceId: string): Observable<string[]> {
     return this.ui.selectEntity(
       workspaceId,
-      (entity) => entity.expandedResources
+      (entity) => entity.expandedResources,
     );
   }
 
@@ -121,14 +127,14 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
 
   selectRunById$(workspace, runId): Observable<Run> {
     return this.selectEntity(workspace, 'runs').pipe(
-      map((runs) => runs.find((r) => r.id === runId))
+      map((runs) => runs.find((r) => r.id === runId)),
     );
   }
 
   selectResourceById$(workspaceId, resourceId) {
     return this.selectEntity(workspaceId, 'resources').pipe(
       arrayFind(resourceId),
-      shareReplay(1)
+      shareReplay(1),
       // share({
       //   connector: () => new ReplaySubject(1),
       // })
@@ -145,9 +151,11 @@ export class WorkspaceQuery extends QueryEntity<WorkspaceState, Workspace> {
 
     return this.selectAll().pipe(
       map((w) =>
-        w.map((x) => (x.runs || []).filter((r) => activeStatuses.includes(r.status)))
+        w.map((x) =>
+          (x.runs || []).filter((r) => activeStatuses.includes(r.status)),
+        ),
       ),
-      map((r) => [].concat(...r))
+      map((r) => [].concat(...r)),
     );
   }
 

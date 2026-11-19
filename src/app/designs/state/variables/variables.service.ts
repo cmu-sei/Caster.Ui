@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   CreateVariableCommand,
   EditVariableCommand,
@@ -14,10 +14,8 @@ import { VariablesStore } from './variables.store';
 
 @Injectable({ providedIn: 'root' })
 export class VariableService {
-  constructor(
-    private variablesStore: VariablesStore,
-    private variablesService: VariablesService
-  ) {}
+  private variablesStore = inject(VariablesStore);
+  private variablesService = inject(VariablesService);
 
   loadByDesignId(designId: string) {
     this.variablesService

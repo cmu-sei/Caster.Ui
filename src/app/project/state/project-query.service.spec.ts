@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { recordEmissions } from '../../test-utils/record-emissions';
 import { ProjectQuery } from './project-query.service';
@@ -25,7 +26,12 @@ function tab(id: string, breadcrumb: Breadcrumb[] = []): Tab {
 
 function setup() {
   const store = new ProjectStore();
-  const query = new ProjectQuery(store);
+  const query = runInInjectionContext(
+    Injector.create({
+      providers: [{ provide: ProjectStore, useValue: store }],
+    }),
+    () => new ProjectQuery(),
+  );
   store.add({ id: 'p1', name: 'Project' });
   return { store, query };
 }

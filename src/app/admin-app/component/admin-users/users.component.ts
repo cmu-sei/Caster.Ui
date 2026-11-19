@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { UserService, UserQuery } from '../../../users/state';
@@ -9,27 +9,27 @@ import { SystemPermission, User } from '../../../generated/caster-api';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { PermissionService } from 'src/app/permissions/permission.service';
+import { UserListComponent } from './user-list/user-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'cas-users',
-    templateUrl: './users.component.html',
-    styleUrls: ['./users.component.css'],
-    standalone: false
+  selector: 'cas-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.css'],
+  imports: [UserListComponent, AsyncPipe],
 })
 export class UsersComponent implements OnInit {
+  private userService = inject(UserService);
+  private userQuery = inject(UserQuery);
+  private permissionService = inject(PermissionService);
+
   public matcher = new UserErrorStateMatcher();
   public isLinear = false;
   public users$: Observable<User[]>;
   public isLoading$: Observable<boolean>;
   public canEdit$ = this.permissionService.hasPermission(
-    SystemPermission.ManageUsers
+    SystemPermission.ManageUsers,
   );
-
-  constructor(
-    private userService: UserService,
-    private userQuery: UserQuery,
-    private permissionService: PermissionService
-  ) {}
 
   /**
    * Initialize component
@@ -53,7 +53,7 @@ export class UsersComponent implements OnInit {
 export class UserErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(
     control: UntypedFormControl | null,
-    form: FormGroupDirective | NgForm | null
+    form: FormGroupDirective | NgForm | null,
   ): boolean {
     const isSubmitted = form && form.submitted;
     return !!(control && control.invalid && (control.dirty || isSubmitted));

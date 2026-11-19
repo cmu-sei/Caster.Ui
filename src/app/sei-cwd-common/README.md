@@ -1,16 +1,16 @@
-## SEI CWD Common Modules
+## SEI CWD Common
 
 #### Description
 
-SEI CWD Common modules are a set of angular modules, components and services that are shared across the
+SEI CWD Common is a set of standalone Angular components, directives and services that are shared across the
 Caster UI. Settings and authentication are not part of this folder; they come from `@cmusei/crucible-common`
 (`ComnSettingsModule`, `ComnAuthModule`).
 
-#### Modules
+#### Components
 
-- [Toolbar Module](cwd-toolbar/README.md) (`CwdToolbarModule`)
-- [Table Module](cwd-table/README.md) (`CwdTableModule`)
-- `SeiCwdCommonModule`: declares and exports the `name-dialog` component (`NameDialogComponent`)
+- [Toolbar](cwd-toolbar/README.md)
+- [Table](cwd-table/README.md)
+- `NameDialogComponent` (`name-dialog/`)
 
 #### Services
 
@@ -23,18 +23,14 @@ Caster UI. Settings and authentication are not part of this folder; they come fr
 If you would like to replace or extend any of these services. Angular makes this process very simple.
 
 ```typescript
-// Example of replacing the global error handler, which app.module.ts sets to ErrorService.
-import { ErrorHandler, NgModule } from '@angular/core';
-
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, CwdToolbarModule],
-  // Replace ErrorService in the providers array
-  providers: [{ provide: ErrorHandler, useClass: <YOUR_CUSTOM_CLASS> }],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
+// Example of replacing the global error handler, which app.config.ts sets to ErrorService.
+bootstrapApplication(AppComponent, {
+  providers: [
+    // Replace ErrorService in the providers array
+    { provide: ErrorHandler, useClass: <YOUR_CUSTOM_CLASS> },
+  ],
+});
 ```
 
-Cwd Modules will expect a certain format for dependent modules, services and components. As such you
+These components and services expect a certain format for dependent modules, services and components. As such you
 should extend existing classes when possible.

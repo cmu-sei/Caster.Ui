@@ -12,7 +12,7 @@ import {
   DirectoryState,
   DirectoryStore,
 } from './directory.store';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 @QueryConfig({
   sortBy: 'name',
@@ -22,10 +22,16 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class DirectoryQuery extends QueryEntity<DirectoryState> {
+  protected store: DirectoryStore;
+
   ui: EntityUIQuery<DirectoryUIState>;
 
-  constructor(protected store: DirectoryStore) {
+  constructor() {
+    const store = inject(DirectoryStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 }

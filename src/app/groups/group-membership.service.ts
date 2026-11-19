@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import {
@@ -15,10 +15,10 @@ import {
   providedIn: 'root',
 })
 export class GroupMembershipService {
+  private groupService = inject(GroupsService);
+
   private groupMembershipSubject = new BehaviorSubject<GroupMembership[]>([]);
   groupMemberships$ = this.groupMembershipSubject.asObservable();
-
-  constructor(private groupService: GroupsService) {}
 
   selectMemberships(groupId: string): Observable<GroupMembership[]> {
     return this.groupMembershipSubject
@@ -42,7 +42,7 @@ export class GroupMembershipService {
         });
 
         this.groupMembershipSubject.next(memberships);
-      })
+      }),
     );
   }
 
@@ -50,7 +50,7 @@ export class GroupMembershipService {
     return this.groupService.createGroupMembership(groupId, command).pipe(
       tap((x) => {
         this.upsert(x.id, x);
-      })
+      }),
     );
   }
 
@@ -58,7 +58,7 @@ export class GroupMembershipService {
     return this.groupService.editGroupMembership(id, command).pipe(
       tap((x) => {
         this.upsert(x.id, x);
-      })
+      }),
     );
   }
 
@@ -66,7 +66,7 @@ export class GroupMembershipService {
     return this.groupService.deleteGroupMembership(id).pipe(
       tap(() => {
         this.remove(id);
-      })
+      }),
     );
   }
 

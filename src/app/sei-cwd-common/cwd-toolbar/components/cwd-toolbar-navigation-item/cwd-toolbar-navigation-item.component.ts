@@ -9,8 +9,10 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild,
+  TemplateRef,
   ViewContainerRef,
+  inject,
+  viewChild,
 } from '@angular/core';
 import {
   DomPortalOutlet,
@@ -22,21 +24,20 @@ import {
   selector: 'cas-cwd-toolbar-navigation-item',
   templateUrl: './cwd-toolbar-navigation-item.component.html',
   styleUrls: ['./cwd-toolbar-navigation-item.component.scss'],
-  standalone: false,
 })
 export class CwdToolbarNavigationItemComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  private componentFactoryResolver = inject(ComponentFactoryResolver);
+  private injector = inject(Injector);
+  private appRef = inject(ApplicationRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private portalOutlet: PortalOutlet;
   private portal: TemplatePortal;
-  @ViewChild('cwdToolbarNavigation', { static: true }) cwdNavigationTmplRef;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private injector: Injector,
-    private appRef: ApplicationRef,
-    private viewContainerRef: ViewContainerRef
-  ) {}
+  readonly cwdNavigationTmplRef = viewChild<TemplateRef<unknown>>(
+    'cwdToolbarNavigation',
+  );
 
   ngOnInit() {}
 
@@ -44,12 +45,12 @@ export class CwdToolbarNavigationItemComponent
     this.portalOutlet = new DomPortalOutlet(
       document.querySelector('#toolbar-navigation'),
       this.appRef,
-      this.injector
+      this.injector,
     );
 
     this.portal = new TemplatePortal(
-      this.cwdNavigationTmplRef,
-      this.viewContainerRef
+      this.cwdNavigationTmplRef(),
+      this.viewContainerRef,
     );
     this.portalOutlet.attach(this.portal);
   }

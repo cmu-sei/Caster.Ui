@@ -6,25 +6,22 @@ import {
   Directive,
   ElementRef,
   EventEmitter,
-  Input,
   Output,
+  inject,
+  input,
 } from '@angular/core';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import { HotkeysService } from '@ngneat/hotkeys';
 import { Subscription } from 'rxjs';
 
-@Directive({
-    selector: '[hotkeyAction]',
-    standalone: false
-})
+@Directive({ selector: '[hotkeyAction]' })
 export class CrucibleHotkeyDirective implements AfterViewInit {
-  constructor(
-    private settingsService: ComnSettingsService,
-    private hotkeysService: HotkeysService,
-    private el: ElementRef
-  ) {}
+  private settingsService = inject(ComnSettingsService);
+  private hotkeysService = inject(HotkeysService);
+  private el = inject(ElementRef);
+
   private subscription: Subscription;
-  @Input() hotkeyAction: string;
+  readonly hotkeyAction = input<string>(undefined);
   @Output()
   hotkeyFn: EventEmitter<KeyboardEvent> = new EventEmitter<KeyboardEvent>();
 
@@ -36,7 +33,7 @@ export class CrucibleHotkeyDirective implements AfterViewInit {
         return v.keys === keys ? true : false;
       });
       // Prefer hotkeyFn if defined.
-      if (op === this.hotkeyAction) {
+      if (op === this.hotkeyAction()) {
         if (this.hotkeyFn.observers.length > 0) {
           this.hotkeyFn.emit();
         } else if (!this.hotkeyFn.observers.length) {

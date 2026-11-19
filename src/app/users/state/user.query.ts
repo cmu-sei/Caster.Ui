@@ -16,7 +16,7 @@ import {
   CurrentUserStore,
 } from './user.store';
 import { User } from '../../generated/caster-api';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @QueryConfig({
@@ -27,11 +27,17 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UserQuery extends QueryEntity<UsersState> {
+  protected store: UserStore;
+
   ui: EntityUIQuery<UserUIState>;
   isLoading$ = this.select((state) => state.loading);
 
-  constructor(protected store: UserStore) {
+  constructor() {
+    const store = inject(UserStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 
@@ -44,10 +50,16 @@ export class UserQuery extends QueryEntity<UsersState> {
   providedIn: 'root',
 })
 export class CurrentUserQuery extends Query<CurrentUserState> {
+  protected store: CurrentUserStore;
+
   userTheme$ = this.select((state) => state.theme);
 
-  constructor(protected store: CurrentUserStore) {
+  constructor() {
+    const store = inject(CurrentUserStore);
+
     super(store);
+
+    this.store = store;
   }
 
   getLastRoute(): string {

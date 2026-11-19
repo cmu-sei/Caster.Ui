@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take, tap } from 'rxjs/operators';
 import { isUpdate } from 'src/app/shared/utilities/functions';
@@ -13,10 +13,8 @@ import { FileVersionStore } from './fileVersion.store';
   providedIn: 'root',
 })
 export class FileVersionService {
-  constructor(
-    private fileVersionStore: FileVersionStore,
-    private filesService: FilesService
-  ) {}
+  private fileVersionStore = inject(FileVersionStore);
+  private filesService = inject(FilesService);
 
   load(fileId: string): Observable<FileVersion[]> {
     this.fileVersionStore.setLoading(true);
@@ -28,7 +26,7 @@ export class FileVersionService {
       }),
       tap(() => {
         this.fileVersionStore.setLoading(false);
-      })
+      }),
     );
   }
 
@@ -40,7 +38,7 @@ export class FileVersionService {
       }),
       tap(() => {
         this.fileVersionStore.setLoading(false);
-      })
+      }),
     );
   }
 

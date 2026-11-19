@@ -9,7 +9,7 @@ import {
 } from '@datorama/akita';
 import { ModulesState, ModuleStore, ModuleUIState } from './module.store';
 import { Module } from '../../generated/caster-api';
-import { Injectable, InjectionToken } from '@angular/core';
+import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export const MODULE_QUERY_TOKEN = new InjectionToken('ModuleQuery');
@@ -21,11 +21,17 @@ export const MODULE_QUERY_TOKEN = new InjectionToken('ModuleQuery');
   providedIn: 'root',
 })
 export class ModuleQuery extends QueryEntity<ModulesState> {
+  protected store: ModuleStore;
+
   ui: EntityUIQuery<ModuleUIState>;
   isLoading$ = this.select((state) => state.loading);
 
-  constructor(protected store: ModuleStore) {
+  constructor() {
+    const store = inject(ModuleStore);
+
     super(store);
+    this.store = store;
+
     this.createUIQuery();
   }
 

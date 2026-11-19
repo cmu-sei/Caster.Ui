@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Design,
   DesignsService,
@@ -13,10 +13,8 @@ import { DesignStore } from './design.store';
 
 @Injectable({ providedIn: 'root' })
 export class DesignService {
-  constructor(
-    private designStore: DesignStore,
-    private designsService: DesignsService
-  ) {}
+  private designStore = inject(DesignStore);
+  private designsService = inject(DesignsService);
 
   add(design: Design) {
     this.designStore.add(design);

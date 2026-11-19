@@ -5,18 +5,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
 <div class="project-list-container elevate">
   <div class="icon-text-container">
-    <mat-icon class="crucible-icon-caster" svgIcon="ic_crucible_caster"></mat-icon>
+    <mat-icon class="crucible-icon-caster" svgIcon="ic_crucible_caster" />
     <span class="project-title text">My Projects</span>
     @if (canCreate$ | async) {
-    <button
-      mat-icon-button
-      aria-label="Add New Project"
-      matTooltip="Add New Project"
-      hotkeyAction="PROJECT_NEW"
-      (click)="create()"
-    >
-      <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle"></mat-icon>
-    </button>
+      <button
+        mat-icon-button
+        aria-label="Add New Project"
+        matTooltip="Add New Project"
+        hotkeyAction="PROJECT_NEW"
+        (click)="create()"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+      </button>
     }
     <div class="searchBox">
       <mat-form-field style="width: 320px">
@@ -28,24 +28,24 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           placeholder="Search"
         />
         @if (filterString !== '') {
-        <button
-          matSuffix
-          mat-icon-button
-          aria-label="Clear"
-          (click)="clearFilter()"
-          title="Clear Search"
-        >
-          <mat-icon
-            style="transform: scale(0.85)"
-            fontIcon="mdi-close-circle-outline"
-          ></mat-icon>
-        </button>
+          <button
+            matSuffix
+            mat-icon-button
+            aria-label="Clear"
+            (click)="clearFilter()"
+            title="Clear Search"
+          >
+            <mat-icon
+              style="transform: scale(0.85)"
+              fontIcon="mdi-close-circle-outline"
+            />
+          </button>
         }
       </mat-form-field>
     </div>
   </div>
 
-  @if (projects) {
+  @if (projects()) {
     <mat-table
       matSort
       matSortActive="name"
@@ -57,26 +57,27 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
           Name
         </mat-header-cell>
         <mat-cell *matCellDef="let element">
-          @if (!manageMode) {
-          <a
-            matTooltip="Open {{ element.name }}"
-            [routerLink]="['/projects', element.id]"
-            >{{ element.name }}</a
-          >
-          } @if (manageMode) {
-          <a
-            matTooltip="Edit {{ element.name }}"
-            [routerLink]="['/projects', element.id, 'memberships']"
-            ><p
-              (click)="
-                $event.preventDefault();
-                $event.stopPropagation();
-                selectProject(element.id)
-              "
+          @if (!manageMode()) {
+            <a
+              matTooltip="Open {{ element.name }}"
+              [routerLink]="['/projects', element.id]"
+              >{{ element.name }}</a
             >
-              {{ element.name }}
-            </p></a
-          >
+          }
+          @if (manageMode()) {
+            <a
+              matTooltip="Edit {{ element.name }}"
+              [routerLink]="['/projects', element.id, 'memberships']"
+              ><p
+                (click)="
+                  $event.preventDefault();
+                  $event.stopPropagation();
+                  selectProject(element.id)
+                "
+              >
+                {{ element.name }}
+              </p></a
+            >
           }
         </mat-cell>
       </ng-container>
@@ -89,55 +90,59 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </mat-cell>
       </ng-container>
       <ng-container matColumnDef="dateCreated">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Created </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>
+          Created
+        </mat-header-cell>
         <mat-cell *matCellDef="let element">
-          {{ element.dateCreated | date:'yyyy-MM-dd HH:mm' }}
+          {{ element.dateCreated | date: 'yyyy-MM-dd HH:mm' }}
         </mat-cell>
       </ng-container>
       <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-header-cell *matHeaderCellDef />
         <mat-cell *matCellDef="let element">
-          @if (manageMode) {
-          <a
-            mat-icon-button
-            [attr.aria-label]="'Open ' + element.name"
-            matTooltip="Open {{ element.name }}"
-            [routerLink]="['/projects', element.id]"
-            target="_blank"
-          >
-            <mat-icon
-              color="primary"
-              fontIcon="mdi-open-in-new"
-            ></mat-icon>
-          </a>
-          } @if ( (canManageAll$ | async) || (canManageProjects$ |
-          async).includes(element.id) ) {
-          <button mat-icon-button aria-label="Rename" matTooltip="Rename" (click)="update(element)">
-            <mat-icon
-              color="primary"
-              fontIcon="mdi-square-edit-outline"
-            ></mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            [attr.aria-label]="'Delete ' + element.name"
-            matTooltip="Delete {{ element.name }}"
-            (click)="delete(element)"
-          >
-            <mat-icon
-              color="primary"
-              fontIcon="mdi-trash-can-outline"
-            ></mat-icon>
-          </button>
+          @if (manageMode()) {
+            <a
+              mat-icon-button
+              [attr.aria-label]="'Open ' + element.name"
+              matTooltip="Open {{ element.name }}"
+              [routerLink]="['/projects', element.id]"
+              target="_blank"
+            >
+              <mat-icon color="primary" fontIcon="mdi-open-in-new" />
+            </a>
+          }
+          @if (
+            (canManageAll$ | async) ||
+            (canManageProjects$ | async).includes(element.id)
+          ) {
+            <button
+              mat-icon-button
+              aria-label="Rename"
+              matTooltip="Rename"
+              (click)="update(element)"
+            >
+              <mat-icon color="primary" fontIcon="mdi-square-edit-outline" />
+            </button>
+            <button
+              mat-icon-button
+              [attr.aria-label]="'Delete ' + element.name"
+              matTooltip="Delete {{ element.name }}"
+              (click)="delete(element)"
+            >
+              <mat-icon color="primary" fontIcon="mdi-trash-can-outline" />
+            </button>
           }
         </mat-cell>
       </ng-container>
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns" />
+      <mat-row *matRowDef="let row; columns: displayedColumns" />
       <tr class="mat-mdc-row" *matNoDataRow>
         <td class="mat-mdc-cell" colspan="4">
-          @if (input.value) { No data matching the filter "{{ input.value }}" }
-          @else { You are not a member of any Projects }
+          @if (input.value) {
+            No data matching the filter "{{ input.value }}"
+          } @else {
+            You are not a member of any Projects
+          }
         </td>
       </tr>
     </mat-table>
@@ -150,19 +155,18 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   }
 
   <!-- Loading Spinner -->
-  @if (!projects || isLoading) {
-  <mat-card
-    appearance="outlined"
-    style="display: flex; justify-content: center; align-items: center"
-  >
-    <mat-progress-spinner color="primary" mode="indeterminate">
-    </mat-progress-spinner>
-  </mat-card>
+  @if (!projects() || isLoading) {
+    <mat-card
+      appearance="outlined"
+      style="display: flex; justify-content: center; align-items: center"
+    >
+      <mat-progress-spinner color="primary" mode="indeterminate" />
+    </mat-card>
   }
 
   <mat-paginator
     [pageSizeOptions]="[10, 25, 50, 100]"
     showFirstLastButtons
-    aria-label="Select page of projects">
-  </mat-paginator>
+    aria-label="Select page of projects"
+  />
 </div>

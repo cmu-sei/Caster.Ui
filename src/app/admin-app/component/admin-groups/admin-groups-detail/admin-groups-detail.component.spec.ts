@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -18,32 +18,32 @@ import { ApiStub } from 'src/app/test-utils/api-stub';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { UserStore } from 'src/app/users/state/user.store';
 import { AdminGroupsDetailComponent } from './admin-groups-detail.component';
+import { AdminGroupsMemberListComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-member-list/admin-groups-member-list.component';
+import { AdminGroupsMembershipListComponent } from 'src/app/admin-app/component/admin-groups/admin-groups-membership-list/admin-groups-membership-list.component';
 
 @Component({
   selector: 'cas-admin-groups-membership-list',
   template: '',
-  standalone: false,
 })
 class MembershipListStub {
-  @Input() users: User[];
-  @Input() canEdit: boolean;
-  @Output() createMembership = new EventEmitter<CreateGroupMembershipCommand>();
+  readonly users = input<User[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly createMembership = output<CreateGroupMembershipCommand>();
 }
 
 @Component({
   selector: 'cas-admin-groups-member-list',
   template: '',
-  standalone: false,
 })
 class MemberListStub {
-  @Input() memberships: GroupMembership[];
-  @Input() users: User[];
-  @Input() canEdit: boolean;
-  @Output() deleteMembership = new EventEmitter<{
+  readonly memberships = input<GroupMembership[]>(undefined);
+  readonly users = input<User[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly deleteMembership = output<{
     id: string;
     isCurrentUser: boolean;
   }>();
-  @Output() changeRole = new EventEmitter<{
+  readonly changeRole = output<{
     id: string;
     role: GroupMembershipRole;
     isCurrentUser: boolean;
@@ -72,7 +72,10 @@ async function renderDetail(canEdit: boolean) {
     'startConnection' | 'joinGroup' | 'leaveGroup'
   >;
   const view = await renderComponent(AdminGroupsDetailComponent, {
-    declarations: [MembershipListStub, MemberListStub],
+    childStubs: [
+      { replace: AdminGroupsMembershipListComponent, with: MembershipListStub },
+      { replace: AdminGroupsMemberListComponent, with: MemberListStub },
+    ],
     providers: [
       { provide: GroupsService, useValue: groupsApi },
       { provide: SignalRService, useValue: signalR },
@@ -98,8 +101,8 @@ describe('AdminGroupsDetailComponent', () => {
 
     expect(groupsApi.getGroupMemberships).toHaveBeenCalledWith('g1');
     expect(signalR.joinGroup).toHaveBeenCalledWith('g1');
-    expect(stub(MemberListStub).users).toEqual([users[0]]);
-    expect(stub(MembershipListStub).users).toEqual([users[1]]);
+    expect(stub(MemberListStub).users()).toEqual([users[0]]);
+    expect(stub(MembershipListStub).users()).toEqual([users[1]]);
   });
 
   /**
@@ -110,8 +113,8 @@ describe('AdminGroupsDetailComponent', () => {
   it('passes canEdit true to both lists', async () => {
     const { stub } = await renderDetail(true);
 
-    expect(stub(MembershipListStub).canEdit).toBe(true);
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
@@ -122,7 +125,7 @@ describe('AdminGroupsDetailComponent', () => {
   it('passes canEdit false to both lists when the user cannot manage the group', async () => {
     const { stub } = await renderDetail(false);
 
-    expect(stub(MembershipListStub).canEdit).toBe(false);
-    expect(stub(MemberListStub).canEdit).toBe(false);
+    expect(stub(MembershipListStub).canEdit()).toBe(false);
+    expect(stub(MemberListStub).canEdit()).toBe(false);
   });
 });

@@ -3,10 +3,7 @@
 
 import { Directive } from '@angular/core';
 
-@Directive({
-    selector: '[cwdTableItemAction]',
-    standalone: false
-})
+@Directive({ selector: '[cwdTableItemAction]' })
 export class TableItemActionDirective {
   constructor() {}
 }

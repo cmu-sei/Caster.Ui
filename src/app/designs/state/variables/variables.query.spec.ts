@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Injector, runInInjectionContext } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Variable, VariableType } from '../../../generated/caster-api';
 import { recordEmissions } from '../../../test-utils/record-emissions';
@@ -27,7 +28,12 @@ describe('VariablesQuery', () => {
    */
   it('selects a design variables by name', async () => {
     const store = new VariablesStore();
-    const query = new VariablesQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: VariablesStore, useValue: store }],
+      }),
+      () => new VariablesQuery(),
+    );
     store.add([
       variable(),
       variable({ id: 'v2', name: 'count', type: VariableType.Number }),
@@ -47,7 +53,12 @@ describe('VariablesQuery', () => {
    */
   it('follows variables added to the design', () => {
     const store = new VariablesStore();
-    const query = new VariablesQuery(store);
+    const query = runInInjectionContext(
+      Injector.create({
+        providers: [{ provide: VariablesStore, useValue: store }],
+      }),
+      () => new VariablesQuery(),
+    );
     store.add(variable());
     const seen = recordEmissions(query.selectByDesignId('g1'));
 

@@ -5,30 +5,69 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
+  inject,
+  input,
+  output,
 } from '@angular/core';
 import {
   Directory,
   TerraformVersionsResult,
 } from 'src/app/generated/caster-api';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { MatCheckboxChange, MatCheckbox } from '@angular/material/checkbox';
+import {
+  CrucibleDialogComponent,
+  CrucibleDialogContentDirective,
+} from '@cmusei/crucible-common';
+import {
+  MatFormField,
+  MatLabel,
+  MatSuffix,
+  MatError,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
-    selector: 'cas-directory-edit',
-    templateUrl: './directory-edit.component.html',
-    styleUrls: ['./directory-edit.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-directory-edit',
+  templateUrl: './directory-edit.component.html',
+  styleUrls: ['./directory-edit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CrucibleDialogComponent,
+    CrucibleDialogContentDirective,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatIconButton,
+    MatSuffix,
+    MatTooltip,
+    MatIcon,
+    MatError,
+    MatCheckbox,
+  ],
 })
 export class DirectoryEditComponent implements OnInit {
-  @Input() directory: Directory;
-  @Input() terraformVersions: TerraformVersionsResult;
-  @Input() maxParallelism: number;
+  private formBuilder = inject(FormBuilder);
 
-  @Output() updateDirectory = new EventEmitter<Partial<Directory>>();
+  readonly directory = input<Directory>(undefined);
+  readonly terraformVersions = input<TerraformVersionsResult>(undefined);
+  readonly maxParallelism = input<number>(undefined);
+
+  readonly updateDirectory = output<Partial<Directory>>();
 
   form: FormGroup;
 
@@ -49,32 +88,33 @@ export class DirectoryEditComponent implements OnInit {
     }
   }
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor() {
     this.form = this.formBuilder.group({
       name: [],
       terraformVersion: [],
-      parallelism: [Validators.min(1), Validators.max(this.maxParallelism)],
+      parallelism: [Validators.min(1), Validators.max(this.maxParallelism())],
       azureDestroyFailureThreshold: [Validators.min(1), Validators.max(10)],
       azureDestroyFailureThresholdEnabled: [],
     });
   }
 
   ngOnInit(): void {
+    const directory = this.directory();
     this.form.patchValue({
-      name: this.directory.name,
-      terraformVersion: this.directory.terraformVersion,
-      parallelism: this.directory.parallelism,
-      azureDestroyFailureThreshold: this.directory.azureDestroyFailureThreshold,
+      name: directory.name,
+      terraformVersion: directory.terraformVersion,
+      parallelism: directory.parallelism,
+      azureDestroyFailureThreshold: directory.azureDestroyFailureThreshold,
       azureDestroyFailureThresholdEnabled:
-        this.directory.azureDestroyFailureThresholdEnabled,
+        directory.azureDestroyFailureThresholdEnabled,
     });
 
-    if (!this.directory.azureDestroyFailureThresholdEnabled) {
+    if (!directory.azureDestroyFailureThresholdEnabled) {
       this.azureDestroyFailureThreshold.disable();
     }
 
-    this.sortedVersions = this.terraformVersions?.versions
-      ?.sort(this.collator.compare)
+    this.sortedVersions = this.terraformVersions()
+      ?.versions?.sort(this.collator.compare)
       .reverse();
   }
 

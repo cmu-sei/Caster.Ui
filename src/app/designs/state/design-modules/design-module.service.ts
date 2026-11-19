@@ -3,7 +3,7 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import {
   AddOrUpdateValuesDesignModuleCommand,
@@ -16,10 +16,8 @@ import { DesignModuleStore } from './design-module.store';
 
 @Injectable({ providedIn: 'root' })
 export class DesignModuleService {
-  constructor(
-    private designModuleStore: DesignModuleStore,
-    private designModulesService: DesignsModulesService
-  ) {}
+  private designModuleStore = inject(DesignModuleStore);
+  private designModulesService = inject(DesignsModulesService);
 
   add(designModule: DesignModule) {
     this.designModuleStore.add(designModule);

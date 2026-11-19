@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output, Type } from '@angular/core';
+import { Component, Type, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -33,36 +33,39 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { ProjectMembershipsComponent } from './project-memberships.component';
+import { ProjectMemberListComponent } from 'src/app/project/component/project-memberships/project-member-list/project-member-list.component';
+import { ProjectMembershipListComponent } from 'src/app/project/component/project-memberships/project-membership-list/project-membership-list.component';
 
 @Component({
   selector: 'cas-project-membership-list',
   template: '',
-  standalone: false,
 })
 class MembershipListStub {
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() canEdit: boolean;
-  @Output() createMembership =
-    new EventEmitter<CreateProjectMembershipCommand>();
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly createMembership = output<CreateProjectMembershipCommand>();
 }
 
 @Component({
   selector: 'cas-project-member-list',
   template: '',
-  standalone: false,
 })
 class MemberListStub {
-  @Input() memberships: ProjectMembership[];
-  @Input() users: User[];
-  @Input() groups: Group[];
-  @Input() roles: ProjectRole[];
-  @Input() canEdit: boolean;
-  @Output() deleteMembership = new EventEmitter<string>();
-  @Output() editMembership = new EventEmitter<EditProjectMembershipCommand>();
+  readonly memberships = input<ProjectMembership[]>(undefined);
+  readonly users = input<User[]>(undefined);
+  readonly groups = input<Group[]>(undefined);
+  readonly roles = input<ProjectRole[]>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly deleteMembership = output<string>();
+  readonly editMembership = output<EditProjectMembershipCommand>();
 }
 
-async function renderMemberships(grants: PermissionGrants, embedded = false) {
+async function renderMemberships(
+  grants: PermissionGrants,
+  embedded = false,
+  showTitle = true,
+) {
   const projectsApi = {
     getProject: vi.fn((id: string) => of<Project>({ id, name: 'Range' })),
     getProjectMemberships: vi.fn((projectId: string) =>
@@ -105,7 +108,10 @@ async function renderMemberships(grants: PermissionGrants, embedded = false) {
   >;
   const goBack = vi.fn();
   const view = await renderComponent(ProjectMembershipsComponent, {
-    declarations: [MembershipListStub, MemberListStub],
+    childStubs: [
+      { replace: ProjectMembershipListComponent, with: MembershipListStub },
+      { replace: ProjectMemberListComponent, with: MemberListStub },
+    ],
     imports: [MatButtonModule, MatIconModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),
@@ -115,7 +121,7 @@ async function renderMemberships(grants: PermissionGrants, embedded = false) {
       { provide: GroupsService, useValue: groupsApi },
       { provide: SignalRService, useValue: signalR },
     ],
-    inputs: { projectId: 'p1', embedded },
+    inputs: { projectId: 'p1', embedded, showTitle },
     on: { goBack },
   });
   await view.fixture.whenStable();
@@ -143,60 +149,47 @@ describe('ProjectMembershipsComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Range' })).toBeVisible();
     expect(signalR.joinProjectAdmin).toHaveBeenCalledWith('p1');
-    expect(stub(MemberListStub).users.map((u) => u.name)).toEqual(['Ada']);
-    expect(stub(MembershipListStub).users.map((u) => u.name)).toEqual([
-      'Grace',
-    ]);
-    expect(stub(MembershipListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Ada']);
+    expect(
+      stub(MembershipListStub)
+        .users()
+        .map((u) => u.name),
+    ).toEqual(['Grace']);
+    expect(
+      stub(MembershipListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
   });
 
   /**
-   * Verifies: an EditProject claim on the project makes both membership lists editable (current behavior).
-   * Interacts with: PermissionService.canEditProject (real), the list stubs' canEdit inputs.
-   * Data: an EditProject claim on p1.
+   * Verifies: with showTitle false (a host such as the admin Projects table already names the project) the project name heading is left out, while the membership lists still show and stay editable for a manager.
+   * Interacts with: the showTitle input, PermissionService.canManageProject (real).
+   * Data: project Range; ManageProjects.
    */
-  it('passes canEdit true with an EditProject claim', async () => {
-    const { stub } = await renderMemberships({
-      projects: [
-        { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
-      ],
-    });
+  it('leaves the title out when showTitle is false', async () => {
+    const { stub } = await renderMemberships(
+      { system: [SystemPermission.ManageProjects] },
+      false,
+      false,
+    );
 
-    // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(true);
-    expect(stub(MemberListStub).canEdit).toBe(true);
+    expect(screen.queryByRole('heading', { name: 'Range' })).toBeNull();
+    // Edit rights don't depend on the title being shown.
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
   });
 
   /**
-   * Verifies: the EditProjects system permission makes both membership lists editable without a claim (current behavior).
-   * Interacts with: PermissionService.canEditProject (real).
-   * Data: system permission EditProjects.
-   */
-  it('passes canEdit true with EditProjects', async () => {
-    const { stub } = await renderMemberships({
-      system: [SystemPermission.EditProjects],
-    });
-
-    // Current behavior; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MemberListStub).canEdit).toBe(true);
-  });
-
-  /**
-   * Verifies: without EditProjects or an EditProject claim on this project both lists are read-only, also with a ManageProject claim or ManageProjects (current behavior).
-   * Interacts with: PermissionService.canEditProject (real), the list stubs' canEdit inputs.
-   * Data: near misses: EditProject on another project, ManageProject on p1, ManageProjects.
+   * Verifies: a ManageProject claim on the project, or the ManageProjects system permission, makes both membership lists editable, as the API requires for adding, changing and removing memberships.
+   * Interacts with: PermissionService.canManageProject (real), the list stubs' canEdit inputs.
+   * Data: the grants in the row.
    */
   it.each<[string, PermissionGrants]>([
-    [
-      'an EditProject claim on another project',
-      {
-        projects: [
-          { projectId: 'p9', permissions: [ProjectPermission.EditProject] },
-        ],
-      },
-    ],
     [
       'a ManageProject claim',
       {
@@ -206,12 +199,41 @@ describe('ProjectMembershipsComponent', () => {
       },
     ],
     ['ManageProjects', { system: [SystemPermission.ManageProjects] }],
+  ])('passes canEdit true with %s', async (_label, grants) => {
+    const { stub } = await renderMemberships(grants);
+
+    expect(stub(MembershipListStub).canEdit()).toBe(true);
+    expect(stub(MemberListStub).canEdit()).toBe(true);
+  });
+
+  /**
+   * Verifies: without ManageProjects or a ManageProject claim on this project both lists are read-only, including for EditProject and EditProjects, which the API refuses for memberships with a 403.
+   * Interacts with: PermissionService.canManageProject (real), the list stubs' canEdit inputs.
+   * Data: near misses: ManageProject on another project, EditProject on p1, EditProjects.
+   */
+  it.each<[string, PermissionGrants]>([
+    [
+      'a ManageProject claim on another project',
+      {
+        projects: [
+          { projectId: 'p9', permissions: [ProjectPermission.ManageProject] },
+        ],
+      },
+    ],
+    [
+      'an EditProject claim',
+      {
+        projects: [
+          { projectId: 'p1', permissions: [ProjectPermission.EditProject] },
+        ],
+      },
+    ],
+    ['EditProjects', { system: [SystemPermission.EditProjects] }],
   ])('passes canEdit false with %s', async (_label, grants) => {
     const { stub } = await renderMemberships(grants);
 
-    // Current behavior for the Manage rows; see agent-docs/ui-test-bugs/caster.ui.md.
-    expect(stub(MembershipListStub).canEdit).toBe(false);
-    expect(stub(MemberListStub).canEdit).toBe(false);
+    expect(stub(MembershipListStub).canEdit()).toBe(false);
+    expect(stub(MemberListStub).canEdit()).toBe(false);
   });
 
   /**
@@ -222,7 +244,7 @@ describe('ProjectMembershipsComponent', () => {
   it('creates a membership and returns when embedded', async () => {
     const { fixture, projectsApi, goBack, stub, user } =
       await renderMemberships(
-        { system: [SystemPermission.EditProjects] },
+        { system: [SystemPermission.ManageProjects] },
         true,
       );
 
@@ -231,13 +253,16 @@ describe('ProjectMembershipsComponent', () => {
     expect(projectsApi.createProjectMembership).toHaveBeenCalledWith('p1', {
       groupId: 'g1',
     });
-    expect(stub(MemberListStub).memberships.map((m) => m.id)).toEqual([
-      'm1',
-      'm2',
-    ]);
-    expect(stub(MemberListStub).groups.map((g) => g.name)).toEqual([
-      'Blue Team',
-    ]);
+    expect(
+      stub(MemberListStub)
+        .memberships()
+        .map((m) => m.id),
+    ).toEqual(['m1', 'm2']);
+    expect(
+      stub(MemberListStub)
+        .groups()
+        .map((g) => g.name),
+    ).toEqual(['Blue Team']);
 
     await user.click(screen.getByRole('button', { name: 'Return' }));
     expect(goBack).toHaveBeenCalled();

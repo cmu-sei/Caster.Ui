@@ -7,23 +7,22 @@ import {
   Component,
   OnInit,
   ChangeDetectionStrategy,
-  Input,
+  input,
 } from '@angular/core';
 import { ModuleOutput } from 'src/app/generated/caster-api';
+import { ModuleOutputComponent } from './module-output/module-output.component';
 
 @Component({
-    selector: 'cas-module-outputs',
-    templateUrl: './module-outputs.component.html',
-    styleUrls: ['./module-outputs.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'cas-module-outputs',
+  templateUrl: './module-outputs.component.html',
+  styleUrls: ['./module-outputs.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ModuleOutputComponent],
 })
 export class ModuleOutputsComponent implements OnInit {
-  @Input()
-  moduleName: string;
+  readonly moduleName = input<string>(undefined);
 
-  @Input()
-  outputs: ModuleOutput[];
+  readonly outputs = input<ModuleOutput[]>(undefined);
 
   constructor() {}
 

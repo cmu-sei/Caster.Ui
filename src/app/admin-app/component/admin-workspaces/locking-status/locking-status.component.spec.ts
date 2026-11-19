@@ -19,7 +19,7 @@ describe('LockingStatusComponent', () => {
     const setLockingEnabled = vi.fn<(enabled: boolean) => void>();
     await renderComponent(LockingStatusComponent, {
       imports: [MatSlideToggleModule, MatTooltipModule],
-      inputs: { lockingEnabled: true },
+      inputs: { lockingEnabled: true, canManage: true },
       on: { setLockingEnabled },
     });
 
@@ -30,5 +30,31 @@ describe('LockingStatusComponent', () => {
     await userEvent.setup().click(toggle);
 
     expect(setLockingEnabled).toHaveBeenCalledWith(false);
+  });
+
+  /**
+   * Verifies: without permission to manage Workspaces the toggle is shown disabled, says why on hover, and clicking it asks for nothing.
+   * Interacts with: the setLockingEnabled output, the wrapper's matTooltip.
+   * Data: lockingEnabled true, canManage false.
+   */
+  it('is disabled with a reason without permission to manage Workspaces', async () => {
+    const setLockingEnabled = vi.fn<(enabled: boolean) => void>();
+    const { fixture } = await renderComponent(LockingStatusComponent, {
+      imports: [MatSlideToggleModule, MatTooltipModule],
+      inputs: { lockingEnabled: true, canManage: false },
+      on: { setLockingEnabled },
+    });
+
+    const toggle = screen.getByRole('switch', {
+      name: 'Disable Workspace Operations',
+    });
+    expect(toggle).toBeDisabled();
+    expect(fixture.componentInstance.tooltip()).toBe(
+      'Only users who can manage Workspaces can change this',
+    );
+    // A disabled toggle takes no pointer events; click it anyway.
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(toggle);
+
+    expect(setLockingEnabled).not.toHaveBeenCalled();
   });
 });

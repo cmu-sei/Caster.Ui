@@ -2,20 +2,21 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Project } from 'src/app/generated/caster-api';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { initialProjectUIState } from '../../../state/project-store.service';
 import { ProjectUI } from '../../../state/project.model';
 import { ProjectComponent } from './project.component';
+import { ProjectTabComponent } from 'src/app/project/component/project-details/project-tab/project-tab.component';
 
-@Component({ selector: 'cas-project-tab', template: '', standalone: false })
+@Component({ selector: 'cas-project-tab', template: '' })
 class ProjectTabStub {
-  @Input() project: Project;
-  @Input() projectUI: ProjectUI;
-  @Output() closeTab = new EventEmitter<string>();
-  @Output() tabChanged = new EventEmitter<unknown>();
+  readonly project = input<Project>(undefined);
+  readonly projectUI = input<ProjectUI>(undefined);
+  readonly closeTab = output<string>();
+  readonly tabChanged = output<unknown>();
 }
 
 describe('ProjectComponent', () => {
@@ -29,7 +30,7 @@ describe('ProjectComponent', () => {
     const project: Project = { id: 'p1', name: 'Range' };
     const projectUI: ProjectUI = { ...initialProjectUIState, id: 'p1' };
     const { fixture } = await renderComponent(ProjectComponent, {
-      declarations: [ProjectTabStub],
+      childStubs: [{ replace: ProjectTabComponent, with: ProjectTabStub }],
       inputs: { project, projectUI, loading: false },
       on: { closeTab },
     });
@@ -37,8 +38,8 @@ describe('ProjectComponent', () => {
     const tab: ProjectTabStub = fixture.debugElement.query(
       By.directive(ProjectTabStub),
     ).componentInstance;
-    expect(tab.project).toBe(project);
-    expect(tab.projectUI).toBe(projectUI);
+    expect(tab.project()).toBe(project);
+    expect(tab.projectUI()).toBe(projectUI);
     tab.closeTab.emit('t1');
     expect(closeTab).toHaveBeenCalledWith('t1');
   });

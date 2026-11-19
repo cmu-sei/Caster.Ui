@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect, vi } from 'vitest';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import {
@@ -17,14 +17,15 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { UsersComponent } from './users.component';
+import { UserListComponent } from 'src/app/admin-app/component/admin-users/user-list/user-list.component';
 
-@Component({ selector: 'cas-user-list', template: '', standalone: false })
+@Component({ selector: 'cas-user-list', template: '' })
 class UserListStub {
-  @Input() users: User[];
-  @Input() isLoading: boolean;
-  @Input() canEdit: boolean;
-  @Output() create = new EventEmitter<User>();
-  @Output() delete = new EventEmitter<string>();
+  readonly users = input<User[]>(undefined);
+  readonly isLoading = input<boolean>(undefined);
+  readonly canEdit = input<boolean>(undefined);
+  readonly create = output<User>();
+  readonly delete = output<string>();
 }
 
 async function renderUsers(grants: PermissionGrants) {
@@ -33,7 +34,7 @@ async function renderUsers(grants: PermissionGrants) {
     deleteUser: vi.fn((_id: string) => of<unknown>(null)),
   } satisfies ApiStub<UsersService>;
   const view = await renderComponent(UsersComponent, {
-    declarations: [UserListStub],
+    childStubs: [{ replace: UserListComponent, with: UserListStub }],
     providers: [
       ...permissionDataProviders(grants),
       { provide: UsersService, useValue: usersApi },
@@ -54,8 +55,8 @@ describe('UsersComponent', () => {
   it('loads the users into the list', async () => {
     const { list } = await renderUsers({});
 
-    expect(list.users.map((u) => u.id)).toEqual(['u1']);
-    expect(list.isLoading).toBe(false);
+    expect(list.users().map((u) => u.id)).toEqual(['u1']);
+    expect(list.isLoading()).toBe(false);
   });
 
   /**
@@ -68,7 +69,7 @@ describe('UsersComponent', () => {
       system: [SystemPermission.ManageUsers],
     });
 
-    expect(list.canEdit).toBe(true);
+    expect(list.canEdit()).toBe(true);
   });
 
   /**
@@ -81,7 +82,7 @@ describe('UsersComponent', () => {
       system: [SystemPermission.ViewUsers],
     });
 
-    expect(list.canEdit).toBe(false);
+    expect(list.canEdit()).toBe(false);
   });
 
   /**
@@ -98,6 +99,6 @@ describe('UsersComponent', () => {
     fixture.detectChanges();
 
     expect(usersApi.deleteUser).toHaveBeenCalledWith('u1');
-    expect(list.users).toEqual([]);
+    expect(list.users()).toEqual([]);
   });
 });
