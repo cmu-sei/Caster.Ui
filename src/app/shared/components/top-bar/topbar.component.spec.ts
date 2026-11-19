@@ -31,6 +31,8 @@ import {
 import { CurrentUserStore } from '../../../users/state/user.store';
 import { TopbarComponent } from './topbar.component';
 import { TopbarView } from './topbar.models';
+import { ProjectPresenceComponent } from '../project-presence/project-presence.component';
+import { ProjectPresenceService } from '../../../project/state/project-presence.service';
 
 /**
  * Renders the top bar over the REAL PermissionService (primed with `grants`)
@@ -51,6 +53,7 @@ async function renderTopbar(
       MatButtonModule,
       MatIconModule,
       MatSlideToggleModule,
+      ProjectPresenceComponent,
     ],
     providers: [
       ...permissionDataProviders(grants),
@@ -291,4 +294,30 @@ describe('TopbarComponent', () => {
       screen.queryByRole('menuitem', { name: 'Project Groups' }),
     ).toBeNull();
   });
+
+  /**
+   * Verifies: the project view shows who else is in the project; the home view does not.
+   * Interacts with: ProjectPresenceComponent (real child), ProjectPresenceService (real).
+   * Data: Grace present; topbarView caster-project, then caster-home.
+   */
+  it.each([
+    { topbarView: TopbarView.CASTER_PROJECT, shown: true },
+    { topbarView: TopbarView.CASTER_HOME, shown: false },
+  ])(
+    'shows presence in the $topbarView view: $shown',
+    async ({ topbarView, shown }) => {
+      const view = await renderTopbar({}, { projectId: 'p1', topbarView });
+      TestBed.inject(ProjectPresenceService).set([{ id: 'u2', name: 'Grace' }]);
+      view.fixture.detectChanges();
+
+      const list = screen.queryByRole('list', {
+        name: 'Also in this project: Grace',
+      });
+      if (shown) {
+        expect(list).toBeInTheDocument();
+      } else {
+        expect(list).not.toBeInTheDocument();
+      }
+    },
+  );
 });

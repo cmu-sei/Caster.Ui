@@ -1,0 +1,38 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+.presence-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px;
+  min-width: 0;
+}
+
+// Green, as in Blueprint's presence bar; fixed colours read in both themes.
+.presence-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  background-color: #a5d6a7;
+  color: #1b5e20;
+}
+
+.presence-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.presence-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

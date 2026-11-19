@@ -1,0 +1,28 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+@if (users().length > 0) {
+  <div class="presence-container" role="list" [attr.aria-label]="label()">
+    @for (user of shown(); track user.id) {
+      <span class="presence-chip" role="listitem" [matTooltip]="user.name">
+        <mat-icon
+          class="presence-icon"
+          fontIcon="mdi-account"
+          aria-hidden="true"
+        ></mat-icon>
+        <span class="presence-name">{{ user.name }}</span>
+      </span>
+    }
+    @if (hidden().length > 0) {
+      <span
+        class="presence-chip"
+        role="listitem"
+        [matTooltip]="hiddenNames()"
+        [attr.aria-label]="hidden().length + ' more: ' + hiddenNames()"
+        >+{{ hidden().length }}</span
+      >
+    }
+  </div>
+}
