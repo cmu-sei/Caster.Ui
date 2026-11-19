@@ -4,7 +4,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ApplicationRef, NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import {
+  MatBottomSheet,
+  MatBottomSheetModule,
+} from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -103,5 +106,39 @@ describe('SystemMessageService', () => {
       content.getByRole('heading', { level: 2, name: 'An error has occurred' }),
     ).toBeInTheDocument();
     expect(content.getByText('Gateway timeout')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the same title and message is not opened again while its sheet is showing, but is opened again after the sheet is dismissed.
+   * Interacts with: the real root MatBottomSheet (dismiss), NgZone, ApplicationRef.
+   * Data: three displayMessage calls with title 'API Error', message 'The API could not be reached.'.
+   */
+  it('does not open a repeat of the message that is showing', async () => {
+    const service = setup();
+    const zone = TestBed.inject(NgZone);
+    const appRef = TestBed.inject(ApplicationRef);
+    const show = () =>
+      zone.run(() =>
+        service.displayMessage('API Error', 'The API could not be reached.'),
+      );
+
+    show();
+    show();
+    await appRef.whenStable();
+
+    expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
+      1,
+    );
+
+    TestBed.inject(MatBottomSheet).dismiss();
+    await appRef.whenStable();
+    expect(sheetContainer()).toBeNull();
+
+    show();
+    await appRef.whenStable();
+
+    expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
+      1,
+    );
   });
 });

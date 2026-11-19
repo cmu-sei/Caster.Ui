@@ -22,6 +22,16 @@ export class ErrorService implements ErrorHandler {
     if (err instanceof HttpErrorResponse) {
       // Backend returns unsuccessful response codes such as 404, 500 etc.
       const apiError = err as HttpErrorResponse;
+      if (apiError.status === 0) {
+        // The browser could not reach the API at all (it is down, or the network is).
+        console.log('API Error', 'The API could not be reached.');
+        messageService.displayMessage(
+          'API Error',
+          'The API could not be reached.',
+          1000,
+        );
+        return;
+      }
       let problemDetails: ProblemDetails = null;
 
       if (this.isProblemDetails(err)) {
@@ -48,6 +58,11 @@ export class ErrorService implements ErrorHandler {
 
       console.log(title);
       console.log(apiError);
+    } else if (this.isApiUnreachable(err)) {
+      // SignalR or another request failed because the API is down. The HTTP
+      // error handler above reports that once, so only log these.
+      console.log('API unreachable:', err);
+      return;
     } else {
       // A client-side or network error occurred.
       const error = err as Error;
@@ -58,6 +73,19 @@ export class ErrorService implements ErrorHandler {
     }
     // Delay 1 second to allow page to load.  This prevents error message from popping up irregularly
     messageService.displayMessage(title, message, 1000);
+  }
+
+  private isApiUnreachable(err: any): boolean {
+    if (err?.rejection?.statusCode === 401) {
+      return true;
+    }
+    const text = `${err?.message ?? ''} ${err?.rejection?.message ?? ''}`;
+    return [
+      'Failed to fetch',
+      'Failed to start the connection',
+      'Failed to complete negotiation',
+      'Network Error',
+    ].some((fragment) => text.includes(fragment));
   }
 
   private isProblemDetails(error: HttpErrorResponse): boolean {

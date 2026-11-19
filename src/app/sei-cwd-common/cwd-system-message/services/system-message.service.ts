@@ -8,6 +8,8 @@ import { SystemMessageComponent } from '../components/system-message.component';
 @Injectable()
 export class SystemMessageService {
   private messageSheet = inject(MatBottomSheet);
+  // Title and message of the sheet that is open, so a repeat of it is not opened again.
+  private shown: string | null = null;
 
   public displayMessage(
     title: string,
@@ -15,9 +17,21 @@ export class SystemMessageService {
     displayAfterMs: number = 0,
   ) {
     setTimeout(() => {
-      this.messageSheet.open(SystemMessageComponent, {
-        data: { title, message },
-      });
+      const key = JSON.stringify([title, message]);
+      if (key === this.shown) {
+        return;
+      }
+      this.shown = key;
+      this.messageSheet
+        .open(SystemMessageComponent, {
+          data: { title, message },
+        })
+        .afterDismissed()
+        .subscribe(() => {
+          if (this.shown === key) {
+            this.shown = null;
+          }
+        });
     }, displayAfterMs);
   }
 }
