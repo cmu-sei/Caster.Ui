@@ -605,99 +605,99 @@ describe('SignalRService', () => {
     }> = [
       {
         method: 'joinProject',
-        line: 166,
+        line: 178,
         act: (s) => s.joinProject('p1'),
         expected: ['JoinProject', 'p1'],
       },
       {
         method: 'leaveProject',
-        line: 185,
+        line: 206,
         act: (s) => s.leaveProject('p1'),
         expected: ['LeaveProject', 'p1'],
       },
       {
         method: 'joinProjectAdmin',
-        line: 193,
+        line: 217,
         act: (s) => s.joinProjectAdmin('p1'),
         expected: ['JoinProjectAdmin', 'p1'],
       },
       {
         method: 'leaveProjectAdmin',
-        line: 200,
+        line: 224,
         act: (s) => s.leaveProjectAdmin('p1'),
         expected: ['LeaveProjectAdmin', 'p1'],
       },
       {
         method: 'joinGroup',
-        line: 208,
+        line: 232,
         act: (s) => s.joinGroup('g1'),
         expected: ['JoinGroup', 'g1'],
       },
       {
         method: 'leaveGroup',
-        line: 215,
+        line: 239,
         act: (s) => s.leaveGroup('g1'),
         expected: ['LeaveGroup', 'g1'],
       },
       {
         method: 'JoinGroups (re-join JoinWorkspace)',
-        line: 122,
+        line: 123,
         arrange: (s) => s.joinWorkspace('stale'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinWorkspace', 'stale'],
       },
       {
         method: 'joinWorkspacesAdmin',
-        line: 245,
+        line: 269,
         act: (s) => s.joinWorkspacesAdmin(),
         expected: ['JoinWorkspacesAdmin'],
       },
       {
         method: 'leaveWorkspacesAdmin',
-        line: 252,
+        line: 276,
         act: (s) => s.leaveWorkspacesAdmin(),
         expected: ['LeaveWorkspacesAdmin'],
       },
       {
         method: 'JoinGroups (re-join JoinDesign)',
-        line: 134,
+        line: 135,
         arrange: (s) => s.joinDesign('de1'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'joinDesign',
-        line: 260,
+        line: 284,
         act: (s) => s.joinDesign('de1'),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'leaveDesign',
-        line: 267,
+        line: 291,
         act: (s) => s.leaveDesign('de1'),
         expected: ['LeaveDesign', 'de1'],
       },
       {
         method: 'joinVlansAdmin',
-        line: 275,
+        line: 299,
         act: (s) => s.joinVlansAdmin(),
         expected: ['JoinVlansAdmin'],
       },
       {
         method: 'leaveVlansAdmin',
-        line: 282,
+        line: 306,
         act: (s) => s.leaveVlansAdmin(),
         expected: ['LeaveVlansAdmin'],
       },
       {
         method: 'joinRolesAdmin',
-        line: 290,
+        line: 314,
         act: (s) => s.joinRolesAdmin(),
         expected: ['JoinRolesAdmin'],
       },
       {
         method: 'leaveRolesAdmin',
-        line: 297,
+        line: 321,
         act: (s) => s.leaveRolesAdmin(),
         expected: ['LeaveRolesAdmin'],
       },
@@ -1581,6 +1581,31 @@ describe('SignalRService', () => {
           : Promise.resolve(method === 'JoinProject' ? [] : undefined),
       );
 
+      service.joinProject('p2');
+      hub.trigger('PresenceArrived', bob);
+      leftP1();
+      await flush();
+
+      expect(await presence()).toEqual([]);
+    });
+
+    /**
+     * Verifies: a join waits for a leave that the closing page had already sent, so its late arrivals stay out of the next project.
+     * Interacts with: FakeHubConnection.invoke (LeaveProject held back), FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: leaveProject('p1') as the page closes, then joinProject('p2') before it answers; Bob arrives in p1; JoinProject answers [].
+     */
+    it('waits for an explicit leave that is still on its way before joining', async () => {
+      const { service, hub } = await joined([]);
+      service.joinProject('p1');
+      await flush();
+      let leftP1!: () => void;
+      hub.invoke.mockImplementation((method) =>
+        method === 'LeaveProject'
+          ? new Promise<void>((resolve) => (leftP1 = resolve))
+          : Promise.resolve(method === 'JoinProject' ? [] : undefined),
+      );
+
+      service.leaveProject('p1');
       service.joinProject('p2');
       hub.trigger('PresenceArrived', bob);
       leftP1();

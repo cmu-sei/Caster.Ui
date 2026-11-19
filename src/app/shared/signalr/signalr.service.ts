@@ -155,13 +155,13 @@ export class SignalRService {
   }
 
   public joinProject(projectId: string) {
-    let leaving: Promise<unknown> | null = null;
-
     if (this.projectId && this.projectId !== projectId) {
       this.leaveProject(this.projectId);
-      leaving = this.leavingProject;
-      this.leavingProject = null;
     }
+
+    // A leave that is still on its way, from here or from the page that is closing, whichever project.
+    const leaving = this.leavingProject;
+    this.leavingProject = null;
 
     this.projectId = projectId;
 
