@@ -74,6 +74,7 @@ export class SignalRService {
   private joinedRolesAdmin = false;
   private joinedEnvironmentSetsAdmin = false;
   private connectionPromise: Promise<void>;
+  private leavingProject: Promise<unknown> | null = null;
 
   public startConnection(): Promise<void> {
     if (this.connectionPromise) {
@@ -154,13 +155,24 @@ export class SignalRService {
   }
 
   public joinProject(projectId: string) {
+    let leaving: Promise<unknown> | null = null;
+
     if (this.projectId && this.projectId !== projectId) {
       this.leaveProject(this.projectId);
+      leaving = this.leavingProject;
+      this.leavingProject = null;
     }
 
     this.projectId = projectId;
 
-    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+    const join = () => {
+      if (
+        this.projectId !== projectId ||
+        this.hubConnection.state !== signalR.HubConnectionState.Connected
+      ) {
+        return;
+      }
+
       const snapshot = this.projectPresenceService.beginSnapshot();
 
       this.hubConnection.invoke('JoinProject', projectId).then(
@@ -175,6 +187,15 @@ export class SignalRService {
           throw error;
         },
       );
+    };
+
+    if (leaving) {
+      // Whoever arrived in the project being left, before the hub heard that this client left it, is
+      // announced to this client before LeaveProject answers. Holding announcements only from then on
+      // keeps them out of the next project.
+      leaving.then(join, join);
+    } else {
+      join();
     }
   }
 
@@ -182,7 +203,10 @@ export class SignalRService {
     this.projectId = null;
     this.projectPresenceService.clear();
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('LeaveProject', projectId);
+      this.leavingProject = this.hubConnection.invoke(
+        'LeaveProject',
+        projectId,
+      );
     }
   }
 

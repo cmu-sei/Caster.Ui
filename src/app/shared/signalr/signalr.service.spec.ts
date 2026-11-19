@@ -1557,11 +1557,36 @@ describe('SignalRService', () => {
 
       service.joinProject('p1');
       service.joinProject('p2');
+      await flush();
       answers[1]([bob]);
       answers[0]([ada]);
       await flush();
 
       expect(await presence()).toEqual([bob]);
+    });
+
+    /**
+     * Verifies: someone who arrives in the project being left, before the hub heard the client leave it, isn't shown in the next project.
+     * Interacts with: FakeHubConnection.invoke (LeaveProject held back), FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: p1 is open; joinProject('p2') leaves p1, Bob arrives in p1 before LeaveProject answers; JoinProject answers [].
+     */
+    it("keeps the previous project's late arrivals out of the next project", async () => {
+      const { service, hub } = await joined([]);
+      service.joinProject('p1');
+      await flush();
+      let leftP1!: () => void;
+      hub.invoke.mockImplementation((method) =>
+        method === 'LeaveProject'
+          ? new Promise<void>((resolve) => (leftP1 = resolve))
+          : Promise.resolve(method === 'JoinProject' ? [] : undefined),
+      );
+
+      service.joinProject('p2');
+      hub.trigger('PresenceArrived', bob);
+      leftP1();
+      await flush();
+
+      expect(await presence()).toEqual([]);
     });
 
     /**
