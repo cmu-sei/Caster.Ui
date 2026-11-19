@@ -33,18 +33,17 @@ export class ModuleService {
           includeVerionsCount,
           false,
           undefined,
-          true
+          true,
         )
       : this.modulesService.getAllModules(includeVersions, includeVerionsCount);
-    return request
-      .pipe(
-        tap((modules: Module[]) => {
-          this.upsertMany(modules, includeVersions, includeLatestVersion);
-        }),
-        tap(() => {
-          this.moduleStore.setLoading(false);
-        }),
-      );
+    return request.pipe(
+      tap((modules: Module[]) => {
+        this.upsertMany(modules, includeVersions, includeLatestVersion);
+      }),
+      tap(() => {
+        this.moduleStore.setLoading(false);
+      }),
+    );
   }
 
   loadByDesignId(
@@ -68,7 +67,7 @@ export class ModuleService {
   private upsertMany(
     modules: Module[],
     includeVersions: boolean,
-    includeLatestVersion = false
+    includeLatestVersion = false,
   ) {
     let objs = modules;
 
