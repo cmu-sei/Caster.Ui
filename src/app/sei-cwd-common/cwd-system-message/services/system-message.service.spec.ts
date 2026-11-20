@@ -110,13 +110,14 @@ describe('SystemMessageService', () => {
 
   /**
    * Verifies: the same title and message is not opened again while its sheet is showing, but is opened again after the sheet is dismissed.
-   * Interacts with: the real root MatBottomSheet (dismiss), NgZone, ApplicationRef.
+   * Interacts with: the real root MatBottomSheet (open spied, dismiss), NgZone, ApplicationRef.
    * Data: three displayMessage calls with title 'API Error', message 'The API could not be reached.'.
    */
   it('does not open a repeat of the message that is showing', async () => {
     const service = setup();
     const zone = TestBed.inject(NgZone);
     const appRef = TestBed.inject(ApplicationRef);
+    const open = vi.spyOn(TestBed.inject(MatBottomSheet), 'open');
     const show = () =>
       zone.run(() =>
         service.displayMessage('API Error', 'The API could not be reached.'),
@@ -126,6 +127,7 @@ describe('SystemMessageService', () => {
     show();
     await appRef.whenStable();
 
+    expect(open).toHaveBeenCalledTimes(1);
     expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
       1,
     );
@@ -137,6 +139,7 @@ describe('SystemMessageService', () => {
     show();
     await appRef.whenStable();
 
+    expect(open).toHaveBeenCalledTimes(2);
     expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
       1,
     );
