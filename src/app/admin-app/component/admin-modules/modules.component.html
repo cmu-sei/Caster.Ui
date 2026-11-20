@@ -210,10 +210,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                 <span class="detail dim">{{ row.source.description }}</span>
               }
             } @else {
-              <span class="detail dim">
-                Modules no configured source provides, or no longer found in
-                their source.
-              </span>
+              @if (row.sourcesKnown) {
+                <span class="detail dim">
+                  Modules no configured source provides, or no longer found in
+                  their source.
+                </span>
+              }
             }
           </span>
         </div>

@@ -172,6 +172,10 @@ export class AdminModulesComponent implements OnInit {
   private readonly sourcesRead = signal(false);
   /** The first read of the sources failed (not a 404): the configuration is unknown. */
   readonly sourcesFailed = signal(false);
+  /** Whether the configured sources are known: read successfully, not unsupported or failed. */
+  readonly sourcesKnown = computed(
+    () => this.sourcesRead() && this.sourcesListed(),
+  );
 
   public scopes$ = this.moduleScopeService.scopes$;
   private readonly allScopes = toSignal(this.scopes$, {
@@ -196,7 +200,7 @@ export class AdminModulesComponent implements OnInit {
   );
 
   readonly groups = computed(() =>
-    groupModules(this.modules(), this.sources()),
+    groupModules(this.modules(), this.sources(), this.sourcesKnown()),
   );
   readonly view = computed(() =>
     viewGroups(this.sources(), this.groups(), this.search()),
@@ -207,8 +211,11 @@ export class AdminModulesComponent implements OnInit {
   });
   /** The table's rows: the sources the search keeps, then the leftover group. */
   readonly rows = computed(() =>
-    // With the sources unknown every Module would look like a leftover, so list none.
-    this.sourcesFailed() ? [] : sourceTableRows(this.view(), this.access()),
+    // Until the sources are read (or the API says it has none to report) every Module would
+    // look like a leftover, so list none while loading or after a failed first read.
+    this.sourcesRead() || !this.sourcesListed()
+      ? sourceTableRows(this.view(), this.access(), this.sourcesKnown())
+      : [],
   );
 
   readonly displayedColumns = [
@@ -491,6 +498,7 @@ export class AdminModulesComponent implements OnInit {
             // An API that does not report its sources yet: say so, not an error.
             this.sources.set([]);
             this.sourcesListed.set(false);
+            this.sourcesFailed.set(false);
             return;
           }
           // Any other failure: keep the sources already listed, and say why. With none

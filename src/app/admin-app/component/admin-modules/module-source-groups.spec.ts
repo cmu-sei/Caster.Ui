@@ -77,6 +77,28 @@ describe('moduleSourceOf', () => {
   });
 });
 
+describe('Modules while the sources are unknown', () => {
+  /**
+   * Verifies: with the sources unknown a Module no source owns is not a leftover unless the API says it is missing; once they are known it is.
+   * Interacts with: toModuleRow, groupModules and sourceTableRows (pure).
+   * Data: an orphan with inSource true, and a missing one.
+   */
+  it('calls nothing an orphan until the sources are known', () => {
+    const live = { ...orphan, inSource: true };
+
+    expect(toModuleRow(live, [], false).leftover).toBe(false);
+    expect(toModuleRow(live, [], true).leftover).toBe(true);
+    expect(toModuleRow({ ...live, inSource: false }, [], false).leftover).toBe(
+      true,
+    );
+
+    const groups = groupModules([live], [], false);
+    const rows = sourceTableRows(viewGroups([], groups, ''), null, false);
+    expect(rows.map((r) => r.name)).toEqual(['Modules']);
+    expect(rows[0].sourcesKnown).toBe(false);
+  });
+});
+
 describe('reportsSourcePresence', () => {
   /**
    * Verifies: a Module reports whether it is still in its source when the API sends missingSince or inSource, and does not when it sends neither.

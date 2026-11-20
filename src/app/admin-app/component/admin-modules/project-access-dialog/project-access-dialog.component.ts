@@ -148,7 +148,11 @@ export class ProjectAccessDialogComponent implements OnInit {
   }
 
   /** The scope as the saved selection leaves it, with names from the lists or the scope. */
-  private savedScope(scope: ModuleScope): ModuleScope {
+  private savedScope(
+    scope: ModuleScope,
+    projectIds: string[],
+    groupIds: string[],
+  ): ModuleScope {
     const named = (
       ids: string[],
       items: AssignmentItem[] | null,
@@ -164,12 +168,12 @@ export class ProjectAccessDialogComponent implements OnInit {
     return {
       ...scope,
       projects: named(
-        this.selectedProjects(),
+        projectIds,
         this.projects(),
         (scope.projects ?? []).map((x) => ({ id: x.projectId, name: x.name })),
       ).map((x) => ({ projectId: x.id, name: x.name })),
       projectGroups: named(
-        this.selectedGroups(),
+        groupIds,
         this.groups(),
         (scope.projectGroups ?? []).map((x) => ({
           id: x.projectGroupId,
@@ -209,28 +213,33 @@ export class ProjectAccessDialogComponent implements OnInit {
         switchMap((scope) => {
           // From here a retry changes this scope, not makes another.
           this.current.set(scope);
+          // What this request commits: the selection can change while it is in flight.
+          const projects = [...this.selectedProjects()];
+          const groups = [...this.selectedGroups()];
           const changes = [
             ...scopeProjectChanges(
               scope.id,
-              assignmentDiff(this.initialProjects(), this.selectedProjects()),
+              assignmentDiff(this.initialProjects(), projects),
             ),
             ...scopeGroupChanges(
               scope.id,
-              assignmentDiff(this.initialGroups(), this.selectedGroups()),
+              assignmentDiff(this.initialGroups(), groups),
             ),
           ];
           return this.assignmentService.save(changes).pipe(
             // Saved: this is the baseline now, whatever the re-read below does.
             tap(() => {
-              this.initialProjects.set([...this.selectedProjects()]);
-              this.initialGroups.set([...this.selectedGroups()]);
+              this.initialProjects.set(projects);
+              this.initialGroups.set(groups);
             }),
             switchMap(() =>
               this.assignmentService.refresh(changes).pipe(
                 catchError(() => {
                   refreshFailed = true;
                   // The lists could not be read again: keep what was saved in the cache.
-                  this.moduleScopeService.replace(this.savedScope(scope));
+                  this.moduleScopeService.replace(
+                    this.savedScope(scope, projects, groups),
+                  );
                   return of(undefined);
                 }),
               ),

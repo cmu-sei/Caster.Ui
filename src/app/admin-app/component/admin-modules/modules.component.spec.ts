@@ -619,8 +619,11 @@ describe('AdminModulesComponent', () => {
       screen.getByText("This Caster API doesn't report its module sources."),
     ).toBeInTheDocument();
     expect(
-      within(rowOf(NOT_CONFIGURED)).getAllByRole('cell')[3].textContent?.trim(),
+      within(rowOf('Modules')).getAllByRole('cell')[3].textContent?.trim(),
     ).toBe('1');
+    expect(findRow(NOT_CONFIGURED)).toBeNull();
+    expect(screen.queryByText('Not in source')).toBeNull();
+    expect(screen.queryByText(/Its source is not configured/)).toBeNull();
   });
 
   /**
@@ -980,6 +983,66 @@ describe('AdminModulesComponent', () => {
         ),
       ).toBeNull();
       expect(findRow('local')).not.toBeNull();
+    });
+
+    /**
+     * Verifies: while the sources are still being read no Module is listed as an orphan: nothing is listed until they arrive, and then the Modules sit under their source.
+     * Interacts with: ModulesService.getModuleSources (Subject stub).
+     * Data: local with vm; the source request pending, then answered.
+     */
+    it('lists no Module as an orphan while the sources are loading', async () => {
+      const sources = new Subject<ModuleSource[]>();
+      const { fixture } = await renderModules(manage, {
+        sources: () => sources,
+        modules: [vm],
+      });
+
+      expect(findRow(NOT_CONFIGURED)).toBeNull();
+      expect(document.querySelectorAll('tr.element-row').length).toBe(0);
+
+      sources.next([healthy]);
+      sources.complete();
+      fixture.detectChanges();
+
+      expect(findRow('local')).not.toBeNull();
+      expect(findRow(NOT_CONFIGURED)).toBeNull();
+    });
+
+    /**
+     * Verifies: Retry after a failed first read that now returns 404 leaves the failure state for the quiet unsupported-API fallback, with the Modules shown plainly.
+     * Interacts with: ModulesService.getModuleSources (500, then 404).
+     * Data: first 500, Retry gives 404.
+     */
+    it('moves from a failed read to the unsupported fallback on a 404 Retry', async () => {
+      const { user, modulesApi } = await renderModules(manage, {
+        sources: problem,
+      });
+      modulesApi.getModuleSources.mockImplementation(() =>
+        throwError(() => new HttpErrorResponse({ status: 404 })),
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+      expect(screen.queryByText(/Couldn't load the module sources/)).toBeNull();
+      expect(
+        screen.getByText("This Caster API doesn't report its module sources."),
+      ).toBeInTheDocument();
+      expect(findRow('Modules')).not.toBeNull();
+    });
+
+    /**
+     * Verifies: Retry that fails again with a 500 stays in the failure state and shows the snack bar.
+     * Interacts with: ModulesService.getModuleSources (500 twice), MatSnackBar (real).
+     * Data: two 500s.
+     */
+    it('stays failed when Retry fails again', async () => {
+      const { user } = await renderModules(manage, { sources: problem });
+
+      await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+      expect(screen.getByText(/Couldn't load the module sources/)).toBeTruthy();
+      expect(snackBarText()).toContain('The sources are down');
+      expect(findRow(NOT_CONFIGURED)).toBeNull();
     });
 
     /**

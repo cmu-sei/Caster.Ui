@@ -21,6 +21,9 @@ export const GITLAB_PROVIDER = 'gitlab';
 /** The name the group of leftovers is shown under. */
 export const LEFTOVER_TITLE = 'Not in a configured source';
 
+/** The name of the group of Modules when the configured sources are not known. */
+export const UNKNOWN_SOURCES_TITLE = 'Modules';
+
 /** The key the group of leftovers is expanded under; no source can be named like this. */
 export const LEFTOVER_KEY = '\u0000not-in-a-configured-source';
 
@@ -98,6 +101,7 @@ export function isLeftover(module: Module): boolean {
 export function toModuleRow(
   module: Module,
   sources: ModuleSource[],
+  sourcesKnown = true,
 ): ModuleRow {
   const source = moduleSourceOf(module, sources)?.name ?? '';
   return {
@@ -105,8 +109,9 @@ export function toModuleRow(
     source,
     // The API names the highest version, and has none for a Module without versions.
     latestVersion: module.latestVersion ?? '',
-    // A Module no configured source owns is one too: its source is never read again.
-    leftover: isLeftover(module) || !source,
+    // A Module no configured source owns is one too (its source is never read again), but
+    // only once the configured sources are known: an empty list can mean they are not.
+    leftover: isLeftover(module) || (sourcesKnown && !source),
   };
 }
 
@@ -126,13 +131,14 @@ const byName = (a: ModuleRow, b: ModuleRow) =>
 export function groupModules(
   modules: readonly Module[],
   sources: ModuleSource[],
+  sourcesKnown = true,
 ): ModuleGroups {
   const bySource = new Map<string, ModuleRow[]>(
     sources.map((s) => [s.name, []]),
   );
   const leftovers: ModuleRow[] = [];
   for (const module of modules) {
-    const row = toModuleRow(module, sources);
+    const row = toModuleRow(module, sources, sourcesKnown);
     const group = row.leftover ? undefined : bySource.get(row.source);
     (group ?? leftovers).push(row);
   }
@@ -408,12 +414,15 @@ export interface SourceTableRow extends GroupView {
   access: SourceAccessRow | null;
   /** The id of the row's detail, which its expand button controls. */
   detailId: string;
+  /** Whether the configured sources are known: the leftover group is only that then. */
+  sourcesKnown: boolean;
 }
 
 /** The table's rows for a view: the sources as they are sorted, then the leftover group. */
 export function sourceTableRows(
   view: GroupedView,
   access: ReadonlyMap<string, SourceAccessRow> | null,
+  sourcesKnown = true,
 ): SourceTableRow[] {
   const rows: SourceTableRow[] = view.sources.map((item, index) => ({
     ...item,
@@ -422,16 +431,19 @@ export function sourceTableRows(
     status: sourceStatus(item.source),
     access: access?.get(item.source.name) ?? null,
     detailId: `source-modules-${index}`,
+    sourcesKnown,
   }));
   if (view.leftovers) {
     rows.push({
       ...view.leftovers,
       key: LEFTOVER_KEY,
-      name: LEFTOVER_TITLE,
+      // With the sources unknown nothing says these are orphans: just the Modules.
+      name: sourcesKnown ? LEFTOVER_TITLE : UNKNOWN_SOURCES_TITLE,
       source: null,
       status: null,
       access: null,
       detailId: 'source-modules-leftovers',
+      sourcesKnown,
     });
   }
   return rows;

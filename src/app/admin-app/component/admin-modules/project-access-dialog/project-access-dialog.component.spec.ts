@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { ACCESS_NOTE } from './project-access-dialog.component';
 import {
   AssignmentsService,
@@ -324,6 +324,32 @@ describe('ProjectAccessDialogComponent', () => {
       .find((x) => x.id === 's2');
     expect(cached?.projects).toEqual([{ projectId: 'p2', name: 'Range B' }]);
     expect(cached?.projectGroups).toEqual([]);
+  });
+
+  /**
+   * Verifies: the cache written after a failed re-read holds what the save committed, not the selection as it is when the response arrives: unticking the project while the request is in flight does not erase it.
+   * Interacts with: AssignmentsService.editAssignments (Subject stub), ModuleScopesService.getModuleScope (rejects), ModuleScopeService.
+   * Data: tick Range B, save, untick Range B while pending, then the save succeeds and the re-read fails.
+   */
+  it('caches the committed selection, not a selection changed while saving', async () => {
+    const pending = new Subject<undefined>();
+    const { assignmentsApi, user } = await renderDialog(
+      {},
+      { rereadFails: true },
+    );
+    assignmentsApi.editAssignments.mockImplementation(() => pending as never);
+
+    await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
+    await user.click(save());
+    await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
+    pending.next(undefined);
+    pending.complete();
+    await Promise.resolve();
+
+    const cached = TestBed.inject(ModuleScopeService)
+      .currentScopes()
+      .find((x) => x.id === 's2');
+    expect(cached?.projects).toEqual([{ projectId: 'p2', name: 'Range B' }]);
   });
 
   /**

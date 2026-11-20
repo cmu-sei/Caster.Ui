@@ -201,8 +201,8 @@ export class SourceModulesComponent {
     if (source && isGitlabSource(source)) {
       return true;
     }
-    // No configured source owns it: its source was removed, so it is never read again.
-    return !row.source || (reportsSourcePresence(row) && row.leftover);
+    // A leftover: the API says so, or the configured sources are known and none owns it.
+    return row.leftover;
   }
 
   /** True when some git Module here is without Delete only because the API does not say if it is a leftover. */
