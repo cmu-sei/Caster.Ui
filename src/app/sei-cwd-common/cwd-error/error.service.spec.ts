@@ -132,7 +132,7 @@ describe('ErrorService.handleError', () => {
   /**
    * Verifies: an HTTP error whose body isn't ProblemDetails (a proxy's HTML page, a network error's ProgressEvent) gets the generic title and the status lines.
    * Interacts with: SystemMessageService.displayMessage (stub).
-   * Data: a 502 with an HTML string body; a status-0 error with a ProgressEvent body.
+   * Data: a 502 with an HTML string body; a 503 with a ProgressEvent body.
    */
   it('uses a generic title for non-ProblemDetails bodies', () => {
     const { service, messages } = setup();
@@ -148,8 +148,8 @@ describe('ErrorService.handleError', () => {
     service.handleError(
       new HttpErrorResponse({
         error: new ProgressEvent('error'),
-        status: 0,
-        statusText: 'Unknown Error',
+        status: 503,
+        statusText: 'Service Unavailable',
         url: API_URL,
       }),
     );
@@ -158,7 +158,9 @@ describe('ErrorService.handleError', () => {
       ['An error has occurred', codeAndMessage(502, 'Bad Gateway'), 1000],
       [
         'An error has occurred',
-        expect.stringContaining('<strong>Code:</strong> 0 (Unknown Error)'),
+        expect.stringContaining(
+          '<strong>Code:</strong> 503 (Service Unavailable)',
+        ),
         1000,
       ],
     ]);
@@ -219,5 +221,69 @@ describe('ErrorService.handleError', () => {
       'undefined \nundefined',
       1000,
     );
+  });
+
+  /**
+   * Verifies: an HTTP status 0 failure (API unreachable) shows one short "API Error" message instead of the Code/Message dump, even with an empty body.
+   * Interacts with: SystemMessageService.displayMessage (stub), console.log (spied).
+   * Data: a status-0 error with a ProgressEvent body; a status-0 error with no body.
+   */
+  it('shows a single API Error message when the API cannot be reached', () => {
+    const { service, messages } = setup();
+
+    const first = new HttpErrorResponse({
+      error: new ProgressEvent('error'),
+      status: 0,
+      statusText: 'Unknown Error',
+      url: API_URL,
+    });
+    service.handleError(first);
+    service.handleError(new HttpErrorResponse({ status: 0, url: API_URL }));
+
+    expect(console.log).toHaveBeenCalledWith('API unreachable:', first);
+
+    expect(messages.displayMessage.mock.calls).toEqual([
+      ['API Error', 'The API could not be reached.', 1000],
+      ['API Error', 'The API could not be reached.', 1000],
+    ]);
+  });
+
+  /**
+   * Verifies: SignalR and network failures caused by an unreachable API show the same single API Error message.
+   * Interacts with: SystemMessageService.displayMessage (stub), console.log (spied).
+   * Data: errors and zone promise rejections with 'Failed to fetch', 'Failed to start the connection', 'Network Error', 'Failed to complete negotiation'.
+   */
+  it.each([
+    ['Failed to fetch', new TypeError('Failed to fetch')],
+    [
+      'Failed to start the connection',
+      new Error('Failed to start the connection: TypeError: Failed to fetch'),
+    ],
+    ['Network Error', new Error('Network Error')],
+    [
+      'Failed to complete negotiation',
+      new Error(
+        'Error: Failed to complete negotiation with the server: TypeError: Failed to fetch',
+      ),
+    ],
+    [
+      'a rejection wrapping Failed to fetch',
+      {
+        message: 'Uncaught (in promise): TypeError: Failed to fetch',
+        rejection: new TypeError('Failed to fetch'),
+      },
+    ],
+  ])('shows the API Error message for %s', (_name, err) => {
+    const { service, messages } = setup();
+
+    service.handleError(err);
+
+    expect(messages.displayMessage).toHaveBeenCalledTimes(1);
+    expect(messages.displayMessage).toHaveBeenCalledWith(
+      'API Error',
+      'The API could not be reached.',
+      1000,
+    );
+    expect(console.log).toHaveBeenCalledWith('API unreachable:', err);
   });
 });

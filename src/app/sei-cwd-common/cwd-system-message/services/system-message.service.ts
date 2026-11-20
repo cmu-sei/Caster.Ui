@@ -8,6 +8,9 @@ import { SystemMessageComponent } from '../components/system-message.component';
 @Injectable()
 export class SystemMessageService {
   private messageSheet = inject(MatBottomSheet);
+  // The sheet that is open and its title and message, so a repeat of it is not
+  // opened again.
+  private shown: { key: string; sheet: unknown } | null = null;
 
   public displayMessage(
     title: string,
@@ -15,8 +18,20 @@ export class SystemMessageService {
     displayAfterMs: number = 0,
   ) {
     setTimeout(() => {
-      this.messageSheet.open(SystemMessageComponent, {
+      const key = JSON.stringify([title, message]);
+      if (key === this.shown?.key) {
+        return;
+      }
+      const sheet = this.messageSheet.open(SystemMessageComponent, {
         data: { title, message },
+      });
+      this.shown = { key, sheet };
+      sheet.afterDismissed().subscribe(() => {
+        // Only the sheet that is still current clears the mark, so a replaced
+        // sheet finishing its exit does not unmark a newer one.
+        if (this.shown?.sheet === sheet) {
+          this.shown = null;
+        }
       });
     }, displayAfterMs);
   }

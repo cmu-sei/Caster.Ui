@@ -3,8 +3,12 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ApplicationRef, NgZone } from '@angular/core';
+import { Subject } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
-import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import {
+  MatBottomSheet,
+  MatBottomSheetModule,
+} from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -103,5 +107,78 @@ describe('SystemMessageService', () => {
       content.getByRole('heading', { level: 2, name: 'An error has occurred' }),
     ).toBeInTheDocument();
     expect(content.getByText('Gateway timeout')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the same title and message is not opened again while its sheet is showing, but is opened again after the sheet is dismissed.
+   * Interacts with: the real root MatBottomSheet (open spied, dismiss), NgZone, ApplicationRef.
+   * Data: three displayMessage calls with title 'API Error', message 'The API could not be reached.'.
+   */
+  it('does not open a repeat of the message that is showing', async () => {
+    const service = setup();
+    const zone = TestBed.inject(NgZone);
+    const appRef = TestBed.inject(ApplicationRef);
+    const open = vi.spyOn(TestBed.inject(MatBottomSheet), 'open');
+    const show = () =>
+      zone.run(() =>
+        service.displayMessage('API Error', 'The API could not be reached.'),
+      );
+
+    show();
+    show();
+    await appRef.whenStable();
+
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
+      1,
+    );
+
+    TestBed.inject(MatBottomSheet).dismiss();
+    await appRef.whenStable();
+    expect(sheetContainer()).toBeNull();
+
+    show();
+    await appRef.whenStable();
+
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
+      1,
+    );
+  });
+
+  /**
+   * Verifies: a replaced sheet finishing its exit does not clear the duplicate mark of a newer sheet with the same message.
+   * Interacts with: a fake MatBottomSheet whose sheets are dismissed by the test.
+   * Data: message A opened, replaced by B, A opened again, then the first A reports dismissed, then A is requested again.
+   */
+  it('keeps the duplicate mark of the newest sheet when an older one is dismissed', () => {
+    vi.useFakeTimers();
+    const dismissed: Subject<void>[] = [];
+    const open = vi.fn(() => {
+      const done = new Subject<void>();
+      dismissed.push(done);
+      return { afterDismissed: () => done.asObservable() };
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        SystemMessageService,
+        { provide: MatBottomSheet, useValue: { open } },
+      ],
+    });
+    const service = TestBed.inject(SystemMessageService);
+    const show = (title: string) => {
+      service.displayMessage(title, 'details');
+      vi.runAllTimers();
+    };
+
+    show('A');
+    show('B');
+    show('A');
+    expect(open).toHaveBeenCalledTimes(3);
+
+    dismissed[0].next();
+    show('A');
+
+    expect(open).toHaveBeenCalledTimes(3);
   });
 });
