@@ -14,6 +14,7 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ModuleSourceState } from './moduleSourceState';
 
 
 /**
@@ -30,6 +31,10 @@ export interface ModuleSource {
      */
     provider?: string | null;
     /**
+     * Where the source lives, for linking to or copying; never holds a credential.
+     */
+    url?: string | null;
+    /**
      * When this API instance last tried to sync the source, or null if it has not yet.
      */
     lastAttempt?: string | null;
@@ -41,5 +46,14 @@ export interface ModuleSource {
      * Why the last sync failed, or null if it succeeded.
      */
     error?: string | null;
+    state?: ModuleSourceState;
+    /**
+     * Human-readable detail for Empty, Warning and Error; null for Ok.
+     */
+    message?: string | null;
+    /**
+     * Whether every project may use this source\'s Modules whatever its Module Scopes (the source\'s Shared setting).
+     */
+    shared?: boolean;
 }
 

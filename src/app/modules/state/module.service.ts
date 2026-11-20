@@ -21,20 +21,35 @@ export class ModuleService {
   private moduleStore = inject(ModuleStore);
   private modulesService = inject(ModulesService);
 
+  /**
+   * Loads every Module. Listing them syncs the module sources first; pass
+   * forceUpdate to re-read every version even when a source looks unchanged.
+   * includeLatestVersion asks for the name of each Module's highest version without
+   * the versions themselves. Loading ends when the request does, whether it
+   * succeeded or failed.
+   */
   load(
     includeVersions: boolean,
     includeVerionsCount: boolean,
+    forceUpdate = false,
+    includeLatestVersion = false,
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     return this.modulesService
-      .getAllModules(includeVersions, includeVerionsCount)
+      .getAllModules(
+        includeVersions,
+        includeVerionsCount,
+        forceUpdate,
+        undefined,
+        undefined,
+        includeLatestVersion,
+      )
       .pipe(
         tap((modules: Module[]) => {
-          this.upsertMany(modules, includeVersions);
+          this.upsertMany(modules, includeVersions, includeLatestVersion);
         }),
-        tap(() => {
-          this.moduleStore.setLoading(false);
-        }),
+        // Also when listing fails, so the page's spinner does not stay up.
+        finalize(() => this.moduleStore.setLoading(false)),
       );
   }
 
@@ -56,17 +71,22 @@ export class ModuleService {
       );
   }
 
-  private upsertMany(modules: Module[], includeVersions: boolean) {
-    let objs = modules;
-
-    if (!includeVersions) {
-      // this call does not include versions, so don't
-      // overwrite any we already have
-      objs = modules.map((x) => {
+  private upsertMany(
+    modules: Module[],
+    includeVersions: boolean,
+    includeLatestVersion = false,
+  ) {
+    // A call that does not ask for versions or the latest version does not
+    // return them, so don't overwrite any we already have.
+    const objs = modules.map((x) => {
+      if (!includeVersions) {
         delete x.versions;
-        return x;
-      });
-    }
+      }
+      if (!includeLatestVersion) {
+        delete x.latestVersion;
+      }
+      return x;
+    });
 
     this.moduleStore.upsertMany(objs);
   }

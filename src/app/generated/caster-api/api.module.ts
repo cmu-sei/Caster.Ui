@@ -20,6 +20,7 @@ import { HealthService } from './api/health.service';
 import { HostsService } from './api/hosts.service';
 import { InventoryService } from './api/inventory.service';
 import { ModulesService } from './api/modules.service';
+import { ModuleScopesService } from './api/moduleScopes.service';
 import { PlansService } from './api/plans.service';
 import { ProjectGroupsService } from './api/projectGroups.service';
 import { ProjectInventoryService } from './api/projectInventory.service';

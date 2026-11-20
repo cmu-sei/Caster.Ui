@@ -1,0 +1,64 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="'Project access: ' + data.source"
+  [form]="form"
+  submitLabel="Save"
+  loadingLabel="Saving"
+  [loading]="saving()"
+  [errorMessage]="error()"
+  [submitDisabled]="saving()"
+  (submit)="save()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    <p class="secondary">{{ note }}</p>
+
+    @if (assignmentsUnavailable()) {
+      <p class="secondary" role="status">
+        The projects and project groups could not be listed, so nothing can be
+        assigned now.
+      </p>
+    }
+    <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+      <mat-tab [label]="'Projects (' + selectedProjects().length + ')'">
+        <div class="tab-body">
+          <cas-assignment-checklist
+            [items]="projects() ?? []"
+            [initial]="initialProjects()"
+            [(selected)]="selectedProjects"
+            [searchIcon]="false"
+            searchLabel="Search projects"
+            emptyText="There are no projects."
+          />
+        </div>
+      </mat-tab>
+      <mat-tab [label]="'Project Groups (' + selectedGroups().length + ')'">
+        <div class="tab-body">
+          <cas-assignment-checklist
+            [items]="groups() ?? []"
+            [initial]="initialGroups()"
+            [(selected)]="selectedGroups"
+            [searchIcon]="false"
+            searchLabel="Search project groups"
+            emptyText="There are no project groups."
+          />
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+
+    @for (other of alsoAllowed; track other.name) {
+      <p class="secondary also">
+        Also allowed through the scope {{ other.name }},
+        @if (other.coversOthers) {
+          which covers other sources; it cannot be edited on this page:
+        } @else {
+          which this page does not edit:
+        }
+        {{ other.projects.concat(other.groups).join(', ') || 'nobody yet' }}.
+      </p>
+    }
+  </div>
+</crucible-dialog>

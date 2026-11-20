@@ -3,33 +3,396 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-@if (noSources) {
-  <div class="source-warning" role="status">
-    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
-    <span>No module source is configured, so no Modules can be synced.</span>
-  </div>
-}
-@for (source of failedSources; track source.name) {
-  <div class="source-warning" role="alert">
-    <mat-icon class="mdi-24px" fontIcon="mdi-alert-outline" />
-    <span>
-      Module source <strong>{{ source.name }}</strong> failed to sync.
-      @if (source.lastSuccess) {
-        Showing its Modules from the last successful sync,
-        {{ syncTime(source.lastSuccess) }}.
-      } @else {
-        Showing the Modules already stored.
-      }
-      <span class="source-error">{{ source.error }}</span>
-    </span>
-  </div>
-}
+<div class="toolbar">
+  <mat-icon class="mdi-24px sp-icon" fontIcon="mdi-view-module" />
+  <mat-form-field class="search-field" subscriptSizing="dynamic">
+    <input
+      matInput
+      [ngModel]="search()"
+      (ngModelChange)="setSearch($event)"
+      placeholder="Search modules"
+      aria-label="Search modules"
+    />
+    @if (search()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear Search"
+        matTooltip="Clear Search"
+        (click)="setSearch('')"
+      >
+        <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
+      </button>
+    }
+  </mat-form-field>
+  <button
+    mat-icon-button
+    aria-label="About Module Sources"
+    [matTooltip]="about"
+    matTooltipShowDelay="0"
+  >
+    <mat-icon class="mdi-24px" fontIcon="mdi-information-outline" />
+  </button>
+  <mat-paginator
+    [pageIndex]="0"
+    [pageSize]="20"
+    [pageSizeOptions]="[5, 10, 15, 20, 25, 50, 100, 200]"
+  />
+</div>
 
-<cas-admin-module-list
-  [modules]="modules$ | async"
-  [isLoading]="isLoading$ | async"
-  [canEdit]="canEdit$ | async"
-  (load)="load($event)"
-  (loadModuleById)="createOrUpdateById($event)"
-  (delete)="deleteModule($event)"
-/>
+<div class="content">
+  @if (sourcesFailed()) {
+    <p class="page-note" role="alert">
+      Couldn't load the module sources.
+      <button mat-button type="button" (click)="loadSources(true)">
+        Retry
+      </button>
+    </p>
+  } @else if (!sourcesListed()) {
+    <p class="page-note">This Caster API doesn't report its module sources.</p>
+  } @else if (!sources().length) {
+    <p class="page-note">
+      No module sources are configured, so there are no Modules to list. An
+      administrator adds them in Caster's settings.
+    </p>
+  }
+
+  <table
+    mat-table
+    matSort
+    matSortActive="name"
+    matSortDirection="asc"
+    multiTemplateDataRows
+    [dataSource]="dataSource"
+    [trackBy]="trackByKey"
+  >
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+        @let allReason = refreshAllReason();
+        <!-- A wrapper, since a disabled button shows no tooltip of its own. -->
+        <span
+          class="disabled-action"
+          [matTooltip]="allReason ?? 'Refresh All Sources'"
+        >
+          <button
+            mat-icon-button
+            (click)="refreshAll()"
+            [disabled]="!!allReason || refreshing.has('*')"
+            [attr.aria-label]="
+              allReason
+                ? 'Refresh All Sources (not available)'
+                : 'Refresh All Sources'
+            "
+          >
+            @if (refreshing.has('*')) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <mat-icon class="mdi-24px" fontIcon="mdi-refresh" />
+            }
+          </button>
+        </span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <button
+          mat-icon-button
+          type="button"
+          class="expand-button"
+          [class.expanded]="isOpen(row.key, row.forceOpen)"
+          [attr.aria-expanded]="isOpen(row.key, row.forceOpen)"
+          [attr.aria-controls]="row.detailId"
+          [attr.aria-label]="
+            (isOpen(row.key, row.forceOpen)
+              ? 'Hide details for '
+              : 'Show details for ') + row.name
+          "
+          [matTooltip]="
+            (isOpen(row.key, row.forceOpen)
+              ? 'Hide details for '
+              : 'Show details for ') + row.name
+          "
+          (click)="$event.stopPropagation(); toggle(row.key, row.forceOpen)"
+        >
+          <mat-icon class="mdi-24px chevron" fontIcon="mdi-chevron-down" />
+        </button>
+        @if (row.source; as src) {
+          @let reason = editReason();
+          @if (isGitlab(src)) {
+            <span
+              class="disabled-action"
+              [matTooltip]="reason ?? 'Add a GitLab Project by its ID'"
+            >
+              <button
+                mat-icon-button
+                (click)="$event.stopPropagation(); addGitlabProject()"
+                [disabled]="!!reason"
+                [attr.aria-label]="
+                  reason
+                    ? 'Add a GitLab Project (not available)'
+                    : 'Add a GitLab Project'
+                "
+              >
+                <mat-icon class="mdi-24px" fontIcon="mdi-plus-circle" />
+              </button>
+            </span>
+          } @else {
+            <span
+              class="disabled-action"
+              [matTooltip]="reason ?? 'Refresh ' + src.name"
+            >
+              <button
+                mat-icon-button
+                (click)="$event.stopPropagation(); refresh(src.name)"
+                [disabled]="!!reason || isSourceRefreshing(src)"
+                [attr.aria-label]="
+                  reason
+                    ? 'Refresh ' + src.name + ' (not available)'
+                    : 'Refresh ' + src.name
+                "
+              >
+                @if (isSourceRefreshing(src)) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <mat-icon class="mdi-24px" fontIcon="mdi-refresh" />
+                }
+              </button>
+            </span>
+          }
+          @let accessReason = accessDisabledReason(row);
+          <span
+            class="disabled-action"
+            [matTooltip]="accessReason ?? 'Project access for ' + src.name"
+            matTooltipClass="wide-tooltip"
+          >
+            <button
+              mat-icon-button
+              [disabled]="!!accessReason"
+              (click)="$event.stopPropagation(); manageAccess(src.name)"
+              [attr.aria-label]="'Project access for ' + src.name"
+            >
+              <mat-icon
+                class="mdi-24px"
+                fontIcon="mdi-shield-account-outline"
+              />
+            </button>
+          </span>
+          @if (repositoryUrl(src); as url) {
+            <button
+              mat-icon-button
+              ngxClipboard
+              [cbContent]="url"
+              (click)="$event.stopPropagation()"
+              [attr.aria-label]="'Copy the ' + src.name + ' repository URL'"
+              [matTooltip]="'Copy repository URL: ' + url"
+              matTooltipClass="wide-tooltip"
+            >
+              <mat-icon class="mdi-24px" fontIcon="mdi-content-copy" />
+            </button>
+          }
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="The module source's name, from Caster's settings"
+      >
+        Name
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <div class="name-cell">
+          <span class="name-text">
+            <span class="source-name">{{ row.name }}</span>
+            @if (row.source) {
+              @if (row.source.description) {
+                <span class="detail dim">{{ row.source.description }}</span>
+              }
+            } @else {
+              @if (row.sourcesKnown) {
+                <span class="detail dim">
+                  Modules no configured source provides, or no longer found in
+                  their source.
+                </span>
+              }
+            }
+          </span>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="How Caster's last read of the source went"
+      >
+        Status
+      </th>
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [class.failed]="row.status?.kind === 'failed'"
+        [class.warning]="row.status?.kind === 'warning'"
+        [class.empty]="row.status?.kind === 'empty'"
+      >
+        @if (row.status; as s) {
+          <div class="status-cell">
+            <mat-icon
+              class="mdi-18px status-icon"
+              [fontIcon]="s.icon"
+              [matTooltip]="s.reason"
+              role="img"
+              aria-hidden="false"
+              [attr.aria-label]="s.reason"
+            />
+            <span class="status-text">
+              <span class="status-word">{{ s.word }}</span>
+              @if (s.detail) {
+                <span class="detail dim">{{ s.detail }}</span>
+              }
+            </span>
+          </div>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="modules">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="How many Modules the source has"
+      >
+        Modules
+      </th>
+      <td mat-cell *matCellDef="let row" class="count-cell">
+        {{ countText(row) }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="access">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Which projects and project groups may use the source's Modules"
+      >
+        Projects
+      </th>
+      <td mat-cell *matCellDef="let row">
+        @if (row.source?.shared) {
+          <span class="source-access" tabindex="0" [matTooltip]="sharedTooltip">
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-lock-open-variant-outline"
+            />
+            Open to every project
+          </span>
+        } @else if (row.access; as access) {
+          <span
+            class="source-access"
+            tabindex="0"
+            [matTooltip]="access.tooltip"
+            matTooltipClass="wide-tooltip"
+          >
+            <mat-icon
+              class="mdi-18px"
+              fontIcon="mdi-account-multiple-outline"
+            />
+            {{ access.summary.text }}
+          </span>
+          @if (access.summary.note) {
+            <span class="detail dim">{{ access.summary.note }}</span>
+          }
+          @if (access.folderNote) {
+            <span
+              class="detail dim"
+              tabindex="0"
+              [matTooltip]="access.folderTooltip"
+              >{{ access.folderNote }}</span
+            >
+          }
+        } @else if (row.source) {
+          <span class="detail dim">{{
+            scopesUnavailable() ?? scopesLoadingText
+          }}</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="lastSuccess">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="date-cell"
+        matTooltip="When the Modules shown were last read, in your time zone"
+      >
+        Last Updated
+      </th>
+      <td mat-cell *matCellDef="let row" class="date-cell">
+        {{ lastUpdated(row) }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="expandedDetail">
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [attr.colspan]="displayedColumns.length"
+      >
+        <div
+          class="detail-body"
+          [id]="row.detailId"
+          [@detailExpand]="
+            isOpen(row.key, row.forceOpen) ? 'expanded' : 'collapsed'
+          "
+        >
+          @if (isOpen(row.key, row.forceOpen)) {
+            <cas-source-modules
+              [source]="row.source"
+              [modules]="row.modules"
+              [total]="row.total"
+              [sources]="sources()"
+              [canEdit]="canEdit()"
+              (remove)="deleteModule($event)"
+            />
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="element-row"
+      [class.expanded]="isOpen(row.key, row.forceOpen)"
+      (click)="rowClicked($event, row)"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: ['expandedDetail']"
+      class="detail-row"
+    ></tr>
+    <tr class="mat-mdc-row" *matNoDataRow>
+      @if (search()) {
+        <td
+          class="mat-mdc-cell no-data"
+          [attr.colspan]="displayedColumns.length"
+        >
+          No sources or Modules match "{{ search() }}".
+        </td>
+      }
+    </tr>
+  </table>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <mat-progress-spinner color="primary" mode="indeterminate" />
+    </div>
+  }
+</div>

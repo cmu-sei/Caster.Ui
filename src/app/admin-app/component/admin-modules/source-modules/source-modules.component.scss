@@ -1,0 +1,68 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+:host {
+  display: block;
+  padding: 0 16px 8px 56px;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-field {
+  width: 300px;
+}
+
+mat-paginator {
+  margin-left: auto;
+  background: transparent;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+.mat-column-actions {
+  width: 56px;
+  white-space: nowrap;
+}
+
+/* Holds a disabled button's tooltip, which a disabled button can't show. */
+.disabled-action {
+  display: inline-block;
+}
+
+.empty,
+.no-data {
+  margin: 0;
+  padding: 8px 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.no-version {
+  cursor: help;
+  // Muted, not red: the absence is information, not an error. This token is an AA-contrast
+  // text colour on the surface in both the light and dark themes.
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: underline;
+}
+
+.not-in-source {
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: x-small;
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  white-space: nowrap;
+}

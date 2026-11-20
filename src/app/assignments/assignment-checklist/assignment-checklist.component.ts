@@ -52,6 +52,8 @@ export class AssignmentChecklistComponent {
   readonly selected = model<string[]>([]);
   readonly editable = input(true);
   readonly searchLabel = input('Search');
+  /** Whether the search box shows its magnifier icon. */
+  readonly searchIcon = input(true);
   readonly emptyText = input('Nothing to assign.');
 
   readonly filter = signal('');

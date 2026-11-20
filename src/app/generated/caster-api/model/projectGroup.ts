@@ -25,6 +25,7 @@ export interface ProjectGroup {
     partitionId?: string | null;
     projects?: Array<ProjectGroupItem> | null;
     environmentSets?: Array<ProjectGroupItem> | null;
+    moduleScopes?: Array<ProjectGroupItem> | null;
     /**
      * The inventory connections every project in the group sees, by name.
      */

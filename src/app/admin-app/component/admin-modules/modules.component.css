@@ -7,22 +7,180 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
-.source-warning {
+.toolbar {
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
   gap: 8px;
-  margin: 8px 16px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background-color: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding-right: 16px;
 }
 
-.source-error {
-  display: block;
-  font-family: monospace;
-  font-size: 12px;
+.sp-icon {
+  margin-left: 20px;
+  margin-right: 12px;
+  min-width: 30px;
+  color: var(--mat-sys-primary);
+}
+
+.search-field {
+  width: 300px;
+}
+
+mat-paginator {
+  margin-left: auto;
+  background: transparent;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+.page-note {
+  margin: 0 10px 8px 18px;
+  opacity: 0.8;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+.mat-column-actions {
+  width: 248px;
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+/* Holds a disabled button's tooltip, which a disabled button can't show. */
+.disabled-action {
+  display: inline-block;
+}
+
+.date-cell {
+  white-space: nowrap;
+  min-width: 190px;
+}
+
+.count-cell {
+  white-space: nowrap;
+}
+
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.name-text,
+.status-cell {
+  display: flex;
+  min-width: 0;
+}
+
+.name-text {
+  flex-direction: column;
+}
+
+.source-name {
+  font-weight: 500;
+}
+
+.status-cell {
+  align-items: center;
+  gap: 6px;
+}
+
+.detail {
+  font-size: small;
   word-break: break-word;
+}
+
+.dim {
+  opacity: 0.7;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+td.failed .status-icon,
+td.failed .status-text {
+  color: var(--mat-sys-error);
+}
+
+td.warning .status-icon,
+td.warning .status-text {
+  color: var(--mat-sys-tertiary);
+}
+
+td.empty .status-icon,
+td.empty .status-text {
+  opacity: 0.7;
+}
+
+.source-access {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: small;
+  width: fit-content;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+.element-row {
+  cursor: pointer;
+}
+
+.element-row td,
+.element-row.expanded td {
+  border-bottom-width: 0;
+}
+
+.chevron {
+  transition: transform 225ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.expand-button.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+.detail-body {
+  overflow: hidden;
+  cursor: default;
+}
+
+.no-data {
+  padding: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
 }
