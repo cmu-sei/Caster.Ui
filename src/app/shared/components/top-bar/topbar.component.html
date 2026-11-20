@@ -21,7 +21,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     <span class="view-text">{{ title() }}</span>
     <span class="spacer"></span>
     @if (topbarView() === TopbarView.CASTER_PROJECT) {
-      <cas-project-presence></cas-project-presence>
+      <cas-project-presence />
     }
     @if (currentUser$ | async; as currentUser) {
       <div

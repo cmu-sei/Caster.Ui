@@ -73,11 +73,11 @@ export class SignalRService {
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
   private joinedEnvironmentSetsAdmin = false;
-  private connectionPromise: Promise<void>;
+  private connectionPromise: Promise<void> | undefined;
   private leavingProject: Promise<unknown> | null = null;
 
   public startConnection(): Promise<void> {
-    if (this.connectionPromise) {
+    if (this.connectionPromise !== undefined) {
       return this.connectionPromise;
     }
 
@@ -189,7 +189,7 @@ export class SignalRService {
       );
     };
 
-    if (leaving) {
+    if (leaving !== null) {
       // Whoever arrived in the project being left, before the hub heard that this client left it, is
       // announced to this client before LeaveProject answers. Holding announcements only from then on
       // keeps them out of the next project.
