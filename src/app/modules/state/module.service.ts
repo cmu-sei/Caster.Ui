@@ -25,7 +25,8 @@ export class ModuleService {
    * Loads every Module. Listing them syncs the module sources first; pass
    * forceUpdate to re-read every version even when a source looks unchanged.
    * includeLatestVersion asks for the name of each Module's highest version without
-   * the versions themselves.
+   * the versions themselves. Loading ends when the request does, whether it
+   * succeeded or failed.
    */
   load(
     includeVersions: boolean,
@@ -47,9 +48,8 @@ export class ModuleService {
         tap((modules: Module[]) => {
           this.upsertMany(modules, includeVersions, includeLatestVersion);
         }),
-        tap(() => {
-          this.moduleStore.setLoading(false);
-        }),
+        // Also when listing fails, so the page's spinner does not stay up.
+        finalize(() => this.moduleStore.setLoading(false)),
       );
   }
 

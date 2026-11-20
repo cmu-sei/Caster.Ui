@@ -192,11 +192,6 @@ describe('ModuleService', () => {
       call: (s: ModuleService) => Observable<unknown>;
     }[] = [
       {
-        method: 'load',
-        api: () => ({ getAllModules: vi.fn(boom) }),
-        call: (s) => s.load(true, true),
-      },
-      {
         method: 'loadByDesignId',
         api: () => ({ getAllModules: vi.fn(boom) }),
         call: (s) => s.loadByDesignId('g1', true, true),
@@ -229,6 +224,23 @@ describe('ModuleService', () => {
         expect(query.getValue().loading).toBe(true);
       },
     );
+
+    /**
+     * Verifies: load passes the error on and clears the loading flag, so a failed list does not leave the page's spinner up.
+     * Interacts with: ModulesService.getAllModules (throwError stub); ModuleStore.setLoading.
+     * Data: stored m1 (loading false); the API errors with 'boom'.
+     */
+    it('load clears loading when the API fails', async () => {
+      const { service, query } = setup({ getAllModules: vi.fn(boom) }, [mod()]);
+
+      const error = await firstValueFrom(service.load(true, true)).catch(
+        (e: unknown) => e,
+      );
+
+      expect(error).toEqual(new Error('boom'));
+      expect(query.getValue().loading).toBe(false);
+      expect(query.getAll()).toEqual([mod()]);
+    });
 
     /**
      * Verifies: createOrUpdateModuleById passes the error on and clears the

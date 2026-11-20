@@ -18,6 +18,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -33,6 +34,7 @@ import {
 import { EMPTY, Observable, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, switchMap, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { apiErrorMessage } from 'src/app/environment-sets/environment-set-rules';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatIcon } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
@@ -76,6 +78,9 @@ import {
   ProjectAccessDialogComponent,
   ProjectAccessDialogData,
 } from './project-access-dialog/project-access-dialog.component';
+
+/** Why Project access waits while the Module Scopes are being read. */
+export const SCOPES_LOADING = 'Loading who may use each source';
 
 /** The refreshing key for Refresh All Sources. */
 export const ALL_SOURCES = '*';
@@ -278,6 +283,7 @@ export class AdminModulesComponent implements OnInit {
   });
 
   readonly sharedTooltip = SHARED_TOOLTIP;
+  readonly scopesLoadingText = SCOPES_LOADING;
 
   /** Why Project access is unavailable on a source, or null when it can be used. */
   accessDisabledReason(row: SourceTableRow): string | null {
@@ -287,12 +293,16 @@ export class AdminModulesComponent implements OnInit {
     if (row.source?.shared) {
       return `${SHARED_TOOLTIP}, so there is nothing to assign`;
     }
-    return row.access ? null : this.scopesUnavailable();
+    if (!this.scopesLoaded()) {
+      // Until the scopes are read the dialog would start from none and hide what is assigned.
+      return this.scopesUnavailable() ?? SCOPES_LOADING;
+    }
+    return null;
   }
 
   /** The source's clone URL, when the API reports it (credentials already removed). */
   repositoryUrl(source: ModuleSource): string | null {
-    return (source as ModuleSource & { url?: string | null }).url || null;
+    return source.url || null;
   }
 
   /** A GitLab source adds one project at a time, by its ID. */
@@ -319,6 +329,17 @@ export class AdminModulesComponent implements OnInit {
       return this.searchToggled().get(key) ?? forceOpen;
     }
     return this.expanded().has(key);
+  }
+
+  /**
+   * A click on the row opens it, except on the wrapper of a greyed-out action: a disabled
+   * button fires no click of its own, so the wrapper's click would otherwise reach the row.
+   */
+  rowClicked(event: Event, row: SourceTableRow) {
+    if ((event.target as Element).closest('.disabled-action')) {
+      return;
+    }
+    this.toggle(row.key, row.forceOpen);
   }
 
   toggle(key: string, forceOpen: boolean) {
@@ -362,7 +383,19 @@ export class AdminModulesComponent implements OnInit {
           this.loadSources(userRequested);
         }),
       )
-      .subscribe();
+      .subscribe({
+        error: (error: unknown) =>
+          this.showError(error, "Couldn't list the Modules"),
+      });
+  }
+
+  private showError(error: unknown, fallback: string) {
+    const message = apiErrorMessage(error);
+    this.snackBar.open(message || fallback, 'Dismiss', {
+      duration: 5000,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+    });
   }
 
   /**
@@ -401,7 +434,12 @@ export class AdminModulesComponent implements OnInit {
 
   /** Project access for a source: who may use it, through the source's own scope. */
   manageAccess(source: string) {
-    if (!this.canEdit()) {
+    // The same checks as the button, so it cannot be reached around it.
+    if (
+      !this.canEdit() ||
+      !this.scopesLoaded() ||
+      this.sources().find((s) => s.name === source)?.shared
+    ) {
       return;
     }
     this.dialog.open<
@@ -438,10 +476,15 @@ export class AdminModulesComponent implements OnInit {
             this.showRefreshFailures(failed);
           }
         },
-        // An API that does not report its sources yet: say so, not an error.
-        error: () => {
-          this.sources.set([]);
-          this.sourcesListed.set(false);
+        error: (error: unknown) => {
+          if (error instanceof HttpErrorResponse && error.status === 404) {
+            // An API that does not report its sources yet: say so, not an error.
+            this.sources.set([]);
+            this.sourcesListed.set(false);
+            return;
+          }
+          // Any other failure: keep the sources already listed, and say why.
+          this.showError(error, "Couldn't list the module sources");
         },
       });
   }

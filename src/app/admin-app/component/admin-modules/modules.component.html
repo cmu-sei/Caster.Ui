@@ -306,8 +306,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               >{{ access.folderNote }}</span
             >
           }
-        } @else if (row.source && scopesUnavailable()) {
-          <span class="detail dim">{{ scopesUnavailable() }}</span>
+        } @else if (row.source) {
+          <span class="detail dim">{{
+            scopesUnavailable() ?? scopesLoadingText
+          }}</span>
         }
       </td>
     </ng-container>
@@ -360,7 +362,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       *matRowDef="let row; columns: displayedColumns"
       class="element-row"
       [class.expanded]="isOpen(row.key, row.forceOpen)"
-      (click)="toggle(row.key, row.forceOpen)"
+      (click)="rowClicked($event, row)"
     ></tr>
     <tr
       mat-row

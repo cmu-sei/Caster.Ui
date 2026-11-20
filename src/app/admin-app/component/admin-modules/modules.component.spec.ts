@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { screen, within } from '@testing-library/angular';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import {
   Module,
@@ -66,7 +67,7 @@ const stale: Module = {
   name: 'stale',
   path: 'local/stale',
   missingSince: '2026-11-01T12:00:00Z',
-} as Module;
+};
 const stray: Module = { id: 'mod3', name: 'stray', path: 'elsewhere/stray' };
 
 const cmuScope: ModuleScope = {
@@ -81,6 +82,7 @@ interface Options {
   modules?: Module[];
   sources?: () => Observable<ModuleSource[]>;
   scopes?: () => Observable<ModuleScope[]>;
+  listModules?: () => Observable<Module[]>;
   confirmed?: boolean;
   /** What the GitLab project dialog returns when it closes; undefined is a cancel. */
   projectId?: string;
@@ -94,6 +96,7 @@ async function renderModules(
     modules = [vm],
     sources = () => of<ModuleSource[]>([healthy]),
     scopes = () => of<ModuleScope[]>([cmuScope]),
+    listModules = () => of<Module[]>(modules),
     confirmed = true,
     projectId,
     sync = () => of(null),
@@ -101,7 +104,7 @@ async function renderModules(
   }: Options = {},
 ) {
   const modulesApi = {
-    getAllModules: vi.fn(() => of<Module[]>(modules)),
+    getAllModules: vi.fn(() => listModules()),
     getModuleSources: vi.fn(() => sources()),
     createTerrraformModuleFromRepository: vi.fn(() => sync()),
     deleteModule: vi.fn(() => remove()),
@@ -290,7 +293,9 @@ describe('AdminModulesComponent', () => {
     await renderModules(view, { scopes: () => of([folderScope]) });
 
     const cell = within(rowOf('local')).getAllByRole('cell')[4];
-    expect(cell.textContent).toContain('Only projects with no scope');
+    expect(cell.textContent).toContain(
+      'Open to every project that has no source assigned (unless the deployment restricts them to shared sources)',
+    );
     expect(cell.textContent).not.toContain('Allowed for');
     expect(cell.textContent).toContain(
       '1 scope limits access to folders of this source.',
@@ -605,7 +610,9 @@ describe('AdminModulesComponent', () => {
   it('says the sources are not reported and still lists the modules', async () => {
     await renderModules(
       {},
-      { sources: () => throwError(() => new Error('404')) },
+      {
+        sources: () => throwError(() => new HttpErrorResponse({ status: 404 })),
+      },
     );
 
     expect(
@@ -745,7 +752,7 @@ describe('AdminModulesComponent', () => {
           {
             ...healthy,
             url: 'https://git.example.com/org/local.git',
-          } as ModuleSource,
+          },
           gitlab,
         ]),
     });
@@ -838,6 +845,68 @@ describe('AdminModulesComponent', () => {
     });
 
     /**
+     * Verifies: while the scopes are still being read, Project access is disabled with a loading reason, the access cell says it is loading, and no dialog opens; once they arrive it works and passes them.
+     * Interacts with: ModuleScopesService.getModuleScopes (Subject stub), MatDialog.open (stub), manageAccess().
+     * Data: ManageModules and ViewModules; the scopes request stays pending.
+     */
+    it('waits for the scopes before Project access can open', async () => {
+      const scopes = new Subject<ModuleScope[]>();
+      const { user, fixture, open } = await renderModules(manageAndView, {
+        scopes: () => scopes,
+      });
+      const button = screen.getByRole('button', {
+        name: 'Project access for local',
+      });
+
+      expect(button).toBeDisabled();
+      expect(button.parentElement).toHaveAccessibleDescription(
+        'Loading who may use each source',
+      );
+      expect(
+        within(rowOf('local')).getByText('Loading who may use each source'),
+      ).toBeInTheDocument();
+      fixture.componentInstance.manageAccess('local');
+      expect(open).not.toHaveBeenCalled();
+
+      scopes.next([cmuScope]);
+      scopes.complete();
+      fixture.detectChanges();
+      expect(button).toBeEnabled();
+      await user.click(button);
+
+      expect(open.mock.calls[0][1].data.scopes).toEqual([cmuScope]);
+    });
+
+    /**
+     * Verifies: manageAccess() refuses a shared source even when called around the disabled button.
+     * Interacts with: MatDialog.open (stub).
+     * Data: a shared source, ManageModules.
+     */
+    it('does not open the dialog for a shared source', async () => {
+      const { fixture, open } = await renderModules(manageAndView, {
+        sources: () => of([{ ...healthy, shared: true }]),
+      });
+
+      fixture.componentInstance.manageAccess('local');
+
+      expect(open).not.toHaveBeenCalled();
+    });
+
+    /**
+     * Verifies: the Projects column and its tooltip say the same thing about projects with no source assigned, naming both settings of the deployment, and not guessing one.
+     * Interacts with: the Projects column and its tooltip.
+     * Data: no scopes at all.
+     */
+    it('says what unassigned projects can use without guessing the deployment setting', async () => {
+      await renderModules(view, { scopes: () => of([]) });
+
+      const access = within(rowOf('local')).getAllByRole('cell')[4];
+      expect(access.textContent).toContain(
+        'Open to every project that has no source assigned (unless the deployment restricts them to shared sources)',
+      );
+    });
+
+    /**
      * Verifies: without ManageModules Project access is disabled and nothing opens.
      * Interacts with: MatDialog.open (stub), the row's button.
      * Data: ViewModules only.
@@ -849,6 +918,89 @@ describe('AdminModulesComponent', () => {
         screen.getByRole('button', { name: 'Project access for local' }),
       ).toBeDisabled();
       expect(open).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('failures', () => {
+    const problem = () =>
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 500,
+            error: { title: 'The sources are down' },
+          }),
+      );
+
+    /**
+     * Verifies: when listing the Modules fails the page shows the API's problem text in a snack bar and clears its loading spinner.
+     * Interacts with: ModulesService.getAllModules (throwError stub), real ModuleService and ModuleStore, MatSnackBar (real).
+     * Data: a 500 with a problem title.
+     */
+    it('shows the problem and stops loading when listing the Modules fails', async () => {
+      await renderModules(manage, { listModules: problem });
+
+      expect(snackBarText()).toContain('The sources are down');
+      expect(document.querySelector('.loading')).toBeNull();
+    });
+
+    /**
+     * Verifies: a 404 on the source list is the quiet "does not report its sources" fallback with no snack bar.
+     * Interacts with: ModulesService.getModuleSources (404 stub), MatSnackBar (spied).
+     * Data: HTTP 404.
+     */
+    it('treats a 404 on the sources as an unsupported API, quietly', async () => {
+      const open = vi.spyOn(MatSnackBar.prototype, 'open');
+      await renderModules(manage, {
+        sources: () => throwError(() => new HttpErrorResponse({ status: 404 })),
+      });
+
+      expect(
+        screen.getByText("This Caster API doesn't report its module sources."),
+      ).toBeInTheDocument();
+      expect(open).not.toHaveBeenCalled();
+    });
+
+    /**
+     * Verifies: any other failure of the source list shows the API's problem text in a snack bar, does not claim the API lacks the feature, and keeps the sources already listed.
+     * Interacts with: ModulesService.getModuleSources (ok, then 500), Refresh All Sources, MatSnackBar (real).
+     * Data: local listed on load; the list fails after Refresh All.
+     */
+    it('shows the problem and keeps the sources when the source list fails', async () => {
+      const { user, modulesApi } = await renderModules(manage);
+      modulesApi.getModuleSources.mockImplementationOnce(problem);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Refresh All Sources' }),
+      );
+
+      expect(snackBarText()).toContain('The sources are down');
+      expect(
+        screen.queryByText(
+          "This Caster API doesn't report its module sources.",
+        ),
+      ).toBeNull();
+      expect(findRow('local')).not.toBeNull();
+    });
+
+    /**
+     * Verifies: clicking the wrapper of a greyed-out action explains it without opening or closing the row.
+     * Interacts with: the row click handler, the disabled-action wrappers.
+     * Data: no permissions, so Refresh and Project access are disabled.
+     */
+    it('does not toggle the row when a greyed-out action is clicked', async () => {
+      const { user } = await renderModules({});
+      const chevron = screen.getByRole('button', {
+        name: 'Show details for local',
+      });
+
+      for (const name of [
+        'Refresh local (not available)',
+        'Project access for local',
+      ]) {
+        await user.click(screen.getByRole('button', { name }).parentElement);
+      }
+
+      expect(chevron).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
@@ -1061,7 +1213,7 @@ describe('AdminModulesComponent', () => {
      */
     it('offers no Delete for a Module still in its source', async () => {
       const { user } = await renderModules(manage, {
-        modules: [{ ...vm, missingSince: null } as Module],
+        modules: [{ ...vm, missingSince: null }],
       });
       await user.click(
         screen.getByRole('button', { name: 'Show details for local' }),
