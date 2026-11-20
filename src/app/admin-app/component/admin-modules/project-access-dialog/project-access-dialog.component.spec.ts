@@ -337,7 +337,7 @@ describe('ProjectAccessDialogComponent', () => {
       {},
       { rereadFails: true },
     );
-    assignmentsApi.editAssignments.mockImplementation(() => pending as never);
+    assignmentsApi.editAssignments.mockImplementation(() => pending);
 
     await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
     await user.click(save());
