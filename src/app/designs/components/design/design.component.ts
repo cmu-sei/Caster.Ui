@@ -5,9 +5,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 
 import { Component, OnDestroy, OnInit, inject, input } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Design } from 'src/app/generated/caster-api';
+import { map } from 'rxjs/operators';
+import { Design, DesignModule } from 'src/app/generated/caster-api';
 import { SignalRService } from 'src/app/shared/signalr/signalr.service';
 import { DesignQuery } from '../../state/design.query';
+import { DesignModuleQuery } from '../../state/design-modules/design-module.query';
 import { VariableService } from '../../state/variables/variables.service';
 import { MatTooltip } from '@angular/material/tooltip';
 import {
@@ -39,6 +41,7 @@ import { AsyncPipe } from '@angular/common';
 })
 export class DesignComponent implements OnInit, OnDestroy {
   private designQuery = inject(DesignQuery);
+  private designModuleQuery = inject(DesignModuleQuery);
   private variableService = inject(VariableService);
   private signalRService = inject(SignalRService);
 
@@ -48,8 +51,14 @@ export class DesignComponent implements OnInit, OnDestroy {
 
   design$: Observable<Design>;
 
+  /** Enabled modules still holding placeholders, which keep the Design from being enabled. */
+  incomplete$: Observable<DesignModule[]>;
+
   ngOnInit(): void {
     this.design$ = this.designQuery.selectEntity(this.designId());
+    this.incomplete$ = this.designModuleQuery
+      .getByDesignId(this.designId())
+      .pipe(map((modules) => modules.filter((m) => m.enabled && m.placeholders?.length)));
 
     this.signalRService
       .startConnection()

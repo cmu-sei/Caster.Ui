@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   inject,
+  signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -16,6 +17,8 @@ import {
 } from '@cmusei/crucible-common';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { DesignQuery } from 'src/app/designs/state/design.query';
+import { WorkspaceQuery } from 'src/app/workspace/state';
 import { FileQuery, isFileContentChanged } from 'src/app/files/state';
 import { Project, ProjectPermission } from 'src/app/generated/caster-api';
 import { CanComponentDeactivate } from 'src/app/sei-cwd-common/cwd-route-guards/can-deactivate.guard';
@@ -50,8 +53,16 @@ import { TopbarComponent } from '../../../../shared/components/top-bar/topbar.co
 import { ProjectComponent } from '../project/project.component';
 import { AsyncPipe } from '@angular/common';
 import { InventoryPanelComponent } from 'src/app/inventory/components/inventory-panel/inventory-panel.component';
+import { ProjectAiUsageComponent } from '../project-ai-usage/project-ai-usage.component';
+import { ProjectAssistantComponent } from '../project-assistant/project-assistant.component';
+import { MatIconButton } from '@angular/material/button';
 
 const LEFT_SIDEBAR_MIN_WIDTH = 250;
+const ASSISTANT_DEFAULT_WIDTH = 440;
+const ASSISTANT_MIN_WIDTH = 320;
+// never so wide the tabs have no room
+const ASSISTANT_MAX_VIEWPORT_SHARE = 0.8;
+const ASSISTANT_WIDTH_KEY = 'caster.askAiPanelWidth';
 
 @Component({
   selector: 'cas-project-collapse-container',
@@ -72,6 +83,9 @@ const LEFT_SIDEBAR_MIN_WIDTH = 250;
     TopbarComponent,
     ProjectComponent,
     InventoryPanelComponent,
+    ProjectAiUsageComponent,
+    ProjectAssistantComponent,
+    MatIconButton,
     AsyncPipe,
   ],
 })
@@ -85,6 +99,8 @@ export class ProjectCollapseContainerComponent
   private currentUserQuery = inject(CurrentUserQuery);
   private settingsService = inject(ComnSettingsService);
   private fileQuery = inject(FileQuery);
+  private workspaceQuery = inject(WorkspaceQuery);
+  private designQuery = inject(DesignQuery);
   private signalRService = inject(SignalRService);
   private permissionService = inject(PermissionService);
   private router = inject(Router);
@@ -99,6 +115,22 @@ export class ProjectCollapseContainerComponent
   public currentUser$: Observable<CurrentUserState>;
   public titleText = 'Caster';
   public theme$: Observable<Theme>;
+  /** Ask AI changes files, so it is offered to whoever may edit the project. */
+  public canEditProject$: Observable<boolean>;
+  /** Whether the Ask AI panel is open; it stays open across the project's tabs. */
+  readonly assistantOpen = signal(false);
+  /** How wide the Ask AI panel is; the planner drags its left edge to change it. */
+  readonly assistantWidth = signal(
+    this.clampAssistantWidth(
+      Number(localStorage.getItem(ASSISTANT_WIDTH_KEY)) ||
+        ASSISTANT_DEFAULT_WIDTH,
+    ),
+  );
+  /** The directory and workspace of the open tab, which Ask AI starts on. */
+  readonly assistantScope = signal<{
+    directoryId?: string;
+    workspaceId?: string;
+  }>({});
 
   TopbarView = TopbarView;
 
@@ -112,9 +144,14 @@ export class ProjectCollapseContainerComponent
     this.loading$ = this.projectQuery.selectLoading();
     this.project$ = this.projectQuery.selectActive();
     this.projectUI$ = this.projectQuery.ui.selectActive();
-    this.projectUI$
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((exUi) => (this.projectUI = exUi));
+    this.projectUI$.pipe(takeUntil(this.unsubscribe$)).subscribe((exUi) => {
+      this.projectUI = exUi;
+      this.assistantScope.set(this.scopeOf(exUi));
+    });
+    this.canEditProject$ = this.project$.pipe(
+      filter((p) => !!p),
+      switchMap((p) => this.permissionService.canEditProject(p.id)),
+    );
 
     this.currentUser$ = this.currentUserQuery.select();
     this.userService.setCurrentUser();
@@ -163,6 +200,27 @@ export class ProjectCollapseContainerComponent
       });
   }
 
+  // the open tab's directory, and its workspace when it is one
+  private scopeOf(ui: ProjectUI): {
+    directoryId?: string;
+    workspaceId?: string;
+  } {
+    const tab = ui?.openTabs?.[ui.selectedTab];
+    switch (tab?.type) {
+      case ProjectObjectType.FILE:
+        return { directoryId: this.fileQuery.getEntity(tab.id)?.directoryId };
+      case ProjectObjectType.WORKSPACE:
+        return {
+          directoryId: this.workspaceQuery.getEntity(tab.id)?.directoryId,
+          workspaceId: tab.id,
+        };
+      case ProjectObjectType.DESIGN:
+        return { directoryId: this.designQuery.getEntity(tab.id)?.directoryId };
+      default:
+        return {};
+    }
+  }
+
   closeTab(id: string) {
     this.projectService.closeTab(id);
   }
@@ -177,6 +235,29 @@ export class ProjectCollapseContainerComponent
         ? event.rectangle.width
         : LEFT_SIDEBAR_MIN_WIDTH;
     this.leftSidebarWidth = width;
+  }
+
+  /** The Ask AI panel's width, within what the window allows. */
+  private clampAssistantWidth(width: number): number {
+    const max = Math.max(
+      ASSISTANT_MIN_WIDTH,
+      Math.floor(window.innerWidth * ASSISTANT_MAX_VIEWPORT_SHARE),
+    );
+    return Math.min(Math.max(width, ASSISTANT_MIN_WIDTH), max);
+  }
+
+  assistantResizingFn(event: { rectangle: { width?: number } }) {
+    this.assistantWidth.set(
+      this.clampAssistantWidth(
+        event.rectangle.width ?? ASSISTANT_DEFAULT_WIDTH,
+      ),
+    );
+  }
+
+  assistantResizeEndFn(event: { rectangle: { width?: number } }) {
+    this.assistantResizingFn(event);
+    // kept for the next page and visit, as a window setting, not a project's
+    localStorage.setItem(ASSISTANT_WIDTH_KEY, String(this.assistantWidth()));
   }
 
   resizeEndFn(event) {

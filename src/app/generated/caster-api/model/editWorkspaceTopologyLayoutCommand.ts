@@ -1,5 +1,5 @@
 /*
-Copyright 2026 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -21,6 +21,6 @@ export interface EditWorkspaceTopologyLayoutCommand {
     /**
      * The layout to save for each node, by node id. Each replaces what was saved for that node; nodes not named keep theirs. A null forgets the node\'s position and role.
      */
-    nodes?: { [key: string]: TopologyNodeLayout | null; } | null;
+    nodes?: { [key: string]: TopologyNodeLayout; } | null;
 }
 

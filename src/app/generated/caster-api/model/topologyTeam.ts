@@ -1,5 +1,5 @@
 /*
-Copyright 2026 Carnegie Mellon University. All Rights Reserved. 
+Copyright 2021 Carnegie Mellon University. All Rights Reserved. 
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
@@ -22,11 +22,12 @@ Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 export interface TopologyTeam { 
     id?: string | null;
     /**
-     * From a crucible_player_team or crucible_player_view the workspace creates. Else the name of the root variable that holds the id (Alloy names each team\'s variable after the team, lower case, spaces as underscores). Null when neither.
+     * The team\'s name, from a `crucible_player_team` or `crucible_player_view` the workspace creates. Else the name of the root variable that holds the id: Alloy names each team\'s variable after the team, lower case, spaces as underscores. Null when neither.
      */
     name?: string | null;
     /**
-     * The root variable Name came from. Null when it came from a resource.
+     * The root variable Caster.Api.Domain.Models.TopologyTeam.Name came from. Null when it came from a resource.
      */
     variable?: string | null;
 }
+

@@ -19,10 +19,6 @@ import { ModuleValue } from './moduleValue';
 
 export interface CreateDesignModuleCommand { 
     /**
-     * The Id of the Design to add this DesignModule
-     */
-    designId?: string;
-    /**
      * The Id of the selected Module for this DesignModule
      */
     moduleId?: string;
@@ -38,5 +34,9 @@ export interface CreateDesignModuleCommand {
      * Values for each input
      */
     values?: Array<ModuleValue> | null;
+    /**
+     * The Id of the Design to add this DesignModule
+     */
+    designId?: string;
 }
 

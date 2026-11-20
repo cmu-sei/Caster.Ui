@@ -30,6 +30,7 @@ import {
   MatCard,
   MatCardHeader,
   MatCardTitle,
+  MatCardSubtitle,
   MatCardActions,
   MatCardContent,
 } from '@angular/material/card';
@@ -49,6 +50,7 @@ import { ModuleOutputsComponent } from '../../module-outputs/module-outputs.comp
     MatCard,
     MatCardHeader,
     MatCardTitle,
+    MatCardSubtitle,
     MatCardActions,
     MatIconButton,
     MatTooltip,

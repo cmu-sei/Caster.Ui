@@ -1,0 +1,119 @@
+/*
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+*/
+
+.full-width {
+  width: 100%;
+}
+
+.hint,
+.summary {
+  margin: 0 0 1rem 0;
+}
+
+.warnings {
+  list-style: none;
+  margin: 0 0 1rem 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  // a long note must not squeeze the icon narrower than its glyph
+  mat-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    // the glyph takes its line height from the list item, so pin it to the box
+    line-height: 18px;
+    margin-top: 0.1rem;
+    color: var(--mat-sys-tertiary, currentColor);
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.file {
+  margin-bottom: 0.5rem;
+}
+
+mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.file-name {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.file-kind {
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.file-purpose {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.code {
+  height: 360px;
+}
+
+.code ngx-monaco-editor,
+.code ngx-monaco-diff-editor {
+  display: block;
+  height: 100%;
+}
+
+.review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.draft-assumptions {
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border-left: 4px solid var(--mat-sys-primary);
+  background: var(--mat-sys-surface-container);
+
+  .assumptions-title {
+    margin: 0;
+  }
+
+  .assumptions-hint {
+    margin-left: 8px;
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  ul {
+    margin: 4px 0 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 4px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+}

@@ -46,6 +46,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <mat-divider />
             <cas-inventory-panel [projectId]="current.id" />
           }
+          @if (project) {
+            <cas-project-ai-usage [projectId]="project.id" />
+          }
         </div>
         <mat-divider />
 
@@ -72,6 +75,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </div>
   </mat-sidenav>
 
+  <!-- Always in the container, opened and closed, so the page takes back its width when the panel closes.
+       It stays open beside the tabs while the planner moves between them. -->
+  <mat-sidenav
+    class="assistant-sidenav"
+    position="end"
+    mode="side"
+    mwlResizable
+    [style.min-width.px]="assistantWidth()"
+    [style.max-width.px]="assistantWidth()"
+    (resizing)="assistantResizingFn($event)"
+    (resizeEnd)="assistantResizeEndFn($event)"
+    [opened]="!!project && assistantOpen()"
+    [disableClose]="true"
+  >
+    <div
+      class="resize-handle-left"
+      mwlResizeHandle
+      [resizeEdges]="{ left: true }"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize the Ask AI panel"
+    ></div>
+    @if (project && assistantOpen()) {
+      <cas-project-assistant
+        [projectId]="project.id"
+        [directoryId]="assistantScope().directoryId"
+        [workspaceId]="assistantScope().workspaceId"
+        (closePanel)="assistantOpen.set(false)"
+      />
+    }
+  </mat-sidenav>
+
   @if (project) {
     <mat-sidenav-content class="d-flex flex-column">
       <cas-topbar
@@ -81,7 +116,22 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         [projectId]="project.id"
         (sidenavToggle)="sidenav.toggle()"
         (editMemberships)="openEditMemberships()"
-      />
+      >
+        @if (canEditProject$ | async) {
+          <button
+            casTopbarActions
+            mat-icon-button
+            type="button"
+            class="ask-ai"
+            title="Ask AI"
+            aria-label="Ask AI"
+            [attr.aria-pressed]="assistantOpen()"
+            (click)="assistantOpen.set(!assistantOpen())"
+          >
+            <mat-icon class="mdi-24px" fontIcon="mdi-creation" />
+          </button>
+        }
+      </cas-topbar>
       <cas-project
         class="project-content"
         [loading]="loading$ | async"
