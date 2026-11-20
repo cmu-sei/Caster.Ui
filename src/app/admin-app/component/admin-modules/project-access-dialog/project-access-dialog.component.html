@@ -14,12 +14,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   (submit)="save()"
 >
   <div crucibleDialogContent [formGroup]="form">
-    <p class="secondary">
-      The projects and project groups that may use the Modules of
-      {{ data.source }}. A project with no access to any source may use the
-      shared sources only, or every source where the deployment does not
-      restrict them.
-    </p>
+    <p class="secondary">{{ note }}</p>
 
     @if (assignmentsUnavailable()) {
       <p class="secondary" role="status">
@@ -32,7 +27,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div class="tab-body">
           <cas-assignment-checklist
             [items]="projects() ?? []"
-            [initial]="initialProjects"
+            [initial]="initialProjects()"
             [(selected)]="selectedProjects"
             [searchIcon]="false"
             searchLabel="Search projects"
@@ -44,7 +39,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         <div class="tab-body">
           <cas-assignment-checklist
             [items]="groups() ?? []"
-            [initial]="initialGroups"
+            [initial]="initialGroups()"
             [(selected)]="selectedGroups"
             [searchIcon]="false"
             searchLabel="Search project groups"
@@ -56,8 +51,12 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
     @for (other of alsoAllowed; track other.name) {
       <p class="secondary also">
-        Also allowed through the scope {{ other.name }}, which covers other
-        sources; it cannot be edited on this page:
+        Also allowed through the scope {{ other.name }},
+        @if (other.coversOthers) {
+          which covers other sources; it cannot be edited on this page:
+        } @else {
+          which this page does not edit:
+        }
         {{ other.projects.concat(other.groups).join(', ') || 'nobody yet' }}.
       </p>
     }

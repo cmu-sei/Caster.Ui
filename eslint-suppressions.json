@@ -514,11 +514,6 @@
       "count": 1
     }
   },
-  "src/app/assignments/assignment.service.ts": {
-    "@typescript-eslint/no-unsafe-return": {
-      "count": 1
-    }
-  },
   "src/app/datasource-utils.ts": {
     "@typescript-eslint/consistent-indexed-object-style": {
       "count": 1

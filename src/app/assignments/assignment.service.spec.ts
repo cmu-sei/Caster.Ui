@@ -3,7 +3,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom, of } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import {
   AssignmentsService,
   ModuleScope,
@@ -70,5 +70,37 @@ describe('AssignmentService', () => {
       changes: [{ operation: 'Add', projectId: 'p1', moduleScopeId: 's1' }],
     });
     expect(scopesApi.getModuleScope).toHaveBeenCalledWith('s1');
+  });
+
+  /**
+   * Verifies: save sends the request and nothing else, and refresh re-reads on its own, so a failing re-read can be told apart from a failed save.
+   * Interacts with: AssignmentsService.editAssignments, ModuleScopesService.getModuleScope (stubs).
+   * Data: scope s1 loaded; its re-read fails after the save succeeded.
+   */
+  it('saves without re-reading, and a failed re-read leaves the save done', async () => {
+    const scopesApi = {
+      getModuleScopes: vi.fn(() =>
+        of<ModuleScope[]>([{ id: 's1', name: 'a' }]),
+      ),
+      getModuleScope: vi.fn(() => throwError(() => new Error('down'))),
+    };
+    const assignmentsApi = { editAssignments: vi.fn(() => of<unknown>(null)) };
+    TestBed.configureTestingModule({
+      providers: getDefaultProviders([
+        { provide: ModuleScopesService, useValue: scopesApi },
+        { provide: AssignmentsService, useValue: assignmentsApi },
+      ]),
+    });
+    await firstValueFrom(TestBed.inject(ModuleScopeService).load());
+    const service = TestBed.inject(AssignmentService);
+    const changes = scopeProjectChanges('s1', { add: ['p1'], remove: [] });
+
+    await firstValueFrom(service.save(changes));
+    expect(scopesApi.getModuleScope).not.toHaveBeenCalled();
+
+    await expect(firstValueFrom(service.refresh(changes))).rejects.toThrow(
+      'down',
+    );
+    expect(assignmentsApi.editAssignments).toHaveBeenCalledTimes(1);
   });
 });

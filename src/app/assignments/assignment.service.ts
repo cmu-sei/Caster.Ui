@@ -54,26 +54,42 @@ export class AssignmentService {
     );
   }
 
+  /**
+   * Saves the changes in one request, and nothing else: once it succeeds the changes are
+   * committed, whatever happens when the views are read again.
+   */
+  save(changes: AssignmentChange[]): Observable<void> {
+    if (changes.length === 0) {
+      return of(undefined);
+    }
+    return this.api
+      .editAssignments({ changes })
+      .pipe(map((): void => undefined));
+  }
+
+  /** Re-reads the sets, scopes and project views that saved changes touch. */
+  refresh(changes: AssignmentChange[]): Observable<void> {
+    return this.environmentSetService
+      .assignmentsChanged(
+        changes.map((x) => x.projectId).filter((x) => !!x),
+        changes.map((x) => x.environmentSetId).filter((x) => !!x),
+      )
+      .pipe(
+        switchMap(() =>
+          this.moduleScopeService.assignmentsChanged(
+            changes.map((x) => x.moduleScopeId).filter((x) => !!x),
+          ),
+        ),
+        map((): void => undefined),
+      );
+  }
+
   /** Saves the changes, then re-reads the sets, scopes and project views they touch. */
   edit(changes: AssignmentChange[]): Observable<void> {
     if (changes.length === 0) {
       return of(undefined);
     }
-
-    return this.api.editAssignments({ changes }).pipe(
-      switchMap(() =>
-        this.environmentSetService.assignmentsChanged(
-          changes.map((x) => x.projectId).filter((x) => !!x),
-          changes.map((x) => x.environmentSetId).filter((x) => !!x),
-        ),
-      ),
-      switchMap(() =>
-        this.moduleScopeService.assignmentsChanged(
-          changes.map((x) => x.moduleScopeId).filter((x) => !!x),
-        ),
-      ),
-      map(() => undefined),
-    );
+    return this.save(changes).pipe(switchMap(() => this.refresh(changes)));
   }
 }
 

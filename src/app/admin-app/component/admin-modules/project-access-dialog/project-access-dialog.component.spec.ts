@@ -9,6 +9,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CRUCIBLE_DIALOG_IMPORTS } from '@cmusei/crucible-common';
 import { of, throwError } from 'rxjs';
+import { ACCESS_NOTE } from './project-access-dialog.component';
 import {
   AssignmentsService,
   ModuleScope,
@@ -41,6 +42,8 @@ const own: ModuleScope = {
 interface RenderOptions {
   assignFails?: boolean;
   listFails?: boolean;
+  /** Re-reading a scope after the assignments are saved fails. */
+  rereadFails?: boolean;
 }
 
 async function renderDialog(
@@ -52,7 +55,11 @@ async function renderDialog(
     createModuleScope: vi.fn(() =>
       of<ModuleScope>({ id: 's2', name: 'cmu', paths: ['cmu'] }),
     ),
-    getModuleScope: vi.fn(() => of<ModuleScope>({ ...own })),
+    getModuleScope: vi.fn(() =>
+      options.rereadFails
+        ? throwError(() => new HttpErrorResponse({ status: 503 }))
+        : of<ModuleScope>({ ...own }),
+    ),
   };
   const assignmentsApi = {
     editAssignments: vi.fn(() =>
@@ -270,6 +277,100 @@ describe('ProjectAccessDialogComponent', () => {
     expect(assignmentsApi.editAssignments).toHaveBeenLastCalledWith({
       changes: [{ operation: 'Add', projectId: 'p2', moduleScopeId: 's2' }],
     });
+  });
+
+  /**
+   * Verifies: the dialog opens with a plain note: added projects and groups can use this source and every shared one, a project with no sources assigned can use every source (or only shared ones if the deployment restricts them), and adding a project limits it to the sources assigned to it.
+   * Interacts with: the dialog template.
+   * Data: source cmu with no scopes.
+   */
+  it('says plainly that adding a project limits it to its assigned sources', async () => {
+    await renderDialog();
+
+    expect(
+      screen.getByText(
+        'Projects and groups you add can use this source and every shared source. A project with no sources assigned can use every source (or only shared sources if the deployment restricts them). Adding a project here limits it to the sources assigned to it.',
+      ),
+    ).toBeInTheDocument();
+    expect(ACCESS_NOTE).toContain('limits it to the sources assigned to it');
+  });
+
+  /**
+   * Verifies: when the assignments are saved but re-reading the scope fails, the dialog does not say assigning failed: a snack bar says the change was saved but the list could not be refreshed, the dialog closes, and the saved selection is the baseline, so another save would send nothing.
+   * Interacts with: ModuleScopesService.getModuleScope (rejects), AssignmentsService.editAssignments (stub), MatSnackBar (real).
+   * Data: new scope s2; tick Range B; the re-read fails with 503.
+   */
+  it('reports a failed re-read apart from the saved change', async () => {
+    const { fixture, assignmentsApi, close, user } = await renderDialog(
+      {},
+      { rereadFails: true },
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: /Range B/ }));
+    await user.click(save());
+
+    expect(assignmentsApi.editAssignments).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/assigning it failed/)).toBeNull();
+    expect(
+      document.querySelector('.mat-mdc-snack-bar-container')?.textContent,
+    ).toContain('The change was saved, but the list could not be refreshed');
+    expect(close).toHaveBeenCalledWith(expect.objectContaining({ id: 's2' }));
+    expect(fixture.componentInstance.initialProjects()).toEqual(['p2']);
+  });
+
+  /**
+   * Verifies: a scope that allows the source only through a parent path (cmu for cmu/lab) is listed read-only as covering other sources, while a second scope whose only path is the source is listed without that claim.
+   * Interacts with: the dialog's note lines.
+   * Data: source cmu/lab; scopes for cmu (Range B), cmu/lab twice (one is the managed one named cmu/lab).
+   */
+  it('words a parent-path scope and a same-path scope differently', async () => {
+    const parent: ModuleScope = {
+      id: 's7',
+      name: 'Parent',
+      paths: ['cmu'],
+      projects: [{ projectId: 'p2', name: 'Range B' }],
+      projectGroups: [],
+    };
+    const twin: ModuleScope = {
+      id: 's8',
+      name: 'Twin',
+      paths: ['cmu/lab'],
+      projects: [],
+      projectGroups: [{ projectGroupId: 'g1', name: 'Cyber' }],
+    };
+    const managed: ModuleScope = {
+      ...own,
+      id: 's9',
+      name: 'cmu/lab',
+      paths: ['cmu/lab'],
+    };
+    await renderDialog({ source: 'cmu/lab', scopes: [parent, twin, managed] });
+
+    expect(
+      screen.getByText(
+        'Also allowed through the scope Parent, which covers other sources; it cannot be edited on this page: Range B.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Also allowed through the scope Twin, which this page does not edit: Cyber.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/through the scope cmu\/lab/)).toBeNull();
+  });
+
+  /**
+   * Verifies: a scope named like a partial prefix (cmu2 for cmu) is neither the source's own scope nor listed as also allowing it, and an exact-case mismatch (CMU) is not either.
+   * Interacts with: the dialog's note lines, managedScopeOf.
+   * Data: scopes for cmu2 and CMU; source cmu.
+   */
+  it('does not treat cmu2 or CMU as allowing cmu', async () => {
+    const other: ModuleScope = { id: 's3', name: 'Other', paths: ['cmu2'] };
+    const upper: ModuleScope = { id: 's4', name: 'Upper', paths: ['CMU'] };
+    const { fixture } = await renderDialog({ scopes: [other, upper] });
+
+    expect(screen.queryByText(/Also allowed/)).toBeNull();
+    expect(fixture.componentInstance.current()).toBeNull();
   });
 
   /**

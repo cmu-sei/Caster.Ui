@@ -4,13 +4,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import {
   CrucibleDialogComponent,
   CrucibleDialogContentDirective,
 } from '@cmusei/crucible-common';
 import { forkJoin, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { AssignmentChecklistComponent } from 'src/app/assignments/assignment-checklist/assignment-checklist.component';
 import {
   AssignmentItem,
@@ -26,6 +27,9 @@ import { ModuleScope } from 'src/app/generated/caster-api';
 import { ModuleScopeService } from 'src/app/module-scopes/module-scope.service';
 import {
   MANAGED_DESCRIPTION,
+  UNASSIGNED_ACCESS,
+  allowsSource,
+  coversOtherPaths,
   managedScopeOf,
 } from 'src/app/module-scopes/module-scope-rules';
 
@@ -41,14 +45,24 @@ export interface AlsoAllowed {
   name: string;
   projects: string[];
   groups: string[];
+  /** Whether it also allows paths other than this source's: other sources or folders. */
+  coversOthers: boolean;
 }
+
+/** What the dialog says first: who a project added here may use, and what adding it does. */
+export const ACCESS_NOTE =
+  'Projects and groups you add can use this source and every shared source. ' +
+  UNASSIGNED_ACCESS +
+  ' Adding a project here limits it to the sources assigned to it.';
 
 /**
  * Who may use one module source. Behind the scenes the source has a scope of its own (the one
  * whose only path is the source, named as the source), made on the first save. The scope is
  * saved first when it is new, then the projects and groups added or removed in one request; if
  * the assignments fail the scope is kept and the dialog stays open on it, so a retry edits the
- * same scope. A scope that allows the source together with other paths is only listed.
+ * same scope. Once the assignments are saved they are the baseline for any further save, so a
+ * failure to read the lists again afterwards is reported on its own and never undoes or repeats
+ * them. A scope that allows the source, by its name or through a parent path, is only listed.
  */
 @Component({
   selector: 'cas-project-access-dialog',
@@ -68,7 +82,9 @@ export class ProjectAccessDialogComponent implements OnInit {
   private dialogRef = inject(MatDialogRef<ProjectAccessDialogComponent>);
   private moduleScopeService = inject(ModuleScopeService);
   private assignmentService = inject(AssignmentService);
+  private snackBar = inject(MatSnackBar);
   private fb = inject(NonNullableFormBuilder);
+  readonly note = ACCESS_NOTE;
 
   readonly form = this.fb.group({});
   readonly saving = signal(false);
@@ -82,27 +98,27 @@ export class ProjectAccessDialogComponent implements OnInit {
   /** Other scopes that allow the source, with what each is assigned to. */
   readonly alsoAllowed: AlsoAllowed[] = (this.data.scopes ?? [])
     .filter(
-      (x) =>
-        x.id !== this.current()?.id &&
-        (x.paths ?? []).some(
-          (p) => p.replace(/^\/+|\/+$/g, '') === this.data.source,
-        ),
+      (x) => x.id !== this.current()?.id && allowsSource(x, this.data.source),
     )
     .map((x) => ({
       name: x.name,
       projects: (x.projects ?? []).map((p) => p.name),
       groups: (x.projectGroups ?? []).map((g) => g.name),
+      coversOthers: coversOtherPaths(x, this.data.source),
     }));
 
-  /** What the scope was assigned to when the dialog opened, to work out the changes. */
-  readonly initialProjects = (this.current()?.projects ?? []).map(
-    (x) => x.projectId,
+  /**
+   * What the scope is assigned to: as it was when the dialog opened, then as last saved, to work
+   * out the changes of the next save.
+   */
+  readonly initialProjects = signal<string[]>(
+    (this.current()?.projects ?? []).map((x) => x.projectId),
   );
-  readonly initialGroups = (this.current()?.projectGroups ?? []).map(
-    (x) => x.projectGroupId,
+  readonly initialGroups = signal<string[]>(
+    (this.current()?.projectGroups ?? []).map((x) => x.projectGroupId),
   );
-  readonly selectedProjects = signal<string[]>([...this.initialProjects]);
-  readonly selectedGroups = signal<string[]>([...this.initialGroups]);
+  readonly selectedProjects = signal<string[]>([...this.initialProjects()]);
+  readonly selectedGroups = signal<string[]>([...this.initialGroups()]);
 
   /** Every project and group the user can see; null while loading, empty when they can't be loaded. */
   readonly projects = signal<AssignmentItem[] | null>(null);
@@ -154,6 +170,8 @@ export class ProjectAccessDialogComponent implements OnInit {
           paths: [this.data.source],
         });
 
+    let refreshFailed = false;
+
     saved$
       .pipe(
         switchMap((scope) => {
@@ -162,34 +180,54 @@ export class ProjectAccessDialogComponent implements OnInit {
           const changes = [
             ...scopeProjectChanges(
               scope.id,
-              assignmentDiff(this.initialProjects, this.selectedProjects()),
+              assignmentDiff(this.initialProjects(), this.selectedProjects()),
             ),
             ...scopeGroupChanges(
               scope.id,
-              assignmentDiff(this.initialGroups, this.selectedGroups()),
+              assignmentDiff(this.initialGroups(), this.selectedGroups()),
             ),
           ];
-          return this.assignmentService.edit(changes).pipe(
-            catchError((err) => {
-              throw new ScopeSavedError(apiErrorMessage(err));
+          return this.assignmentService.save(changes).pipe(
+            // Saved: this is the baseline now, whatever the re-read below does.
+            tap(() => {
+              this.initialProjects.set([...this.selectedProjects()]);
+              this.initialGroups.set([...this.selectedGroups()]);
             }),
-            switchMap(() => of(scope)),
+            switchMap(() =>
+              this.assignmentService.refresh(changes).pipe(
+                catchError(() => {
+                  refreshFailed = true;
+                  return of(undefined);
+                }),
+              ),
+            ),
+            map(() => scope),
           );
         }),
       )
       .subscribe({
-        next: (scope) => this.dialogRef.close(scope),
+        next: (scope) => {
+          if (refreshFailed) {
+            this.snackBar.open(
+              'The change was saved, but the list could not be refreshed',
+              'Dismiss',
+              {
+                duration: 5000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center',
+              },
+            );
+          }
+          this.dialogRef.close(scope);
+        },
         error: (err) => {
           this.saving.set(false);
           this.error.set(
-            err instanceof ScopeSavedError
-              ? `The access was prepared, but assigning it failed: ${err.message}`
+            this.current()
+              ? `The access was prepared, but assigning it failed: ${apiErrorMessage(err)}`
               : apiErrorMessage(err),
           );
         },
       });
   }
 }
-
-/** The scope was saved and its assignments were not. */
-class ScopeSavedError extends Error {}
