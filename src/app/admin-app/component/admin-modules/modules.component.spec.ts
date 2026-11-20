@@ -4,14 +4,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Component, input, output } from '@angular/core';
+import userEvent from '@testing-library/user-event';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { By } from '@angular/platform-browser';
-import { screen } from '@testing-library/angular';
+import { CrucibleDialogService } from '@cmusei/crucible-common';
+import { screen, within } from '@testing-library/angular';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import {
-  CreateModuleRepositoryCommand,
   Module,
   ModuleSource,
   ModulesService,
@@ -23,36 +23,8 @@ import {
   permissionDataProviders,
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
-import { ALL_SOURCES, AdminModulesComponent } from './modules.component';
-import { AdminModuleListComponent } from './modules-list/module-list.component';
-import { ModuleSourcesComponent } from './module-sources/module-sources.component';
-
-@Component({
-  selector: 'cas-admin-module-list',
-  template: '',
-})
-class ModuleListStub {
-  readonly modules = input<Module[]>(undefined);
-  readonly sources = input<ModuleSource[]>([]);
-  readonly isLoading = input<boolean>(undefined);
-  readonly canEdit = input<boolean>(undefined);
-  readonly refreshing = input<Set<string>>(new Set());
-  readonly refresh = output<string>();
-  readonly delete = output<string>();
-}
-
-@Component({
-  selector: 'cas-module-sources',
-  template: '',
-})
-class ModuleSourcesStub {
-  readonly sources = input<ModuleSource[]>([]);
-  readonly listed = input<boolean>(true);
-  readonly canEdit = input<boolean>(false);
-  readonly refreshing = input<Set<string>>(new Set());
-  readonly refreshAll = output<void>();
-  readonly refresh = output<string>();
-}
+import { AdminModulesComponent } from './modules.component';
+import { GitlabProjectDialogComponent } from './gitlab-project-dialog/gitlab-project-dialog.component';
 
 const healthy: ModuleSource = {
   name: 'local',
@@ -76,8 +48,27 @@ const mirror: ModuleSource = {
   error: 'clone failed',
 };
 
+const vm: Module = {
+  id: 'mod1',
+  name: 'vm',
+  path: 'local/vm',
+  description: 'A vSphere virtual machine',
+  latestVersion: 'v1.2.0',
+};
+const stale: Module = {
+  id: 'mod2',
+  name: 'stale',
+  path: 'local/stale',
+  missingSince: '2026-11-01T12:00:00Z',
+} as Module;
+const stray: Module = { id: 'mod3', name: 'stray', path: 'elsewhere/stray' };
+
 interface Options {
+  modules?: Module[];
   sources?: () => Observable<ModuleSource[]>;
+  confirmed?: boolean;
+  /** What the GitLab project dialog returns when it closes; undefined is a cancel. */
+  projectId?: string;
   sync?: () => Observable<unknown>;
   remove?: () => Observable<unknown>;
 }
@@ -85,35 +76,42 @@ interface Options {
 async function renderModules(
   grants: PermissionGrants,
   {
+    modules = [vm],
     sources = () => of<ModuleSource[]>([healthy]),
+    confirmed = true,
+    projectId,
     sync = () => of(null),
     remove = () => of('mod1'),
   }: Options = {},
 ) {
   const modulesApi = {
-    getAllModules: vi.fn(() =>
-      of<Module[]>([{ id: 'mod1', name: 'vm', path: 'local/vm' }]),
-    ),
+    getAllModules: vi.fn(() => of<Module[]>(modules)),
     getModuleSources: vi.fn(() => sources()),
     createTerrraformModuleFromRepository: vi.fn(() => sync()),
     deleteModule: vi.fn(() => remove()),
   } satisfies ApiStub<ModulesService>;
+  const open = vi.fn<
+    (component: unknown) => {
+      afterClosed: () => Observable<string | undefined>;
+    }
+  >(() => ({ afterClosed: () => of(projectId) }));
+  const confirm = vi.fn(() => ({ afterClosed: () => of(confirmed) }));
   const view = await renderComponent(AdminModulesComponent, {
-    childStubs: [
-      { replace: AdminModuleListComponent, with: ModuleListStub },
-      { replace: ModuleSourcesComponent, with: ModuleSourcesStub },
-    ],
     imports: [MatIconModule, MatButtonModule, MatTooltipModule],
     providers: [
       ...permissionDataProviders(grants),
       { provide: ModulesService, useValue: modulesApi },
+      { provide: MatDialog, useValue: { open } },
+      { provide: CrucibleDialogService, useValue: { confirm } },
     ],
   });
-  const list = view.fixture.debugElement.query(By.directive(ModuleListStub))
-    .componentInstance as ModuleListStub;
-  const panel = view.fixture.debugElement.query(By.directive(ModuleSourcesStub))
-    .componentInstance as ModuleSourcesStub;
-  return { ...view, list, panel, modulesApi };
+  return {
+    ...view,
+    user: userEvent.setup(),
+    modulesApi,
+    open,
+    confirm,
+  };
 }
 
 /** The snack bar's text; its content stays aria-hidden until announced. */
@@ -123,14 +121,45 @@ function snackBarText(): string | null {
   );
 }
 
+/** The table row of a source, or of the leftover group, or null when it is not listed. */
+function findRow(name: string): HTMLElement | null {
+  const cell = [...document.querySelectorAll('.source-name')].find(
+    (e) => e.textContent?.trim() === name,
+  );
+  return cell?.closest('tr') ?? null;
+}
+
+/** The table row of a source, or of the leftover group. */
+function rowOf(name: string): HTMLElement {
+  const row = findRow(name);
+  if (!row) {
+    throw new Error(`No row for ${name}`);
+  }
+  return row;
+}
+
+/** The names of the listed sources, in order. */
+function listed(): string[] {
+  return [...document.querySelectorAll('tr.element-row .source-name')].map(
+    (e) => e.textContent?.trim() ?? '',
+  );
+}
+
+const NOT_CONFIGURED = 'Not in a configured source';
+const manage = { system: [SystemPermission.ManageModules] };
+const view = { system: [SystemPermission.ViewModules] };
+
 describe('AdminModulesComponent', () => {
   /**
-   * Verifies: the page loads the modules with their version counts and latest versions, not their versions, since the list endpoint never returns those, and passes them, with loading cleared, to the list.
-   * Interacts with: ModulesService.getAllModules (stub), real ModuleService and ModuleQuery.
-   * Data: one module; no permissions.
+   * Verifies: the page loads the modules with their version counts and latest versions, not all their versions, then asks for the sources once, after the modules, and shows one row per source.
+   * Interacts with: ModulesService.getAllModules and getModuleSources (stubs), real ModuleService and ModuleQuery.
+   * Data: sources local and gitlab; no permissions.
    */
-  it('loads the modules into the list', async () => {
-    const { list, modulesApi } = await renderModules({});
+  it('loads the modules, then the sources, and lists a row for each source', async () => {
+    const { modulesApi } = await renderModules(
+      {},
+      { sources: () => of([healthy, gitlab]) },
+    );
 
     expect(modulesApi.getAllModules).toHaveBeenCalledWith(
       false,
@@ -139,32 +168,389 @@ describe('AdminModulesComponent', () => {
       undefined,
       true,
     );
-    expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
-    expect(list.isLoading()).toBe(false);
-  });
-
-  /**
-   * Verifies: listing the modules is what reads the sources, so the page asks for the sources once, after the modules, and hands them to both the Module Sources panel and the list.
-   * Interacts with: ModulesService.getAllModules and getModuleSources (stubs), both child stubs.
-   * Data: sources local and gitlab.
-   */
-  it('asks for the sources after the modules and passes them on', async () => {
-    const { list, panel, modulesApi } = await renderModules(
-      {},
-      { sources: () => of([healthy, gitlab]) },
-    );
-
     expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
     expect(modulesApi.getAllModules.mock.invocationCallOrder[0]).toBeLessThan(
       modulesApi.getModuleSources.mock.invocationCallOrder[0],
     );
-    expect(panel.sources().map((s) => s.name)).toEqual(['local', 'gitlab']);
-    expect(list.sources().map((s) => s.name)).toEqual(['local', 'gitlab']);
-    expect(panel.listed()).toBe(true);
+    expect(
+      screen
+        .getAllByRole('button', { name: /^Show details for / })
+        .map((b) => b.getAttribute('aria-label')),
+    ).toEqual(['Show details for gitlab', 'Show details for local']);
   });
 
   /**
-   * Verifies: a failed source on page load opens no snack bar; the Module Sources panel is where it shows.
+   * Verifies: the page has the standard admin toolbar (section icon, Search, paginator), a table of sources with the actions column first; there is no separate Module Sources panel.
+   * Interacts with: the toolbar and table templates.
+   * Data: one source.
+   */
+  it('shows the toolbar and the table of sources', async () => {
+    await renderModules(manage);
+
+    expect(screen.getByPlaceholderText('Search modules')).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: /Items per page/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Module Sources')).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('columnheader').map((h) => h.textContent?.trim()),
+    ).toEqual(['', 'Name', 'Status', 'Modules', 'Last Updated']);
+  });
+
+  /**
+   * Verifies: a source row shows its name and description, its status icon and word (no time), its Module count and when it was last updated, in columns.
+   * Interacts with: the table templates, sourceStatus().
+   * Data: TZ UTC; local with a description, read successfully, one Module.
+   */
+  it('shows a source in its columns', async () => {
+    vi.stubEnv('TZ', 'UTC');
+    await renderModules(view, {
+      sources: () => of([{ ...healthy, description: 'Our modules' }]),
+    });
+
+    const cells = within(rowOf('local')).getAllByRole('cell');
+    expect(cells[1].textContent).toContain('Our modules');
+    expect(
+      within(cells[2]).getByRole('img', { name: 'Read successfully' }),
+    ).toBeInTheDocument();
+    expect(cells[2].textContent?.trim()).toBe('Updated');
+    expect(cells[2].textContent).not.toContain('2026');
+    expect(cells[3].textContent?.trim()).toBe('1');
+    expect(cells[4].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
+  });
+
+  /**
+   * Verifies: a failed source shows the word and its error as a muted second line with no time, keeps the time of the Modules still shown in the icon's tooltip and the Last Updated cell, and the Last Updated header explains itself.
+   * Interacts with: the Status and Last Updated cells.
+   * Data: TZ UTC; local failed with an older successful read.
+   */
+  it('keeps the time out of a failed status', async () => {
+    vi.stubEnv('TZ', 'UTC');
+    await renderModules(view, {
+      sources: () => of([{ ...healthy, error: 'git down.' }]),
+    });
+
+    const cells = within(rowOf('local')).getAllByRole('cell');
+    expect(cells[2].textContent).toContain('Last sync failed');
+    expect(cells[2].textContent).toContain('git down.');
+    expect(cells[2].textContent).not.toContain('2026');
+    expect(
+      within(cells[2]).getByRole('img', {
+        name: "Couldn't be read. Showing its Modules from Oct 14, 2026, 12:30 PM UTC.",
+      }),
+    ).toBeInTheDocument();
+    expect(cells[4].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
+  });
+
+  /**
+   * Verifies: a source opens in place when its chevron is clicked, with aria-expanded following and aria-controls naming the detail that holds its Modules, and closes again; its Modules are listed only while open.
+   * Interacts with: the row's chevron button, the detail row's nested table.
+   * Data: source local with Module vm.
+   */
+  it('expands and collapses a source in place', async () => {
+    const { user } = await renderModules({});
+    const chevron = screen.getByRole('button', {
+      name: 'Show details for local',
+    });
+
+    expect(chevron).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('vm')).not.toBeInTheDocument();
+
+    await user.click(chevron);
+    expect(chevron).toHaveAttribute('aria-expanded', 'true');
+    const detail = document.getElementById(
+      chevron.getAttribute('aria-controls') ?? '',
+    );
+    expect(within(detail).getByText('vm')).toBeInTheDocument();
+
+    await user.click(chevron);
+    expect(chevron).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('vm')).not.toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the expand button takes keyboard focus and opens and closes its source with Enter and Space.
+   * Interacts with: the row's chevron button.
+   * Data: source local.
+   */
+  it('expands a source from the keyboard', async () => {
+    const { user } = await renderModules({});
+
+    const focused = screen.getByRole('button', {
+      name: 'Show details for local',
+    });
+    focused.focus();
+    await user.keyboard('{Enter}');
+    expect(focused).toHaveAttribute('aria-expanded', 'true');
+
+    await user.keyboard(' ');
+    expect(focused).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  /**
+   * Verifies: the chevron is the first button of the actions cell, is a type=button, rotates through the expanded class while open, and the leftover group has the same chevron in the same place.
+   * Interacts with: the actions cell, the chevron, the leftover row.
+   * Data: source local; a Module in no source.
+   */
+  it('puts the chevron first in the actions cell and rotates it when open', async () => {
+    const { user } = await renderModules(manage);
+    const cell = within(rowOf('local')).getAllByRole('cell')[0];
+    const first = within(cell).getAllByRole('button')[0];
+
+    expect(first).toHaveAttribute('aria-label', 'Show details for local');
+    expect(first).toHaveAttribute('type', 'button');
+    expect(first).toHaveAttribute('aria-controls');
+    expect(first).not.toHaveClass('expanded');
+    expect(within(first).getByText('', { selector: '.chevron' })).toBeTruthy();
+    expect(
+      within(rowOf('local')).getAllByRole('cell')[1].querySelector('button'),
+    ).toBeNull();
+
+    await user.click(first);
+    expect(first).toHaveClass('expanded');
+    expect(first).toHaveAttribute('aria-label', 'Hide details for local');
+  });
+
+  /**
+   * Verifies: clicking anywhere on a source's row opens it, but clicking one of its action buttons, or inside what it opened, does not toggle it.
+   * Interacts with: the row's click handler, stopPropagation on the buttons, the separate detail row.
+   * Data: source local with Module vm; ManageModules.
+   */
+  it('opens on a row click and ignores clicks on its buttons and detail', async () => {
+    const { user } = await renderModules(manage, {
+      sync: () => new Subject<unknown>(),
+    });
+    const chevron = screen.getByRole('button', {
+      name: 'Show details for local',
+    });
+
+    await user.click(within(rowOf('local')).getAllByRole('cell')[3]);
+    expect(chevron).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Refresh local' }));
+    await user.click(screen.getByText('vm'));
+    expect(chevron).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(chevron);
+    expect(chevron).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  /**
+   * Verifies: the group "Not in a configured source" holds leftovers and Modules of no configured source, is last, collapsed, and says how many there are.
+   * Interacts with: the leftover row.
+   * Data: stale (missingSince), stray (source elsewhere not configured), vm.
+   */
+  it('collects leftovers last in a collapsed row with their count', async () => {
+    const { user } = await renderModules({}, { modules: [vm, stale, stray] });
+
+    const group = rowOf(NOT_CONFIGURED);
+    expect(within(group).getAllByRole('cell')[3].textContent?.trim()).toBe('2');
+    expect(
+      within(rowOf('local')).getAllByRole('cell')[3].textContent?.trim(),
+    ).toBe('1');
+    expect(screen.queryByText('stale')).not.toBeInTheDocument();
+    expect(listed()).toEqual(['local', NOT_CONFIGURED]);
+    // Not a configured source: no Refresh.
+    expect(within(group).queryByRole('button', { name: /Refresh/ })).toBeNull();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: `Show details for ${NOT_CONFIGURED}`,
+      }),
+    );
+    expect(screen.getByText('stale')).toBeInTheDocument();
+    expect(screen.getByText('stray')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the leftover row is hidden when there are none, and stays last whatever column and direction the sources are sorted by.
+   * Interacts with: the sort headers, sortSourceRows().
+   * Data: sources gitlab and local with a leftover stale.
+   */
+  it('keeps the leftover row last when sorting', async () => {
+    const { user } = await renderModules(
+      {},
+      { modules: [vm, stale], sources: () => of([healthy, gitlab]) },
+    );
+    expect(listed()).toEqual(['gitlab', 'local', NOT_CONFIGURED]);
+
+    await user.click(screen.getByRole('columnheader', { name: 'Name' }));
+    expect(listed()).toEqual(['local', 'gitlab', NOT_CONFIGURED]);
+
+    await user.click(screen.getByRole('columnheader', { name: 'Modules' }));
+    expect(listed()).toEqual(['gitlab', 'local', NOT_CONFIGURED]);
+  });
+
+  /**
+   * Verifies: with no leftover Modules there is no leftover row.
+   * Interacts with: sourceTableRows().
+   * Data: only vm, which is local's.
+   */
+  it('hides the leftover row when there are no leftovers', async () => {
+    await renderModules({});
+
+    expect(listed()).toEqual(['local']);
+  });
+
+  /**
+   * Verifies: a search shows and opens only the sources with a matching Module, listing just those; the others are hidden, and clearing the search restores the rows and what was open before.
+   * Interacts with: the Search box, the Clear Search button.
+   * Data: local has vm and stale; gitlab has none; local was opened before searching.
+   */
+  it('searches across sources and restores the previous state when cleared', async () => {
+    const { user } = await renderModules(
+      {},
+      {
+        modules: [vm, { id: 'g1', name: 'dns', path: 'group/dns' }],
+        sources: () => of([healthy, gitlab]),
+      },
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Show details for local' }),
+    );
+
+    await user.type(screen.getByPlaceholderText('Search modules'), 'dns');
+
+    expect(findRow('local')).toBeNull();
+    expect(listed()).toEqual(['gitlab']);
+    expect(screen.getByText('dns')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Hide details for gitlab' }),
+    ).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Clear Search' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Hide details for local' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Show details for gitlab' }),
+    ).toBeTruthy();
+    expect(screen.getByText('vm')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the search matches a source on its own name, and says so when nothing matches.
+   * Interacts with: the Search box.
+   * Data: sources local and gitlab, no Module named gitlab.
+   */
+  it('matches a source by its own name and says when nothing matches', async () => {
+    const { user } = await renderModules(
+      {},
+      { sources: () => of([healthy, gitlab]) },
+    );
+    const search = screen.getByPlaceholderText('Search modules');
+
+    await user.type(search, 'gitl');
+    expect(rowOf('gitlab')).toBeTruthy();
+    expect(findRow('local')).toBeNull();
+
+    await user.clear(search);
+    await user.type(search, 'zzz');
+    expect(screen.getByText(/No sources or Modules match "zzz"/)).toBeTruthy();
+  });
+
+  /**
+   * Verifies: a user can still collapse a source the search opened, without losing what was opened before the search.
+   * Interacts with: the Search box, the chevron.
+   * Data: vm matches "vm".
+   */
+  it('lets the user collapse a source a search opened', async () => {
+    const { user } = await renderModules({});
+    await user.type(screen.getByPlaceholderText('Search modules'), 'vm');
+
+    await user.click(
+      screen.getByRole('button', { name: 'Hide details for local' }),
+    );
+    expect(screen.queryByText('A vSphere virtual machine')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Clear Search' }));
+    expect(
+      screen.getByRole('button', { name: 'Show details for local' }),
+    ).toBeTruthy();
+  });
+
+  /**
+   * Verifies: a source's own Search narrows its Modules further on top of the page's search, and the page's search leaves its Search box and page alone while the source stays open.
+   * Interacts with: the page's Search box and the nested table's Search box.
+   * Data: local has vm, vm-two and disk; the page searches "vm", the source's own search "two".
+   */
+  it('applies a source search on top of the page search', async () => {
+    const { user } = await renderModules(
+      {},
+      {
+        modules: [
+          vm,
+          { id: 'mod4', name: 'vm-two', path: 'local/vm-two' },
+          { id: 'mod5', name: 'disk', path: 'local/disk' },
+        ],
+      },
+    );
+    await user.type(screen.getByPlaceholderText('Search modules'), 'vm');
+    expect(screen.queryByText('disk')).toBeNull();
+    expect(screen.getByText('vm-two')).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Search Modules'), 'two');
+    expect(screen.queryByText('vm', { selector: 'td' })).toBeNull();
+    expect(screen.getByText('vm-two')).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a source's open state and its own Search survive a Refresh, which replaces every row object.
+   * Interacts with: the nested Search box, the row's Refresh, the reload.
+   * Data: local with vm and disk, ManageModules.
+   */
+  it('keeps a source open with its own search through a Refresh', async () => {
+    const { user } = await renderModules(manage, {
+      modules: [vm, { id: 'mod5', name: 'disk', path: 'local/disk' }],
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'Show details for local' }),
+    );
+    await user.type(screen.getByLabelText('Search Modules'), 'disk');
+
+    await user.click(screen.getByRole('button', { name: 'Refresh local' }));
+
+    expect(screen.getByLabelText('Search Modules')).toHaveValue('disk');
+    expect(
+      screen.getByRole('button', { name: 'Hide details for local' }),
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  /**
+   * Verifies: when the API can't list its sources, the page says so and still lists every Module, under Not in a configured source, with no error escaping.
+   * Interacts with: ModulesService.getModuleSources (throwError stub); test-setup fails any console.error.
+   * Data: getModuleSources fails (an older API, or no ViewModules).
+   */
+  it('says the sources are not reported and still lists the modules', async () => {
+    await renderModules(
+      {},
+      { sources: () => throwError(() => new Error('404')) },
+    );
+
+    expect(
+      screen.getByText("This Caster API doesn't report its module sources."),
+    ).toBeInTheDocument();
+    expect(
+      within(rowOf(NOT_CONFIGURED)).getAllByRole('cell')[3].textContent?.trim(),
+    ).toBe('1');
+  });
+
+  /**
+   * Verifies: with no source configured the page says so.
+   * Interacts with: ModulesService.getModuleSources (stub).
+   * Data: an empty source list.
+   */
+  it('says when no source is configured', async () => {
+    await renderModules({}, { sources: () => of([]) });
+
+    expect(
+      screen.getByText(/No module sources are configured/),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: a failed source on page load opens no snack bar; its row is where it shows.
    * Interacts with: MatSnackBar (real, open spied).
    * Data: gitlab failed.
    */
@@ -174,85 +560,163 @@ describe('AdminModulesComponent', () => {
     await renderModules({}, { sources: () => of([gitlab]) });
 
     expect(open).not.toHaveBeenCalled();
+    expect(within(rowOf('gitlab')).getByText(/401 Unauthorized/)).toBeTruthy();
+    expect(
+      within(rowOf('gitlab')).getByRole('img', { name: /^Couldn't be read/ }),
+    ).toBeInTheDocument();
   });
 
   /**
-   * Verifies: when the API can't list its sources, the panel is told so, the modules are still listed, and no error escapes.
-   * Interacts with: ModulesService.getModuleSources (throwError stub); test-setup fails any console.error.
-   * Data: getModuleSources fails (an older API, or no ViewModules).
-   */
-  it('marks the sources unlisted when the API cannot list them', async () => {
-    const { list, panel } = await renderModules(
-      {},
-      { sources: () => throwError(() => new Error('404')) },
-    );
-
-    expect(panel.listed()).toBe(false);
-    expect(panel.sources()).toEqual([]);
-    expect(list.modules().map((m) => m.id)).toEqual(['mod1']);
-  });
-
-  /**
-   * Verifies: ManageModules, which the API requires to refresh and delete Modules, makes the panel and the list editable.
-   * Interacts with: PermissionService.hasPermission (real), both stubs' canEdit inputs.
-   * Data: system permission ManageModules.
-   */
-  it('passes canEdit true with ManageModules', async () => {
-    const { list, panel } = await renderModules({
-      system: [SystemPermission.ManageModules],
-    });
-
-    expect(list.canEdit()).toBe(true);
-    expect(panel.canEdit()).toBe(true);
-  });
-
-  /**
-   * Verifies: without ManageModules the page is read-only, including for ManageWorkspaces, which the page used to check by mistake.
-   * Interacts with: PermissionService.hasPermission (real), both stubs' canEdit inputs.
-   * Data: near misses: ViewModules, and ManageWorkspaces.
+   * Verifies: ManageModules, which the API requires to refresh and delete Modules, enables Refresh All Sources and each source's Refresh; without it, even with ViewModules or ManageWorkspaces, they are greyed out with the permission as the reason, as on the other admin pages.
+   * Interacts with: PermissionService.hasPermission (real).
+   * Data: ManageModules, then near misses.
    */
   it.each([
-    { label: 'ViewModules', system: [SystemPermission.ViewModules] },
-    { label: 'ManageWorkspaces', system: [SystemPermission.ManageWorkspaces] },
-  ])('passes canEdit false with $label only', async ({ system }) => {
-    const { list, panel } = await renderModules({ system });
+    { label: 'ManageModules', grants: manage, editable: true },
+    { label: 'ViewModules', grants: view, editable: false },
+    {
+      label: 'ManageWorkspaces',
+      grants: { system: [SystemPermission.ManageWorkspaces] },
+      editable: false,
+    },
+  ])(
+    'gates refreshing on ManageModules ($label)',
+    async ({ grants, editable }) => {
+      await renderModules(grants);
 
-    expect(list.canEdit()).toBe(false);
-    expect(panel.canEdit()).toBe(false);
+      for (const name of ['Refresh All Sources', 'Refresh local']) {
+        if (editable) {
+          expect(screen.getByRole('button', { name })).toBeEnabled();
+        } else {
+          const button = screen.getByRole('button', {
+            name: `${name} (not available)`,
+          });
+          expect(button).toBeDisabled();
+          expect(button.parentElement).toHaveAccessibleDescription(
+            'Refreshing Modules needs the ManageModules permission',
+          );
+        }
+      }
+    },
+  );
+
+  /**
+   * Verifies: with no sources there is nothing to refresh, so Refresh All Sources is greyed out with that reason, even with ManageModules.
+   * Interacts with: refreshAllReason().
+   * Data: an empty source list.
+   */
+  it('greys out Refresh All Sources when there are no sources', async () => {
+    await renderModules(manage, { sources: () => of([]) });
+
+    const button = screen.getByRole('button', {
+      name: 'Refresh All Sources (not available)',
+    });
+    expect(button).toBeDisabled();
+    expect(button.parentElement).toHaveAccessibleDescription(
+      'There are no module sources to refresh',
+    );
+  });
+
+  /**
+   * Verifies: the GitLab source has Add a GitLab Project in place of Refresh, which opens the dialog and refreshes the project ID it returns, and does nothing when it is cancelled; without ManageModules it is greyed out.
+   * Interacts with: MatDialog.open (stub), the GitLab project dialog.
+   * Data: gitlab source; project ID 42, then cancelled; ViewModules only.
+   */
+  it.each([
+    { projectId: '42', calls: [[{ id: '42' }]] },
+    { projectId: undefined, calls: [] },
+  ])('adds a GitLab project ($projectId)', async ({ projectId, calls }) => {
+    const { user, open, modulesApi } = await renderModules(manage, {
+      sources: () => of([gitlab]),
+      projectId,
+    });
+
+    expect(screen.queryByRole('button', { name: 'Refresh gitlab' })).toBeNull();
+    await user.click(
+      screen.getByRole('button', { name: 'Add a GitLab Project' }),
+    );
+
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.calls[0][0]).toBe(GitlabProjectDialogComponent);
+    expect(
+      modulesApi.createTerrraformModuleFromRepository.mock.calls,
+    ).toStrictEqual(calls);
+  });
+
+  it('greys out Add a GitLab Project without ManageModules', async () => {
+    await renderModules(view, { sources: () => of([gitlab]) });
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Add a GitLab Project (not available)',
+      }),
+    ).toBeDisabled();
+  });
+
+  /**
+   * Verifies: Copy repository URL is on a source's row only when the API reports its URL, and there is no Copy Terraform source anywhere.
+   * Interacts with: repositoryUrl().
+   * Data: local reports a URL, gitlab does not.
+   */
+  it('offers Copy repository URL only when the API reports one', async () => {
+    await renderModules(manage, {
+      sources: () =>
+        of([
+          {
+            ...healthy,
+            url: 'https://git.example.com/org/local.git',
+          } as ModuleSource,
+          gitlab,
+        ]),
+    });
+
+    expect(
+      screen.getByRole('button', { name: 'Copy the local repository URL' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Copy the gitlab repository URL' }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /Terraform source/ }),
+    ).toBeNull();
   });
 
   describe('Refresh All Sources', () => {
     /**
      * Verifies: Refresh All Sources marks every source refreshing, forces the API to re-read every version (unlike the page load), and clears the mark once the modules are back.
-     * Interacts with: the panel stub's refreshAll output and refreshing input, ModulesService.getAllModules (Subject stub on the second call).
+     * Interacts with: the toolbar button, ModulesService.getAllModules (Subject stub on the second call).
      * Data: healthy sources.
      */
     it('forces a re-read and shows every source refreshing until done', async () => {
-      const { fixture, panel, list, modulesApi } = await renderModules({});
+      const { user, fixture, modulesApi } = await renderModules(manage);
       const reload = new Subject<Module[]>();
       modulesApi.getAllModules.mockImplementationOnce(() => reload);
 
-      panel.refreshAll.emit();
-      fixture.detectChanges();
+      await user.click(
+        screen.getByRole('button', { name: 'Refresh All Sources' }),
+      );
 
       expect(modulesApi.getAllModules.mock.calls).toStrictEqual([
         [false, true, false, undefined, true],
         [false, true, true, undefined, true],
       ]);
-      expect([...panel.refreshing()]).toEqual([ALL_SOURCES]);
-      expect([...list.refreshing()]).toEqual([ALL_SOURCES]);
+      expect(
+        screen.getByRole('button', { name: 'Refresh local' }),
+      ).toBeDisabled();
 
-      reload.next([]);
+      reload.next([vm]);
       reload.complete();
       fixture.detectChanges();
 
-      expect(panel.refreshing().size).toBe(0);
+      expect(
+        screen.getByRole('button', { name: 'Refresh local' }),
+      ).toBeEnabled();
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
     });
 
     /**
      * Verifies: after Refresh All Sources, one snack bar names every source that failed; when all succeed none opens.
-     * Interacts with: the panel stub's refreshAll output, ModulesService.getModuleSources (stub), MatSnackBar (real).
+     * Interacts with: the toolbar button, ModulesService.getModuleSources (stub), MatSnackBar (real).
      * Data: healthy on page load; after the refresh, the sources in the row.
      */
     it.each([
@@ -270,14 +734,14 @@ describe('AdminModulesComponent', () => {
       'names the failed sources in a snack bar ($label)',
       async ({ failed, message }) => {
         let answer: ModuleSource[] = [healthy];
-        const { fixture, panel } = await renderModules(
-          {},
-          { sources: () => of(answer) },
-        );
+        const { user } = await renderModules(manage, {
+          sources: () => of(answer),
+        });
 
         answer = [healthy, ...failed];
-        panel.refreshAll.emit();
-        fixture.detectChanges();
+        await user.click(
+          screen.getByRole('button', { name: 'Refresh All Sources' }),
+        );
 
         expect(await screen.findByText(message)).toBeInTheDocument();
         expect(snackBarText()).toContain('Dismiss');
@@ -285,10 +749,11 @@ describe('AdminModulesComponent', () => {
     );
 
     it('opens no snack bar when every source is read', async () => {
-      const { fixture, panel } = await renderModules({});
+      const { user } = await renderModules(manage);
 
-      panel.refreshAll.emit();
-      fixture.detectChanges();
+      await user.click(
+        screen.getByRole('button', { name: 'Refresh All Sources' }),
+      );
 
       // Read right away: whenStable() would wait out a snack bar's duration.
       expect(snackBarText()).toBeNull();
@@ -297,40 +762,43 @@ describe('AdminModulesComponent', () => {
 
   describe('Refresh one', () => {
     /**
-     * Verifies: refreshing one source (from the panel) or one Module (from the list) sends its id, marks only that id refreshing until the API answers, then reloads the modules and sources.
-     * Interacts with: both stubs' refresh outputs and refreshing inputs, ModulesService.createTerrraformModuleFromRepository (Subject stub).
-     * Data: source local from the panel; Module local/vm from the list.
+     * Verifies: refreshing one source row sends its name, marks only that id refreshing until the API answers, then reloads the modules and sources, and a source that was open stays open.
+     * Interacts with: the row buttons, ModulesService.createTerrraformModuleFromRepository (Subject stub).
+     * Data: source local from its row.
      */
-    it.each([
-      { from: 'panel' as const, id: 'local' },
-      { from: 'list' as const, id: 'local/vm' },
-    ])('refreshes $id from the $from', async ({ from, id }) => {
+    it('refreshes a source from its row', async () => {
+      const id = 'local';
       const request = new Subject<unknown>();
-      const view = await renderModules({}, { sync: () => request });
-      const { fixture, list, panel, modulesApi } = view;
+      const { user, fixture, modulesApi } = await renderModules(manage, {
+        sync: () => request,
+      });
+      await user.click(
+        screen.getByRole('button', { name: 'Show details for local' }),
+      );
 
-      (from === 'panel' ? panel : list).refresh.emit(id);
-      fixture.detectChanges();
+      await user.click(screen.getByRole('button', { name: 'Refresh local' }));
 
       expect(
         modulesApi.createTerrraformModuleFromRepository.mock.calls,
       ).toStrictEqual([[{ id }]]);
-      expect([...list.refreshing()]).toEqual([id]);
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
 
       request.next(null);
       request.complete();
       fixture.detectChanges();
 
-      expect(list.refreshing().size).toBe(0);
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(2);
       expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(2);
+      expect(
+        screen.getByRole('button', { name: 'Hide details for local' }),
+      ).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByText('vm')).toBeInTheDocument();
     });
 
     /**
-     * Verifies: a failed refresh shows the API's problem title, else the error message, else a generic message, in a snack bar; the refreshing mark clears, nothing is reloaded and no error escapes.
-     * Interacts with: the panel stub's refresh output, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
-     * Data: id web; the error in the row.
+     * Verifies: a failed refresh shows the API's problem title, else the error message, else a generic message, in a snack bar; nothing is reloaded and no error escapes.
+     * Interacts with: the row's Refresh, ModulesService.createTerrraformModuleFromRepository (throwError stub), MatSnackBar (real).
+     * Data: source local; the error in the row.
      */
     it.each([
       {
@@ -349,33 +817,86 @@ describe('AdminModulesComponent', () => {
         message: "Couldn't refresh the Modules",
       },
     ])('shows $label when a refresh fails', async ({ error, message }) => {
-      const { fixture, panel, list, modulesApi } = await renderModules(
-        {},
-        { sync: () => throwError(() => error) },
-      );
+      const { user, modulesApi } = await renderModules(manage, {
+        sync: () => throwError(() => error),
+      });
 
-      panel.refresh.emit('web');
-      fixture.detectChanges();
+      await user.click(screen.getByRole('button', { name: 'Refresh local' }));
 
       expect(await screen.findByText(message)).toBeInTheDocument();
       expect(snackBarText()).toContain('Dismiss');
-      expect(list.refreshing().size).toBe(0);
-      expect(list.isLoading()).toBe(false);
+      expect(
+        screen.getByRole('button', { name: 'Refresh local' }),
+      ).toBeEnabled();
       expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
     });
   });
 
-  /**
-   * Verifies: the list's delete output deletes the Module through the API.
-   * Interacts with: the list stub's delete output, ModulesService.deleteModule (stub).
-   * Data: mod1.
-   */
-  it('deletes a Module the list asks to delete', async () => {
-    const { fixture, list, modulesApi } = await renderModules({});
+  describe('the Modules table', () => {
+    /**
+     * Verifies: a source's nested Modules table has no Refresh button and no Last Synced column: a git Module is read with its source, so Refresh is on the source's row only.
+     * Interacts with: the expanded source's table.
+     * Data: local with vm, manage permission.
+     */
+    it('has no per-Module Refresh and no Last Synced column', async () => {
+      const { user } = await renderModules(manage);
+      await user.click(
+        screen.getByRole('button', { name: 'Show details for local' }),
+      );
 
-    list.delete.emit('mod1');
-    fixture.detectChanges();
+      expect(screen.getByText('vm')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Refresh vm/ })).toBeNull();
+      expect(
+        screen.queryByRole('columnheader', { name: /Last Synced/ }),
+      ).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Refresh local' }),
+      ).toBeInTheDocument();
+    });
+  });
 
-    expect(modulesApi.deleteModule).toHaveBeenCalledWith('mod1');
+  describe('Delete', () => {
+    /**
+     * Verifies: a leftover Module in Not in a configured source is deleted through the API once confirmed; a refusal deletes nothing.
+     * Interacts with: the row's Delete button, CrucibleDialogService.confirm (stub), ModulesService.deleteModule (stub).
+     * Data: stale (missingSince); confirmed, then not.
+     */
+    it.each([
+      { confirmed: true, calls: [['mod2']] },
+      { confirmed: false, calls: [] },
+    ])(
+      'deletes a leftover only when confirmed ($confirmed)',
+      async ({ confirmed, calls }) => {
+        const { user, modulesApi } = await renderModules(manage, {
+          modules: [vm, stale],
+          confirmed,
+        });
+        await user.click(
+          screen.getByRole('button', {
+            name: `Show details for ${NOT_CONFIGURED}`,
+          }),
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Delete stale' }));
+
+        expect(modulesApi.deleteModule.mock.calls).toStrictEqual(calls);
+      },
+    );
+
+    /**
+     * Verifies: a Module still in its source has no Delete, as it would come back on the next read; without ManageModules nothing has one.
+     * Interacts with: the table's action cells.
+     * Data: vm with missingSince null, so the API reports it.
+     */
+    it('offers no Delete for a Module still in its source', async () => {
+      const { user } = await renderModules(manage, {
+        modules: [{ ...vm, missingSince: null } as Module],
+      });
+      await user.click(
+        screen.getByRole('button', { name: 'Show details for local' }),
+      );
+
+      expect(screen.queryByRole('button', { name: 'Delete vm' })).toBeNull();
+    });
   });
 });
