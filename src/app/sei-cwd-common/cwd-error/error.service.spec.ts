@@ -168,7 +168,7 @@ describe('ErrorService.handleError', () => {
 
   /**
    * Verifies: an HTTP error with an empty body makes handleError itself throw, so the user sees no message.
-   * Interacts with: SystemMessageService.displayMessage (stub).
+   * Interacts with: SystemMessageService.displayMessage (stub, asserted not called).
    * Data: a 401 with no body (HttpErrorResponse.error is null), as the JWT bearer challenge sends.
    */
   it('throws for an HTTP error with an empty body', () => {
