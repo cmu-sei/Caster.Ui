@@ -59,7 +59,13 @@ describe('ModuleService', () => {
 
       recordEmissions(service.load(false, true, true));
 
-      expect(api.getAllModules).toHaveBeenCalledWith(false, true, true);
+      expect(api.getAllModules).toHaveBeenCalledWith(
+        false,
+        true,
+        true,
+        undefined,
+        undefined,
+      );
     });
 
     /**
@@ -79,7 +85,13 @@ describe('ModuleService', () => {
       const load$ = service.load(true, true);
       expect(query.getValue().loading).toBe(true);
       recordEmissions(load$);
-      expect(api.getAllModules).toHaveBeenCalledWith(true, true, false);
+      expect(api.getAllModules).toHaveBeenCalledWith(
+        true,
+        true,
+        false,
+        undefined,
+        undefined,
+      );
 
       response$.next([
         mod({ versions: [{ id: 'v1' }, { id: 'v2' }], versionsCount: 2 }),
@@ -120,6 +132,44 @@ describe('ModuleService', () => {
       });
       // NOTE: the API response object itself is mutated (versions deleted).
       expect(payload).not.toHaveProperty('versions');
+    });
+
+    /**
+     * Verifies: load(…, includeLatestVersion) asks the API for the latest version and stores latestVersion; a later load that does not ask keeps it, and does not add the parameter to its request.
+     * Interacts with: ModulesService.getAllModules (stub); upsertMany merge.
+     * Data: stored m1; the API returns m1 with latestVersion 2.0.0, then m1 without it.
+     */
+    it('load() stores latestVersion when asked and keeps it otherwise', async () => {
+      const api = {
+        getAllModules: vi
+          .fn()
+          .mockReturnValueOnce(of([mod({ latestVersion: '2.0.0' })]))
+          .mockReturnValueOnce(of([mod({ name: 'renamed' })])),
+      } satisfies ApiStub<ModulesService>;
+      const { service, query } = setup(api, [mod()]);
+
+      await firstValueFrom(service.load(false, true, false, true));
+      expect(api.getAllModules).toHaveBeenLastCalledWith(
+        false,
+        true,
+        false,
+        undefined,
+        true,
+      );
+      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
+
+      await firstValueFrom(service.load(false, true));
+      expect(api.getAllModules).toHaveBeenLastCalledWith(
+        false,
+        true,
+        false,
+        undefined,
+        undefined,
+      );
+      expect(query.getEntity('m1')).toMatchObject({
+        name: 'renamed',
+        latestVersion: '2.0.0',
+      });
     });
 
     /**

@@ -25,5 +25,6 @@ export interface Module {
     versions?: Array<ModuleVersion> | null;
     dateModified?: string | null;
     versionsCount?: number | null;
+    latestVersion?: string | null;
 }
 

@@ -69,9 +69,10 @@ export class AdminModulesComponent implements OnInit {
    * snack bar which sources failed.
    */
   load(userRequested = false, forceUpdate = false, done?: string) {
-    // With the versions, so the list can show each Module's latest one.
+    // The list endpoint never returns versions, only their count; ask for each
+    // Module's latest version name instead.
     this.moduleService
-      .load(true, true, forceUpdate)
+      .load(false, true, forceUpdate, true)
       .pipe(
         take(1),
         finalize(() => {

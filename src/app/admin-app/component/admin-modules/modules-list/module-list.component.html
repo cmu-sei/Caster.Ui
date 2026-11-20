@@ -73,15 +73,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             </span>
           }
         }
-        @if (terraformSource(item); as source) {
+        @if (item.latestVersion) {
           <button
             mat-icon-button
-            ngxClipboard
-            [cbContent]="source"
-            (click)="$event.stopPropagation()"
+            (click)="copyTerraformSource(item); $event.stopPropagation()"
             [attr.aria-label]="'Copy the Terraform source of ' + item.name"
-            [matTooltip]="'Copy Terraform source: ' + source"
-            matTooltipClass="wide-tooltip"
+            [matTooltip]="
+              'Copy the Terraform source of version ' + item.latestVersion
+            "
           >
             <mat-icon class="mdi-18px" fontIcon="mdi-code-braces" />
           </button>

@@ -15,8 +15,14 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
-import { ClipboardModule } from 'ngx-clipboard';
-import { Module, ModuleSource } from 'src/app/generated/caster-api';
+import { ClipboardService } from 'ngx-clipboard';
+import { Observable, of, throwError } from 'rxjs';
+import {
+  Module,
+  ModuleSource,
+  ModulesService,
+} from 'src/app/generated/caster-api';
+import { ApiStub } from 'src/app/test-utils/api-stub';
 import { dialogRefStub } from 'src/app/test-utils/dialog-refs';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import {
@@ -49,11 +55,8 @@ const modules: Module[] = [
     description: 'A vSphere virtual machine',
     versionsCount: 2,
     dateModified: '2026-10-14T12:30:00Z',
-    // The API lists versions highest first.
-    versions: [
-      { name: 'v1.10.0', urlLink: vmSource },
-      { name: 'v1.9.0', urlLink: 'old' },
-    ],
+    // The list endpoint never returns versions, only the latest one's name.
+    latestVersion: 'v1.10.0',
   },
   {
     id: 'mod2',
@@ -61,7 +64,7 @@ const modules: Module[] = [
     path: 'group/dns',
     description: longDescription,
     versionsCount: 1,
-    versions: [{ name: '2.0.0', urlLink: 'git::https://gitlab/dns?ref=2.0.0' }],
+    latestVersion: '2.0.0',
   },
   { id: 'mod3', name: 'empty', path: 'local/empty', versionsCount: 0 },
 ];
@@ -72,6 +75,7 @@ interface Options {
   sources?: ModuleSource[];
   rows?: Module[];
   refreshing?: Set<string>;
+  getModule?: (id: string) => Observable<Module>;
 }
 
 async function renderModuleList({
@@ -80,9 +84,14 @@ async function renderModuleList({
   sources = [local, gitlab],
   rows = modules,
   refreshing = new Set<string>(),
+  getModule = () => of<Module>({}),
 }: Options = {}) {
   const refresh = vi.fn<(path: string) => void>();
   const deleteModule = vi.fn<(id: string) => void>();
+  const modulesApi = {
+    getModule: vi.fn((id: string) => getModule(id)),
+  } satisfies ApiStub<ModulesService>;
+  const clipboard = { copy: vi.fn() } satisfies Pick<ClipboardService, 'copy'>;
   const { dialogRef } = dialogRefStub<unknown, boolean>(confirmAnswer);
   const confirm = vi.fn(() => dialogRef);
   const view = await renderComponent(AdminModuleListComponent, {
@@ -97,9 +106,10 @@ async function renderModuleList({
       MatTooltipModule,
       MatCardModule,
       MatProgressSpinnerModule,
-      ClipboardModule,
     ],
     providers: [
+      { provide: ModulesService, useValue: modulesApi },
+      { provide: ClipboardService, useValue: clipboard },
       {
         provide: CrucibleDialogService,
         useValue: { confirm } satisfies Pick<CrucibleDialogService, 'confirm'>,
@@ -113,6 +123,8 @@ async function renderModuleList({
     refresh,
     deleteModule,
     confirm,
+    modulesApi,
+    clipboard,
     user: userEvent.setup(),
   };
 }
@@ -268,11 +280,11 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: Copy Terraform source is offered for the latest version's module source, and a Module with no version shows the button greyed out.
-   * Interacts with: the ngxClipboard button.
-   * Data: vm (latest v1.10.0's urlLink), empty (no versions).
+   * Verifies: Copy Terraform source is offered for a Module with a latest version and greyed out for one with none; the list never has versions, so the button depends on latestVersion alone.
+   * Interacts with: the Copy Terraform source button.
+   * Data: vm (latestVersion v1.10.0), empty (no latestVersion).
    */
-  it("offers the latest version's Terraform source to copy", async () => {
+  it('offers Copy Terraform source only for a Module with a latest version', async () => {
     await renderModuleList();
 
     expect(
@@ -285,6 +297,58 @@ describe('AdminModuleListComponent', () => {
         name: 'Copy the Terraform source of empty (no version yet)',
       }),
     ).toBeDisabled();
+  });
+
+  /**
+   * Verifies: Copy Terraform source reads the Module by its ID, since the list has no versions, and copies the highest version's urlLink.
+   * Interacts with: ModulesService.getModule (stub), ngx-clipboard's ClipboardService (stub; jsdom has no clipboard), MatSnackBar (real).
+   * Data: vm, whose full record lists v1.10.0 above v1.9.0.
+   */
+  it("copies the latest version's Terraform source after reading the Module", async () => {
+    const { user, modulesApi, clipboard } = await renderModuleList({
+      getModule: () =>
+        of<Module>({
+          id: 'mod1',
+          versions: [
+            { name: 'v1.10.0', urlLink: vmSource },
+            { name: 'v1.9.0', urlLink: 'old' },
+          ],
+        }),
+    });
+
+    await user.click(
+      within(rowOf('vm')).getByRole('button', {
+        name: 'Copy the Terraform source of vm',
+      }),
+    );
+
+    expect(modulesApi.getModule).toHaveBeenCalledWith('mod1');
+    expect(clipboard.copy).toHaveBeenCalledWith(vmSource);
+    expect(
+      await screen.findByText('Copied the Terraform source of vm'),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: when the Module can't be read, nothing is copied and a snack bar says so.
+   * Interacts with: ModulesService.getModule (throwError stub), ClipboardService (stub), MatSnackBar (real).
+   * Data: vm.
+   */
+  it("copies nothing and says so when the Module can't be read", async () => {
+    const { user, clipboard } = await renderModuleList({
+      getModule: () => throwError(() => new Error('boom')),
+    });
+
+    await user.click(
+      within(rowOf('vm')).getByRole('button', {
+        name: 'Copy the Terraform source of vm',
+      }),
+    );
+
+    expect(clipboard.copy).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Couldn't read vm to copy its Terraform source"),
+    ).toBeInTheDocument();
   });
 
   /**

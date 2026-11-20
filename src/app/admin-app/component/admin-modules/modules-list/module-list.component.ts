@@ -26,7 +26,13 @@ import {
   MatRowDef,
   MatRow,
 } from '@angular/material/table';
-import { Module, ModuleSource } from '../../../../generated/caster-api';
+import {
+  Module,
+  ModuleSource,
+  ModulesService,
+} from '../../../../generated/caster-api';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { take } from 'rxjs/operators';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatSuffix } from '@angular/material/form-field';
@@ -34,7 +40,7 @@ import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
-import { ClipboardModule } from 'ngx-clipboard';
+import { ClipboardService } from 'ngx-clipboard';
 import { DatePipe } from '@angular/common';
 import { MatCard } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -43,9 +49,14 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 export const GITLAB_PROVIDER = 'gitlab';
 
 /**
- * A Module as the table shows it: with the name of its highest version, and
- * the source it came from, which decides whether its row can be synced. The
- * source is not a column: a git source's name already starts the Path.
+ * A Module as the table shows it: with the name of its highest version
+ * (latestVersion, '' when it has none), and the source it came from, which
+ * decides whether its row can be synced. The source is not a column: a git
+ * source's name already starts the Path.
+ *
+ * The Modules list endpoint never returns a Module's versions, only their
+ * count and, when asked for, the latest version's name. A row therefore has no
+ * versions; the Terraform source of the latest version is fetched on demand.
  */
 export interface ModuleRow extends Module {
   source: string;
@@ -111,7 +122,6 @@ export function moduleSourceOf(
     MatSortHeader,
     MatCellDef,
     MatCell,
-    ClipboardModule,
     MatHeaderRowDef,
     MatHeaderRow,
     MatRowDef,
@@ -123,6 +133,9 @@ export function moduleSourceOf(
 })
 export class AdminModuleListComponent implements OnInit, OnChanges {
   private confirmService = inject(CrucibleDialogService);
+  private modulesApi = inject(ModulesService);
+  private clipboard = inject(ClipboardService);
+  private snackBar = inject(MatSnackBar);
 
   public displayedColumns: string[] = [
     'actions',
@@ -170,8 +183,7 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
       this.dataSource.data = (this.modules() ?? []).map((module) => ({
         ...module,
         source: moduleSourceOf(module, sources)?.name ?? '',
-        // The API lists a Module's versions highest first.
-        latestVersion: module.versions?.[0]?.name ?? '',
+        latestVersion: module.latestVersion ?? '',
       }));
     }
   }
@@ -218,12 +230,36 @@ export class AdminModuleListComponent implements OnInit, OnChanges {
   }
 
   /**
-   * The value for a module block's source argument, for the latest version, as
-   * the API writes it, e.g. git::https://git.example.com/org/repo.git//vm?ref=v1.2.0.
+   * Copy the value for a module block's source argument, for the latest
+   * version, as the API writes it, e.g.
+   * git::https://git.example.com/org/repo.git//vm?ref=v1.2.0. The list has no
+   * versions, so the Module is read by its ID first.
    */
-  terraformSource(row: ModuleRow): string | null {
-    // The API lists a Module's versions highest first.
-    return row.versions?.[0]?.urlLink || null;
+  copyTerraformSource(row: ModuleRow) {
+    this.modulesApi
+      .getModule(row.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (module) => {
+          const source = module.versions?.[0]?.urlLink;
+          if (source) {
+            this.clipboard.copy(source);
+            this.notify(`Copied the Terraform source of ${row.name}`);
+          } else {
+            this.notify(`${row.name} has no version to copy yet`);
+          }
+        },
+        error: () =>
+          this.notify(`Couldn't read ${row.name} to copy its Terraform source`),
+      });
+  }
+
+  private notify(message: string) {
+    this.snackBar.open(message, 'Dismiss', {
+      duration: 3000,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+    });
   }
 
   /** When the Module stopped being found in its source, for the viewer, or null while it is still there. */

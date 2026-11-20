@@ -24,18 +24,28 @@ export class ModuleService {
   /**
    * Loads every Module. Listing them syncs the module sources first; pass
    * forceUpdate to re-read every version even when a source looks unchanged.
+   * includeLatestVersion asks for each Module's latestVersion, the name of its
+   * highest version, without the versions themselves.
    */
   load(
     includeVersions: boolean,
     includeVerionsCount: boolean,
     forceUpdate = false,
+    includeLatestVersion = false,
   ): Observable<Module[]> {
     this.moduleStore.setLoading(true);
     return this.modulesService
-      .getAllModules(includeVersions, includeVerionsCount, forceUpdate)
+      .getAllModules(
+        includeVersions,
+        includeVerionsCount,
+        forceUpdate,
+        undefined,
+        // Only asked for when wanted, so other callers' requests are unchanged.
+        includeLatestVersion || undefined,
+      )
       .pipe(
         tap((modules: Module[]) => {
-          this.upsertMany(modules, includeVersions);
+          this.upsertMany(modules, includeVersions, includeLatestVersion);
         }),
         tap(() => {
           this.moduleStore.setLoading(false);
@@ -61,14 +71,23 @@ export class ModuleService {
       );
   }
 
-  private upsertMany(modules: Module[], includeVersions: boolean) {
+  private upsertMany(
+    modules: Module[],
+    includeVersions: boolean,
+    includeLatestVersion = false,
+  ) {
     let objs = modules;
 
-    if (!includeVersions) {
-      // this call does not include versions, so don't
+    if (!includeVersions || !includeLatestVersion) {
+      // this call does not include versions or latest versions, so don't
       // overwrite any we already have
       objs = modules.map((x) => {
-        delete x.versions;
+        if (!includeVersions) {
+          delete x.versions;
+        }
+        if (!includeLatestVersion) {
+          delete x.latestVersion;
+        }
         return x;
       });
     }
