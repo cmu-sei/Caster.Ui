@@ -3,6 +3,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ApplicationRef, NgZone } from '@angular/core';
+import { Subject } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import {
   MatBottomSheet,
@@ -143,5 +144,41 @@ describe('SystemMessageService', () => {
     expect(screen.getAllByRole('heading', { name: 'API Error' })).toHaveLength(
       1,
     );
+  });
+
+  /**
+   * Verifies: a replaced sheet finishing its exit does not clear the duplicate mark of a newer sheet with the same message.
+   * Interacts with: a fake MatBottomSheet whose sheets are dismissed by the test.
+   * Data: message A opened, replaced by B, A opened again, then the first A reports dismissed, then A is requested again.
+   */
+  it('keeps the duplicate mark of the newest sheet when an older one is dismissed', () => {
+    vi.useFakeTimers();
+    const dismissed: Subject<void>[] = [];
+    const open = vi.fn(() => {
+      const done = new Subject<void>();
+      dismissed.push(done);
+      return { afterDismissed: () => done.asObservable() };
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        SystemMessageService,
+        { provide: MatBottomSheet, useValue: { open } },
+      ],
+    });
+    const service = TestBed.inject(SystemMessageService);
+    const show = (title: string) => {
+      service.displayMessage(title, 'details');
+      vi.runAllTimers();
+    };
+
+    show('A');
+    show('B');
+    show('A');
+    expect(open).toHaveBeenCalledTimes(3);
+
+    dismissed[0].next();
+    show('A');
+
+    expect(open).toHaveBeenCalledTimes(3);
   });
 });

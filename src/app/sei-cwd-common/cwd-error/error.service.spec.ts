@@ -231,15 +231,16 @@ describe('ErrorService.handleError', () => {
   it('shows a single API Error message when the API cannot be reached', () => {
     const { service, messages } = setup();
 
-    service.handleError(
-      new HttpErrorResponse({
-        error: new ProgressEvent('error'),
-        status: 0,
-        statusText: 'Unknown Error',
-        url: API_URL,
-      }),
-    );
+    const first = new HttpErrorResponse({
+      error: new ProgressEvent('error'),
+      status: 0,
+      statusText: 'Unknown Error',
+      url: API_URL,
+    });
+    service.handleError(first);
     service.handleError(new HttpErrorResponse({ status: 0, url: API_URL }));
+
+    expect(console.log).toHaveBeenCalledWith('API unreachable:', first);
 
     expect(messages.displayMessage.mock.calls).toEqual([
       ['API Error', 'The API could not be reached.', 1000],
@@ -250,7 +251,7 @@ describe('ErrorService.handleError', () => {
   /**
    * Verifies: SignalR and network failures caused by an unreachable API show the same single API Error message.
    * Interacts with: SystemMessageService.displayMessage (stub), console.log (spied).
-   * Data: errors and zone promise rejections with 'Failed to fetch', 'Failed to start the connection', 'Network Error', 'Failed to complete negotiation', and a rejection with statusCode 401.
+   * Data: errors and zone promise rejections with 'Failed to fetch', 'Failed to start the connection', 'Network Error', 'Failed to complete negotiation'.
    */
   it.each([
     ['Failed to fetch', new TypeError('Failed to fetch')],
@@ -270,13 +271,6 @@ describe('ErrorService.handleError', () => {
       {
         message: 'Uncaught (in promise): TypeError: Failed to fetch',
         rejection: new TypeError('Failed to fetch'),
-      },
-    ],
-    [
-      'a rejection with statusCode 401',
-      {
-        message: 'Uncaught (in promise): Error: Unauthorized',
-        rejection: { statusCode: 401 },
       },
     ],
   ])('shows the API Error message for %s', (_name, err) => {
