@@ -168,7 +168,7 @@ describe('ErrorService.handleError', () => {
 
   /**
    * Verifies: an HTTP error with an empty body makes handleError itself throw, so the user sees no message.
-   * Interacts with: SystemMessageService.displayMessage (stub, asserted not called).
+   * Interacts with: SystemMessageService.displayMessage (stub).
    * Data: a 401 with no body (HttpErrorResponse.error is null), as the JWT bearer challenge sends.
    */
   it('throws for an HTTP error with an empty body', () => {
@@ -248,8 +248,8 @@ describe('ErrorService.handleError', () => {
   });
 
   /**
-   * Verifies: SignalR and network failures caused by an unreachable API are only logged, not shown.
-   * Interacts with: SystemMessageService.displayMessage (stub, asserted not called), console.log (spied).
+   * Verifies: SignalR and network failures caused by an unreachable API show the same single API Error message.
+   * Interacts with: SystemMessageService.displayMessage (stub), console.log (spied).
    * Data: errors and zone promise rejections with 'Failed to fetch', 'Failed to start the connection', 'Network Error', 'Failed to complete negotiation', and a rejection with statusCode 401.
    */
   it.each([
@@ -279,12 +279,17 @@ describe('ErrorService.handleError', () => {
         rejection: { statusCode: 401 },
       },
     ],
-  ])('only logs %s', (_name, err) => {
+  ])('shows the API Error message for %s', (_name, err) => {
     const { service, messages } = setup();
 
     service.handleError(err);
 
-    expect(messages.displayMessage).not.toHaveBeenCalled();
+    expect(messages.displayMessage).toHaveBeenCalledTimes(1);
+    expect(messages.displayMessage).toHaveBeenCalledWith(
+      'API Error',
+      'The API could not be reached.',
+      1000,
+    );
     expect(console.log).toHaveBeenCalledWith('API unreachable:', err);
   });
 });

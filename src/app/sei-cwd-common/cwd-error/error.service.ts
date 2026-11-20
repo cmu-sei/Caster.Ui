@@ -24,12 +24,7 @@ export class ErrorService implements ErrorHandler {
       const apiError = err as HttpErrorResponse;
       if (apiError.status === 0) {
         // The browser could not reach the API at all (it is down, or the network is).
-        console.log('API Error', 'The API could not be reached.');
-        messageService.displayMessage(
-          'API Error',
-          'The API could not be reached.',
-          1000,
-        );
+        this.showApiUnreachable(messageService);
         return;
       }
       let problemDetails: ProblemDetails = null;
@@ -59,9 +54,9 @@ export class ErrorService implements ErrorHandler {
       console.log(title);
       console.log(apiError);
     } else if (this.isApiUnreachable(err)) {
-      // SignalR or another request failed because the API is down. The HTTP
-      // error handler above reports that once, so only log these.
+      // SignalR or another request failed because the API is down.
       console.log('API unreachable:', err);
+      this.showApiUnreachable(messageService);
       return;
     } else {
       // A client-side or network error occurred.
@@ -73,6 +68,16 @@ export class ErrorService implements ErrorHandler {
     }
     // Delay 1 second to allow page to load.  This prevents error message from popping up irregularly
     messageService.displayMessage(title, message, 1000);
+  }
+
+  private showApiUnreachable(messageService: SystemMessageService) {
+    // SystemMessageService drops a repeat of a message that is already open.
+    console.log('API Error', 'The API could not be reached.');
+    messageService.displayMessage(
+      'API Error',
+      'The API could not be reached.',
+      1000,
+    );
   }
 
   private isApiUnreachable(err: unknown): boolean {
