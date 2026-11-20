@@ -2,7 +2,11 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
-import { Module, ModuleSource } from 'src/app/generated/caster-api';
+import {
+  Module,
+  ModuleScope,
+  ModuleSource,
+} from 'src/app/generated/caster-api';
 import {
   LEFTOVER_KEY,
   LEFTOVER_TITLE,
@@ -13,6 +17,7 @@ import {
   moduleSourceOf,
   sortModules,
   sortSourceRows,
+  sourceAccessRows,
   sourceStatus,
   sourceTableRows,
   toModuleRow,
@@ -284,6 +289,80 @@ describe('sortModules', () => {
   });
 });
 
+describe('sourceAccessRows', () => {
+  /**
+   * Verifies: each source gets the access summary the scopes work out, with who by name in its tooltip.
+   * Interacts with: sourceAccess and accessSummary (real).
+   * Data: a scope allowing cmu, assigned to Range A.
+   */
+  it('says who may use each source', () => {
+    const scope: ModuleScope = {
+      id: 's1',
+      name: 'CMU access',
+      paths: ['cmu'],
+      projects: [{ projectId: 'p1', name: 'Range A' }],
+      projectGroups: [],
+    };
+    const rows = sourceAccessRows([cmu, sei], [scope]);
+
+    expect(rows.get('cmu').tooltip).toContain('Projects: Range A.');
+    expect(rows.get('cmu').summary.text).not.toBe(rows.get('sei').summary.text);
+    expect(rows.get('cmu').folderNote).toBeNull();
+  });
+
+  /**
+   * Verifies: a legacy scope for a folder of a source gives the source's row a muted note and the scope's name for its tooltip, leaves the summary and the project tooltip without it, and touches no other source.
+   * Interacts with: sourceAccess and folderScopesNote (real).
+   * Data: a scope for cmu/exercise-x assigned to Range A.
+   */
+  it('notes a legacy folder scope on its source, not as access', () => {
+    const scope: ModuleScope = {
+      id: 's2',
+      name: 'Old folder',
+      paths: ['cmu/exercise-x'],
+      projects: [{ projectId: 'p1', name: 'Range A' }],
+      projectGroups: [],
+    };
+    const rows = sourceAccessRows([cmu, sei], [scope]);
+
+    expect(rows.get('cmu').summary.text).toBe('Only projects with no scope');
+    expect(rows.get('cmu').tooltip).not.toContain('Range A');
+    expect(rows.get('cmu').folderNote).toBe(
+      '1 scope limits access to folders of this source.',
+    );
+    expect(rows.get('cmu').folderTooltip).toBe('Old folder');
+    expect(rows.get('sei').folderNote).toBeNull();
+  });
+});
+
+describe('shared sources', () => {
+  /**
+   * Verifies: a shared source is open to every project whatever the scopes say, with the shared tooltip and no folder note.
+   * Interacts with: sourceAccessRows (real).
+   * Data: cmu shared, a scope for cmu/x assigned to nobody else, sei not shared.
+   */
+  it('is open to every project and says why', () => {
+    const scope: ModuleScope = {
+      id: 's3',
+      name: 'Old',
+      paths: ['cmu/x', 'sei'],
+      projects: [{ projectId: 'p1', name: 'Range A' }],
+      projectGroups: [],
+    };
+    const rows = sourceAccessRows([{ ...cmu, shared: true }, sei], [scope]);
+
+    expect(rows.get('cmu')).toEqual({
+      summary: { kind: 'open', text: 'Open to every project', note: null },
+      tooltip: 'Shared source: every project can use it',
+      shared: true,
+      folderNote: null,
+      folderTooltip: '',
+    });
+    expect(rows.get('sei').shared).toBe(false);
+    expect(rows.get('sei').summary.text).toBe('Allowed for 1 project');
+  });
+});
+
 describe('sourceStatus', () => {
   /**
    * Verifies: a source's last read gives a short word with no time, the helpful detail (error, API message) without a time, and a tooltip meaning; a failed source that still shows older Modules keeps that time in the tooltip only.
@@ -347,13 +426,25 @@ describe('sourceStatus', () => {
 describe('the table rows', () => {
   const sources = [sei, cmu, gitlab];
   const groups = groupModules([vm, exercise, old, dns], sources);
+  const access = new Map([
+    [
+      'cmu',
+      {
+        summary: { kind: 'allowed', text: 'Allowed', note: null },
+        tooltip: 't',
+        folderNote: null,
+        folderTooltip: '',
+      },
+    ],
+  ]) as unknown as ReturnType<typeof sourceAccessRows>;
+
   /**
-   * Verifies: the rows are the sources by name, each with its status and a detail id of its own, then the leftover group last with no source or status.
+   * Verifies: the rows are the sources by name, each with its status, its access when known and a detail id of its own, then the leftover group last with no source, status or access.
    * Interacts with: viewGroups, sourceStatus (real).
    * Data: sources out of order; old is a leftover.
    */
   it('lists the sources, then the leftover group', () => {
-    const rows = sourceTableRows(viewGroups(sources, groups, ''));
+    const rows = sourceTableRows(viewGroups(sources, groups, ''), access);
 
     expect(rows.map((r) => r.name)).toEqual([
       'cmu',
@@ -361,12 +452,15 @@ describe('the table rows', () => {
       'sei',
       LEFTOVER_TITLE,
     ]);
+    expect(rows[0].access.summary.text).toBe('Allowed');
+    expect(rows[1].access).toBeNull();
     expect(rows[0].status.kind).toBe('pending');
     expect(new Set(rows.map((r) => r.detailId)).size).toBe(4);
     expect(rows[3]).toMatchObject({
       key: LEFTOVER_KEY,
       source: null,
       status: null,
+      access: null,
     });
   });
 
@@ -378,9 +472,11 @@ describe('the table rows', () => {
   it('has no leftover row when there are no leftovers', () => {
     const rows = sourceTableRows(
       viewGroups(sources, groupModules([vm], sources), ''),
+      null,
     );
 
     expect(rows.map((r) => r.name)).toEqual(['cmu', 'gitlab', 'sei']);
+    expect(rows[0].access).toBeNull();
   });
 
   /**
@@ -409,6 +505,7 @@ describe('the table rows', () => {
       ];
       const rows = sourceTableRows(
         viewGroups(read, groupModules([vm, exercise, old], read), ''),
+        null,
       );
 
       const sorted = sortSourceRows(

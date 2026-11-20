@@ -25,12 +25,13 @@ import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ModuleService, ModuleQuery } from '../../../modules/state';
 import {
   Module,
+  ModuleScope,
   ModuleSource,
   ModulesService,
   SystemPermission,
 } from '../../../generated/caster-api';
-import { EMPTY } from 'rxjs';
-import { catchError, finalize, take } from 'rxjs/operators';
+import { EMPTY, Observable, combineLatest, of } from 'rxjs';
+import { catchError, finalize, map, switchMap, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatIcon } from '@angular/material/icon';
@@ -65,9 +66,16 @@ import {
   groupModules,
   isGitlabSource,
   sortSourceRows,
+  SHARED_TOOLTIP,
+  sourceAccessRows,
   sourceTableRows,
   viewGroups,
 } from './module-source-groups';
+import { ModuleScopeService } from 'src/app/module-scopes/module-scope.service';
+import {
+  ProjectAccessDialogComponent,
+  ProjectAccessDialogData,
+} from './project-access-dialog/project-access-dialog.component';
 
 /** The refreshing key for Refresh All Sources. */
 export const ALL_SOURCES = '*';
@@ -121,6 +129,7 @@ export class AdminModulesComponent implements OnInit {
   private permissionService = inject(PermissionService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private moduleScopeService = inject(ModuleScopeService);
 
   readonly modules = toSignal(this.moduleQuery.selectAll(), {
     initialValue: [] as Module[],
@@ -145,8 +154,27 @@ export class AdminModulesComponent implements OnInit {
 
   readonly canEdit = toSignal(this.canEdit$, { initialValue: false });
 
+  /** Viewing the Module Scopes needs ViewModules or ManageModules, as the API requires. */
+  private canViewScopes$ = combineLatest([
+    this.permissionService.hasPermission(SystemPermission.ViewModules),
+    this.canEdit$,
+  ]).pipe(map(([view, manage]) => view || manage));
+
   /** Whether the API listed the sources; an older one does not. */
   readonly sourcesListed = signal(true);
+
+  public scopes$ = this.moduleScopeService.scopes$;
+  private readonly allScopes = toSignal(this.scopes$, {
+    initialValue: [] as ModuleScope[],
+  });
+  /** Whether the scopes were read: false when the user may not view them or the API failed. */
+  readonly scopesLoaded = signal(false);
+  /** Why who may use a source is not shown. */
+  readonly scopesUnavailable = signal<string | null>(null);
+  /** The scopes, or null when they are not known. */
+  readonly scopes = computed(() =>
+    this.scopesLoaded() ? this.allScopes() : null,
+  );
 
   /** What the search box holds. */
   readonly search = signal('');
@@ -163,14 +191,19 @@ export class AdminModulesComponent implements OnInit {
   readonly view = computed(() =>
     viewGroups(this.sources(), this.groups(), this.search()),
   );
+  readonly access = computed(() => {
+    const scopes = this.scopes();
+    return scopes ? sourceAccessRows(this.sources(), scopes) : null;
+  });
   /** The table's rows: the sources the search keeps, then the leftover group. */
-  readonly rows = computed(() => sourceTableRows(this.view()));
+  readonly rows = computed(() => sourceTableRows(this.view(), this.access()));
 
   readonly displayedColumns = [
     'actions',
     'name',
     'status',
     'modules',
+    'access',
     'lastSuccess',
   ];
   readonly dataSource = new MatTableDataSource<SourceTableRow>([]);
@@ -244,6 +277,19 @@ export class AdminModulesComponent implements OnInit {
       : 'There are no module sources to refresh';
   });
 
+  readonly sharedTooltip = SHARED_TOOLTIP;
+
+  /** Why Project access is unavailable on a source, or null when it can be used. */
+  accessDisabledReason(row: SourceTableRow): string | null {
+    if (!this.canEdit()) {
+      return 'Changing project access needs the ManageModules permission';
+    }
+    if (row.source?.shared) {
+      return `${SHARED_TOOLTIP}, so there is nothing to assign`;
+    }
+    return row.access ? null : this.scopesUnavailable();
+  }
+
   /** The source's clone URL, when the API reports it (credentials already removed). */
   repositoryUrl(source: ModuleSource): string | null {
     return (source as ModuleSource & { url?: string | null }).url || null;
@@ -294,6 +340,7 @@ export class AdminModulesComponent implements OnInit {
    * Initialize component
    */
   ngOnInit() {
+    this.loadScopes();
     this.load();
   }
 
@@ -317,6 +364,57 @@ export class AdminModulesComponent implements OnInit {
       )
       // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
       .subscribe();
+  }
+
+  /**
+   * Read the Module Scopes once, in one request for every scope with the projects and groups
+   * it is assigned to: that is what says who may use each source, so nothing is asked per
+   * project. Without the permission, or when the API can't, the sources are shown without it.
+   */
+  private loadScopes() {
+    this.canViewScopes$
+      .pipe(
+        take(1),
+        switchMap((canView) => {
+          if (!canView) {
+            this.scopesUnavailable.set(
+              'Who may use a source needs the ViewModules or ManageModules permission.',
+            );
+            return of(null);
+          }
+          return this.moduleScopeService.load().pipe(
+            catchError(() => {
+              this.scopesUnavailable.set(
+                "Module Scopes couldn't be loaded, so who may use each source isn't shown.",
+              );
+              return of(null);
+            }),
+          );
+        }),
+      )
+      .subscribe((scopes) => {
+        this.scopesLoaded.set(!!scopes);
+        if (scopes) {
+          this.scopesUnavailable.set(null);
+        }
+      });
+  }
+
+  /** Project access for a source: who may use it, through the source's own scope. */
+  manageAccess(source: string) {
+    if (!this.canEdit()) {
+      return;
+    }
+    this.dialog.open<
+      ProjectAccessDialogComponent,
+      ProjectAccessDialogData,
+      ModuleScope
+    >(ProjectAccessDialogComponent, {
+      data: { source, scopes: this.moduleScopeService.currentScopes() },
+      width: '680px',
+      maxWidth: '90vw',
+      disableClose: true,
+    });
   }
 
   /**

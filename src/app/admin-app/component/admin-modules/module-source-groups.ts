@@ -1,7 +1,17 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Module, ModuleSource } from 'src/app/generated/caster-api';
+import {
+  Module,
+  ModuleScope,
+  ModuleSource,
+} from 'src/app/generated/caster-api';
+import {
+  AccessSummary,
+  accessSummary,
+  folderScopesNote,
+  sourceAccess,
+} from 'src/app/module-scopes/module-scope-rules';
 
 /** The provider name of the legacy GitLab source. */
 export const GITLAB_PROVIDER = 'gitlab';
@@ -236,6 +246,71 @@ export function sortModules(
   );
 }
 
+/** What a source's row says about who may use it, and who by name for its tooltip. */
+export interface SourceAccessRow {
+  summary: AccessSummary;
+  tooltip: string;
+  /** A shared source: every project may use it, so there is nothing to assign. */
+  shared: boolean;
+  /** A muted line about legacy scopes limiting access to folders of the source, or null. */
+  folderNote: string | null;
+  /** The names of those scopes, for the note's tooltip. */
+  folderTooltip: string;
+}
+
+/** What a shared source's row and tooltip say. */
+export const SHARED_TOOLTIP = 'Shared source: every project can use it';
+
+/** Each source's access summary, by name. */
+export function sourceAccessRows(
+  sources: readonly ModuleSource[],
+  scopes: ModuleScope[],
+): Map<string, SourceAccessRow> {
+  const names = sources.map((s) => s.name);
+  return new Map(
+    sources.map((s): [string, SourceAccessRow] => {
+      if (s.shared) {
+        return [
+          s.name,
+          {
+            summary: {
+              kind: 'open',
+              text: 'Open to every project',
+              note: null,
+            },
+            tooltip: SHARED_TOOLTIP,
+            shared: true,
+            folderNote: null,
+            folderTooltip: '',
+          },
+        ];
+      }
+      const access = sourceAccess(s.name, names, scopes);
+      const summary = accessSummary(access);
+      const parts = [
+        access.wholeProjects.length
+          ? `Projects: ${access.wholeProjects.join(', ')}.`
+          : '',
+        access.wholeGroups.length
+          ? `Project groups: ${access.wholeGroups.join(', ')}.`
+          : '',
+        summary.note ?? '',
+        'A project with no scope can use every source.',
+      ];
+      return [
+        s.name,
+        {
+          summary,
+          tooltip: parts.filter((x) => !!x).join(' '),
+          shared: false,
+          folderNote: folderScopesNote(access),
+          folderTooltip: access.folderScopes.map((x) => x.name).join(', '),
+        },
+      ];
+    }),
+  );
+}
+
 /** What a source's row says about its last read. */
 export interface SourceStatus {
   kind: 'ok' | 'empty' | 'warning' | 'failed' | 'pending';
@@ -322,17 +397,23 @@ export interface SourceTableRow extends GroupView {
   /** The configured source; null for the leftover group. */
   source: ModuleSource | null;
   status: SourceStatus | null;
+  /** Who may use the source; null for the leftovers and while the scopes are not known. */
+  access: SourceAccessRow | null;
   /** The id of the row's detail, which its expand button controls. */
   detailId: string;
 }
 
 /** The table's rows for a view: the sources as they are sorted, then the leftover group. */
-export function sourceTableRows(view: GroupedView): SourceTableRow[] {
+export function sourceTableRows(
+  view: GroupedView,
+  access: ReadonlyMap<string, SourceAccessRow> | null,
+): SourceTableRow[] {
   const rows: SourceTableRow[] = view.sources.map((item, index) => ({
     ...item,
     key: item.source.name,
     name: item.source.name,
     status: sourceStatus(item.source),
+    access: access?.get(item.source.name) ?? null,
     detailId: `source-modules-${index}`,
   }));
   if (view.leftovers) {
@@ -342,6 +423,7 @@ export function sourceTableRows(view: GroupedView): SourceTableRow[] {
       name: LEFTOVER_TITLE,
       source: null,
       status: null,
+      access: null,
       detailId: 'source-modules-leftovers',
     });
   }
@@ -368,6 +450,8 @@ export function sortSourceRows(
           return row.status?.word ?? '';
         case 'modules':
           return row.total;
+        case 'access':
+          return row.access?.summary.text ?? '';
         case 'lastSuccess':
           return row.source?.lastSuccess
             ? Date.parse(row.source.lastSuccess)

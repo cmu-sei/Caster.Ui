@@ -13,6 +13,8 @@ import { screen, within } from '@testing-library/angular';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import {
   Module,
+  ModuleScope,
+  ModuleScopesService,
   ModuleSource,
   ModulesService,
   SystemPermission,
@@ -24,6 +26,10 @@ import {
 } from 'src/app/test-utils/mock-permission-data.service';
 import { renderComponent } from 'src/app/test-utils/render-component';
 import { AdminModulesComponent } from './modules.component';
+import {
+  ProjectAccessDialogComponent,
+  ProjectAccessDialogData,
+} from './project-access-dialog/project-access-dialog.component';
 import { GitlabProjectDialogComponent } from './gitlab-project-dialog/gitlab-project-dialog.component';
 
 const healthy: ModuleSource = {
@@ -63,9 +69,18 @@ const stale: Module = {
 } as Module;
 const stray: Module = { id: 'mod3', name: 'stray', path: 'elsewhere/stray' };
 
+const cmuScope: ModuleScope = {
+  id: 's1',
+  name: 'CMU access',
+  paths: ['local'],
+  projects: [{ projectId: 'p1', name: 'Range A' }],
+  projectGroups: [],
+};
+
 interface Options {
   modules?: Module[];
   sources?: () => Observable<ModuleSource[]>;
+  scopes?: () => Observable<ModuleScope[]>;
   confirmed?: boolean;
   /** What the GitLab project dialog returns when it closes; undefined is a cancel. */
   projectId?: string;
@@ -78,6 +93,7 @@ async function renderModules(
   {
     modules = [vm],
     sources = () => of<ModuleSource[]>([healthy]),
+    scopes = () => of<ModuleScope[]>([cmuScope]),
     confirmed = true,
     projectId,
     sync = () => of(null),
@@ -90,10 +106,15 @@ async function renderModules(
     createTerrraformModuleFromRepository: vi.fn(() => sync()),
     deleteModule: vi.fn(() => remove()),
   } satisfies ApiStub<ModulesService>;
+  const scopesApi = {
+    getModuleScopes: vi.fn(() => scopes()),
+    deleteModuleScope: vi.fn(() => of(undefined)),
+  } satisfies Partial<ApiStub<ModuleScopesService>>;
   const open = vi.fn<
-    (component: unknown) => {
-      afterClosed: () => Observable<string | undefined>;
-    }
+    (
+      component: unknown,
+      config: { data: ProjectAccessDialogData },
+    ) => { afterClosed: () => Observable<string | undefined> }
   >(() => ({ afterClosed: () => of(projectId) }));
   const confirm = vi.fn(() => ({ afterClosed: () => of(confirmed) }));
   const view = await renderComponent(AdminModulesComponent, {
@@ -101,6 +122,7 @@ async function renderModules(
     providers: [
       ...permissionDataProviders(grants),
       { provide: ModulesService, useValue: modulesApi },
+      { provide: ModuleScopesService, useValue: scopesApi },
       { provide: MatDialog, useValue: { open } },
       { provide: CrucibleDialogService, useValue: { confirm } },
     ],
@@ -109,6 +131,7 @@ async function renderModules(
     ...view,
     user: userEvent.setup(),
     modulesApi,
+    scopesApi,
     open,
     confirm,
   };
@@ -147,6 +170,9 @@ function listed(): string[] {
 
 const NOT_CONFIGURED = 'Not in a configured source';
 const manage = { system: [SystemPermission.ManageModules] };
+const manageAndView = {
+  system: [SystemPermission.ManageModules, SystemPermission.ViewModules],
+};
 const view = { system: [SystemPermission.ViewModules] };
 
 describe('AdminModulesComponent', () => {
@@ -166,6 +192,7 @@ describe('AdminModulesComponent', () => {
       true,
       false,
       undefined,
+      undefined,
       true,
     );
     expect(modulesApi.getModuleSources).toHaveBeenCalledTimes(1);
@@ -180,11 +207,11 @@ describe('AdminModulesComponent', () => {
   });
 
   /**
-   * Verifies: the page has the standard admin toolbar (section icon, Search, paginator), a table of sources with the actions column first; there is no separate Module Sources panel.
+   * Verifies: the page has the standard admin toolbar (section icon, Search, paginator), a table of sources with the actions column first, and no Module Scopes panel or Add button; there is no separate Module Sources panel.
    * Interacts with: the toolbar and table templates.
    * Data: one source.
    */
-  it('shows the toolbar and the table of sources', async () => {
+  it('shows the toolbar and the table of sources, with no Module Scopes panel', async () => {
     await renderModules(manage);
 
     expect(screen.getByPlaceholderText('Search modules')).toBeInTheDocument();
@@ -194,13 +221,17 @@ describe('AdminModulesComponent', () => {
     expect(screen.queryByText('Module Sources')).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('columnheader').map((h) => h.textContent?.trim()),
-    ).toEqual(['', 'Name', 'Status', 'Modules', 'Last Updated']);
+    ).toEqual(['', 'Name', 'Status', 'Modules', 'Projects', 'Last Updated']);
+    expect(screen.queryByText('Module Scopes')).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Add Module Scope' }),
+    ).toBeNull();
   });
 
   /**
-   * Verifies: a source row shows its name and description, its status icon and word (no time), its Module count and when it was last updated, in columns.
+   * Verifies: a source row shows its name and description, its status icon and word (no time), its Module count, who may use it and when it was last updated, in columns.
    * Interacts with: the table templates, sourceStatus().
-   * Data: TZ UTC; local with a description, read successfully, one Module.
+   * Data: TZ UTC; local with a description, read successfully, one Module, covered by CMU access.
    */
   it('shows a source in its columns', async () => {
     vi.stubEnv('TZ', 'UTC');
@@ -216,7 +247,8 @@ describe('AdminModulesComponent', () => {
     expect(cells[2].textContent?.trim()).toBe('Updated');
     expect(cells[2].textContent).not.toContain('2026');
     expect(cells[3].textContent?.trim()).toBe('1');
-    expect(cells[4].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
+    expect(cells[4].textContent).toContain('Allowed for 1 project');
+    expect(cells[5].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
   });
 
   /**
@@ -239,7 +271,53 @@ describe('AdminModulesComponent', () => {
         name: "Couldn't be read. Showing its Modules from Oct 14, 2026, 12:30 PM UTC.",
       }),
     ).toBeInTheDocument();
-    expect(cells[4].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
+    expect(cells[5].textContent?.trim()).toBe('Oct 14, 2026, 12:30 PM UTC');
+  });
+
+  /**
+   * Verifies: a legacy scope limiting access to a folder of the source is not counted as allowing it, and a muted line says so, naming the scope in its tooltip.
+   * Interacts with: the Projects column.
+   * Data: a scope for local/exercise-x assigned to Range A, and no other scope.
+   */
+  it('notes a legacy folder scope without counting it', async () => {
+    const folderScope: ModuleScope = {
+      id: 's9',
+      name: 'Old folder',
+      paths: ['local/exercise-x'],
+      projects: [{ projectId: 'p1', name: 'Range A' }],
+      projectGroups: [],
+    };
+    await renderModules(view, { scopes: () => of([folderScope]) });
+
+    const cell = within(rowOf('local')).getAllByRole('cell')[4];
+    expect(cell.textContent).toContain('Only projects with no scope');
+    expect(cell.textContent).not.toContain('Allowed for');
+    expect(cell.textContent).toContain(
+      '1 scope limits access to folders of this source.',
+    );
+  });
+
+  /**
+   * Verifies: a shared source says it is open to every project with a lock-open icon, and its Project access button is disabled with the reason, so nothing opens.
+   * Interacts with: the Projects column, the Project access button, MatDialog.open (stub).
+   * Data: a shared source, ManageModules.
+   */
+  it('shows a shared source as open and explains Project access', async () => {
+    const { open } = await renderModules(manageAndView, {
+      sources: () => of([{ ...healthy, shared: true }]),
+    });
+
+    const cell = within(rowOf('local')).getAllByRole('cell')[4];
+    expect(cell.textContent).toContain('Open to every project');
+    expect(cell.querySelector('.mdi-lock-open-variant-outline')).toBeTruthy();
+    const button = screen.getByRole('button', {
+      name: 'Project access for local',
+    });
+    expect(button).toBeDisabled();
+    expect(button.parentElement).toHaveAccessibleDescription(
+      'Shared source: every project can use it, so there is nothing to assign',
+    );
+    expect(open).not.toHaveBeenCalled();
   });
 
   /**
@@ -350,8 +428,10 @@ describe('AdminModulesComponent', () => {
     ).toBe('1');
     expect(screen.queryByText('stale')).not.toBeInTheDocument();
     expect(listed()).toEqual(['local', NOT_CONFIGURED]);
-    // Not a configured source: no Refresh.
-    expect(within(group).queryByRole('button', { name: /Refresh/ })).toBeNull();
+    // Not a configured source: no Refresh or Project access.
+    expect(
+      within(group).queryByRole('button', { name: /Refresh|access/ }),
+    ).toBeNull();
 
     await user.click(
       screen.getByRole('button', {
@@ -681,6 +761,97 @@ describe('AdminModulesComponent', () => {
     ).toBeNull();
   });
 
+  describe('Module Scopes', () => {
+    /**
+     * Verifies: the scopes are read with one request for all of them, whatever the number of projects, and say on each source row who may use it.
+     * Interacts with: ModuleScopesService.getModuleScopes (stub).
+     * Data: one scope allowing local; ViewModules.
+     */
+    it('reads every scope in one request and shows who may use each source', async () => {
+      const { scopesApi } = await renderModules(view);
+
+      expect(scopesApi.getModuleScopes).toHaveBeenCalledTimes(1);
+      expect(
+        within(rowOf('local')).getByText(/1 project|Range A|Allowed/i),
+      ).toBeInTheDocument();
+    });
+
+    /**
+     * Verifies: ManageModules alone is enough to read the scopes, as the API allows either permission.
+     * Interacts with: ModuleScopesService.getModuleScopes (stub).
+     * Data: ManageModules only.
+     */
+    it('reads the scopes with ManageModules alone', async () => {
+      const { scopesApi } = await renderModules(manage);
+
+      expect(scopesApi.getModuleScopes).toHaveBeenCalledTimes(1);
+      expect(
+        within(rowOf('local')).getByText('Allowed for 1 project'),
+      ).toBeInTheDocument();
+    });
+
+    /**
+     * Verifies: without ViewModules or ManageModules no request is made, no scopes are passed on, and each row and the list say why.
+     * Interacts with: ModuleScopesService.getModuleScopes (stub, must not be called).
+     * Data: no permissions.
+     */
+    it('does not ask for the scopes without permission, and says why', async () => {
+      const { scopesApi } = await renderModules({});
+
+      expect(scopesApi.getModuleScopes).not.toHaveBeenCalled();
+      expect(
+        within(rowOf('local')).getByText(/ViewModules or ManageModules/),
+      ).toBeInTheDocument();
+    });
+
+    /**
+     * Verifies: when the scopes cannot be read (an older API, a failure), the page still lists sources and modules and says the scopes could not be loaded, without an error escaping.
+     * Interacts with: ModuleScopesService.getModuleScopes (rejects); test-setup fails any console.error.
+     * Data: 404.
+     */
+    it('degrades to sources without access when the scopes cannot be read', async () => {
+      await renderModules(view, {
+        scopes: () => throwError(() => new Error('404')),
+      });
+      expect(
+        within(rowOf('local')).getByText(/couldn't be loaded/),
+      ).toBeInTheDocument();
+    });
+
+    /**
+     * Verifies: Project access on a source row opens the dialog for that source with the scopes the page already has, and no reload.
+     * Interacts with: MatDialog.open (stub), the row's Project access button.
+     * Data: ManageModules and ViewModules; source local, covered by CMU access.
+     */
+    it('opens the access dialog for a source with it pre-selected', async () => {
+      const { user, open, modulesApi } = await renderModules(manageAndView);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Project access for local' }),
+      );
+
+      expect(open).toHaveBeenCalledTimes(1);
+      const [component, config] = open.mock.calls[0];
+      expect(component).toBe(ProjectAccessDialogComponent);
+      expect(config.data).toEqual({ source: 'local', scopes: [cmuScope] });
+      expect(modulesApi.getAllModules).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * Verifies: without ManageModules Project access is disabled and nothing opens.
+     * Interacts with: MatDialog.open (stub), the row's button.
+     * Data: ViewModules only.
+     */
+    it('opens no dialog without ManageModules', async () => {
+      const { open } = await renderModules(view);
+
+      expect(
+        screen.getByRole('button', { name: 'Project access for local' }),
+      ).toBeDisabled();
+      expect(open).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Refresh All Sources', () => {
     /**
      * Verifies: Refresh All Sources marks every source refreshing, forces the API to re-read every version (unlike the page load), and clears the mark once the modules are back.
@@ -697,8 +868,8 @@ describe('AdminModulesComponent', () => {
       );
 
       expect(modulesApi.getAllModules.mock.calls).toStrictEqual([
-        [false, true, false, undefined, true],
-        [false, true, true, undefined, true],
+        [false, true, false, undefined, undefined, true],
+        [false, true, true, undefined, undefined, true],
       ]);
       expect(
         screen.getByRole('button', { name: 'Refresh local' }),
