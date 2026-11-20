@@ -69,7 +69,6 @@ export class AssignmentService {
       ),
       switchMap(() =>
         this.moduleScopeService.assignmentsChanged(
-          changes.map((x) => x.projectId).filter((x) => !!x),
           changes.map((x) => x.moduleScopeId).filter((x) => !!x),
         ),
       ),
@@ -226,25 +225,6 @@ export function connectionGroupChanges(
       operation: AssignmentOperation.Remove,
       projectGroupId,
       connectionName,
-    })),
-  ];
-}
-
-/** One project's Module Scope changes. */
-export function projectScopeChanges(
-  projectId: string,
-  diff: AssignmentDiff,
-): AssignmentChange[] {
-  return [
-    ...diff.add.map((moduleScopeId) => ({
-      operation: AssignmentOperation.Add,
-      projectId,
-      moduleScopeId,
-    })),
-    ...diff.remove.map((moduleScopeId) => ({
-      operation: AssignmentOperation.Remove,
-      projectId,
-      moduleScopeId,
     })),
   ];
 }

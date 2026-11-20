@@ -1,7 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Module, ModuleScope } from '../generated/caster-api';
+import { ModuleScope } from '../generated/caster-api';
 
 /**
  * The paths of a Module Scope are module sources' names (cmu), which is all the UI makes. The
@@ -12,29 +12,6 @@ export function normalizeScopePath(path: string): string {
     .trim()
     .replace(/^\/+|\/+$/g, '')
     .trim();
-}
-
-/**
- * The Modules a project is offered: those in the store that the API listed for the project.
- * The store keeps every Module any page loaded, so it alone can't say what is on offer.
- * Null until the project's list has loaded.
- */
-export function offeredModules(
-  stored: Module[],
-  offeredIds: ReadonlySet<string> | null,
-): Module[] {
-  return offeredIds ? stored.filter((x) => offeredIds.has(x.id)) : [];
-}
-
-/**
- * Whether a Module a Design already uses is outside the project's Module Scopes: it keeps
- * working, but can't be added again. False until the project's list has loaded.
- */
-export function isOutsideScopes(
-  moduleId: string,
-  offeredIds: ReadonlySet<string> | null,
-): boolean {
-  return !!offeredIds && !offeredIds.has(moduleId);
 }
 
 /** The name a source's managed scope is made with, and the description it gets. */

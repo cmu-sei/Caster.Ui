@@ -8,13 +8,11 @@ import {
   AssignmentsService,
   ModuleScope,
   ModuleScopesService,
-  ProjectModuleAccess,
 } from '../generated/caster-api';
 import { getDefaultProviders } from '../test-utils/default-test-providers';
 import { ModuleScopeService } from '../module-scopes/module-scope.service';
 import {
   AssignmentService,
-  projectScopeChanges,
   scopeGroupChanges,
   scopeProjectChanges,
 } from './assignment.service';
@@ -22,18 +20,6 @@ import {
 const diff = { add: ['a'], remove: ['b'] };
 
 describe('Module Scope assignment changes', () => {
-  /**
-   * Verifies: one project's scope diff becomes Add and Remove changes naming the project and the scope, nothing else.
-   * Interacts with: projectScopeChanges (pure).
-   * Data: add a, remove b on project p1.
-   */
-  it("builds a project's changes", () => {
-    expect(projectScopeChanges('p1', diff)).toEqual([
-      { operation: 'Add', projectId: 'p1', moduleScopeId: 'a' },
-      { operation: 'Remove', projectId: 'p1', moduleScopeId: 'b' },
-    ]);
-  });
-
   /**
    * Verifies: one scope's project diff and group diff each become changes naming the scope, and a project or a group.
    * Interacts with: scopeProjectChanges and scopeGroupChanges (pure).
@@ -53,19 +39,16 @@ describe('Module Scope assignment changes', () => {
 
 describe('AssignmentService', () => {
   /**
-   * Verifies: after saving scope changes, the scopes and projects already loaded are read again, so the pages show the new assignments.
-   * Interacts with: AssignmentsService.editAssignments, ModuleScopesService.getModuleScope and getProjectModuleScopes (stubs), the real ModuleScopeService.
-   * Data: scope s1 and project p1 loaded; a change adds s1 to p1.
+   * Verifies: after saving scope changes, the scopes already loaded are read again, so the pages show the new assignments.
+   * Interacts with: AssignmentsService.editAssignments, ModuleScopesService.getModuleScope (stubs), the real ModuleScopeService.
+   * Data: scope s1 loaded; a change adds s1 to p1.
    */
-  it('re-reads the loaded scopes and projects after an edit', async () => {
+  it('re-reads the loaded scopes after an edit', async () => {
     const scopesApi = {
       getModuleScopes: vi.fn(() =>
         of<ModuleScope[]>([{ id: 's1', name: 'a' }]),
       ),
       getModuleScope: vi.fn((id: string) => of<ModuleScope>({ id, name: 'a' })),
-      getProjectModuleScopes: vi.fn((projectId: string) =>
-        of<ProjectModuleAccess>({ projectId, restricted: true }),
-      ),
     };
     const assignmentsApi = { editAssignments: vi.fn(() => of<unknown>(null)) };
     TestBed.configureTestingModule({
@@ -76,12 +59,10 @@ describe('AssignmentService', () => {
     });
     const scopes = TestBed.inject(ModuleScopeService);
     await firstValueFrom(scopes.load());
-    await firstValueFrom(scopes.loadProjectAccess('p1'));
-    scopesApi.getProjectModuleScopes.mockClear();
 
     await firstValueFrom(
       TestBed.inject(AssignmentService).edit(
-        projectScopeChanges('p1', { add: ['s1'], remove: [] }),
+        scopeProjectChanges('s1', { add: ['p1'], remove: [] }),
       ),
     );
 
@@ -89,6 +70,5 @@ describe('AssignmentService', () => {
       changes: [{ operation: 'Add', projectId: 'p1', moduleScopeId: 's1' }],
     });
     expect(scopesApi.getModuleScope).toHaveBeenCalledWith('s1');
-    expect(scopesApi.getProjectModuleScopes).toHaveBeenCalledWith('p1');
   });
 });

@@ -2,14 +2,12 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
-import { Module, ModuleScope } from '../generated/caster-api';
+import { ModuleScope } from '../generated/caster-api';
 import {
   accessSummary,
   folderScopesNote,
-  isOutsideScopes,
   managedScopeOf,
   normalizeScopePath,
-  offeredModules,
   sourceAccess,
 } from './module-scope-rules';
 
@@ -52,45 +50,6 @@ describe('managed scopes', () => {
     expect(managedScopeOf('cmu', scopes)?.id).toBe('b');
     expect(managedScopeOf('cmu', scopes.slice(0, 1))?.id).toBe('a');
     expect(managedScopeOf('sei', scopes)).toBeNull();
-  });
-});
-
-describe('the Modules a project is offered', () => {
-  const stored: Module[] = [
-    { id: 'm1', name: 'one' },
-    { id: 'm2', name: 'two' },
-    { id: 'm3', name: 'three' },
-  ];
-
-  /**
-   * Verifies: only the stored Modules the API listed for the project are offered, because the store keeps every Module any page loaded.
-   * Interacts with: offeredModules (pure).
-   * Data: three stored modules, two of them listed.
-   */
-  it('offers only the stored modules the API listed', () => {
-    expect(
-      offeredModules(stored, new Set(['m1', 'm3'])).map((x) => x.id),
-    ).toEqual(['m1', 'm3']);
-  });
-
-  /**
-   * Verifies: nothing is offered before the project's list has loaded, rather than the whole store.
-   * Interacts with: offeredModules (pure).
-   * Data: a null list.
-   */
-  it('offers nothing until the list has loaded', () => {
-    expect(offeredModules(stored, null)).toEqual([]);
-  });
-
-  /**
-   * Verifies: a Design's Module is flagged outside the scopes only once the list has loaded and lacks it.
-   * Interacts with: isOutsideScopes (pure).
-   * Data: a loaded list without m2; a null list.
-   */
-  it('flags a module outside the list, but not before it has loaded', () => {
-    expect(isOutsideScopes('m2', new Set(['m1']))).toBe(true);
-    expect(isOutsideScopes('m1', new Set(['m1']))).toBe(false);
-    expect(isOutsideScopes('m2', null)).toBe(false);
   });
 });
 
