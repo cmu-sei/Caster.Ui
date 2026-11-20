@@ -1,9 +1,11 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-
 .elevate {
-  box-shadow: 0 5px 5px -3px #0003, 0 8px 10px 1px #00000024, 0 3px 14px 2px #0000001f;
+  box-shadow:
+    0 5px 5px -3px #0003,
+    0 8px 10px 1px #00000024,
+    0 3px 14px 2px #0000001f;
 }
 
 :host {
@@ -21,6 +23,8 @@
   margin: 0 auto;
   width: 80%;
   overflow: hidden;
+  // Same color as the page, so the panel stays readable over a landing background.
+  background-color: var(--mat-sys-background);
 }
 
 .crucible-icon-caster {

@@ -30,11 +30,7 @@ import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
 import { watchMenuPaste } from '../../editor-menu-paste';
-import {
-  FileQuery,
-  FileService,
-  isSameContent,
-} from '../../../files/state';
+import { FileQuery, FileService, isSameContent } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import {
@@ -423,7 +419,6 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   insertModuleFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService
       .createVersionSnippet(event)
       .pipe(take(1))
@@ -434,13 +429,11 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getModuleFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
     this.selectedModule$ = this.moduleQuery.selectByModuleId(event.id);
   }
 
   getVersionFn(event) {
-    // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
     this.fileVersionService
       .loadFileVersionById(event.id)
       .pipe(take(1))

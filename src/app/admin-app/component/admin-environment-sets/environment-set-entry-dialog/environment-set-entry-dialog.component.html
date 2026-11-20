@@ -1,0 +1,193 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  [dialogTitle]="title"
+  [form]="form"
+  [submitLabel]="isEdit ? 'Save' : 'Add'"
+  loadingLabel="Saving"
+  [loading]="saving()"
+  [errorMessage]="error()"
+  [submitDisabled]="!form.valid || !form.dirty || saving()"
+  [guardUnsavedWork]="true"
+  (submit)="save()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    <mat-form-field class="form-full-width">
+      <mat-label>Kind</mat-label>
+      <mat-select formControlName="kind" cdkFocusInitial>
+        <mat-option [value]="Kind.EnvironmentVariable">
+          Environment variable
+        </mat-option>
+        <mat-option [value]="Kind.TerraformVariable">
+          Terraform variable (TF_VAR_)
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>
+        {{
+          form.controls.kind.value === Kind.TerraformVariable
+            ? 'Terraform variable name'
+            : 'Environment variable name'
+        }}
+      </mat-label>
+      <input
+        formControlName="targetName"
+        matInput
+        autocomplete="off"
+        spellcheck="false"
+      />
+      @if (form.controls.kind.value === Kind.TerraformVariable) {
+        <mat-hint>Set in the run as TF_VAR_&lt;name&gt;.</mat-hint>
+      }
+      @if (form.controls.targetName.errors?.['targetName']; as message) {
+        <mat-error>{{ message }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>Value source</mat-label>
+      <mat-select formControlName="valueSource">
+        <mat-option [value]="Source.Secret">
+          Secret (an API environment variable)
+        </mat-option>
+        <mat-option [value]="Source.Plain">Plain value</mat-option>
+        @if (connectionsOffered) {
+          <mat-option
+            [value]="Source.Connection"
+            [disabled]="!data.canUseConnections"
+          >
+            Connection
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (isSecret()) {
+      <mat-form-field class="form-full-width">
+        <mat-label>Secret source</mat-label>
+        <input
+          formControlName="secretName"
+          matInput
+          autocomplete="off"
+          spellcheck="false"
+          [matAutocomplete]="secretNames"
+        />
+        <mat-autocomplete #secretNames="matAutocomplete">
+          @for (name of filteredSecrets(); track name) {
+            <mat-option [value]="name">{{ name }}</mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint>One of the API's secrets. Its value is never shown.</mat-hint>
+        @if (form.controls.secretName.hasError('required')) {
+          <mat-error>A secret source is required.</mat-error>
+        } @else if (form.controls.secretName.hasError('pattern')) {
+          <mat-error>
+            The name must match one of the secret patterns:
+            {{ patterns.join(', ') || 'none are configured' }}.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      @if (secretUnavailable()) {
+        <p class="note">
+          <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline" />
+          This secret is missing, so runs in projects with this set will fail
+          until it is added.
+        </p>
+      }
+    } @else if (isConnection()) {
+      <mat-form-field class="form-full-width">
+        <mat-label>Connection</mat-label>
+        <mat-select formControlName="connectionName">
+          @for (connection of connections; track connection.name) {
+            <mat-option [value]="connection.name">
+              {{ connection.name }} ({{ connection.provider }})
+            </mat-option>
+          }
+          @if (missingConnection()) {
+            <mat-option [value]="form.controls.connectionName.value">
+              {{ form.controls.connectionName.value }} (not configured)
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint>Read from the connection when each run starts.</mat-hint>
+        @if (form.controls.connectionName.hasError('required')) {
+          <mat-error>A connection is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="form-full-width">
+        <mat-label>Field</mat-label>
+        <mat-select formControlName="connectionField">
+          @for (field of fields(); track field.field) {
+            <mat-option [value]="field.field">
+              {{ field.field }}{{ field.isSecret ? ' (secret)' : '' }}
+              {{ field.isAvailable ? '' : ' (not available)' }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (selectedField(); as field) {
+          <mat-hint>
+            @if (field.isSecret) {
+              A credential: never shown, and masked in run output.
+            } @else {
+              Not secret: members of every project with this set see which
+              connection it comes from.
+            }
+          </mat-hint>
+        }
+        @if (form.controls.connectionField.hasError('required')) {
+          <mat-error>A field is required.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (selectedField(); as field) {
+        @if (!field.isAvailable) {
+          <p class="note">
+            <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline" />
+            This connection has no value for {{ field.field }}:
+            {{ field.unavailable }} Runs in projects with this set will fail
+            until it has.
+          </p>
+        }
+      }
+    } @else {
+      <mat-form-field class="form-full-width">
+        <mat-label>Value</mat-label>
+        <textarea
+          formControlName="value"
+          matInput
+          autocomplete="off"
+          spellcheck="false"
+          rows="3"
+        ></textarea>
+        <mat-hint>
+          Plain values are not secret: members of every project with this set
+          can read them.
+          @if (form.controls.kind.value === Kind.TerraformVariable) {
+            HCL values are allowed.
+          }
+        </mat-hint>
+      </mat-form-field>
+    }
+
+    @if (kindError(); as message) {
+      <p class="warning" role="alert">
+        <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+        {{ message }}
+      </p>
+    }
+
+    @if (warning(); as message) {
+      <p class="warning" role="note">
+        <mat-icon class="mdi-18px" fontIcon="mdi-alert" />
+        {{ message }}
+      </p>
+    }
+  </div>
+</crucible-dialog>

@@ -35,7 +35,12 @@ import {
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [CwdToolbarComponent, CwdToolbarActionItemComponent, CwdToolbarNavigationItemComponent, RouterOutlet],
+  imports: [
+    CwdToolbarComponent,
+    CwdToolbarActionItemComponent,
+    CwdToolbarNavigationItemComponent,
+    RouterOutlet,
+  ],
 })
 export class AppComponent {}
 ```
@@ -106,7 +111,11 @@ takes a theme argument but does not use its colors.
 @import '../app/sei-cwd-common/cwd-toolbar/theme/theme';
 
 html {
-  @include mat.theme((color: mat.$azure-palette));
+  @include mat.theme(
+    (
+      color: mat.$azure-palette,
+    )
+  );
 }
 
 @include cwd-toolbar-theme(());

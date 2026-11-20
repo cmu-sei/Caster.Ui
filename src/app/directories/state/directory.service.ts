@@ -116,7 +116,7 @@ export class DirectoryService {
         directory.id,
         isTarget
           ? { isExpanded: true, isWorkspacesExpanded: true }
-          : { isExpanded: true, isDirectoriesExpanded: true }
+          : { isExpanded: true, isDirectoriesExpanded: true },
       );
       isTarget = false;
       directory = this.directoryQuery.getEntity(directory.parentId);
@@ -161,7 +161,7 @@ export class DirectoryService {
     includeIds: boolean,
   ): Observable<FileDownload> {
     return this.directoriesService
-      .exportDirectory(id, archiveType, includeIds, 'response')
+      .exportDirectory(id, archiveType, includeIds, undefined, 'response')
       .pipe(
         map((response) => {
           return {

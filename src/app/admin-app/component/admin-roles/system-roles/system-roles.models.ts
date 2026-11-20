@@ -46,6 +46,26 @@ export class SystemRolesModel {
     ],
     [SystemPermission.ViewHosts, 'Allows viewing of Hosts'],
     [
+      SystemPermission.ViewInfrastructure,
+      'Allows viewing every connection and its inventory: VM templates, content library items, ISOs, networks, datastores and hosts. Enables the Connections Administration panel. Project members see their own connections without it.',
+    ],
+    [
+      SystemPermission.ManageInfrastructure,
+      'Allows assigning connections to Projects and project groups, and creating Environment Set entries that read a connection.',
+    ],
+    [
+      SystemPermission.ViewEnvironmentSets,
+      'Allows viewing every Environment Set and the Projects it is assigned to. Secret values are never shown. Enables the Environment Sets Administration panel.',
+    ],
+    [
+      SystemPermission.ManageEnvironmentSets,
+      'Allows creating, editing, copying and deleting Environment Sets, and assigning them to Projects and project groups.',
+    ],
+    [
+      SystemPermission.ManageProjectGroups,
+      'Allows creating, editing and deleting project groups, and managing any group. A holder can make themselves a manager of any group, so grant it as carefully as Manage Environment Sets. Enables the Project Groups Administration panel.',
+    ],
+    [
       SystemPermission.ManageHosts,
       'Allows for creating and making changes to Hosts. This is only available through the API.',
     ],

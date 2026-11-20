@@ -3,25 +3,25 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 -->
 
-<div>
+<div class="cssLayoutRowStartCenter">
   <mat-form-field
-    matTooltip="Search for vlans by comma-separated list of id, range of ids, and/or tag e.g. 10,11,20-30,mytag"
+    class="search-field"
+    matTooltip="Search by VLAN ID, a range of IDs, or a tag. Separate several with commas, e.g. 10, 20-30, mytag"
+    matTooltipShowDelay="0"
   >
-    <mat-label>Search</mat-label>
-    <mat-icon matPrefix svgIcon="ic_magnify_search" />
     <input
       matInput
       [formControl]="filterControl"
-      placeholder="Search"
       #input
+      placeholder="Search"
       autocomplete="off"
     />
     @if (input.value) {
       <button
-        color="primary"
         matSuffix
         mat-icon-button
         aria-label="Clear"
+        matTooltip="Clear"
         (click)="clearFilter()"
       >
         <mat-icon class="mdi-24px" fontIcon="mdi-close-circle-outline" />
@@ -30,12 +30,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   </mat-form-field>
   <button
     class="mx-2"
-    mat-raised-button
-    color="primary"
+    mat-button
     [matMenuTriggerFor]="selectionMenu"
+    matTooltip="Actions for the selected VLANs"
     [disabled]="!canEdit()"
   >
     {{ selection.selected.length }} Selected
+    <mat-icon iconPositionEnd fontIcon="mdi-menu-down" />
   </button>
   <mat-menu #selectionMenu="matMenu">
     <button
@@ -64,7 +65,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     @if (showUnassigned()) {
       <button (click)="reassignSelected(null)" mat-menu-item>Unassigned</button>
     }
-    @for (partition of partitions(); track partition) {
+    @for (partition of partitions(); track partition.id) {
       <button (click)="reassignSelected(partition.id)" mat-menu-item>
         {{ partition.name }}
       </button>
@@ -81,16 +82,13 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
   class="vlan-table-viewport"
   [style.height]="tableHeight"
 >
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    class="mat-elevation-z8 full-width"
-    matSort
-  >
+  <table mat-table [dataSource]="dataSource" class="full-width" matSort>
     <!-- Checkbox Column -->
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
+          aria-label="Select all VLANs"
+          matTooltip="Select all VLANs"
           (change)="$event ? toggleAllRows() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
@@ -98,6 +96,8 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       </th>
       <td mat-cell *matCellDef="let row">
         <mat-checkbox
+          [aria-label]="'Select VLAN ' + row.vlanId"
+          [matTooltip]="'Select VLAN ' + row.vlanId"
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row.id) : null"
           [checked]="selection.isSelected(row.id)"
@@ -106,12 +106,26 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     </ng-container>
 
     <ng-container matColumnDef="vlanId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Id</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="The VLAN number, 0–4095"
+      >
+        ID
+      </th>
       <td mat-cell *matCellDef="let element">{{ element.vlanId }}</td>
     </ng-container>
 
     <ng-container matColumnDef="inUse">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>In Use</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Handed out to a Terraform run; released when the run is destroyed"
+      >
+        In Use
+      </th>
       <td
         mat-cell
         *matCellDef="let element"
@@ -121,26 +135,31 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             : ''
         "
       >
-        <button
-          mat-button
-          [color]="element.inUse ? 'warn' : 'basic'"
-          (click)="toggleInUse(element)"
+        <mat-checkbox
+          aria-label="In Use"
+          [checked]="element.inUse"
+          (change)="toggleInUse(element, $event.source)"
           [disabled]="
             !element.partitionId || loading.get(element.id) || !canEdit()
           "
-        >
-          {{ element.inUse }}
-        </button>
+        />
       </td>
     </ng-container>
 
     <ng-container matColumnDef="reserved">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Reserved</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="Never handed out by Caster"
+      >
+        Reserved
+      </th>
       <td mat-cell *matCellDef="let element">
-        <button
-          mat-button
-          [color]="element.reserved ? 'warn' : 'basic'"
-          (click)="toggleReserved(element)"
+        <mat-checkbox
+          aria-label="Reserved"
+          [checked]="element.reserved"
+          (change)="toggleReserved(element, $event.source)"
           [disabled]="
             loading.get(element.id) || !canEdit() || !element.reservedEditable
           "
@@ -149,14 +168,19 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               ? 'Reservation status not editable. Ask an Administrator to update the application settings if this should be changed'
               : ''
           "
-        >
-          {{ element.reserved }}
-        </button>
+        />
       </td>
     </ng-container>
 
     <ng-container matColumnDef="tag">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Tag</th>
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        matTooltip="A label Terraform can ask for by name"
+      >
+        Tag
+      </th>
       <td mat-cell *matCellDef="let element">
         <div class="tag">
           @if (editingId != element.id) {
@@ -206,7 +230,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     ></ng-container>
 
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <th mat-header-cell *matHeaderCellDef></th>
       <td
         mat-cell
         *matCellDef="let element"
@@ -232,8 +256,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
     <!-- Row shown when there is no matching data. -->
     <tr class="mat-mdc-row" *matNoDataRow>
-      <td class="mat-mdc-cell" colspan="4">
-        No data matching the filter "{{ input.value }}"
+      <td class="mat-mdc-cell" [attr.colspan]="displayedColumns.length">
+        @if (input.value) {
+          No data matching the filter "{{ input.value }}"
+        } @else if (showUnassigned()) {
+          This Partition currently has no VLANs
+        } @else {
+          There are currently no unassigned VLANs
+        }
       </td>
     </tr>
   </table>

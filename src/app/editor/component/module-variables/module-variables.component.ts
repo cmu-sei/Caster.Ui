@@ -45,7 +45,6 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIconButton, MatButton } from '@angular/material/button';
-import { NgClass } from '@angular/common';
 import {
   MatFormField,
   MatLabel,
@@ -69,7 +68,6 @@ import { CdkTextareaAutosize } from '@angular/cdk/text-field';
     MatIcon,
     MatTooltip,
     MatIconButton,
-    NgClass,
     CrucibleDialogContentDirective,
     FormsModule,
     ReactiveFormsModule,

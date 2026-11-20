@@ -112,7 +112,6 @@ export class ProjectExportComponent implements OnInit {
         this.directoryService
           .export(id, archiveType, includeIds)
           .pipe(take(1))
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });
@@ -122,7 +121,6 @@ export class ProjectExportComponent implements OnInit {
         this.fileService
           .export(id)
           .pipe(take(1))
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });
@@ -132,7 +130,6 @@ export class ProjectExportComponent implements OnInit {
         this.projectService
           .export(id, archiveType, includeIds)
           .pipe(take(1))
-          // tslint:disable-next-line: rxjs-prefer-angular-takeuntil
           .subscribe((result) => {
             FileDownloadUtils.downloadFile(result.blob, result.filename);
           });

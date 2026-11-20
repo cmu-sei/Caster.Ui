@@ -46,7 +46,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
       <form [formGroup]="form" (ngSubmit)="save()">
         <div class="d-flex flex-column">
           <mat-form-field floatLabel="always">
-            <mat-label [ngClass]="pendingChanges['name'] ? 'changed-hint' : ''"
+            <mat-label [class]="pendingChanges['name'] ? 'changed-hint' : ''"
               >Name</mat-label
             >
             <input
@@ -68,7 +68,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             }
           </mat-form-field>
           <mat-form-field floatLabel="always">
-            <mat-label [ngClass]="pendingChanges['type'] ? 'changed-hint' : ''"
+            <mat-label [class]="pendingChanges['type'] ? 'changed-hint' : ''"
               >Type</mat-label
             >
             <mat-select
@@ -99,7 +99,7 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             matTooltip="Default value for the variable (optional)"
           >
             <mat-label
-              [ngClass]="pendingChanges['defaultValue'] ? 'changed-hint' : ''"
+              [class]="pendingChanges['defaultValue'] ? 'changed-hint' : ''"
             >
               Default
             </mat-label>

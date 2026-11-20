@@ -3,13 +3,79 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
  Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 */
 
-.container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 5% 1%;
+// Same layout and styles as the Groups table (admin-groups.component.scss).
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
-.header {
+.cssLayoutRowStartCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sp-icon {
+  width: 5%;
+  color: var(--mat-sys-primary);
+  text-align: center;
+  min-width: 30px;
+}
+
+.search-field {
+  width: 300px;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  overflow: hidden;
+  word-wrap: break-word;
+  padding-right: 10px;
+  vertical-align: middle;
+
+  button[mat-icon-button] {
+    vertical-align: middle;
+  }
+}
+
+.mat-column-actions {
+  width: 140px;
+  max-width: 140px;
+  white-space: nowrap;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+.element-row td {
+  border-bottom-width: 0;
+  cursor: pointer;
+}
+
+.pool-detail {
+  overflow: hidden;
+}
+
+.button-cell {
   display: flex;
   align-items: center;
+}
+
+.primary-color {
+  color: var(--mat-sys-primary);
 }

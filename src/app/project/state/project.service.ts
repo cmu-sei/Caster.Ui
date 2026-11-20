@@ -300,7 +300,7 @@ export class ProjectService {
     includeIds: boolean,
   ): Observable<FileDownload> {
     return this.projectsService
-      .exportProject(id, archiveType, includeIds, 'response')
+      .exportProject(id, archiveType, includeIds, undefined, 'response')
       .pipe(
         map((response) => {
           return {

@@ -10,17 +10,22 @@ import {
   Input,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Partition } from 'src/app/generated/caster-api';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Partition, Vlan } from 'src/app/generated/caster-api';
 import { PartitionQuery } from 'src/app/vlans/state/partition/partition.query';
 import { PartitionService } from 'src/app/vlans/state/partition/partition.service';
+import { VlanQuery } from 'src/app/vlans/state/vlan/vlan.query';
 import { VlanService } from 'src/app/vlans/state/vlan/vlan.service';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { MatAccordion } from '@angular/material/expansion';
 import { PartitionComponent } from '../partition/partition.component';
+import { VlanListComponent } from '../vlan-list/vlan-list.component';
+import { VlanFeedbackService } from '../vlan-feedback.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -29,11 +34,13 @@ import { AsyncPipe } from '@angular/common';
   styleUrls: ['./partition-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    MatButton,
     MatIconButton,
     MatTooltip,
     MatIcon,
     MatAccordion,
     PartitionComponent,
+    VlanListComponent,
     AsyncPipe,
   ],
 })
@@ -41,6 +48,8 @@ export class PartitionListComponent implements OnInit {
   private vlanService = inject(VlanService);
   private partitionService = inject(PartitionService);
   private partitionQuery = inject(PartitionQuery);
+  private vlanQuery = inject(VlanQuery);
+  private feedback = inject(VlanFeedbackService);
 
   @Input()
   set poolId(id: string) {
@@ -57,6 +66,12 @@ export class PartitionListComponent implements OnInit {
   readonly canEdit = input<boolean>(undefined);
 
   partitions$: Observable<Partition[]>;
+  /** The pool's VLANs that are not in any partition. */
+  unassigned$: Observable<Vlan[]>;
+  readonly showUnassigned = signal(false);
+  readonly vlansLoading = toSignal(inject(VlanQuery).selectLoading(), {
+    initialValue: false,
+  });
 
   ngOnInit(): void {}
 
@@ -64,9 +79,16 @@ export class PartitionListComponent implements OnInit {
     this.vlanService.loadByPoolId(poolId).subscribe();
     this.partitionService.loadByPoolId(poolId).subscribe();
     this.partitions$ = this.partitionQuery.selectByPoolId(poolId);
+    this.unassigned$ = this.vlanQuery.selectUnassignedByPoolId(poolId);
   }
 
   createPartition() {
-    this.partitionService.create(this.poolId).subscribe();
+    this.feedback
+      .report(
+        this.partitionService.create(this.poolId),
+        (partition) => `Added ${partition.name}`,
+        'Could not add a Partition',
+      )
+      .subscribe();
   }
 }

@@ -1,0 +1,67 @@
+<!--
+Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+-->
+
+<crucible-dialog
+  dialogTitle="Create Set from Connection"
+  [form]="form"
+  submitLabel="Create"
+  loadingLabel="Creating"
+  [loading]="saving()"
+  [errorMessage]="error()"
+  [submitDisabled]="!form.valid || saving()"
+  (submit)="save()"
+>
+  <div crucibleDialogContent [formGroup]="form">
+    <mat-form-field class="form-full-width">
+      <mat-label>Connection</mat-label>
+      <mat-select formControlName="connectionName" cdkFocusInitial>
+        @for (connection of data.connections; track connection.name) {
+          <mat-option [value]="connection.name">
+            {{ connection.name }} ({{ connection.provider }})
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>Terraform provider</mat-label>
+      <mat-select formControlName="preset">
+        @for (preset of connection()?.presets ?? []; track preset.id) {
+          <mat-option [value]="preset.id">{{ preset.name }}</mat-option>
+        }
+      </mat-select>
+      <mat-hint>
+        The provider's own environment variables, read from the connection when
+        each run starts.
+      </mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="form-full-width">
+      <mat-label>Name</mat-label>
+      <input formControlName="name" matInput autocomplete="off" />
+      <mat-hint
+        >Optional. Without one, the connection and provider name it.</mat-hint
+      >
+    </mat-form-field>
+
+    @if (preset(); as chosen) {
+      <p>Entries:</p>
+      <ul>
+        @for (entry of chosen.entries; track entry.targetName) {
+          <li>
+            <code>{{ entry.targetName }}</code> from {{ entry.field }}
+          </li>
+        }
+      </ul>
+      @if (!chosen.isAvailable) {
+        <p class="note">
+          <mat-icon class="mdi-18px" fontIcon="mdi-alert-outline" />
+          The connection doesn't have every field this provider uses, so runs
+          with the set will fail until it does.
+        </p>
+      }
+    }
+  </div>
+</crucible-dialog>

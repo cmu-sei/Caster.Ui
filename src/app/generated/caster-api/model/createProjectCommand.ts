@@ -29,5 +29,9 @@ export interface CreateProjectCommand {
      * Description of the project.
      */
     description?: string | null;
+    /**
+     * The project group to create the project in, if any. Needs ManageProjectGroups or being a manager of the group, as well as CreateProjects.
+     */
+    projectGroupId?: string | null;
 }
 

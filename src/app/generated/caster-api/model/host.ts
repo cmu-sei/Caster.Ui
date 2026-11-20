@@ -45,5 +45,9 @@ export interface Host {
      * The Project this Host is assigned to, if any
      */
     projectId?: string | null;
+    /**
+     * The project group this Host serves, if any. A Host has at most one owner, a Project or a project group.
+     */
+    projectGroupId?: string | null;
 }
 

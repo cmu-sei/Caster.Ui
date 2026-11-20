@@ -42,6 +42,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
               Manage Project
             </a>
           }
+          @if (managesGroupsOutsideAdmin$ | async) {
+            <button (click)="openProjectGroups()" mat-menu-item>
+              Project Groups
+            </button>
+          }
           @if ((canViewAdmin$ | async) && topbarView() === 'caster-admin') {
             <button (click)="exitAdmin()" mat-menu-item>
               Exit Administration

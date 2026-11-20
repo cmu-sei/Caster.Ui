@@ -9,15 +9,25 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 }
 
 .vlan-amount {
-  width: 8ch;
+  /* Room for a four-digit count plus the number field's spinner and padding. */
+  width: 120px;
   text-align: center;
 }
 
 .title {
   align-items: center;
+  flex-grow: 3;
+  min-width: 0;
 }
 
 .action-buttons {
   display: flex;
   align-items: center;
+}
+
+.name {
+  margin: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

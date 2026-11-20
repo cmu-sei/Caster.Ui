@@ -39,6 +39,7 @@ export class VlansComponent implements OnInit, OnDestroy {
   private permissionService = inject(PermissionService);
 
   public projects$ = this.projectQuery.selectAll();
+  public projectsLoading$ = this.projectQuery.selectLoading();
   public canEdit$ = this.permissionService.hasPermission(
     SystemPermission.ManageVlans,
   );

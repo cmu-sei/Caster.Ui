@@ -2,12 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { inject, Injectable } from '@angular/core';
-import {
-  BehaviorSubject,
-  combineLatest,
-  Observable,
-  throwError,
-} from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
 import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import {
   GroupPermission,
@@ -44,7 +39,9 @@ export class PermissionService {
     null;
 
   private readonly permissionsService = inject(SystemPermissionsService);
-  private readonly projectPermissionsService = inject(ProjectPermissionsService);
+  private readonly projectPermissionsService = inject(
+    ProjectPermissionsService,
+  );
   private readonly groupPermissionsService = inject(GroupPermissionsService);
 
   load(): Observable<SystemPermission[]> {
@@ -58,8 +55,9 @@ export class PermissionService {
       map(
         ([permissions, groupPermissionClaims]) =>
           permissions.filter((y) => y.startsWith('View')).length > 0 ||
-          this.hasManageMembershipClaim(groupPermissionClaims)
-      )
+          permissions.includes(SystemPermission.ManageProjectGroups) ||
+          this.hasManageMembershipClaim(groupPermissionClaims),
+      ),
     );
   }
 
@@ -68,8 +66,8 @@ export class PermissionService {
       map(
         ([permissions, groupPermissionClaims]) =>
           permissions.includes(SystemPermission.ViewGroups) ||
-          this.hasManageMembershipClaim(groupPermissionClaims)
-      )
+          this.hasManageMembershipClaim(groupPermissionClaims),
+      ),
     );
   }
 
@@ -87,7 +85,7 @@ export class PermissionService {
     return this.can(
       SystemPermission.EditProjects,
       projectId,
-      ProjectPermission.EditProject
+      ProjectPermission.EditProject,
     );
   }
 
@@ -95,7 +93,7 @@ export class PermissionService {
     return this.can(
       SystemPermission.ManageProjects,
       projectId,
-      ProjectPermission.ManageProject
+      ProjectPermission.ManageProject,
     );
   }
 
@@ -103,14 +101,14 @@ export class PermissionService {
     return this.can(
       SystemPermission.LockFiles,
       projectId,
-      ProjectPermission.LockFiles
+      ProjectPermission.LockFiles,
     );
   }
 
   private can(
     permission: SystemPermission,
     projectId?: string,
-    projectPermission?: ProjectPermission
+    projectPermission?: ProjectPermission,
   ) {
     return combineLatest([this.permissions$, this.projectPermissions$]).pipe(
       map(([permissions, projectPermissionClaims]) => {
@@ -118,7 +116,7 @@ export class PermissionService {
           return true;
         } else if (projectId != null && projectPermission != null) {
           const projectPermissionClaim = projectPermissionClaims.find(
-            (x) => x.projectId == projectId
+            (x) => x.projectId == projectId,
           );
 
           if (
@@ -130,7 +128,7 @@ export class PermissionService {
         }
 
         return false;
-      })
+      }),
     );
   }
 
@@ -140,7 +138,7 @@ export class PermissionService {
   // user's own claims may have changed (e.g. a self-demotion or self-removal
   // from a group).
   loadGroupPermissions(
-    forceReload = false
+    forceReload = false,
   ): Observable<GroupPermissionsClaim[]> {
     if (this.groupPermissionsCache && !forceReload) {
       return this.groupPermissionsCache;
@@ -154,17 +152,17 @@ export class PermissionService {
           this.groupPermissionsCache = null; // allow retry after failure
           return throwError(() => err);
         }),
-        shareReplay(1)
+        shareReplay(1),
       );
 
     return this.groupPermissionsCache;
   }
 
   private hasManageMembershipClaim(
-    groupPermissionClaims: GroupPermissionsClaim[]
+    groupPermissionClaims: GroupPermissionsClaim[],
   ): boolean {
     return groupPermissionClaims.some((x) =>
-      x.permissions.includes(GroupPermission.ManageMembership)
+      x.permissions.includes(GroupPermission.ManageMembership),
     );
   }
 
@@ -172,7 +170,7 @@ export class PermissionService {
     return this.canGroup(
       SystemPermission.ManageGroups,
       groupId,
-      GroupPermission.ManageMembership
+      GroupPermission.ManageMembership,
     );
   }
 
@@ -180,14 +178,14 @@ export class PermissionService {
     return this.canGroup(
       SystemPermission.ManageGroups,
       groupId,
-      GroupPermission.EditGroup
+      GroupPermission.EditGroup,
     );
   }
 
   private canGroup(
     permission: SystemPermission,
     groupId?: string,
-    groupPermission?: GroupPermission
+    groupPermission?: GroupPermission,
   ) {
     return combineLatest([this.permissions$, this.groupPermissions$]).pipe(
       map(([permissions, groupPermissionClaims]) => {
@@ -195,7 +193,7 @@ export class PermissionService {
           return true;
         } else if (groupId != null && groupPermission != null) {
           const groupPermissionClaim = groupPermissionClaims.find(
-            (x) => x.groupId == groupId
+            (x) => x.groupId == groupId,
           );
 
           if (
@@ -207,7 +205,7 @@ export class PermissionService {
         }
 
         return false;
-      })
+      }),
     );
   }
 }
