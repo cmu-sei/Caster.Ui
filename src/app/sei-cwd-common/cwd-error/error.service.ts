@@ -75,11 +75,17 @@ export class ErrorService implements ErrorHandler {
     messageService.displayMessage(title, message, 1000);
   }
 
-  private isApiUnreachable(err: any): boolean {
-    if (err?.rejection?.statusCode === 401) {
+  private isApiUnreachable(err: unknown): boolean {
+    // A SignalR or promise failure carries the cause in `rejection`.
+    const failure = err as {
+      message?: string;
+      rejection?: { statusCode?: number; message?: string };
+    } | null;
+
+    if (failure?.rejection?.statusCode === 401) {
       return true;
     }
-    const text = `${err?.message ?? ''} ${err?.rejection?.message ?? ''}`;
+    const text = `${failure?.message ?? ''} ${failure?.rejection?.message ?? ''}`;
     return [
       'Failed to fetch',
       'Failed to start the connection',
