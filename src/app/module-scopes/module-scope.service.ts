@@ -48,6 +48,11 @@ export class ModuleScopeService {
     return reads.length ? forkJoin(reads) : of(null);
   }
 
+  /** Replaces a scope in the cache with a known state, such as one a saved change produced. */
+  replace(scope: ModuleScope) {
+    this.upsert(scope);
+  }
+
   private upsert(scope: ModuleScope) {
     const scopes = this.scopesSubject
       .getValue()

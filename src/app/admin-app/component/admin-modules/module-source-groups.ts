@@ -99,12 +99,14 @@ export function toModuleRow(
   module: Module,
   sources: ModuleSource[],
 ): ModuleRow {
+  const source = moduleSourceOf(module, sources)?.name ?? '';
   return {
     ...module,
-    source: moduleSourceOf(module, sources)?.name ?? '',
+    source,
     // The API names the highest version, and has none for a Module without versions.
     latestVersion: module.latestVersion ?? '',
-    leftover: isLeftover(module),
+    // A Module no configured source owns is one too: its source is never read again.
+    leftover: isLeftover(module) || !source,
   };
 }
 

@@ -983,6 +983,27 @@ describe('AdminModulesComponent', () => {
     });
 
     /**
+     * Verifies: when the first read of the sources fails (not a 404) the page says it could not load them, with a Retry, and not that none are configured; Retry reads them again and lists the rows.
+     * Interacts with: ModulesService.getModuleSources (500, then ok), MatSnackBar (real).
+     * Data: a 500 first, then the healthy source.
+     */
+    it('shows a retry, not an empty configuration, when the sources fail to load', async () => {
+      const { user, modulesApi } = await renderModules(manage, {
+        sources: problem,
+      });
+
+      expect(screen.getByText(/Couldn't load the module sources/)).toBeTruthy();
+      expect(screen.queryByText(/No module sources are configured/)).toBeNull();
+      expect(findRow(NOT_CONFIGURED)).toBeNull();
+
+      modulesApi.getModuleSources.mockImplementation(() => of([healthy]));
+      await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+      expect(screen.queryByText(/Couldn't load the module sources/)).toBeNull();
+      expect(findRow('local')).not.toBeNull();
+    });
+
+    /**
      * Verifies: clicking the wrapper of a greyed-out action explains it without opening or closing the row.
      * Interacts with: the row click handler, the disabled-action wrappers.
      * Data: no permissions, so Refresh and Project access are disabled.

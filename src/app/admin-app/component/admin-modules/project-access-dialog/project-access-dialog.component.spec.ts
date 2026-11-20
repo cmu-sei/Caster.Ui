@@ -3,6 +3,8 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { ModuleScopeService } from 'src/app/module-scopes/module-scope.service';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -316,6 +318,12 @@ describe('ProjectAccessDialogComponent', () => {
     ).toContain('The change was saved, but the list could not be refreshed');
     expect(close).toHaveBeenCalledWith(expect.objectContaining({ id: 's2' }));
     expect(fixture.componentInstance.initialProjects()).toEqual(['p2']);
+    // The cache holds what was saved, so the column and a reopened dialog start from it.
+    const cached = TestBed.inject(ModuleScopeService)
+      .currentScopes()
+      .find((x) => x.id === 's2');
+    expect(cached?.projects).toEqual([{ projectId: 'p2', name: 'Range B' }]);
+    expect(cached?.projectGroups).toEqual([]);
   });
 
   /**

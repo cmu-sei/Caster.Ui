@@ -37,7 +37,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { apiErrorMessage } from 'src/app/environment-sets/environment-set-rules';
 import { PermissionService } from 'src/app/permissions/permission.service';
 import { MatIcon } from '@angular/material/icon';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatFormField, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatPaginator } from '@angular/material/paginator';
@@ -102,6 +102,7 @@ export const ALL_SOURCES = '*';
   imports: [
     SourceModulesComponent,
     MatIcon,
+    MatButton,
     MatIconButton,
     MatFormField,
     MatInput,
@@ -167,6 +168,10 @@ export class AdminModulesComponent implements OnInit {
 
   /** Whether the API listed the sources; an older one does not. */
   readonly sourcesListed = signal(true);
+  /** Whether the sources were read at least once; until then a failure leaves them unknown. */
+  private readonly sourcesRead = signal(false);
+  /** The first read of the sources failed (not a 404): the configuration is unknown. */
+  readonly sourcesFailed = signal(false);
 
   public scopes$ = this.moduleScopeService.scopes$;
   private readonly allScopes = toSignal(this.scopes$, {
@@ -201,7 +206,10 @@ export class AdminModulesComponent implements OnInit {
     return scopes ? sourceAccessRows(this.sources(), scopes) : null;
   });
   /** The table's rows: the sources the search keeps, then the leftover group. */
-  readonly rows = computed(() => sourceTableRows(this.view(), this.access()));
+  readonly rows = computed(() =>
+    // With the sources unknown every Module would look like a leftover, so list none.
+    this.sourcesFailed() ? [] : sourceTableRows(this.view(), this.access()),
+  );
 
   readonly displayedColumns = [
     'actions',
@@ -463,7 +471,7 @@ export class AdminModulesComponent implements OnInit {
     this.load(true, true, ALL_SOURCES);
   }
 
-  private loadSources(userRequested = false) {
+  loadSources(userRequested = false) {
     this.modulesService
       .getModuleSources()
       .pipe(take(1))
@@ -471,6 +479,8 @@ export class AdminModulesComponent implements OnInit {
         next: (sources) => {
           this.sources.set(sources ?? []);
           this.sourcesListed.set(true);
+          this.sourcesRead.set(true);
+          this.sourcesFailed.set(false);
           const failed = this.sources().filter((s) => s.error);
           if (userRequested && failed.length) {
             this.showRefreshFailures(failed);
@@ -483,7 +493,11 @@ export class AdminModulesComponent implements OnInit {
             this.sourcesListed.set(false);
             return;
           }
-          // Any other failure: keep the sources already listed, and say why.
+          // Any other failure: keep the sources already listed, and say why. With none
+          // read yet, the page shows the failure instead of an empty configuration.
+          if (!this.sourcesRead()) {
+            this.sourcesFailed.set(true);
+          }
           this.showError(error, "Couldn't list the module sources");
         },
       });

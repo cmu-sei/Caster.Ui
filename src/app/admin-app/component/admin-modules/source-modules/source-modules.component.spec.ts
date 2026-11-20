@@ -377,6 +377,23 @@ describe('SourceModulesComponent', () => {
     });
 
     /**
+     * Verifies: a Module no configured source owns (its source was removed) gets Delete and the Not in source badge even though the API says it is still in its source, and the table adds no note about the API.
+     * Interacts with: canDelete(), toModuleRow(), the table template.
+     * Data: old/net with inSource true; source null (the leftover group), no GitLab source configured.
+     */
+    it('offers Delete on a Module of a removed source', async () => {
+      await renderTable({
+        source: null,
+        configured: [cmu],
+        modules: [{ id: 'o1', name: 'net', path: 'old/net', inSource: true }],
+      });
+
+      expect(screen.getByRole('button', { name: 'Delete net' })).toBeTruthy();
+      expect(screen.getByText('Not in source')).toBeInTheDocument();
+      expect(screen.queryByText(/doesn't say which Modules/)).toBeNull();
+    });
+
+    /**
      * Verifies: with the API reporting presence the table adds no such explanation.
      * Interacts with: presenceUnknown, the table template.
      * Data: bare and exercise-x, both reported still in their source.

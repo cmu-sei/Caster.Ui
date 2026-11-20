@@ -191,7 +191,8 @@ export class SourceModulesComponent {
   /**
    * Delete is for leftovers: a Module no longer in its source, or a GitLab
    * Module, which is added by hand. A Module still in its source would come
-   * back on the next read, so it has no Delete. An API that does not say whether
+   * back on the next read, so it has no Delete. A Module no configured source owns is
+   * a leftover whatever the API says, since its source is never read again. An API that does not say whether
    * a Module is still in its source (missingSince, inSource) leaves a git Module
    * without Delete, since it cannot be told from a leftover: see presenceUnknown.
    */
@@ -200,7 +201,8 @@ export class SourceModulesComponent {
     if (source && isGitlabSource(source)) {
       return true;
     }
-    return reportsSourcePresence(row) && row.leftover;
+    // No configured source owns it: its source was removed, so it is never read again.
+    return !row.source || (reportsSourcePresence(row) && row.leftover);
   }
 
   /** True when some git Module here is without Delete only because the API does not say if it is a leftover. */

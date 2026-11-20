@@ -147,6 +147,38 @@ export class ProjectAccessDialogComponent implements OnInit {
       });
   }
 
+  /** The scope as the saved selection leaves it, with names from the lists or the scope. */
+  private savedScope(scope: ModuleScope): ModuleScope {
+    const named = (
+      ids: string[],
+      items: AssignmentItem[] | null,
+      known: { id: string; name?: string | null }[],
+    ) =>
+      ids.map((id) => ({
+        id,
+        name:
+          items?.find((x) => x.id === id)?.name ??
+          known.find((x) => x.id === id)?.name ??
+          '',
+      }));
+    return {
+      ...scope,
+      projects: named(
+        this.selectedProjects(),
+        this.projects(),
+        (scope.projects ?? []).map((x) => ({ id: x.projectId, name: x.name })),
+      ).map((x) => ({ projectId: x.id, name: x.name })),
+      projectGroups: named(
+        this.selectedGroups(),
+        this.groups(),
+        (scope.projectGroups ?? []).map((x) => ({
+          id: x.projectGroupId,
+          name: x.name,
+        })),
+      ).map((x) => ({ projectGroupId: x.id, name: x.name })),
+    };
+  }
+
   save(): void {
     if (this.saving()) {
       return;
@@ -197,6 +229,8 @@ export class ProjectAccessDialogComponent implements OnInit {
               this.assignmentService.refresh(changes).pipe(
                 catchError(() => {
                   refreshFailed = true;
+                  // The lists could not be read again: keep what was saved in the cache.
+                  this.moduleScopeService.replace(this.savedScope(scope));
                   return of(undefined);
                 }),
               ),

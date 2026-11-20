@@ -41,7 +41,14 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 </div>
 
 <div class="content">
-  @if (!sourcesListed()) {
+  @if (sourcesFailed()) {
+    <p class="page-note" role="alert">
+      Couldn't load the module sources.
+      <button mat-button type="button" (click)="loadSources(true)">
+        Retry
+      </button>
+    </p>
+  } @else if (!sourcesListed()) {
     <p class="page-note">This Caster API doesn't report its module sources.</p>
   } @else if (!sources().length) {
     <p class="page-note">
