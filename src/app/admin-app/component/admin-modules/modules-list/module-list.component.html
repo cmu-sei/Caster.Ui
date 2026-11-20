@@ -168,7 +168,20 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
     <ng-container matColumnDef="latestVersion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Latest Version</th>
-      <td mat-cell *matCellDef="let item">{{ item.latestVersion }}</td>
+      <td mat-cell *matCellDef="let item">
+        @if (item.latestVersion) {
+          {{ item.latestVersion }}
+        } @else {
+          <!-- Muted words, not red: an absence, not an error. -->
+          <span
+            class="no-value"
+            tabindex="0"
+            matTooltip="This Module will not be able to be added to a Design until at least 1 Version is created in the git repository."
+            matTooltipShowDelay="0"
+            >No version</span
+          >
+        }
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="dateModified">

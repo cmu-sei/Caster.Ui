@@ -1,6 +1,7 @@
 // Copyright 2026 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -186,7 +187,7 @@ describe('AdminModuleListComponent', () => {
   });
 
   /**
-   * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title), its highest version, and Last Synced in the viewer's zone; a Module with no versions shows none; there is no Source column.
+   * Verifies: each row shows the Module's description (cut at 80 characters, the whole text in its title), its highest version, and Last Synced in the viewer's zone; a Module with no versions shows No version; there is no Source column.
    * Interacts with: the Description, Latest Version and Last Synced columns.
    * Data: TZ UTC; vm (v1.10.0 above v1.9.0), dns (a 90-character description), empty (no versions).
    */
@@ -213,7 +214,34 @@ describe('AdminModuleListComponent', () => {
     expect(dns[5].textContent.trim()).toBe('2.0.0');
     expect(
       within(rowOf('empty')).getAllByRole('cell')[5].textContent.trim(),
-    ).toBe('');
+    ).toBe('No version');
+  });
+
+  /**
+   * Verifies: a Module with no version says "No version" in muted text, not red, keeps its tooltip, and can be focused with the keyboard.
+   * Interacts with: the Latest Version column, the no-value class.
+   * Data: empty (no latestVersion).
+   */
+  it('shows No version as muted, focusable text with a tooltip', async () => {
+    const { user } = await renderModuleList();
+
+    const none = within(rowOf('empty')).getByText('No version');
+    expect(none).toHaveClass('no-value');
+    expect(none).not.toHaveClass('tooltip');
+    expect(none).toHaveAttribute('tabindex', '0');
+    await user.hover(none);
+    expect(
+      (await screen.findAllByText(/at least 1 Version is created/)).length,
+    ).toBeGreaterThan(0);
+    // jsdom loads no component CSS, so the colour is checked in the source.
+    const css = readFileSync(
+      'src/app/admin-app/component/admin-modules/modules-list/module-list.component.css',
+      'utf8',
+    );
+    expect(css).toMatch(
+      /\.no-value\s*\{[^}]*color:\s*var\(--mat-sys-on-surface-variant\)/,
+    );
+    expect(css).not.toMatch(/color:\s*red/);
   });
 
   /**
