@@ -24,8 +24,8 @@ export class ModuleService {
   /**
    * Loads every Module. Listing them syncs the module sources first; pass
    * forceUpdate to re-read every version even when a source looks unchanged.
-   * includeLatestVersion asks for each Module's latestVersion, the name of its
-   * highest version, without the versions themselves.
+   * includeLatestVersion asks for the name of each Module's highest version without
+   * the versions themselves.
    */
   load(
     includeVersions: boolean,
@@ -40,8 +40,8 @@ export class ModuleService {
         includeVerionsCount,
         forceUpdate,
         undefined,
-        // Only asked for when wanted, so other callers' requests are unchanged.
-        includeLatestVersion || undefined,
+        undefined,
+        includeLatestVersion,
       )
       .pipe(
         tap((modules: Module[]) => {
@@ -76,21 +76,17 @@ export class ModuleService {
     includeVersions: boolean,
     includeLatestVersion = false,
   ) {
-    let objs = modules;
-
-    if (!includeVersions || !includeLatestVersion) {
-      // this call does not include versions or latest versions, so don't
-      // overwrite any we already have
-      objs = modules.map((x) => {
-        if (!includeVersions) {
-          delete x.versions;
-        }
-        if (!includeLatestVersion) {
-          delete x.latestVersion;
-        }
-        return x;
-      });
-    }
+    // A call that does not ask for versions or the latest version does not
+    // return them, so don't overwrite any we already have.
+    const objs = modules.map((x) => {
+      if (!includeVersions) {
+        delete x.versions;
+      }
+      if (!includeLatestVersion) {
+        delete x.latestVersion;
+      }
+      return x;
+    });
 
     this.moduleStore.upsertMany(objs);
   }

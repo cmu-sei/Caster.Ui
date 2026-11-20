@@ -16,7 +16,7 @@ import { AssignmentOperation } from './assignmentOperation';
 
 
 /**
- * One assignment to add or remove: an Environment Set or an infrastructure connection, on a project or a project group. It names either ProjectId or ProjectGroupId, and either EnvironmentSetId or ConnectionName.
+ * One assignment to add or remove: an Environment Set, a Module Scope or an infrastructure connection, on a project or a project group. It names either ProjectId or ProjectGroupId, and one of EnvironmentSetId, ModuleScopeId or ConnectionName.
  */
 export interface AssignmentChange { 
     operation?: AssignmentOperation;
@@ -26,6 +26,10 @@ export interface AssignmentChange {
      */
     projectGroupId?: string | null;
     environmentSetId?: string | null;
+    /**
+     * A Module Scope: it limits the Modules the project, or every project of the group, may use.
+     */
+    moduleScopeId?: string | null;
     /**
      * An infrastructure connection\'s name, matched without regard to case.
      */

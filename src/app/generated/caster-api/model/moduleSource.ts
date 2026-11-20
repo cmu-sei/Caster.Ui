@@ -41,5 +41,9 @@ export interface ModuleSource {
      * Why the last sync failed, or null if it succeeded.
      */
     error?: string | null;
+    /**
+     * Whether every project may use this source\'s Modules whatever its Module Scopes (the source\'s Shared setting).
+     */
+    shared?: boolean;
 }
 

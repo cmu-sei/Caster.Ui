@@ -12,16 +12,19 @@ import {
   ProjectsService,
 } from 'src/app/generated/caster-api';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
+import { ModuleScopeService } from 'src/app/module-scopes/module-scope.service';
 import { AssignmentDiff, AssignmentItem } from './assignment.model';
 
 /**
- * Adds and removes Environment Sets and inventory connections on projects, all in one request
+ * Adds and removes Environment Sets, Module Scopes and inventory connections on projects and
+ * project groups, all in one request
  * that the API checks against the final state and saves together or not at all.
  */
 @Injectable({ providedIn: 'root' })
 export class AssignmentService {
   private api = inject(AssignmentsService);
   private environmentSetService = inject(EnvironmentSetService);
+  private moduleScopeService = inject(ModuleScopeService);
   private projectsService = inject(ProjectsService);
   private projectGroupsService = inject(ProjectGroupsService);
 
@@ -51,7 +54,7 @@ export class AssignmentService {
     );
   }
 
-  /** Saves the changes, then re-reads the sets and project views they touch. */
+  /** Saves the changes, then re-reads the sets, scopes and project views they touch. */
   edit(changes: AssignmentChange[]): Observable<void> {
     if (changes.length === 0) {
       return of(undefined);
@@ -62,6 +65,12 @@ export class AssignmentService {
         this.environmentSetService.assignmentsChanged(
           changes.map((x) => x.projectId).filter((x) => !!x),
           changes.map((x) => x.environmentSetId).filter((x) => !!x),
+        ),
+      ),
+      switchMap(() =>
+        this.moduleScopeService.assignmentsChanged(
+          changes.map((x) => x.projectId).filter((x) => !!x),
+          changes.map((x) => x.moduleScopeId).filter((x) => !!x),
         ),
       ),
       map(() => undefined),
@@ -217,6 +226,63 @@ export function connectionGroupChanges(
       operation: AssignmentOperation.Remove,
       projectGroupId,
       connectionName,
+    })),
+  ];
+}
+
+/** One project's Module Scope changes. */
+export function projectScopeChanges(
+  projectId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((moduleScopeId) => ({
+      operation: AssignmentOperation.Add,
+      projectId,
+      moduleScopeId,
+    })),
+    ...diff.remove.map((moduleScopeId) => ({
+      operation: AssignmentOperation.Remove,
+      projectId,
+      moduleScopeId,
+    })),
+  ];
+}
+
+/** One Module Scope's changes across projects, by project id. */
+export function scopeProjectChanges(
+  moduleScopeId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((projectId) => ({
+      operation: AssignmentOperation.Add,
+      projectId,
+      moduleScopeId,
+    })),
+    ...diff.remove.map((projectId) => ({
+      operation: AssignmentOperation.Remove,
+      projectId,
+      moduleScopeId,
+    })),
+  ];
+}
+
+/** One Module Scope's changes across project groups, by group id. */
+export function scopeGroupChanges(
+  moduleScopeId: string,
+  diff: AssignmentDiff,
+): AssignmentChange[] {
+  return [
+    ...diff.add.map((projectGroupId) => ({
+      operation: AssignmentOperation.Add,
+      projectGroupId,
+      moduleScopeId,
+    })),
+    ...diff.remove.map((projectGroupId) => ({
+      operation: AssignmentOperation.Remove,
+      projectGroupId,
+      moduleScopeId,
     })),
   ];
 }

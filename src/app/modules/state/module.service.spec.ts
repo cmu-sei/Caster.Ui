@@ -65,7 +65,37 @@ describe('ModuleService', () => {
         true,
         undefined,
         undefined,
+        false,
       );
+    });
+
+    /**
+     * Verifies: load asks for the latest version when told to, and keeps the latest version the store already has when a load did not ask for it, as it keeps versions.
+     * Interacts with: ModulesService.getAllModules (stub), the store.
+     * Data: stored m1 with latestVersion 1.0.0; a load that asks, then one that does not.
+     */
+    it('load() requests and keeps the latest version', () => {
+      const api = {
+        getAllModules: vi
+          .fn()
+          .mockReturnValueOnce(of([{ id: 'm1', latestVersion: '2.0.0' }]))
+          .mockReturnValueOnce(of([{ id: 'm1', latestVersion: null }])),
+      } satisfies ApiStub<ModulesService>;
+      const { service, query } = setup(api, [mod({ latestVersion: '1.0.0' })]);
+
+      recordEmissions(service.load(false, true, false, true));
+      expect(api.getAllModules).toHaveBeenLastCalledWith(
+        false,
+        true,
+        false,
+        undefined,
+        undefined,
+        true,
+      );
+      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
+
+      recordEmissions(service.load(false, true));
+      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
     });
 
     /**
@@ -91,6 +121,7 @@ describe('ModuleService', () => {
         false,
         undefined,
         undefined,
+        false,
       );
 
       response$.next([
@@ -132,44 +163,6 @@ describe('ModuleService', () => {
       });
       // NOTE: the API response object itself is mutated (versions deleted).
       expect(payload).not.toHaveProperty('versions');
-    });
-
-    /**
-     * Verifies: load(…, includeLatestVersion) asks the API for the latest version and stores latestVersion; a later load that does not ask keeps it, and does not add the parameter to its request.
-     * Interacts with: ModulesService.getAllModules (stub); upsertMany merge.
-     * Data: stored m1; the API returns m1 with latestVersion 2.0.0, then m1 without it.
-     */
-    it('load() stores latestVersion when asked and keeps it otherwise', async () => {
-      const api = {
-        getAllModules: vi
-          .fn()
-          .mockReturnValueOnce(of([mod({ latestVersion: '2.0.0' })]))
-          .mockReturnValueOnce(of([mod({ name: 'renamed' })])),
-      } satisfies ApiStub<ModulesService>;
-      const { service, query } = setup(api, [mod()]);
-
-      await firstValueFrom(service.load(false, true, false, true));
-      expect(api.getAllModules).toHaveBeenLastCalledWith(
-        false,
-        true,
-        false,
-        undefined,
-        true,
-      );
-      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
-
-      await firstValueFrom(service.load(false, true));
-      expect(api.getAllModules).toHaveBeenLastCalledWith(
-        false,
-        true,
-        false,
-        undefined,
-        undefined,
-      );
-      expect(query.getEntity('m1')).toMatchObject({
-        name: 'renamed',
-        latestVersion: '2.0.0',
-      });
     });
 
     /**
