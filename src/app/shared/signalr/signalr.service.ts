@@ -36,6 +36,10 @@ import { RoleService } from 'src/app/roles/roles.service.service';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
+import {
+  PresentUser,
+  ProjectPresenceService,
+} from 'src/app/project/state/project-presence.service';
 
 @Injectable({
   providedIn: 'root',
@@ -57,6 +61,7 @@ export class SignalRService {
   private groupMembershipService = inject(GroupMembershipService);
   private projectMembershipService = inject(ProjectMembershipService);
   private environmentSetService = inject(EnvironmentSetService);
+  private projectPresenceService = inject(ProjectPresenceService);
 
   private hubConnection: signalR.HubConnection;
   private projectId: string;
@@ -68,10 +73,11 @@ export class SignalRService {
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
   private joinedEnvironmentSetsAdmin = false;
-  private connectionPromise: Promise<void>;
+  private connectionPromise: Promise<void> | undefined;
+  private leavingProject: Promise<unknown> | null = null;
 
   public startConnection(): Promise<void> {
-    if (this.connectionPromise) {
+    if (this.connectionPromise !== undefined) {
       return this.connectionPromise;
     }
 
@@ -87,6 +93,13 @@ export class SignalRService {
     this.hubConnection.onreconnected(() => {
       this.JoinGroups();
     });
+
+    // Presence is only as good as the connection; JoinProject refills it. Anyone who leaves while this
+    // client is reconnecting would otherwise stay listed.
+    this.hubConnection.onreconnecting(() =>
+      this.projectPresenceService.clear(),
+    );
+    this.hubConnection.onclose(() => this.projectPresenceService.clear());
 
     this.addHandlers();
     this.connectionPromise = this.hubConnection.start();
@@ -142,17 +155,58 @@ export class SignalRService {
   }
 
   public joinProject(projectId: string) {
+    if (this.projectId && this.projectId !== projectId) {
+      this.leaveProject(this.projectId);
+    }
+
+    // A leave that is still on its way, from here or from the page that is closing, whichever project.
+    const leaving = this.leavingProject;
+    this.leavingProject = null;
+
     this.projectId = projectId;
 
-    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('JoinProject', projectId);
+    const join = () => {
+      if (
+        this.projectId !== projectId ||
+        this.hubConnection.state !== signalR.HubConnectionState.Connected
+      ) {
+        return;
+      }
+
+      const snapshot = this.projectPresenceService.beginSnapshot();
+
+      this.hubConnection.invoke('JoinProject', projectId).then(
+        (users: PresentUser[]) => {
+          if (this.projectId === projectId) {
+            this.projectPresenceService.applySnapshot(snapshot, users);
+          }
+        },
+        (error) => {
+          // Left unhandled, as before: only stop holding on to announcements.
+          this.projectPresenceService.endSnapshot(snapshot);
+          throw error;
+        },
+      );
+    };
+
+    if (leaving !== null) {
+      // Whoever arrived in the project being left, before the hub heard that this client left it, is
+      // announced to this client before LeaveProject answers. Holding announcements only from then on
+      // keeps them out of the next project.
+      leaving.then(join, join);
+    } else {
+      join();
     }
   }
 
   public leaveProject(projectId: string) {
     this.projectId = null;
+    this.projectPresenceService.clear();
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('LeaveProject', projectId);
+      this.leavingProject = this.hubConnection.invoke(
+        'LeaveProject',
+        projectId,
+      );
     }
   }
 
@@ -306,6 +360,7 @@ export class SignalRService {
     this.addGroupMembershipHandlers();
     this.addProjectMembershipHandlers();
     this.addEnvironmentSetHandlers();
+    this.addPresenceHandlers();
   }
 
   private addFileHandlers() {
@@ -588,6 +643,16 @@ export class SignalRService {
         this.environmentSetService.projectSetsUpdated(projectId, sets);
       },
     );
+  }
+
+  private addPresenceHandlers() {
+    this.hubConnection.on('PresenceArrived', (user: PresentUser) => {
+      this.projectPresenceService.arrived(user);
+    });
+
+    this.hubConnection.on('PresenceDeparted', (user: PresentUser) => {
+      this.projectPresenceService.departed(user);
+    });
   }
 
   private getModified(entity: any, modifiedProperties: string[]): any {

@@ -40,6 +40,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { AsyncPipe } from '@angular/common';
+import { ProjectPresenceComponent } from '../project-presence/project-presence.component';
 @Component({
   selector: 'cas-topbar',
   templateUrl: './topbar.component.html',
@@ -55,6 +56,7 @@ import { AsyncPipe } from '@angular/common';
     MatMenuTrigger,
     MatMenu,
     MatMenuItem,
+    ProjectPresenceComponent,
     MatSlideToggle,
     AsyncPipe,
   ],
