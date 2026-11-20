@@ -15,6 +15,7 @@ import {
   isLeftover,
   moduleMatches,
   moduleSourceOf,
+  reportsSourcePresence,
   sortModules,
   sortSourceRows,
   sourceAccessRows,
@@ -25,6 +26,7 @@ import {
 } from './module-source-groups';
 
 const cmu: ModuleSource = { name: 'cmu', provider: 'git' };
+const cmu2: ModuleSource = { name: 'cmu2', provider: 'git' };
 const sei: ModuleSource = { name: 'sei', provider: 'git' };
 const extra: ModuleSource = { name: 'cmu/extra', provider: 'git' };
 const gitlab: ModuleSource = { name: 'gitlab', provider: 'gitlab' };
@@ -48,13 +50,13 @@ const old: Module = {
   name: 'old',
   path: 'cmu/old',
   missingSince: '2026-11-01T00:00:00Z',
-} as Module;
+};
 const orphan: Module = { id: '5', name: 'orphan', path: 'uni/orphan' };
 const dns: Module = { id: '6', name: 'dns', path: 'group/dns' };
 
 describe('moduleSourceOf', () => {
   /**
-   * Verifies: a git source owns the Modules whose Path is its name or starts with its name and a slash, the longest matching name wins, and any other Module is the GitLab source's when one is configured, else no source's.
+   * Verifies: a git source owns the Modules whose Path is its name or starts with its name and a slash (never a partial name: cmu does not own cmu2/x), the longest matching name wins, and any other Module is the GitLab source's when one is configured, else no source's.
    * Interacts with: nothing; a pure function.
    * Data: sources cmu, cmu/extra and gitlab; paths in the row.
    */
@@ -64,11 +66,30 @@ describe('moduleSourceOf', () => {
     { path: 'CMU/vm', sources: [cmu, gitlab], expected: 'cmu' },
     { path: 'cmu/extra/vm', sources: [cmu, extra], expected: 'cmu/extra' },
     { path: 'cmuvm/x', sources: [cmu, gitlab], expected: 'gitlab' },
+    { path: 'cmu2/x', sources: [cmu, gitlab], expected: 'gitlab' },
+    { path: 'cmu2/x', sources: [cmu], expected: null },
+    { path: 'cmu2/x', sources: [cmu, cmu2], expected: 'cmu2' },
     { path: 'group/dns', sources: [cmu, gitlab], expected: 'gitlab' },
     { path: 'group/dns', sources: [cmu], expected: null },
     { path: null, sources: [cmu], expected: null },
   ])('maps $path to $expected', ({ path, sources, expected }) => {
     expect(moduleSourceOf({ path }, sources)?.name ?? null).toBe(expected);
+  });
+});
+
+describe('reportsSourcePresence', () => {
+  /**
+   * Verifies: a Module reports whether it is still in its source when the API sends missingSince or inSource, and does not when it sends neither.
+   * Interacts with: nothing; a pure function.
+   * Data: modules with each field and with none.
+   */
+  it.each([
+    { module: {}, expected: false },
+    { module: { missingSince: null }, expected: true },
+    { module: { inSource: true }, expected: true },
+    { module: { inSource: false }, expected: true },
+  ])('reports $expected for $module', ({ module, expected }) => {
+    expect(reportsSourcePresence(module)).toBe(expected);
   });
 });
 
@@ -325,7 +346,10 @@ describe('sourceAccessRows', () => {
     };
     const rows = sourceAccessRows([cmu, sei], [scope]);
 
-    expect(rows.get('cmu').summary.text).toBe('Only projects with no scope');
+    expect(rows.get('cmu').summary.kind).toBe('unscoped');
+    expect(rows.get('cmu').summary.text).toMatch(
+      /^Open to every project that has no source assigned/,
+    );
     expect(rows.get('cmu').tooltip).not.toContain('Range A');
     expect(rows.get('cmu').folderNote).toBe(
       '1 scope limits access to folders of this source.',
@@ -369,7 +393,13 @@ describe('sourceStatus', () => {
    * Interacts with: nothing; a pure function.
    * Data: TZ unset for the time, so only its shape is checked.
    */
-  it.each([
+  it.each<{
+    source: ModuleSource;
+    kind: string;
+    word: string;
+    detail: string | null;
+    reason: RegExp;
+  }>([
     {
       source: { ...cmu, lastSuccess: '2026-10-14T12:30:00Z' },
       kind: 'ok',
@@ -397,6 +427,31 @@ describe('sourceStatus', () => {
       word: 'Not read yet',
       detail: null,
       reason: /^Not read yet$/,
+    },
+    {
+      source: {
+        ...cmu,
+        lastSuccess: '2026-10-14T12:30:00Z',
+        message: 'Read with a note.',
+      },
+      kind: 'ok',
+      word: 'Updated',
+      detail: 'Read with a note.',
+      reason: /^Read successfully$/,
+    },
+    {
+      source: { ...cmu, message: 'Waiting for the first read.' },
+      kind: 'pending',
+      word: 'Not read yet',
+      detail: 'Waiting for the first read.',
+      reason: /^Not read yet$/,
+    },
+    {
+      source: { ...cmu, state: 'Error', message: 'Clone failed.' },
+      kind: 'failed',
+      word: 'Last sync failed',
+      detail: 'Clone failed.',
+      reason: /^Couldn't be read$/,
     },
     {
       source: { ...cmu, state: 'Empty', message: 'None.' },

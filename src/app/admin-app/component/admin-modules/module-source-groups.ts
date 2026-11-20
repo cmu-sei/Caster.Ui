@@ -9,7 +9,9 @@ import {
 import {
   AccessSummary,
   accessSummary,
+  UNASSIGNED_ACCESS,
   folderScopesNote,
+  owningSource,
   sourceAccess,
 } from 'src/app/module-scopes/module-scope-rules';
 
@@ -55,41 +57,42 @@ export function isGitlabSource(source: ModuleSource): boolean {
 /**
  * The configured source a Module came from. A git source's Modules have Paths
  * of <sourceName> or <sourceName>/<subdirectory>, and a Module belongs to the
- * longest source name its Path starts with, so a source named `a/b` is not
- * mistaken for a folder of `a`. The legacy GitLab source's Modules use the
- * project's own path, so any other Module is the GitLab source's when one is
- * configured. Null when no configured source provides the Module.
+ * longest source name that is a whole leading segment of its Path, the rule scope
+ * paths use too, so cmu does not own cmu2/x, and a source named `a/b` is not
+ * mistaken for a folder of `a`. Names are compared ignoring case here, as the page
+ * always has. The legacy GitLab source's Modules use the project's own path,
+ * and the API does not say which source a Module came from, so any other Module
+ * is the GitLab source's when one is configured. Null when no configured source
+ * provides the Module.
  */
 export function moduleSourceOf(
   module: Module,
   sources: ModuleSource[],
 ): ModuleSource | null {
-  const path = (module.path ?? '').toLowerCase();
-  const named = sources
-    .filter((s) => !isGitlabSource(s) && s.name)
-    .filter((s) => {
-      const name = s.name.toLowerCase();
-      return path === name || path.startsWith(name + '/');
-    })
-    .sort((a, b) => b.name.length - a.name.length)[0];
+  const git = sources.filter((s) => !isGitlabSource(s) && s.name);
+  const name = owningSource(
+    module.path ?? '',
+    git.map((s) => s.name),
+    true,
+  );
+  const named = git.find((s) => s.name === name);
 
   return named ?? sources.find(isGitlabSource) ?? null;
 }
 
 /** When the Module stopped being found in its source (ISO), or null while it is still there. */
 export function missingSinceOf(module: Module): string | null {
-  return (
-    (module as Module & { missingSince?: string | null }).missingSince ?? null
-  );
+  return module.missingSince ?? null;
+}
+
+/** Whether the API says whether the Module is still in its source (an older API does not). */
+export function reportsSourcePresence(module: Module): boolean {
+  return module.missingSince !== undefined || module.inSource !== undefined;
 }
 
 /** A Module is a leftover when the API says it is no longer in its source. */
 export function isLeftover(module: Module): boolean {
-  const { missingSince, inSource } = module as Module & {
-    missingSince?: string | null;
-    inSource?: boolean | null;
-  };
-  return !!missingSince || inSource === false;
+  return !!module.missingSince || module.inSource === false;
 }
 
 export function toModuleRow(
@@ -295,7 +298,12 @@ export function sourceAccessRows(
           ? `Project groups: ${access.wholeGroups.join(', ')}.`
           : '',
         summary.note ?? '',
-        'A project with no scope can use every source.',
+        ...(access.inheritedScopes.length
+          ? [
+              `Also allowed through a parent path by ${access.inheritedScopes.map((x) => x.name).join(', ')}.`,
+            ]
+          : []),
+        UNASSIGNED_ACCESS,
       ];
       return [
         s.name,
@@ -335,10 +343,7 @@ export const STATUS_LABELS: Record<SourceStatus['kind'], string> = {
 /** What a source says about its last read. */
 export function sourceStatus(source: ModuleSource): SourceStatus {
   // The API's state, when it reports one; older APIs only set error.
-  const { state, message } = source as ModuleSource & {
-    state?: 'Ok' | 'Empty' | 'Warning' | 'Error';
-    message?: string | null;
-  };
+  const { state, message } = source;
   if (state === 'Empty') {
     return {
       kind: 'empty',
@@ -357,12 +362,12 @@ export function sourceStatus(source: ModuleSource): SourceStatus {
       reason: STATUS_LABELS.warning,
     };
   }
-  if (source.error) {
+  if (state === 'Error' || source.error) {
     return {
       kind: 'failed',
       icon: 'mdi-alert-circle-outline',
       word: 'Last sync failed',
-      detail: source.error,
+      detail: source.error || message || null,
       reason: source.lastSuccess
         ? `${STATUS_LABELS.failed}. Showing its Modules from ${formatSyncTime(source.lastSuccess)}.`
         : STATUS_LABELS.failed,
@@ -373,14 +378,14 @@ export function sourceStatus(source: ModuleSource): SourceStatus {
         kind: 'ok',
         icon: 'mdi-check-circle-outline',
         word: 'Updated',
-        detail: null,
+        detail: message || null,
         reason: STATUS_LABELS.ok,
       }
     : {
         kind: 'pending',
         icon: 'mdi-clock-outline',
         word: 'Not read yet',
-        detail: null,
+        detail: message || null,
         reason: STATUS_LABELS.pending,
       };
 }

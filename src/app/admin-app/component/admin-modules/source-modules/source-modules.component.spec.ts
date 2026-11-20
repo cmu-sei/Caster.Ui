@@ -23,15 +23,21 @@ const exercise: Module = {
   description: longDescription,
   dateModified: '2026-10-14T12:30:00Z',
   latestVersion: 'v1.10.0',
+  inSource: true,
 };
-const bare: Module = { id: 'm2', name: 'bare', path: 'cmu/bare' };
+const bare: Module = {
+  id: 'm2',
+  name: 'bare',
+  path: 'cmu/bare',
+  inSource: true,
+};
 const dns: Module = { id: 'm3', name: 'dns', path: 'group/dns' };
-const stale = {
+const stale: Module = {
   id: 'm4',
   name: 'stale',
   path: 'cmu/stale',
   missingSince: '2026-10-01T12:00:00Z',
-} as Module;
+};
 const stray: Module = { id: 'm5', name: 'stray', path: 'uni/stray' };
 
 const rows = (modules: Module[], of = sources): ModuleRow[] =>
@@ -91,11 +97,15 @@ const moduleRow = (name: string) =>
   screen.getByRole('row', { name: new RegExp(`\\b${name}\\b`) });
 
 /** The names of the Modules listed, in order. */
-const names = () =>
-  screen
+const names = () => {
+  const column = screen
+    .getAllByRole('columnheader')
+    .findIndex((h) => text(h) === 'Name');
+  return screen
     .getAllByRole('row')
     .slice(1)
-    .map((r) => text(within(r).getAllByRole('cell')[1]).split(' ')[0]);
+    .map((r) => text(within(r).getAllByRole('cell')[column]).split(' ')[0]);
+};
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -129,11 +139,12 @@ describe('SourceModulesComponent', () => {
       await renderTable();
 
       const cells = within(moduleRow('exercise-x')).getAllByRole('cell');
-      expect(text(cells[2])).toBe('cmu/exercise-x');
-      expect(text(cells[3])).toBe('v1.10.0');
-      expect(text(cells[4])).toBe('A'.repeat(80) + ' ...');
-      expect(cells[4]).toHaveAttribute('title', longDescription);
-      expect(text(within(moduleRow('bare')).getAllByRole('cell')[3])).toBe(
+      // Both are still in their source, so there is no actions column.
+      expect(text(cells[1])).toBe('cmu/exercise-x');
+      expect(text(cells[2])).toBe('v1.10.0');
+      expect(text(cells[3])).toBe('A'.repeat(80) + ' ...');
+      expect(cells[3]).toHaveAttribute('title', longDescription);
+      expect(text(within(moduleRow('bare')).getAllByRole('cell')[2])).toBe(
         'No version',
       );
     });
@@ -188,6 +199,7 @@ describe('SourceModulesComponent', () => {
       id: `m${i}`,
       name: `mod${String(i).padStart(2, '0')}`,
       path: `cmu/mod${i}`,
+      inSource: true,
     })) as Module[];
 
     /**
@@ -294,8 +306,8 @@ describe('SourceModulesComponent', () => {
     it('omits the actions column when no Module has an action', async () => {
       await renderTable({
         modules: [
-          { ...bare, missingSince: null } as Module,
-          { ...exercise, missingSince: null } as Module,
+          { ...bare, missingSince: null },
+          { ...exercise, missingSince: null },
         ],
       });
 
@@ -315,7 +327,7 @@ describe('SourceModulesComponent', () => {
      */
     it('shows the actions column with an empty cell for a Module with no action', async () => {
       await renderTable({
-        modules: [stale, { ...bare, missingSince: null } as Module],
+        modules: [stale, { ...bare, missingSince: null }],
       });
 
       expect(text(screen.getAllByRole('columnheader')[0])).toBe('');
@@ -334,11 +346,45 @@ describe('SourceModulesComponent', () => {
      */
     it('offers Delete only for leftovers and GitLab Modules', async () => {
       await renderTable({
-        modules: [stale, { ...bare, missingSince: null } as Module],
+        modules: [stale, { ...bare, missingSince: null }],
       });
 
       expect(screen.getByRole('button', { name: 'Delete stale' })).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Delete bare' })).toBeNull();
+    });
+
+    /**
+     * Verifies: when the API does not say whether a Module is still in its source, a git Module has no Delete, the table says why, and a GitLab Module keeps its Delete.
+     * Interacts with: canDelete(), presenceUnknown, the table template.
+     * Data: cmu's exercise-x with no missingSince or inSource, and a GitLab Module the same.
+     */
+    it('offers no Delete on a git Module the API does not report on, and says why', async () => {
+      const { fixture } = await renderTable({
+        modules: [
+          { id: 'g1', name: 'plain', path: 'cmu/plain' },
+          { id: 'g2', name: 'lab', path: 'group/lab' },
+        ],
+      });
+
+      expect(
+        screen.getByText(
+          /doesn't say which Modules are no longer in their source/,
+        ),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Delete plain' })).toBeNull();
+      expect(screen.getByRole('button', { name: 'Delete lab' })).toBeTruthy();
+      expect(fixture.componentInstance.presenceUnknown()).toBe(true);
+    });
+
+    /**
+     * Verifies: with the API reporting presence the table adds no such explanation.
+     * Interacts with: presenceUnknown, the table template.
+     * Data: bare and exercise-x, both reported still in their source.
+     */
+    it('adds no explanation when the API reports presence', async () => {
+      await renderTable();
+
+      expect(screen.queryByText(/doesn't say which Modules/)).toBeNull();
     });
 
     /**

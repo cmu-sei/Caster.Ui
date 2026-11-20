@@ -105,6 +105,7 @@ export * from './moduleScope';
 export * from './moduleScopeProject';
 export * from './moduleScopeProjectGroup';
 export * from './moduleSource';
+export * from './moduleSourceState';
 export * from './moduleValue';
 export * from './moduleVariable';
 export * from './moduleVersion';

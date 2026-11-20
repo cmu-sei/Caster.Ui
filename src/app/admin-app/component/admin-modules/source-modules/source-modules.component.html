@@ -35,6 +35,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     />
   </div>
 
+  @if (presenceUnknown()) {
+    <p class="empty" role="note">{{ presenceUnknownReason }}</p>
+  }
+
   <table mat-table matSort [dataSource]="dataSource" [trackBy]="trackById">
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>

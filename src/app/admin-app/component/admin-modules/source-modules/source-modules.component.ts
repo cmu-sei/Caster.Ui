@@ -41,6 +41,7 @@ import {
   isGitlabSource,
   missingSinceOf,
   moduleMatches,
+  reportsSourcePresence,
   sortModules,
 } from '../module-source-groups';
 
@@ -190,16 +191,28 @@ export class SourceModulesComponent {
   /**
    * Delete is for leftovers: a Module no longer in its source, or a GitLab
    * Module, which is added by hand. A Module still in its source would come
-   * back on the next read, so it has no Delete. An API that doesn't report
-   * missingSince yet leaves Delete on every row, as before.
+   * back on the next read, so it has no Delete. An API that does not say whether
+   * a Module is still in its source (missingSince, inSource) leaves a git Module
+   * without Delete, since it cannot be told from a leftover: see presenceUnknown.
    */
   canDelete(row: ModuleRow): boolean {
-    if (!('missingSince' in row) && !('inSource' in row)) {
+    const source = this.sourceOf(row);
+    if (source && isGitlabSource(source)) {
       return true;
     }
-    const source = this.sourceOf(row);
-    return row.leftover || (!!source && isGitlabSource(source));
+    return reportsSourcePresence(row) && row.leftover;
   }
+
+  /** True when some git Module here is without Delete only because the API does not say if it is a leftover. */
+  readonly presenceUnknown = computed(() =>
+    this.modules().some(
+      (row) => !reportsSourcePresence(row) && !this.canDelete(row),
+    ),
+  );
+
+  /** Why Delete is not offered on those Modules. */
+  readonly presenceUnknownReason =
+    "This Caster API doesn't say which Modules are no longer in their source, so Delete isn't offered. Update the Caster API to see and delete leftovers.";
 
   deleteModule(module: Module) {
     this.confirmService

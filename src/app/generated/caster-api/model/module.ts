@@ -29,5 +29,13 @@ export interface Module {
      * The name of the highest version. Only when requested (IncludeLatestVersion); null when not requested or when the Module has no versions.
      */
     latestVersion?: string | null;
+    /**
+     * When the last whole-source read first found this Module gone from its git source, or null while it is still there.
+     */
+    missingSince?: string | null;
+    /**
+     * Whether the Module is still in its source: true unless MissingSince is set.
+     */
+    inSource?: boolean;
 }
 

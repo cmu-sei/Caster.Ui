@@ -34,8 +34,10 @@ export function managedScopeOf(
 
 /** Who may use one module source, worked out from the Module Scopes. */
 export interface SourceAccess {
-  /** Scopes that allow the whole source. */
+  /** Scopes that allow the whole source, by its name or through a parent path. */
   scopes: ModuleScope[];
+  /** Those of them that allow it only through a parent path (the path cmu for the source cmu/lab). */
+  inheritedScopes: ModuleScope[];
   /** Projects and project groups, by name, a scope allowing the whole source is assigned to. */
   wholeProjects: string[];
   wholeGroups: string[];
@@ -50,24 +52,55 @@ export interface SourceAccess {
   anyAssigned: boolean;
 }
 
-/** The configured source a path belongs to: the longest source name it is or starts with. */
-function owningSource(
+/**
+ * The configured source a path belongs to: the longest source name that is the path, or a whole
+ * leading segment of it (cmu owns cmu and cmu/lab, never cmu2). Scope paths are compared with the
+ * exact case, as the API matches them. Module paths use ignoreCase, as the page always has: it
+ * matched a Module to its source by name, and source names are compared case insensitively.
+ */
+export function owningSource(
   path: string,
   sourceNames: readonly string[],
+  ignoreCase = false,
 ): string | null {
+  const fold = (x: string) => (ignoreCase ? x.toLowerCase() : x);
+  const target = fold(path);
   return (
     [...sourceNames]
+      .filter((x) => !!x)
       .sort((a, b) => b.length - a.length)
-      .find((x) => path === x || path.startsWith(x + '/')) ?? null
+      .find((x) => {
+        const name = fold(x);
+        return target === name || target.startsWith(name + '/');
+      }) ?? null
   );
 }
 
 /**
- * Who may use a source. A project with no scope may use every source, so what a scope gives
- * is access to projects that would otherwise be limited to other sources; what is listed here
- * are the projects and groups a scope allowing this source is assigned to. A scope whose
- * path is a folder of the source (a legacy entry) is kept apart and does not allow it. A path
- * belongs to the longest configured source name it starts with.
+ * Whether a scope allows every Module of a source: one of its paths is the source or a parent of
+ * it (the path cmu allows cmu/lab), as the API's whole-segment prefix match does.
+ */
+export function allowsSource(scope: ModuleScope, source: string): boolean {
+  return (scope.paths ?? [])
+    .map(normalizeScopePath)
+    .some((p) => !!p && (p === source || source.startsWith(p + '/')));
+}
+
+/** Whether a scope also allows paths that are not this source's: it covers other sources or folders. */
+export function coversOtherPaths(scope: ModuleScope, source: string): boolean {
+  return (scope.paths ?? [])
+    .map(normalizeScopePath)
+    .some((p) => !!p && p !== source);
+}
+
+/**
+ * Who may use a source. A project with no scope may use every source (only the shared ones when
+ * the deployment restricts unassigned projects), so what a scope gives is access to projects that
+ * would otherwise be limited to other sources; what is listed here are the projects and groups a
+ * scope allowing this source is assigned to. A scope allows the source when one of its paths is
+ * the source or a parent of it. A scope whose path is a folder of the source (a legacy entry) is
+ * kept apart and does not allow it. A path belongs to the longest configured source name that is
+ * a whole leading segment of it.
  */
 export function sourceAccess(
   source: string,
@@ -75,15 +108,17 @@ export function sourceAccess(
   scopes: readonly ModuleScope[],
 ): SourceAccess {
   const whole: ModuleScope[] = [];
+  const inherited: ModuleScope[] = [];
   const folderScopes: ModuleScope[] = [];
 
   for (const scope of scopes) {
-    const paths = (scope.paths ?? [])
-      .map(normalizeScopePath)
-      .filter((x) => owningSource(x, sourceNames) === source);
-    if (paths.includes(source)) {
+    const paths = (scope.paths ?? []).map(normalizeScopePath);
+    if (allowsSource(scope, source)) {
       whole.push(scope);
-    } else if (paths.length) {
+      if (!paths.includes(source)) {
+        inherited.push(scope);
+      }
+    } else if (paths.some((x) => owningSource(x, sourceNames) === source)) {
       folderScopes.push(scope);
     }
   }
@@ -95,6 +130,7 @@ export function sourceAccess(
 
   return {
     scopes: whole,
+    inheritedScopes: inherited,
     wholeProjects: sorted(
       whole.flatMap((s) =>
         (s.projects ?? []).map((x): [string, string] => [
@@ -143,9 +179,22 @@ function who(projects: readonly string[], groups: readonly string[]): string {
 }
 
 /**
- * The short summary for a source's row. "Open to every project" is only said while no scope is
- * assigned anywhere; once one is, a source nothing allows is left to the projects with no scope.
- * A legacy scope limiting access to folders of the source is not counted: see folderScopesNote.
+ * What a project with no scope assigned can use. The page cannot know whether the deployment
+ * restricts such projects (it is a setting of the API), so every place that talks about it says
+ * both.
+ */
+export const UNASSIGNED_ACCESS =
+  'A project with no sources assigned can use every source (or only shared sources if the deployment restricts them).';
+
+/** The short summary for a source's row when no project or group is assigned to it. */
+export const UNASSIGNED_SUMMARY =
+  'Open to every project that has no source assigned (unless the deployment restricts them to shared sources)';
+
+/**
+ * The short summary for a source's row: the projects and groups it is assigned to, or when there
+ * are none that it is open to projects with nothing assigned, which is as far as the page can
+ * tell, since the deployment may restrict those to the shared sources. A legacy scope limiting
+ * access to folders of the source is not counted: see folderScopesNote.
  */
 export function accessSummary(access: SourceAccess): AccessSummary {
   const whole = who(access.wholeProjects, access.wholeGroups);
@@ -157,13 +206,11 @@ export function accessSummary(access: SourceAccess): AccessSummary {
     return { kind: 'allowed', text: `Allowed for ${whole}`, note: unassigned };
   }
 
-  return access.anyAssigned
-    ? {
-        kind: 'unscoped',
-        text: 'Only projects with no scope',
-        note: unassigned,
-      }
-    : { kind: 'open', text: 'Open to every project', note: unassigned };
+  return {
+    kind: access.anyAssigned ? 'unscoped' : 'open',
+    text: UNASSIGNED_SUMMARY,
+    note: unassigned,
+  };
 }
 
 /**

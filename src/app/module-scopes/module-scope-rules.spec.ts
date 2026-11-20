@@ -4,10 +4,15 @@
 import { describe, it, expect } from 'vitest';
 import { ModuleScope } from '../generated/caster-api';
 import {
+  UNASSIGNED_ACCESS,
+  UNASSIGNED_SUMMARY,
   accessSummary,
+  allowsSource,
+  coversOtherPaths,
   folderScopesNote,
   managedScopeOf,
   normalizeScopePath,
+  owningSource,
   sourceAccess,
 } from './module-scope-rules';
 
@@ -80,9 +85,25 @@ describe('who may use a source', () => {
   it('is open to every project when there are no scopes', () => {
     expect(summary('cmu', [])).toEqual({
       kind: 'open',
-      text: 'Open to every project',
+      text: UNASSIGNED_SUMMARY,
       note: null,
     });
+  });
+
+  /**
+   * Verifies: the summary of an unassigned source names both deployment settings and does not claim the source is open to every project, nor to nobody.
+   * Interacts with: accessSummary (pure).
+   * Data: no scopes.
+   */
+  it('words an unassigned source so it holds under both deployment settings', () => {
+    const text = summary('cmu', []).text;
+
+    expect(text).toBe(
+      'Open to every project that has no source assigned (unless the deployment restricts them to shared sources)',
+    );
+    expect(UNASSIGNED_ACCESS).toBe(
+      'A project with no sources assigned can use every source (or only shared sources if the deployment restricts them).',
+    );
   });
 
   /**
@@ -93,7 +114,7 @@ describe('who may use a source', () => {
   it('is left to projects with no scope when scopes cover other sources only', () => {
     expect(summary('cmu', [scope(['sei'], ['Alpha'])])).toEqual({
       kind: 'unscoped',
-      text: 'Only projects with no scope',
+      text: UNASSIGNED_SUMMARY,
       note: null,
     });
   });
@@ -146,7 +167,7 @@ describe('who may use a source', () => {
     ]);
     expect(accessSummary(one)).toEqual({
       kind: 'unscoped',
-      text: 'Only projects with no scope',
+      text: UNASSIGNED_SUMMARY,
       note: null,
     });
     expect(folderScopesNote(one)).toBe(
@@ -203,8 +224,108 @@ describe('who may use a source', () => {
   it('notes a scope that is assigned to nothing', () => {
     expect(summary('cmu', [scope(['cmu'])])).toEqual({
       kind: 'open',
-      text: 'Open to every project',
+      text: UNASSIGNED_SUMMARY,
       note: 'Scope cmu allows it but is not assigned to any project or group.',
     });
+  });
+});
+
+describe('which source a path belongs to', () => {
+  const names = ['cmu', 'cmu2', 'cmu/lab', 'sei'];
+
+  /**
+   * Verifies: a path belongs to the longest source name that is the path or a whole leading segment of it, never to a name that is only a partial prefix.
+   * Interacts with: owningSource (pure).
+   * Data: sources cmu, cmu2, cmu/lab and sei.
+   */
+  it.each([
+    ['cmu', 'cmu'],
+    ['cmu/x', 'cmu'],
+    ['cmu2', 'cmu2'],
+    ['cmu2/x', 'cmu2'],
+    ['cmu/lab/x', 'cmu/lab'],
+    ['cmux/y', null],
+    ['cm', null],
+    ['', null],
+  ])('gives %j to %j', (path, expected) => {
+    expect(owningSource(path, names)).toBe(expected);
+  });
+
+  /**
+   * Verifies: scope paths are matched with the exact case, as the API does; module paths can opt into ignoring case.
+   * Interacts with: owningSource (pure).
+   * Data: the path CMU/x against the source cmu.
+   */
+  it('matches the exact case unless asked to ignore it', () => {
+    expect(owningSource('CMU/x', names)).toBeNull();
+    expect(owningSource('CMU/x', names, true)).toBe('cmu');
+  });
+});
+
+describe('scopes that allow a source through a parent path', () => {
+  const scope = (paths: string[], projects: string[] = []): ModuleScope => ({
+    id: paths.join('+') + projects.join(),
+    name: `Scope ${paths.join('+')}`,
+    paths,
+    projects: projects.map((x) => ({ projectId: x.toLowerCase(), name: x })),
+    projectGroups: [],
+  });
+  const names = ['cmu', 'cmu2', 'cmu/lab'];
+
+  /**
+   * Verifies: a scope for the path cmu allows the source cmu/lab, as the API's whole-segment prefix match does, and is counted in its summary and marked inherited; a scope for cmu2 or cmu/lab does not allow cmu.
+   * Interacts with: sourceAccess, allowsSource and accessSummary (pure).
+   * Data: sources cmu, cmu2, cmu/lab; scopes for cmu (Alpha), cmu2 (Beta) and cmu/lab (Gamma).
+   */
+  it('counts a scope for a parent path as allowing the nested source', () => {
+    const scopes = [
+      scope(['cmu'], ['Alpha']),
+      scope(['cmu2'], ['Beta']),
+      scope(['cmu/lab'], ['Gamma']),
+    ];
+
+    const lab = sourceAccess('cmu/lab', names, scopes);
+    expect(lab.wholeProjects).toEqual(['Alpha', 'Gamma']);
+    expect(lab.inheritedScopes.map((x) => x.name)).toEqual(['Scope cmu']);
+    expect(accessSummary(lab).text).toBe('Allowed for 2 projects');
+
+    expect(sourceAccess('cmu', names, scopes).wholeProjects).toEqual(['Alpha']);
+    expect(sourceAccess('cmu2', names, scopes).wholeProjects).toEqual(['Beta']);
+    expect(allowsSource(scopes[0], 'cmu2')).toBe(false);
+  });
+
+  /**
+   * Verifies: scope paths are compared with the exact case, so CMU does not allow cmu.
+   * Interacts with: sourceAccess and allowsSource (pure).
+   * Data: a scope for CMU.
+   */
+  it('does not match a path of another case', () => {
+    const scopes = [scope(['CMU'], ['Alpha'])];
+
+    expect(allowsSource(scopes[0], 'cmu')).toBe(false);
+    expect(sourceAccess('cmu', names, scopes).wholeProjects).toEqual([]);
+  });
+
+  /**
+   * Verifies: a scope covers other paths when it has any path besides the source, and not when its only path is the source.
+   * Interacts with: coversOtherPaths (pure).
+   * Data: scopes for cmu, cmu with sei, and a parent path.
+   */
+  it('tells whether a scope covers other paths', () => {
+    expect(coversOtherPaths(scope(['cmu']), 'cmu')).toBe(false);
+    expect(coversOtherPaths(scope(['cmu', 'sei']), 'cmu')).toBe(true);
+    expect(coversOtherPaths(scope(['cmu']), 'cmu/lab')).toBe(true);
+  });
+
+  /**
+   * Verifies: the shared wording for projects with no source assigned names both settings of the deployment.
+   * Interacts with: UNASSIGNED_ACCESS (constant).
+   * Data: none.
+   */
+  it('words the unassigned rule for both deployment settings', () => {
+    expect(UNASSIGNED_ACCESS).toMatch(/every source/);
+    expect(UNASSIGNED_ACCESS).toMatch(
+      /only shared sources if the deployment restricts/,
+    );
   });
 });
