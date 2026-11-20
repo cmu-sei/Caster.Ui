@@ -17,6 +17,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Theme } from '@cmusei/crucible-common';
 import { Observable, Subject } from 'rxjs';
 import { filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
@@ -28,6 +29,7 @@ import { FileVersion, ModelFile, Module } from 'src/app/generated/caster-api';
 import { Breadcrumb } from 'src/app/project/state';
 import { CrucibleDialogService } from '@cmusei/crucible-common';
 import { CurrentUserQuery } from 'src/app/users/state';
+import { watchMenuPaste } from '../../editor-menu-paste';
 import { FileQuery, FileService, isSameContent } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
@@ -95,6 +97,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private changeDetectorRef = inject(ChangeDetectorRef);
   private confirmService = inject(CrucibleDialogService);
   private settingsService = inject(ComnSettingsService);
+  private snackBar = inject(MatSnackBar);
 
   readonly fileId = input<string>(undefined);
   readonly modules = input<Module[]>(undefined);
@@ -133,6 +136,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   private keydownListener: ((e: KeyboardEvent) => void) | null = null;
   private captureKeydownListener: ((e: KeyboardEvent) => void) | null = null;
   private editorDomNode: HTMLElement | null = null;
+  private menuPaste: { dispose(): void } | null = null;
   public breadcrumbString = '';
 
   ngOnInit(): void {
@@ -266,6 +270,12 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
     } catch (err) {
       console.warn('Monaco keybinding configuration failed:', err);
     }
+    // Right-click Paste fails silently when the browser blocks clipboard
+    // reading; say why instead.
+    this.menuPaste?.dispose();
+    this.menuPaste = watchMenuPaste((message) =>
+      this.snackBar.open(message, 'Dismiss'),
+    );
     this.updateModelLanguage();
     // setValue (isFlush) re-detects the line ending from the new content
     editor.onDidChangeModelContent((e: any) => {
@@ -553,6 +563,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
 
+    this.menuPaste?.dispose();
     this.ngxEditor?.dispose();
   }
 }
