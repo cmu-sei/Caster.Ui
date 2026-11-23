@@ -38,11 +38,16 @@ function refusingClipboard() {
 
 const watches: { dispose(): void }[] = [];
 
+/** Opens a watch that is already armed, as if the right-click menu just opened. */
 function watch(onFailure: MenuPasteListener, env: MenuPasteEnvironment) {
   const w = watchMenuPaste(onFailure, env);
+  w.arm();
   watches.push(w);
   return w;
 }
+
+const refuse = (env: MenuPasteEnvironment) =>
+  env.clipboard!.readText().catch(() => undefined);
 
 afterEach(() => {
   watches.splice(0).forEach((w) => w.dispose());
@@ -169,21 +174,76 @@ describe('watchMenuPaste', () => {
   });
 
   /**
-   * Verifies: a cause is reported once while the wrap is in place, since a block refuses every time.
-   * Interacts with: clipboard.readText (refuses twice).
-   * Data: permission denied.
+   * Verifies: the same message is not stacked while it is still showing, and is shown again once the user dismisses it.
+   * Interacts with: clipboard.readText (refuses), the listener's dismissal promise.
+   * Data: permission denied, three menu Pastes.
    */
-  it('reports each cause once', async () => {
+  it('repeats a message only after it was dismissed', async () => {
+    const env = environment({
+      clipboard: refusingClipboard(),
+      permissions: permission('denied'),
+    });
+    let dismiss!: () => void;
+    const onFailure = vi.fn(
+      () => new Promise<void>((resolve) => (dismiss = resolve)),
+    );
+    const w = watch(onFailure, env);
+
+    await refuse(env);
+    w.arm();
+    await refuse(env);
+    expect(onFailure).toHaveBeenCalledTimes(1);
+
+    dismiss();
+    await Promise.resolve();
+    w.arm();
+    await refuse(env);
+    expect(onFailure).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * Verifies: failures with different details are different messages, so one does not hide the next.
+   * Interacts with: clipboard.readText (refuses with two reasons).
+   * Data: granted permission, errors "first" then "second".
+   */
+  it('shows each distinct "other" failure', async () => {
+    let reason = 'first';
+    const env = environment({
+      clipboard: {
+        readText: () => Promise.reject(new Error(reason)),
+      },
+    });
+    const onFailure = vi.fn(() => new Promise<void>(() => undefined));
+    const w = watch(onFailure, env);
+
+    await refuse(env);
+    reason = 'second';
+    w.arm();
+    await refuse(env);
+
+    expect(onFailure).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * Verifies: a refused read that no menu Paste led to (Monaco's $CLIPBOARD snippets) is not reported, and one menu Paste covers one read.
+   * Interacts with: arm, clipboard.readText (refuses).
+   * Data: permission denied; read unarmed, then armed with two reads.
+   */
+  it('reports only reads that follow the menu', async () => {
     const env = environment({
       clipboard: refusingClipboard(),
       permissions: permission('denied'),
     });
     const onFailure = vi.fn();
-    watch(onFailure, env);
+    const w = watchMenuPaste(onFailure, env);
+    watches.push(w);
 
-    await env.clipboard!.readText().catch(() => undefined);
-    await env.clipboard!.readText().catch(() => undefined);
+    await refuse(env);
+    expect(onFailure).not.toHaveBeenCalled();
 
+    w.arm();
+    await refuse(env);
+    await refuse(env);
     expect(onFailure).toHaveBeenCalledTimes(1);
   });
 

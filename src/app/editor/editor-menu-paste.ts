@@ -13,6 +13,11 @@
  * this watches the read instead: while an editor is open, a refused
  * readText() says why, then fails exactly as before, and Monaco's Paste is
  * left untouched.
+ *
+ * Only reads that follow the editor's right-click menu are reported (the
+ * editor arms its watch when the menu opens). Monaco also reads the clipboard
+ * for its own reasons, such as resolving $CLIPBOARD in snippet suggestions, and
+ * those refusals are not the user's Paste.
  */
 
 /** Why the browser would not let Caster read the clipboard. */
@@ -94,19 +99,35 @@ export function menuPasteFailureMessage(read: MenuPasteRefusal): string {
   }
 }
 
+/**
+ * Shows the message. Return a promise that settles when the user has dismissed
+ * it, so the same message is not stacked while it is still on screen.
+ */
 export type MenuPasteListener = (
   message: string,
   read: MenuPasteRefusal,
-) => void;
+) => void | Promise<unknown>;
+
+export interface MenuPasteWatch {
+  /** The right-click menu opened: the next refused read is the user's Paste. */
+  arm(): void;
+  dispose(): void;
+}
+
+interface Watcher {
+  listener: MenuPasteListener;
+  armed: boolean;
+}
 
 /**
  * One wrap for every open editor: the first watch installs it, and closing the
- * last restores the browser's own readText. Each cause is reported once while
- * the wrap is in place, since a blocked clipboard refuses every time.
+ * last restores the browser's own readText. A message is not repeated while it
+ * is still showing, since a blocked clipboard refuses every time; once it is
+ * dismissed, the next failed Paste says why again.
  */
 let wrap: {
-  listeners: MenuPasteListener[];
-  reported: Set<MenuPasteFailure>;
+  watchers: Watcher[];
+  showing: string | null;
   restore(): void;
 } | null = null;
 
@@ -115,8 +136,8 @@ function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
   const own = Object.getOwnPropertyDescriptor(clipboard, 'readText');
   const original = clipboard.readText;
   const state: NonNullable<typeof wrap> = {
-    listeners: [],
-    reported: new Set(),
+    watchers: [],
+    showing: null,
     restore: () => {
       if (own) {
         Object.defineProperty(clipboard, 'readText', own);
@@ -133,11 +154,27 @@ function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
       try {
         return await original.call(clipboard);
       } catch (error) {
-        const read = await describeClipboardRefusal(error, env);
-        const listener = state.listeners[state.listeners.length - 1];
-        if (listener && !state.reported.has(read.failure)) {
-          state.reported.add(read.failure);
-          listener(menuPasteFailureMessage(read), read);
+        const watcher = state.watchers[state.watchers.length - 1];
+        // Take the arm before awaiting, so one Paste reports at most once.
+        const fromMenu = watcher?.armed === true;
+        if (watcher) {
+          watcher.armed = false;
+        }
+        if (fromMenu) {
+          const read = await describeClipboardRefusal(error, env);
+          const message = menuPasteFailureMessage(read);
+          if (state.showing !== message) {
+            state.showing = message;
+            const release = () => {
+              if (state.showing === message) {
+                state.showing = null;
+              }
+            };
+            Promise.resolve(watcher.listener(message, read)).then(
+              release,
+              release,
+            );
+          }
         }
         throw error;
       }
@@ -148,31 +185,38 @@ function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
 }
 
 /**
- * Says why a clipboard read failed while the returned watch is open; the most
+ * Says why a menu Paste failed while the returned watch is open; the most
  * recently opened editor shows the message. Does nothing where the browser has
  * no clipboard API, as over plain http.
  */
 export function watchMenuPaste(
   onFailure: MenuPasteListener,
   env: MenuPasteEnvironment = browserMenuPasteEnvironment(),
-): { dispose(): void } {
+): MenuPasteWatch {
   if (typeof env.clipboard?.readText !== 'function') {
-    return { dispose: () => undefined };
+    return {
+      arm: () => undefined,
+      dispose: () => undefined,
+    };
   }
 
   wrap ??= install(env);
   const state = wrap;
-  state.listeners.push(onFailure);
+  const watcher: Watcher = { listener: onFailure, armed: false };
+  state.watchers.push(watcher);
 
   let disposed = false;
   return {
+    arm: () => {
+      watcher.armed = true;
+    },
     dispose: () => {
       if (disposed) {
         return;
       }
       disposed = true;
-      state.listeners.splice(state.listeners.indexOf(onFailure), 1);
-      if (state.listeners.length === 0 && wrap === state) {
+      state.watchers.splice(state.watchers.indexOf(watcher), 1);
+      if (state.watchers.length === 0 && wrap === state) {
         state.restore();
         wrap = null;
       }

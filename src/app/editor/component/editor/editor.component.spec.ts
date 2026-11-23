@@ -186,6 +186,7 @@ function fakeMonaco() {
     getModel: () => model,
     getDomNode: (): HTMLElement => null,
     onDidChangeModelContent: vi.fn(),
+    onContextMenu: vi.fn(),
     updateOptions: vi.fn(),
     focus: vi.fn(),
     dispose: vi.fn(),
@@ -449,6 +450,8 @@ describe('EditorComponent', () => {
     try {
       const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
       monacoStub(fixture).onInit.emit(editor);
+      // The right-click menu opens, then Paste is chosen.
+      editor.onContextMenu.mock.calls[0][0]();
 
       await expect(navigator.clipboard.readText()).rejects.toMatchObject({
         name: 'NotAllowedError',
@@ -466,6 +469,74 @@ describe('EditorComponent', () => {
       } else {
         delete (navigator as any).clipboard;
       }
+      delete (window as any).monaco;
+    }
+  });
+
+  /**
+   * Verifies: a clipboard read with no right-click menu behind it (Monaco resolving $CLIPBOARD) shows nothing.
+   * Interacts with: editorInit, navigator.clipboard.readText (refuses), MatSnackBar.open (spy).
+   * Data: main.tf locked by u1; read refused with no menu opened.
+   */
+  it('stays quiet for clipboard reads that are not a menu Paste', async () => {
+    const { editor } = fakeMonaco();
+    const refuse = () =>
+      Promise.reject(
+        new DOMException('Read permission denied.', 'NotAllowedError'),
+      );
+    const { fixture } = await renderEditor(
+      { canEdit: true },
+      { lockedById: 'u1' },
+    );
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { readText: refuse },
+    });
+    try {
+      const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+      monacoStub(fixture).onInit.emit(editor);
+
+      await navigator.clipboard.readText().catch(() => undefined);
+
+      expect(open).not.toHaveBeenCalled();
+      fixture.destroy();
+    } finally {
+      if (clipboard) {
+        Object.defineProperty(navigator, 'clipboard', clipboard);
+      } else {
+        delete (navigator as any).clipboard;
+      }
+      delete (window as any).monaco;
+    }
+  });
+
+  /**
+   * Verifies: if the paste watch cannot be set up, the editor still gets its language and line ending.
+   * Interacts with: editorInit; the editor's onContextMenu throws.
+   * Data: main.tf locked by u1; CRLF/LF default.
+   */
+  it('finishes editor setup when the paste watch fails', async () => {
+    const { model, editor } = fakeMonaco();
+    editor.onContextMenu.mockImplementation(() => {
+      throw new Error('no context menu');
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { fixture } = await renderEditor(
+      { canEdit: true },
+      { lockedById: 'u1' },
+    );
+    try {
+      monacoStub(fixture).onInit.emit(editor);
+
+      expect(warn).toHaveBeenCalledWith(
+        'Paste message setup failed:',
+        expect.any(Error),
+      );
+      expect((window as any).monaco.editor.setModelLanguage).toHaveBeenCalled();
+      expect(model.setEOL).toHaveBeenCalledWith(0);
+    } finally {
+      warn.mockRestore();
       delete (window as any).monaco;
     }
   });
