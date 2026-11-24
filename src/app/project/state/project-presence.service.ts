@@ -38,7 +38,11 @@ export class ProjectPresenceService {
   /** Shows `state`, unless it is for another project than `openProjectId` or no newer than what is shown. */
   apply(state: PresenceState, openProjectId: string | null) {
     // An older API answers JoinProject with nothing.
-    if (state?.projectId !== openProjectId || state.version <= this.version) {
+    if (!state) {
+      return;
+    }
+
+    if (state.projectId !== openProjectId || state.version <= this.version) {
       return;
     }
 
