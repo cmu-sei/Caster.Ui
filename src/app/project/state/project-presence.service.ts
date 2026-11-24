@@ -5,17 +5,24 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CurrentUserQuery } from 'src/app/users/state';
 
-/** Another user with the open project open, as ProjectHub sends them. */
+/** A user with a project open, as ProjectHub sends them. */
 export interface PresentUser {
   id: string;
   name: string;
 }
 
+/** Everyone with a project open as of a version, as ProjectHub sends it. Versions only increase. */
+export interface PresenceState {
+  projectId: string;
+  version: number;
+  users: PresentUser[];
+}
+
 /**
- * The other users with the open project open: set from JoinProject's answer,
- * then kept by the hub's PresenceArrived and PresenceDeparted events. The hub
- * sends one arrival per user however many tabs they have, so this holds each
- * user once, and never the current user.
+ * The other users with the open project open. The hub sends the whole list each time it changes, with a
+ * version, and answers JoinProject with the current one. SignalR can deliver those in any order, so a
+ * list is applied only when it is for the open project and newer than the last one applied. The list
+ * holds each user once, and never the current user.
  */
 @Injectable({
   providedIn: 'root',
@@ -26,66 +33,24 @@ export class ProjectPresenceService {
 
   private currentUserQuery = inject(CurrentUserQuery);
 
-  // Arrivals and departures heard while a JoinProject answer is on its way. SignalR can hand the
-  // answer over after events that happened later than it, so the answer must not overwrite them.
-  private heard: { token: symbol; events: (() => void)[] } | null = null;
+  private version = -1;
 
-  set(users: PresentUser[]) {
-    this.presentUsersSubject.next(
-      this.sort(this.withoutMe(this.distinct(users ?? []))),
-    );
-  }
-
-  /**
-   * Starts holding on to what the hub announces until the answer to JoinProject arrives.
-   * @returns the token to give to {@link applySnapshot} or {@link endSnapshot}.
-   */
-  beginSnapshot(): symbol {
-    const token = Symbol('presence snapshot');
-    this.heard = { token, events: [] };
-    return token;
-  }
-
-  /**
-   * Sets who was present when the project was joined, then applies what was announced since, in order.
-   * Does nothing when a later join has started.
-   */
-  applySnapshot(token: symbol, users: PresentUser[]) {
-    if (this.heard?.token !== token) {
+  /** Shows `state`, unless it is for another project than `openProjectId` or no newer than what is shown. */
+  apply(state: PresenceState, openProjectId: string | null) {
+    // An older API answers JoinProject with nothing.
+    if (state?.projectId !== openProjectId || state.version <= this.version) {
       return;
     }
 
-    const events = this.heard.events;
-    this.heard = null;
-    this.set(users);
-    events.forEach((replay) => replay());
-  }
-
-  /** Stops holding on to announcements, when the answer never came. */
-  endSnapshot(token: symbol) {
-    if (this.heard?.token === token) {
-      this.heard = null;
-    }
-  }
-
-  arrived(user: PresentUser) {
-    this.heard?.events.push(() => this.arrived(user));
-    const users = this.presentUsersSubject
-      .getValue()
-      .filter((x) => x.id !== user.id);
-    this.set([...users, user]);
-  }
-
-  departed(user: PresentUser) {
-    this.heard?.events.push(() => this.departed(user));
-    const users = this.presentUsersSubject.getValue();
-
-    if (users.some((x) => x.id === user.id)) {
-      this.presentUsersSubject.next(users.filter((x) => x.id !== user.id));
-    }
+    this.version = state.version;
+    this.presentUsersSubject.next(
+      this.sort(this.withoutMe(this.distinct(state.users ?? []))),
+    );
   }
 
   clear() {
+    this.version = -1;
+
     if (this.presentUsersSubject.getValue().length > 0) {
       this.presentUsersSubject.next([]);
     }

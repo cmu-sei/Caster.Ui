@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
 import {
   PresentUser,
   ProjectPresenceService,
@@ -21,10 +22,20 @@ function users(count: number): PresentUser[] {
   }));
 }
 
+let version = 0;
+
+/** Shows `present` in the bar, as a state the hub sent for the open project. */
+function show(present: PresentUser[]) {
+  TestBed.inject(ProjectPresenceService).apply(
+    { projectId: 'p1', version: ++version, users: present },
+    'p1',
+  );
+}
+
 /** Renders the bar over the real ProjectPresenceService, seeded with `present`. */
 async function renderPresence(present: PresentUser[]) {
   const view = await renderComponent(ProjectPresenceComponent);
-  TestBed.inject(ProjectPresenceService).set(present);
+  show(present);
   view.fixture.detectChanges();
   return view;
 }
@@ -42,7 +53,7 @@ describe('ProjectPresenceComponent', () => {
   });
 
   /**
-   * Verifies: each other user is a list item named for them, and the list says who is in the project.
+   * Verifies: each other user is a list item named for them, and the group says who is in the project.
    * Interacts with: ProjectPresenceService (real).
    * Data: Bob and Ada present; listed sorted by name.
    */
@@ -52,19 +63,19 @@ describe('ProjectPresenceComponent', () => {
       { id: 'u2', name: 'Ada' },
     ]);
 
-    const list = screen.getByRole('list', {
-      name: 'Also in this project: Ada, Bob',
-    });
-    expect(list).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'Also in this project: Ada, Bob' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Also here:')).toBeVisible();
     expect(
       screen.getAllByRole('listitem').map((x) => x.textContent.trim()),
     ).toEqual(['Ada', 'Bob']);
   });
 
   /**
-   * Verifies: a live departure removes the user's chip.
-   * Interacts with: ProjectPresenceService.departed (real).
-   * Data: Ada and Bob present; Ada departs.
+   * Verifies: a newer state without a user removes their chip.
+   * Interacts with: ProjectPresenceService.apply (real).
+   * Data: Ada and Bob present; the next state has only Bob.
    */
   it('drops a user who departs', async () => {
     const view = await renderPresence([
@@ -72,7 +83,7 @@ describe('ProjectPresenceComponent', () => {
       { id: 'u3', name: 'Bob' },
     ]);
 
-    TestBed.inject(ProjectPresenceService).departed({ id: 'u2', name: 'Ada' });
+    show([{ id: 'u3', name: 'Bob' }]);
     view.fixture.detectChanges();
 
     // Chips, not text: the tooltip's describedby message repeats each name.
@@ -80,24 +91,71 @@ describe('ProjectPresenceComponent', () => {
       screen.getAllByRole('listitem').map((x) => x.textContent.trim()),
     ).toEqual(['Bob']);
     expect(
-      screen.getByRole('list', { name: 'Also in this project: Bob' }),
+      screen.getByRole('group', { name: 'Also in this project: Bob' }),
     ).toBeInTheDocument();
   });
 
   /**
-   * Verifies: beyond the maximum, the rest fold into one "+N" chip naming them.
+   * Verifies: beyond the maximum, the rest fold into one "+N" button naming them, and the group's label
+   * counts them rather than listing them.
    * Interacts with: ProjectPresenceService (real).
    * Data: MAX_SHOWN_PRESENT_USERS + 2 users, User A onwards.
    */
-  it('folds users beyond the maximum into a +N chip', async () => {
+  it('folds users beyond the maximum into a +N button', async () => {
     const present = users(MAX_SHOWN_PRESENT_USERS + 2);
     await renderPresence(present);
 
-    const items = screen.getAllByRole('listitem');
-    expect(items).toHaveLength(MAX_SHOWN_PRESENT_USERS + 1);
+    expect(screen.getAllByRole('listitem')).toHaveLength(
+      MAX_SHOWN_PRESENT_USERS + 1,
+    );
     const hidden = present.slice(MAX_SHOWN_PRESENT_USERS).map((x) => x.name);
     expect(
       screen.getByRole('listitem', { name: `2 more: ${hidden.join(', ')}` }),
     ).toHaveTextContent('+2');
+    expect(
+      screen.getByRole('group', {
+        name: `Also in this project: ${present
+          .slice(0, MAX_SHOWN_PRESENT_USERS)
+          .map((x) => x.name)
+          .join(', ')} and 2 others`,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Verifies: the +N button opens a list of everyone who didn't fit.
+   * Interacts with: ProjectPresenceService (real), MatMenu.
+   * Data: MAX_SHOWN_PRESENT_USERS + 2 users; the button is clicked.
+   */
+  it('lists the folded users in a menu opened by the +N button', async () => {
+    const present = users(MAX_SHOWN_PRESENT_USERS + 2);
+    await renderPresence(present);
+
+    await userEvent.click(screen.getByRole('listitem', { name: /^2 more/ }));
+
+    for (const user of present.slice(MAX_SHOWN_PRESENT_USERS)) {
+      expect(await screen.findByText(user.name)).toBeInTheDocument();
+    }
+  });
+
+  /**
+   * Verifies: a user with no name still shows, as "Unknown user", in the chip and the label.
+   * Interacts with: ProjectPresenceService (real).
+   * Data: one user with an empty name, one with Ada.
+   */
+  it('shows a user without a name as Unknown user', async () => {
+    await renderPresence([
+      { id: 'u2', name: 'Ada' },
+      { id: 'u3', name: '' },
+    ]);
+
+    expect(
+      screen.getByRole('group', {
+        name: 'Also in this project: Unknown user, Ada',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('listitem').map((x) => x.textContent.trim()),
+    ).toEqual(['Unknown user', 'Ada']);
   });
 });

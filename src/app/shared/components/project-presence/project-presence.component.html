@@ -4,25 +4,45 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 -->
 
 @if (users().length > 0) {
-  <div class="presence-container" role="list" [attr.aria-label]="label()">
-    @for (user of shown(); track user.id) {
-      <span class="presence-chip" role="listitem" [matTooltip]="user.name">
-        <mat-icon
-          class="presence-icon"
-          fontIcon="mdi-account"
-          aria-hidden="true"
-        />
-        <span class="presence-name">{{ user.name }}</span>
-      </span>
-    }
-    @if (hidden().length > 0) {
-      <span
-        class="presence-chip"
-        role="listitem"
-        [matTooltip]="hiddenNames()"
-        [attr.aria-label]="hidden().length + ' more: ' + hiddenNames()"
-        >+{{ hidden().length }}</span
-      >
-    }
+  <div class="presence-container" role="group" [attr.aria-label]="label()">
+    <span class="presence-heading">
+      <mat-icon
+        class="presence-heading-icon"
+        fontIcon="mdi-account-multiple"
+        aria-hidden="true"
+      />
+      Also here:
+    </span>
+    <div class="presence-chips" role="list">
+      @for (user of shown(); track user.id) {
+        <span class="presence-chip" role="listitem" [matTooltip]="user.name">
+          <mat-icon
+            class="presence-icon"
+            fontIcon="mdi-account"
+            aria-hidden="true"
+          />
+          <span class="presence-name">{{ user.name }}</span>
+        </span>
+      }
+      @if (hidden().length > 0) {
+        <button
+          type="button"
+          class="presence-chip presence-more"
+          role="listitem"
+          [matMenuTriggerFor]="moreMenu"
+          [attr.aria-label]="hiddenLabel()"
+        >
+          +{{ hidden().length }}
+        </button>
+      }
+    </div>
   </div>
+  <mat-menu #moreMenu="matMenu" class="presence-more-menu">
+    @for (user of hidden(); track user.id) {
+      <div class="presence-more-item">
+        <mat-icon fontIcon="mdi-account" aria-hidden="true" />
+        {{ user.name }}
+      </div>
+    }
+  </mat-menu>
 }

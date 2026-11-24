@@ -37,7 +37,7 @@ import { GroupMembershipService } from 'src/app/groups/group-membership.service'
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
 import {
-  PresentUser,
+  PresenceState,
   ProjectPresenceService,
 } from 'src/app/project/state/project-presence.service';
 
@@ -74,7 +74,8 @@ export class SignalRService {
   private joinedRolesAdmin = false;
   private joinedEnvironmentSetsAdmin = false;
   private connectionPromise: Promise<void> | undefined;
-  private leavingProject: Promise<unknown> | null = null;
+  // The project JoinProject was sent for, on this connection.
+  private joinedProjectId: string | null = null;
 
   public startConnection(): Promise<void> {
     if (this.connectionPromise !== undefined) {
@@ -91,15 +92,18 @@ export class SignalRService {
       .build();
 
     this.hubConnection.onreconnected(() => {
+      this.joinedProjectId = null;
       this.JoinGroups();
     });
 
     // Presence is only as good as the connection; JoinProject refills it. Anyone who leaves while this
     // client is reconnecting would otherwise stay listed.
-    this.hubConnection.onreconnecting(() =>
-      this.projectPresenceService.clear(),
-    );
-    this.hubConnection.onclose(() => this.projectPresenceService.clear());
+    const connectionLost = () => {
+      this.joinedProjectId = null;
+      this.projectPresenceService.clear();
+    };
+    this.hubConnection.onreconnecting(connectionLost);
+    this.hubConnection.onclose(connectionLost);
 
     this.addHandlers();
     this.connectionPromise = this.hubConnection.start();
@@ -159,54 +163,40 @@ export class SignalRService {
       this.leaveProject(this.projectId);
     }
 
-    // A leave that is still on its way, from here or from the page that is closing, whichever project.
-    const leaving = this.leavingProject;
-    this.leavingProject = null;
-
     this.projectId = projectId;
 
-    const join = () => {
-      if (
-        this.projectId !== projectId ||
-        this.hubConnection.state !== signalR.HubConnectionState.Connected
-      ) {
-        return;
-      }
-
-      const snapshot = this.projectPresenceService.beginSnapshot();
-
-      this.hubConnection.invoke('JoinProject', projectId).then(
-        (users: PresentUser[]) => {
-          if (this.projectId === projectId) {
-            this.projectPresenceService.applySnapshot(snapshot, users);
-          }
-        },
-        (error) => {
-          // Left unhandled, as before: only stop holding on to announcements.
-          this.projectPresenceService.endSnapshot(snapshot);
-          throw error;
-        },
-      );
-    };
-
-    if (leaving !== null) {
-      // Whoever arrived in the project being left, before the hub heard that this client left it, is
-      // announced to this client before LeaveProject answers. Holding announcements only from then on
-      // keeps them out of the next project.
-      leaving.then(join, join);
-    } else {
-      join();
+    // Callers ask on every sidebar toggle or project update; once is enough until the connection restarts.
+    if (
+      this.joinedProjectId === projectId ||
+      this.hubConnection.state !== signalR.HubConnectionState.Connected
+    ) {
+      return;
     }
+
+    this.joinedProjectId = projectId;
+
+    this.hubConnection.invoke('JoinProject', projectId).then(
+      (state: PresenceState) => {
+        this.projectPresenceService.apply(state, this.projectId);
+      },
+      (err) => {
+        if (this.joinedProjectId === projectId) {
+          this.joinedProjectId = null;
+        }
+
+        console.log(err);
+      },
+    );
   }
 
   public leaveProject(projectId: string) {
     this.projectId = null;
+    this.joinedProjectId = null;
     this.projectPresenceService.clear();
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-      this.leavingProject = this.hubConnection.invoke(
-        'LeaveProject',
-        projectId,
-      );
+      this.hubConnection
+        .invoke('LeaveProject', projectId)
+        .catch((err) => console.log(err));
     }
   }
 
@@ -646,12 +636,8 @@ export class SignalRService {
   }
 
   private addPresenceHandlers() {
-    this.hubConnection.on('PresenceArrived', (user: PresentUser) => {
-      this.projectPresenceService.arrived(user);
-    });
-
-    this.hubConnection.on('PresenceDeparted', (user: PresentUser) => {
-      this.projectPresenceService.departed(user);
+    this.hubConnection.on('PresenceChanged', (state: PresenceState) => {
+      this.projectPresenceService.apply(state, this.projectId);
     });
   }
 

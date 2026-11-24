@@ -307,10 +307,13 @@ describe('TopbarComponent', () => {
     'shows presence in the $topbarView view: $shown',
     async ({ topbarView, shown }) => {
       const view = await renderTopbar({}, { projectId: 'p1', topbarView });
-      TestBed.inject(ProjectPresenceService).set([{ id: 'u2', name: 'Grace' }]);
+      TestBed.inject(ProjectPresenceService).apply(
+        { projectId: 'p1', version: 1, users: [{ id: 'u2', name: 'Grace' }] },
+        'p1',
+      );
       view.fixture.detectChanges();
 
-      const list = screen.queryByRole('list', {
+      const list = screen.queryByRole('group', {
         name: 'Also in this project: Grace',
       });
       if (shown) {
