@@ -60,7 +60,12 @@ export async function describeClipboardRefusal(
 ): Promise<MenuPasteRefusal> {
   // A DOMException is not always an instanceof Error, so read its message directly.
   const message = (error as { message?: unknown } | null)?.message;
-  const detail = typeof message === 'string' ? message : String(error);
+  const detail =
+    typeof message === 'string'
+      ? message
+      : typeof error === 'string'
+        ? error
+        : 'Unknown error';
 
   if (env.framed && env.frameAllowsClipboardRead === false) {
     return { failure: 'frame', detail };
@@ -71,7 +76,7 @@ export async function describeClipboardRefusal(
     ?.query({ name: 'clipboard-read' as PermissionName })
     .then(
       (status) => status.state,
-      () => undefined,
+      (): PermissionState | undefined => undefined,
     );
 
   if (state === 'denied') {
@@ -125,17 +130,19 @@ interface Watcher {
  * is still showing, since a blocked clipboard refuses every time; once it is
  * dismissed, the next failed Paste says why again.
  */
-let wrap: {
+interface Wrap {
   watchers: Watcher[];
   showing: string | null;
   restore(): void;
-} | null = null;
+}
 
-function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
-  const clipboard = env.clipboard!;
+let wrap: Wrap | null = null;
+
+function install(env: MenuPasteEnvironment): Wrap {
+  const clipboard = env.clipboard;
   const own = Object.getOwnPropertyDescriptor(clipboard, 'readText');
   const original = clipboard.readText;
-  const state: NonNullable<typeof wrap> = {
+  const state: Wrap = {
     watchers: [],
     showing: null,
     restore: () => {
@@ -150,9 +157,9 @@ function install(env: MenuPasteEnvironment): NonNullable<typeof wrap> {
   Object.defineProperty(clipboard, 'readText', {
     configurable: true,
     writable: true,
-    value: async () => {
+    value: async (): Promise<string> => {
       try {
-        return await original.call(clipboard);
+        return await (original.call(clipboard) as Promise<string>);
       } catch (error) {
         const watcher = state.watchers[state.watchers.length - 1];
         // Take the arm before awaiting, so one Paste reports at most once.

@@ -451,7 +451,8 @@ describe('EditorComponent', () => {
       const open = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
       monacoStub(fixture).onInit.emit(editor);
       // The right-click menu opens, then Paste is chosen.
-      editor.onContextMenu.mock.calls[0][0]();
+      const [[menuOpened]] = editor.onContextMenu.mock.calls as [[() => void]];
+      menuOpened();
 
       await expect(navigator.clipboard.readText()).rejects.toMatchObject({
         name: 'NotAllowedError',
@@ -467,9 +468,9 @@ describe('EditorComponent', () => {
       if (clipboard) {
         Object.defineProperty(navigator, 'clipboard', clipboard);
       } else {
-        delete (navigator as any).clipboard;
+        delete (navigator as { clipboard?: unknown }).clipboard;
       }
-      delete (window as any).monaco;
+      delete (window as { monaco?: unknown }).monaco;
     }
   });
 
@@ -505,9 +506,9 @@ describe('EditorComponent', () => {
       if (clipboard) {
         Object.defineProperty(navigator, 'clipboard', clipboard);
       } else {
-        delete (navigator as any).clipboard;
+        delete (navigator as { clipboard?: unknown }).clipboard;
       }
-      delete (window as any).monaco;
+      delete (window as { monaco?: unknown }).monaco;
     }
   });
 
@@ -533,11 +534,14 @@ describe('EditorComponent', () => {
         'Paste message setup failed:',
         expect.any(Error),
       );
-      expect((window as any).monaco.editor.setModelLanguage).toHaveBeenCalled();
+      const { monaco } = window as unknown as {
+        monaco: { editor: { setModelLanguage: unknown } };
+      };
+      expect(monaco.editor.setModelLanguage).toHaveBeenCalled();
       expect(model.setEOL).toHaveBeenCalledWith(0);
     } finally {
       warn.mockRestore();
-      delete (window as any).monaco;
+      delete (window as { monaco?: unknown }).monaco;
     }
   });
 
@@ -562,7 +566,7 @@ describe('EditorComponent', () => {
       listener({ isFlush: true });
       expect(model.setEOL).toHaveBeenCalledWith(0);
     } finally {
-      delete (window as any).monaco;
+      delete (window as { monaco?: unknown }).monaco;
     }
   });
 });

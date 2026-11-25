@@ -47,7 +47,7 @@ function watch(onFailure: MenuPasteListener, env: MenuPasteEnvironment) {
 }
 
 const refuse = (env: MenuPasteEnvironment) =>
-  env.clipboard!.readText().catch(() => undefined);
+  env.clipboard.readText().catch((): void => undefined);
 
 afterEach(() => {
   watches.splice(0).forEach((w) => w.dispose());
@@ -147,7 +147,7 @@ describe('watchMenuPaste', () => {
     const onFailure = vi.fn();
     watch(onFailure, env);
 
-    expect(await env.clipboard!.readText()).toBe('terraform');
+    expect(await env.clipboard.readText()).toBe('terraform');
     expect(onFailure).not.toHaveBeenCalled();
   });
 
@@ -164,7 +164,7 @@ describe('watchMenuPaste', () => {
     const onFailure = vi.fn<MenuPasteListener>();
     watch(onFailure, env);
 
-    await expect(env.clipboard!.readText()).rejects.toMatchObject({
+    await expect(env.clipboard.readText()).rejects.toMatchObject({
       name: 'NotAllowedError',
     });
     expect(onFailure).toHaveBeenCalledWith(
@@ -262,7 +262,7 @@ describe('watchMenuPaste', () => {
     const b = watch(second, env);
 
     b.dispose();
-    await clipboard.readText().catch(() => undefined);
+    await clipboard.readText().catch((): void => undefined);
     expect(first).toHaveBeenCalledWith(
       expect.stringContaining('permission prompt was dismissed'),
       expect.anything(),
@@ -288,7 +288,7 @@ describe('watchMenuPaste', () => {
     watch(older, env);
     watch(newer, env);
 
-    await env.clipboard!.readText().catch(() => undefined);
+    await env.clipboard.readText().catch((): void => undefined);
 
     expect(newer).toHaveBeenCalledTimes(1);
     expect(older).not.toHaveBeenCalled();

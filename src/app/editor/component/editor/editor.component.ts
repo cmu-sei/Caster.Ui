@@ -279,7 +279,9 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
       );
       this.menuPaste = watch;
       // Only a read that follows the right-click menu is the user's Paste.
-      editor.onContextMenu(() => watch.arm());
+      (
+        editor as { onContextMenu(listener: () => void): unknown }
+      ).onContextMenu(() => watch.arm());
     } catch (err) {
       console.warn('Paste message setup failed:', err);
     }
