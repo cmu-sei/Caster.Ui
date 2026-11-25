@@ -200,31 +200,10 @@
       "count": 4
     }
   },
-  "src/app/admin-app/component/admin-modules/modules-list/module-list.component.html": {
-    "@angular-eslint/template/eqeqeq": {
-      "count": 2
-    }
-  },
-  "src/app/admin-app/component/admin-modules/modules-list/module-list.component.ts": {
-    "@angular-eslint/no-output-native": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 1
-    }
-  },
-  "src/app/admin-app/component/admin-modules/modules.component.spec.ts": {
-    "@angular-eslint/no-output-native": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unsafe-assignment": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/admin-app/component/admin-modules/modules.component.ts": {
+    "@typescript-eslint/no-deprecated": {
+      "count": 8
+    },
     "@typescript-eslint/no-unsafe-argument": {
       "count": 1
     },
@@ -532,11 +511,6 @@
       "count": 2
     },
     "@typescript-eslint/no-unsafe-argument": {
-      "count": 1
-    }
-  },
-  "src/app/assignments/assignment.service.ts": {
-    "@typescript-eslint/no-unsafe-return": {
       "count": 1
     }
   },

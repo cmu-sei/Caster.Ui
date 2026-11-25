@@ -46,6 +46,59 @@ const boom = () => throwError(() => new Error('boom'));
 describe('ModuleService', () => {
   describe('load and loadByDesignId', () => {
     /**
+     * Verifies: load passes forceUpdate through, so the sources are re-read
+     *   even when they look unchanged.
+     * Interacts with: ModulesService.getAllModules (stub).
+     * Data: an empty module list.
+     */
+    it('load() forwards forceUpdate to the API', () => {
+      const api = {
+        getAllModules: vi.fn(() => of<Module[]>([])),
+      } satisfies ApiStub<ModulesService>;
+      const { service } = setup(api);
+
+      recordEmissions(service.load(false, true, true));
+
+      expect(api.getAllModules).toHaveBeenCalledWith(
+        false,
+        true,
+        true,
+        undefined,
+        undefined,
+        false,
+      );
+    });
+
+    /**
+     * Verifies: load asks for the latest version when told to, and keeps the latest version the store already has when a load did not ask for it, as it keeps versions.
+     * Interacts with: ModulesService.getAllModules (stub), the store.
+     * Data: stored m1 with latestVersion 1.0.0; a load that asks, then one that does not.
+     */
+    it('load() requests and keeps the latest version', () => {
+      const api = {
+        getAllModules: vi
+          .fn()
+          .mockReturnValueOnce(of([{ id: 'm1', latestVersion: '2.0.0' }]))
+          .mockReturnValueOnce(of([{ id: 'm1', latestVersion: null }])),
+      } satisfies ApiStub<ModulesService>;
+      const { service, query } = setup(api, [mod({ latestVersion: '1.0.0' })]);
+
+      recordEmissions(service.load(false, true, false, true));
+      expect(api.getAllModules).toHaveBeenLastCalledWith(
+        false,
+        true,
+        false,
+        undefined,
+        undefined,
+        true,
+      );
+      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
+
+      recordEmissions(service.load(false, true));
+      expect(query.getEntity('m1').latestVersion).toBe('2.0.0');
+    });
+
+    /**
      * Verifies: load turns loading on immediately, asks for all modules with
      *   the given flags, upserts them with their versions and clears loading.
      * Interacts with: ModulesService.getAllModules (Subject stub); upsertMany.
@@ -62,7 +115,14 @@ describe('ModuleService', () => {
       const load$ = service.load(true, true);
       expect(query.getValue().loading).toBe(true);
       recordEmissions(load$);
-      expect(api.getAllModules).toHaveBeenCalledWith(true, true);
+      expect(api.getAllModules).toHaveBeenCalledWith(
+        true,
+        true,
+        false,
+        undefined,
+        undefined,
+        false,
+      );
 
       response$.next([
         mod({ versions: [{ id: 'v1' }, { id: 'v2' }], versionsCount: 2 }),
@@ -132,11 +192,6 @@ describe('ModuleService', () => {
       call: (s: ModuleService) => Observable<unknown>;
     }[] = [
       {
-        method: 'load',
-        api: () => ({ getAllModules: vi.fn(boom) }),
-        call: (s) => s.load(true, true),
-      },
-      {
         method: 'loadByDesignId',
         api: () => ({ getAllModules: vi.fn(boom) }),
         call: (s) => s.loadByDesignId('g1', true, true),
@@ -169,6 +224,23 @@ describe('ModuleService', () => {
         expect(query.getValue().loading).toBe(true);
       },
     );
+
+    /**
+     * Verifies: load passes the error on and clears the loading flag, so a failed list does not leave the page's spinner up.
+     * Interacts with: ModulesService.getAllModules (throwError stub); ModuleStore.setLoading.
+     * Data: stored m1 (loading false); the API errors with 'boom'.
+     */
+    it('load clears loading when the API fails', async () => {
+      const { service, query } = setup({ getAllModules: vi.fn(boom) }, [mod()]);
+
+      const error = await firstValueFrom(service.load(true, true)).catch(
+        (e: unknown) => e,
+      );
+
+      expect(error).toEqual(new Error('boom'));
+      expect(query.getValue().loading).toBe(false);
+      expect(query.getAll()).toEqual([mod()]);
+    });
 
     /**
      * Verifies: createOrUpdateModuleById passes the error on and clears the
