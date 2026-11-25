@@ -191,7 +191,7 @@ describe('UserService', () => {
     });
 
     /**
-     * Verifies: removing a user's role shows: an answer with roleId null leaves the stored user with no role.
+     * Verifies: after a user's role is removed, an answer with roleId null leaves the stored user with no role.
      * Interacts with: UsersService.editUser (stub); UserStore.upsert.
      * Data: stored u1 with role r1; the API answers with roleId null.
      */
