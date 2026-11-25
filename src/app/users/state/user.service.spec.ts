@@ -209,7 +209,7 @@ describe('UserService', () => {
 
     /**
      * Verifies: an edit answered with a user that is not stored yet adds it, with default UI state.
-     * Interacts with: UsersService.editUser (stub); UserStore.add.
+     * Interacts with: UsersService.editUser (stub); UserStore.upsert.
      * Data: empty store; the API answers u9.
      */
     it('editUser() adds a user that is not stored yet', () => {
