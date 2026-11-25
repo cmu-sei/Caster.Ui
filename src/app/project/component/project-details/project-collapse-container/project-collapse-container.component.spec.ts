@@ -66,9 +66,12 @@ class InventoryPanelStub {
  * Renders the project page with project p1 Range already active, over the
  * REAL PermissionService primed with the given system permissions.
  */
-async function renderContainer(system: SystemPermission[] = []) {
+async function renderContainer(
+  system: SystemPermission[] = [],
+  connectionStarted: Promise<void> = Promise.resolve(),
+) {
   const signalR = {
-    startConnection: vi.fn(() => Promise.resolve()),
+    startConnection: vi.fn(() => connectionStarted),
     joinProject: vi.fn(),
     leaveProject: vi.fn(),
   } satisfies Pick<
@@ -165,5 +168,27 @@ describe('ProjectCollapseContainerComponent', () => {
     const panel = fixture.debugElement.query(By.directive(InventoryPanelStub));
     expect(panel).not.toBeNull();
     expect(panel.componentInstance.projectId()).toBe('p1');
+  });
+
+  /**
+   * Verifies: a page that closes before the hub connection has started doesn't join the project once it
+   * has, so the user isn't shown as present in a project they have left.
+   * Interacts with: SignalRService.startConnection (stub, still pending when the page closes), SignalRService.joinProject and leaveProject (stubs).
+   * Data: active project p1 Range.
+   */
+  it('does not join the project when the page closes before the connection starts', async () => {
+    let started!: () => void;
+    const connectionStarted = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const { fixture, signalR } = await renderContainer([], connectionStarted);
+
+    fixture.destroy();
+    started();
+    await connectionStarted;
+    await Promise.resolve();
+
+    expect(signalR.leaveProject).toHaveBeenCalledWith('p1');
+    expect(signalR.joinProject).not.toHaveBeenCalled();
   });
 });

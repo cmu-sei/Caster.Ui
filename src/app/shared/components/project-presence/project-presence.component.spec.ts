@@ -109,9 +109,11 @@ describe('ProjectPresenceComponent', () => {
       MAX_SHOWN_PRESENT_USERS + 1,
     );
     const hidden = present.slice(MAX_SHOWN_PRESENT_USERS).map((x) => x.name);
-    expect(
-      screen.getByRole('listitem', { name: `2 more: ${hidden.join(', ')}` }),
-    ).toHaveTextContent('+2');
+    const more = screen.getByRole('button', {
+      name: `2 more: ${hidden.join(', ')}`,
+    });
+    expect(more).toHaveTextContent('+2');
+    expect(more.closest('[role="listitem"]')).not.toBeNull();
     expect(
       screen.getByRole('group', {
         name: `Also in this project: ${present
@@ -131,7 +133,7 @@ describe('ProjectPresenceComponent', () => {
     const present = users(MAX_SHOWN_PRESENT_USERS + 2);
     await renderPresence(present);
 
-    await userEvent.click(screen.getByRole('listitem', { name: /^2 more/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^2 more/ }));
 
     for (const user of present.slice(MAX_SHOWN_PRESENT_USERS)) {
       expect(await screen.findByText(user.name)).toBeInTheDocument();

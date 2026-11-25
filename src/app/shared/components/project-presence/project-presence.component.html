@@ -25,15 +25,17 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
         </span>
       }
       @if (hidden().length > 0) {
-        <button
-          type="button"
-          class="presence-chip presence-more"
-          role="listitem"
-          [matMenuTriggerFor]="moreMenu"
-          [attr.aria-label]="hiddenLabel()"
-        >
-          +{{ hidden().length }}
-        </button>
+        <!-- The list item wraps the button, so that it is still announced as a button. -->
+        <span class="presence-more-wrapper" role="listitem">
+          <button
+            type="button"
+            class="presence-chip presence-more"
+            [matMenuTriggerFor]="moreMenu"
+            [attr.aria-label]="hiddenLabel()"
+          >
+            +{{ hidden().length }}
+          </button>
+        </span>
       }
     </div>
   </div>
