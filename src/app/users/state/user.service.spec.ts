@@ -173,22 +173,58 @@ describe('UserService', () => {
     });
 
     /**
-     * Verifies: editUser sends the edit, but the stored user keeps its old
-     *   values because the response is passed to add().
-     * Interacts with: UsersService.editUser (stub); UserStore.add.
-     * Data: stored u1 without a role; edit sets roleId r1 (as the admin
-     *   user list's role picker does).
+     * Verifies: editUser sends the edit and the stored user takes the API's answer, role included.
+     * Interacts with: UsersService.editUser (stub); UserStore.upsert.
+     * Data: stored u1 without a role; edit sets roleId r1 (as the admin user list's role picker does).
      */
-    it('editUser() does not store the edited user', () => {
+    it('editUser() merges the saved user into the stored one', () => {
       const api = {
-        editUser: vi.fn(() => of(user({ roleId: 'r1' }))),
+        editUser: vi.fn(() => of(user({ name: 'Ada L', roleId: 'r1' }))),
       } satisfies ApiStub<UsersService>;
       const { service, query } = setup(api, [user()]);
 
       service.editUser(user({ roleId: 'r1' }));
 
       expect(api.editUser).toHaveBeenCalledWith('u1', user({ roleId: 'r1' }));
+      expect(query.getEntity('u1').roleId).toBe('r1');
+      expect(query.getEntity('u1').name).toBe('Ada L');
+    });
+
+    /**
+     * Verifies: removing a user's role shows: an answer with roleId null leaves the stored user with no role.
+     * Interacts with: UsersService.editUser (stub); UserStore.upsert.
+     * Data: stored u1 with role r1; the API answers with roleId null.
+     */
+    it('editUser() leaves no role when the answer has a null role', () => {
+      const answer = { id: 'u1', name: 'Ada', roleId: null } as User;
+      const api = {
+        editUser: vi.fn(() => of(answer)),
+      } satisfies ApiStub<UsersService>;
+      const { service, query } = setup(api, [user({ roleId: 'r1' })]);
+
+      service.editUser(user({ roleId: null }));
+
       expect(query.getEntity('u1').roleId).toBeNull();
+    });
+
+    /**
+     * Verifies: an edit answered with a user that is not stored yet adds it, with default UI state.
+     * Interacts with: UsersService.editUser (stub); UserStore.add.
+     * Data: empty store; the API answers u9.
+     */
+    it('editUser() adds a user that is not stored yet', () => {
+      const api = {
+        editUser: vi.fn(() => of(user({ id: 'u9', name: 'Cy' }))),
+      } satisfies ApiStub<UsersService>;
+      const { service, query } = setup(api);
+
+      service.editUser(user({ id: 'u9', name: 'Cy' }));
+
+      expect(query.getEntity('u9').name).toBe('Cy');
+      expect(query.ui.getEntity('u9')).toEqual({
+        id: 'u9',
+        ...initialUserUiState,
+      });
     });
   });
 

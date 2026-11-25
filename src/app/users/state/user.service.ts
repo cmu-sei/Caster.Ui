@@ -66,7 +66,9 @@ export class UserService {
       .editUser(user.id, user)
       .pipe(
         tap((u) => {
-          this.userStore.add(u);
+          // add skips a user that is already in the store, so a saved user is upserted: the API writes a
+          // removed role as null, which the merge takes
+          this.userStore.upsert(u.id, u);
           this.userStore.ui.upsert(u.id, this.userQuery.ui.getEntity(u.id));
         }),
       )
