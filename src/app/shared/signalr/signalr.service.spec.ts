@@ -40,6 +40,8 @@ import { FileStore } from '../../files/state/file.store';
 import { EnvironmentSetService } from '../../environment-sets/environment-set.service';
 import { GroupMembershipService } from '../../groups/group-membership.service';
 import { ProjectMembershipService } from '../../project/state/project-membership.service';
+import { ProjectPresenceService } from '../../project/state/project-presence.service';
+import { CurrentUserStore } from '../../users/state/user.store';
 import { ProjectObjectType, Tab } from '../../project/state/project.model';
 import { ProjectQuery } from '../../project/state/project-query.service';
 import { ProjectStore } from '../../project/state/project-store.service';
@@ -301,6 +303,7 @@ describe('SignalRService', () => {
         ...crud('ProjectMembership'),
         ...crud('EnvironmentSet'),
         'ProjectEnvironmentSetsUpdated',
+        'PresenceChanged',
       ]);
       expect(hub.start).toHaveBeenCalledTimes(1);
       // RunDeleted is not listened to; see agent-docs/ui-test-bugs/caster.ui.md, API gaps noticed.
@@ -600,100 +603,88 @@ describe('SignalRService', () => {
       expected: unknown[];
     }> = [
       {
-        method: 'joinProject',
-        line: 150,
-        act: (s) => s.joinProject('p1'),
-        expected: ['JoinProject', 'p1'],
-      },
-      {
-        method: 'leaveProject',
-        line: 157,
-        act: (s) => s.leaveProject('p1'),
-        expected: ['LeaveProject', 'p1'],
-      },
-      {
         method: 'joinProjectAdmin',
-        line: 165,
+        line: 207,
         act: (s) => s.joinProjectAdmin('p1'),
         expected: ['JoinProjectAdmin', 'p1'],
       },
       {
         method: 'leaveProjectAdmin',
-        line: 172,
+        line: 214,
         act: (s) => s.leaveProjectAdmin('p1'),
         expected: ['LeaveProjectAdmin', 'p1'],
       },
       {
         method: 'joinGroup',
-        line: 180,
+        line: 222,
         act: (s) => s.joinGroup('g1'),
         expected: ['JoinGroup', 'g1'],
       },
       {
         method: 'leaveGroup',
-        line: 187,
+        line: 229,
         act: (s) => s.leaveGroup('g1'),
         expected: ['LeaveGroup', 'g1'],
       },
       {
         method: 'JoinGroups (re-join JoinWorkspace)',
-        line: 112,
+        line: 127,
         arrange: (s) => s.joinWorkspace('stale'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinWorkspace', 'stale'],
       },
       {
         method: 'joinWorkspacesAdmin',
-        line: 217,
+        line: 259,
         act: (s) => s.joinWorkspacesAdmin(),
         expected: ['JoinWorkspacesAdmin'],
       },
       {
         method: 'leaveWorkspacesAdmin',
-        line: 224,
+        line: 266,
         act: (s) => s.leaveWorkspacesAdmin(),
         expected: ['LeaveWorkspacesAdmin'],
       },
       {
         method: 'JoinGroups (re-join JoinDesign)',
-        line: 124,
+        line: 139,
         arrange: (s) => s.joinDesign('de1'),
         act: (_s, hub) => hub.reconnect(),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'joinDesign',
-        line: 232,
+        line: 274,
         act: (s) => s.joinDesign('de1'),
         expected: ['JoinDesign', 'de1'],
       },
       {
         method: 'leaveDesign',
-        line: 239,
+        line: 281,
         act: (s) => s.leaveDesign('de1'),
         expected: ['LeaveDesign', 'de1'],
       },
       {
         method: 'joinVlansAdmin',
-        line: 247,
+        line: 289,
         act: (s) => s.joinVlansAdmin(),
         expected: ['JoinVlansAdmin'],
       },
       {
         method: 'leaveVlansAdmin',
-        line: 254,
+        line: 296,
         act: (s) => s.leaveVlansAdmin(),
         expected: ['LeaveVlansAdmin'],
       },
       {
         method: 'joinRolesAdmin',
-        line: 262,
+        line: 304,
         act: (s) => s.joinRolesAdmin(),
         expected: ['JoinRolesAdmin'],
       },
       {
         method: 'leaveRolesAdmin',
-        line: 269,
+        line: 311,
         act: (s) => s.leaveRolesAdmin(),
         expected: ['LeaveRolesAdmin'],
       },
@@ -1446,6 +1437,278 @@ describe('SignalRService', () => {
 
       hub.trigger('ProjectMembershipDeleted', 'pm1');
       expect(await firstValueFrom(service.projectMemberships$)).toEqual([]);
+    });
+  });
+
+  describe('project presence', () => {
+    const ada = { id: 'u2', name: 'Ada' };
+    const bob = { id: 'u3', name: 'Bob' };
+
+    function state(projectId: string, version: number, ...users: unknown[]) {
+      return { projectId, version, users };
+    }
+
+    function presence() {
+      return firstValueFrom(
+        TestBed.inject(ProjectPresenceService).presentUsers$,
+      );
+    }
+
+    /** connected(), with JoinProject answering `answer`. */
+    async function joined(answer: unknown) {
+      const ctx = await connected();
+      ctx.hub.invoke.mockImplementation((method) =>
+        Promise.resolve(method === 'JoinProject' ? answer : undefined),
+      );
+      return ctx;
+    }
+
+    /**
+     * Verifies: JoinProject's answer, everyone in the project, becomes the presence list.
+     * Interacts with: FakeHubConnection.invoke (JoinProject answers), ProjectPresenceService (real).
+     * Data: JoinProject answers [Bob, Ada] for p1; the list is sorted by name.
+     */
+    it("fills presence from JoinProject's answer", async () => {
+      const { service } = await joined(state('p1', 1, bob, ada));
+
+      service.joinProject('p1');
+      await flush();
+
+      expect(await presence()).toEqual([ada, bob]);
+    });
+
+    /**
+     * Verifies: an older API that answers JoinProject with nothing leaves presence empty rather than failing.
+     * Interacts with: FakeHubConnection.invoke (resolves undefined), ProjectPresenceService (real).
+     * Data: JoinProject resolves undefined.
+     */
+    it('treats a JoinProject with no answer as nobody present', async () => {
+      const { service } = await joined(undefined);
+
+      service.joinProject('p1');
+      await flush();
+
+      expect(await presence()).toEqual([]);
+    });
+
+    /**
+     * Verifies: PresenceChanged replaces the list with the state it carries.
+     * Interacts with: FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: p1 is open; states at versions 2 and 3.
+     */
+    it('PresenceChanged replaces the list', async () => {
+      const { service, hub } = await joined(state('p1', 1));
+      service.joinProject('p1');
+      await flush();
+
+      hub.trigger('PresenceChanged', state('p1', 2, ada, bob));
+      expect(await presence()).toEqual([ada, bob]);
+
+      hub.trigger('PresenceChanged', state('p1', 3, bob));
+      expect(await presence()).toEqual([bob]);
+    });
+
+    /**
+     * Verifies: a state that SignalR delivers after a newer one is ignored, so JoinProject's answer
+     * can't overwrite an update that happened after it.
+     * Interacts with: FakeHubConnection.invoke (JoinProject held back), FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: the update at version 3 arrives before the answer at version 2.
+     */
+    it("ignores JoinProject's answer when a newer update arrived first", async () => {
+      const { service, hub } = await connected();
+      let answer!: (value: unknown) => void;
+      hub.invoke.mockImplementation((method) =>
+        method === 'JoinProject'
+          ? new Promise((resolve) => (answer = resolve))
+          : Promise.resolve(undefined),
+      );
+
+      service.joinProject('p1');
+      hub.trigger('PresenceChanged', state('p1', 3, bob));
+      answer(state('p1', 2, ada));
+      await flush();
+
+      expect(await presence()).toEqual([bob]);
+    });
+
+    /**
+     * Verifies: a state for another project than the open one is ignored, as one from the project just
+     * left is while switching.
+     * Interacts with: FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: p2 is open; p1 sends Bob at a higher version.
+     */
+    it("ignores a state for a project that isn't open", async () => {
+      const { service, hub } = await joined(state('p2', 1, ada));
+      service.joinProject('p1');
+      service.joinProject('p2');
+      await flush();
+
+      hub.trigger('PresenceChanged', state('p1', 9, bob));
+
+      expect(await presence()).toEqual([ada]);
+    });
+
+    /**
+     * Verifies: a failed JoinProject is logged rather than left unhandled, and can be tried again.
+     * Interacts with: FakeHubConnection.invoke (rejects once).
+     * Data: the first JoinProject rejects; a second join of the same project goes through.
+     */
+    it('logs a failed JoinProject and lets the next join retry', async () => {
+      const { service, hub } = await connected();
+      const log = vi.mocked(console.log);
+      log.mockClear();
+      hub.invoke.mockImplementationOnce(() => Promise.reject(new Error('no')));
+
+      service.joinProject('p1');
+      await flush();
+      service.joinProject('p1');
+      await flush();
+
+      expect(log).toHaveBeenCalledTimes(1);
+      expect(
+        hub.invoke.mock.calls.filter((x) => x[0] === 'JoinProject'),
+      ).toHaveLength(2);
+    });
+
+    /**
+     * Verifies: asking to join the project that is already joined sends nothing, whatever calls it.
+     * Interacts with: FakeHubConnection.invoke.
+     * Data: joinProject('p1') three times.
+     */
+    it('joins a project once however often it is asked', async () => {
+      const { service, hub } = await joined(state('p1', 1));
+
+      service.joinProject('p1');
+      service.joinProject('p1');
+      service.joinProject('p1');
+      await flush();
+
+      expect(hub.invoke.mock.calls).toEqual([['JoinProject', 'p1']]);
+    });
+
+    /**
+     * Verifies: presence empties when the connection starts reconnecting, so someone who leaves meanwhile isn't shown.
+     * Interacts with: FakeHubConnection.reconnectingCallbacks, ProjectPresenceService (real).
+     * Data: Ada is listed; the connection starts reconnecting.
+     */
+    it('empties presence when the connection starts reconnecting', async () => {
+      const { service, hub } = await joined(state('p1', 1, ada));
+      service.joinProject('p1');
+      await flush();
+
+      hub.reconnectingCallbacks.forEach((cb) => cb());
+
+      expect(await presence()).toEqual([]);
+    });
+
+    /**
+     * Verifies: the project is joined again once the connection is back, and its list starts over even
+     * though the server's versions may have restarted.
+     * Interacts with: FakeHubConnection.reconnectedCallbacks, ProjectPresenceService (real).
+     * Data: p1 joined at version 5; the connection drops and returns; JoinProject answers version 1.
+     */
+    it('joins again after a reconnect and takes a lower version', async () => {
+      const { service, hub } = await joined(state('p1', 5, ada));
+      service.joinProject('p1');
+      await flush();
+      hub.invoke.mockImplementation(() => Promise.resolve(state('p1', 1, bob)));
+
+      hub.state = signalR.HubConnectionState.Reconnecting;
+      hub.reconnectingCallbacks.forEach((cb) => cb());
+      hub.reconnect();
+      await flush();
+
+      expect(await presence()).toEqual([bob]);
+    });
+
+    /**
+     * Verifies: a state naming the current user (their own other tab) is not shown.
+     * Interacts with: CurrentUserStore (real), FakeHubConnection.trigger, ProjectPresenceService (real).
+     * Data: the current user is u1; the state for p1 lists u1 and Ada.
+     */
+    it('never lists the current user', async () => {
+      const { service, hub } = await joined(state('p1', 1));
+      service.joinProject('p1');
+      await flush();
+      TestBed.inject(CurrentUserStore).update({ id: 'u1', name: 'Me' });
+
+      hub.trigger(
+        'PresenceChanged',
+        state('p1', 2, { id: 'u1', name: 'Me' }, ada),
+      );
+
+      expect(await presence()).toEqual([ada]);
+    });
+
+    /**
+     * Verifies: leaving the project empties presence.
+     * Interacts with: SignalRService.leaveProject, ProjectPresenceService (real).
+     * Data: JoinProject answers [Ada]; then leaveProject('p1').
+     */
+    it('empties presence on leaving the project', async () => {
+      const { service } = await joined(state('p1', 1, ada));
+      service.joinProject('p1');
+      await flush();
+
+      service.leaveProject('p1');
+
+      expect(await presence()).toEqual([]);
+    });
+
+    /**
+     * Verifies: joining another project leaves the previous one first, so the user is not left present in it.
+     * Interacts with: FakeHubConnection.invoke.
+     * Data: joinProject('p1') twice, then joinProject('p2').
+     */
+    it('leaves the previous project when another is joined', async () => {
+      const { service, hub } = await joined(state('p1', 1));
+      service.joinProject('p1');
+      service.joinProject('p1');
+      service.joinProject('p2');
+      await flush();
+
+      expect(hub.invoke.mock.calls).toEqual([
+        ['JoinProject', 'p1'],
+        ['LeaveProject', 'p1'],
+        ['JoinProject', 'p2'],
+      ]);
+    });
+
+    /**
+     * Verifies: a JoinProject answer that lands after the project was left is dropped.
+     * Interacts with: FakeHubConnection.invoke (pending), ProjectPresenceService (real).
+     * Data: JoinProject('p1') answers [Ada] only after leaveProject('p1').
+     */
+    it('drops a JoinProject answer for a project already left', async () => {
+      const { service, hub } = await connected();
+      let answer!: (value: unknown) => void;
+      hub.invoke.mockImplementation((method) =>
+        method === 'JoinProject'
+          ? new Promise((resolve) => (answer = resolve))
+          : Promise.resolve(),
+      );
+      service.joinProject('p1');
+
+      service.leaveProject('p1');
+      answer(state('p1', 1, ada));
+      await flush();
+
+      expect(await presence()).toEqual([]);
+    });
+
+    /**
+     * Verifies: a closed connection empties presence; nobody can be heard departing over it.
+     * Interacts with: FakeHubConnection.onclose callback, ProjectPresenceService (real).
+     * Data: JoinProject answers [Ada]; then the connection closes.
+     */
+    it('empties presence when the connection closes', async () => {
+      const { service, hub } = await joined(state('p1', 1, ada));
+      service.joinProject('p1');
+      await flush();
+
+      hub.closeCallbacks.forEach((cb) => cb(new Error('closed')));
+
+      expect(await presence()).toEqual([]);
     });
   });
 });
