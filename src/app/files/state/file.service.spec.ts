@@ -373,6 +373,317 @@ describe('FileService', () => {
     );
   });
 
+  /**
+   * A file's saved content reaches the store from the server's events, the answer to a save and a file read again, in
+   * any order. Each case is an order a review found, run through the real store.
+   */
+  describe('changes made elsewhere, in any order', () => {
+    const T1 = '2026-11-18T10:00:00Z';
+    const T2 = '2026-11-18T10:00:05Z';
+    const T3 = '2026-11-18T10:00:09Z';
+
+    /**
+     * Verifies: a tab with no unsaved edits follows content saved elsewhere, such as by AI, and stays saved.
+     * Data: stored f1 clean on 'old'; an event brings 'ai' saved later.
+     */
+    it('moves a clean tab to the new content', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'ai',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a tab with unsaved edits keeps them, and stays unsaved, when content is saved elsewhere.
+     * Data: near miss of the test above: buffer 'mine' over 'old'.
+     */
+    it('keeps the edits in a tab that has them', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'mine', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'mine',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: the file's own event arriving before the answer to the save leaves a clean tab on the new content, saved.
+     * Data: stored f1 clean on 'old'; the event, then the answer, both 'ai' saved at T2.
+     */
+    it('shows the new content when the event comes before the answer', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+      service.fileUpdated(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1').editorContent).toBe('ai');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a read that answers after a newer save is dropped, so it cannot put back the older content.
+     * Interacts with: refreshFile; FilesService.getFile answered late.
+     * Data: the AI saved 'ai' at T2 and the read starts; the planner saves 'B' at T3; then the read answers 'ai' at T2.
+     */
+    it('drops a read older than a save made meanwhile', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'ai', editorContent: 'ai', dateSaved: T2 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B', dateSaved: T3 }));
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'B',
+        editorContent: 'B',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: the older read is dropped although the planner typed again after saving, and the new typing is kept.
+     * Data: near miss of the test above: after saving 'B' the planner types 'C' before the read answers.
+     */
+    it('drops an older read and keeps typing made after a save', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'ai', editorContent: 'ai', dateSaved: T2 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'B');
+      service.fileUpdated(file({ content: 'B', dateSaved: T3 }));
+      service.updateEditorContent('f1', 'C');
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'B',
+        editorContent: 'C',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: typing while a change is applied, or while the file is read again, is kept, whenever it started.
+     * Data: stored f1 clean on 'old'; the planner types 'typed', then the read answers 'ai' saved later.
+     */
+    it('keeps typing made while the change was applied or read', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'old', editorContent: 'old', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.updateEditorContent('f1', 'typed');
+      answer.next(file({ content: 'ai', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        content: 'ai',
+        editorContent: 'typed',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: a file not opened yet gets the new content in its buffer too, so its tab opens on it, not blank.
+     * Data: stored f1 listed without content or buffer; an added file read for the first time.
+     */
+    it('stores the content of a file that is not open', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'ai', dateSaved: T2 }))) },
+        [file({ content: null, editorContent: undefined, dateSaved: T1 })],
+      );
+
+      await firstValueFrom(service.refreshFile('f1'));
+
+      expect(query.getEntity('f1').content).toBe('ai');
+      // the tab opens on this content, since a file with content is not loaded again
+      expect(query.getEntity('f1').editorContent).toBe('ai');
+      expect(query.ui.getEntity('f1').isSaved).toBe(true);
+    });
+
+    /**
+     * Verifies: a rename between a save and its delayed answer does not make the save look older and drop it.
+     * Data: stored f1 clean on 'A' at T1; a rename event (no content) stamped T3, then the AI's 'B' at T2.
+     */
+    it('takes content saved before a rename that arrives after it', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+
+      service.fileUpdated(
+        file({ name: 'renamed.tf', content: null, dateSaved: T3 }),
+      );
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        name: 'renamed.tf',
+        content: 'B',
+        editorContent: 'B',
+      });
+    });
+
+    /**
+     * Verifies: a read that answers late with an older lock state neither unlocks the file in the store nor discards edits.
+     * Interacts with: refreshFile; FilesService.getFile answered late.
+     * Data: the read starts while f1 is unlocked; the planner locks it (u1) and types 'C'; the read answers unlocked.
+     */
+    it('keeps the lock and edits when a late read shows an older lock', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.fileUpdated(
+        file({ content: null, lockedById: 'u1', dateSaved: T1 }),
+      );
+      service.updateEditorContent('f1', 'C');
+      answer.next(file({ content: 'B', lockedById: null, dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toMatchObject({
+        lockedById: 'u1',
+        content: 'B',
+        editorContent: 'C',
+      });
+      expect(query.ui.getEntity('f1').isSaved).toBe(false);
+    });
+
+    /**
+     * Verifies: opening a tab loads the file at its save time, so an older answer after that is dropped.
+     * Interacts with: loadFile; fileUpdated.
+     * Data: 'A' at T1, a rename at T3, the tab loads 'C' at T3, then the AI's older 'B' at T2 arrives.
+     */
+    it('drops content older than what a tab loaded', async () => {
+      const { service, query } = setup(
+        { getFile: vi.fn(() => of(file({ content: 'C', dateSaved: T3 }))) },
+        [file({ content: 'A', editorContent: 'A', dateSaved: T1 })],
+      );
+      service.fileUpdated(file({ content: null, dateSaved: T3 }));
+      await firstValueFrom(service.loadFile('f1'));
+
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1').content).toBe('C');
+    });
+
+    /**
+     * Verifies: a read that answers after the file was deleted does not bring it back.
+     * Interacts with: refreshFile; FilesService.getFile answered late; fileDeleted.
+     * Data: the read of f1 starts; the file is deleted; the read answers.
+     */
+    it('does not bring back a file deleted while it was read', () => {
+      const answer = new Subject<ModelFile>();
+      const { service, query } = setup({ getFile: vi.fn(() => answer) }, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.refreshFile('f1').subscribe();
+
+      service.fileDeleted('f1');
+      answer.next(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
+     * Verifies: the answer to a save made before the delete, arriving after it, does not bring the file back.
+     * Interacts with: fileUpdated; fileDeleted.
+     * Data: f1 saved as 'B' (event first), then deleted, then the save's answer arrives.
+     */
+    it('does not bring back a deleted file with a late save answer', () => {
+      const { service, query } = setup({}, [
+        file({ content: 'A', editorContent: 'A', dateSaved: T1 }),
+      ]);
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+      service.fileDeleted('f1');
+
+      service.fileUpdated(file({ content: 'B', dateSaved: T2 }));
+
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
+     * Verifies: a tab's first load, or a directory's file list, answering after the delete does not bring the file back.
+     * Interacts with: loadFile and loadFilesByDirectory answered late; fileDeleted.
+     * Data: both reads of f1 start; the file is deleted; both answer.
+     */
+    it('does not bring back a deleted file with a late load or list', () => {
+      const one = new Subject<ModelFile>();
+      const list = new Subject<ModelFile[]>();
+      const { service, query } = setup(
+        {
+          getFile: vi.fn(() => one),
+          getFilesByDirectory: vi.fn(() => list),
+        },
+        [file({ content: null, dateSaved: T1 })],
+      );
+      service.loadFile('f1').subscribe();
+      service.loadFilesByDirectory('d1').subscribe();
+
+      service.fileDeleted('f1');
+      one.next(file({ content: 'A', dateSaved: T1 }));
+      list.next([file({ content: null, dateSaved: T1 })]);
+
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
+     * Verifies: a create answer or a project's file list arriving after the delete does not bring the file back.
+     * Interacts with: add (FilesService.createFile answered late); setFiles; fileDeleted.
+     * Data: f1 is created and announced, then deleted; then the create answer and an older project list arrive.
+     */
+    it('does not bring back a deleted file with a late create answer or list', () => {
+      const created = new Subject<ModelFile>();
+      const { service, query } = setup({ createFile: vi.fn(() => created) });
+      service.add(file({ content: 'A' }));
+      service.fileUpdated(file({ content: 'A', dateSaved: T1 }));
+
+      service.fileDeleted('f1');
+      created.next(file({ content: 'A', dateSaved: T1 }));
+      expect(query.getEntity('f1')).toBeUndefined();
+
+      service.setFiles([file({ content: null, dateSaved: T1 })]);
+      expect(query.getEntity('f1')).toBeUndefined();
+    });
+
+    /**
+     * Verifies: save times are ordered past the millisecond, as the server sends them.
+     * Data: stored 'B' at .1239 of a second; an older 'A' at .1231 of the same second.
+     */
+    it('orders save times that differ below a millisecond', () => {
+      const { service, query } = setup({}, [
+        file({
+          content: 'B',
+          editorContent: 'B',
+          dateSaved: '2026-11-18T10:00:05.1239Z',
+        }),
+      ]);
+
+      service.fileUpdated(
+        file({ content: 'A', dateSaved: '2026-11-18T10:00:05.1231Z' }),
+      );
+
+      expect(query.getEntity('f1').content).toBe('B');
+    });
+  });
+
   describe('fileUpdated (FileCreated / FileUpdated hub events)', () => {
     /**
      * Verifies: an unknown file is added with the payload's fields, no editor
@@ -385,9 +696,10 @@ describe('FileService', () => {
 
       service.fileUpdated(file());
 
+      // the buffer starts as the content, so the file's tab opens on it rather than blank
       expect(query.getEntity('f1')).toEqual({
         ...file(),
-        editorContent: undefined,
+        editorContent: file().content,
       });
       expect(query.ui.getEntity('f1')).toEqual({
         id: 'f1',

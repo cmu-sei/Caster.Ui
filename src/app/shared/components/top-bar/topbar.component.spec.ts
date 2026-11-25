@@ -2,6 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { describe, it, expect } from 'vitest';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -83,7 +84,49 @@ const nearMissAdmin: PermissionGrants = {
   groups: [{ groupId: 'g1', permissions: [GroupPermission.EditGroup] }],
 };
 
+/** A page that puts its own action in the bar, as a project page does for Ask AI. */
+@Component({
+  selector: 'cas-topbar-page-stub',
+  imports: [TopbarComponent],
+  template: `<cas-topbar title="Range" [topbarView]="view"
+    ><button casTopbarActions type="button">Ask AI</button></cas-topbar
+  >`,
+})
+class TopbarPageStub {
+  view = TopbarView.CASTER_HOME;
+}
+
 describe('TopbarComponent', () => {
+  /**
+   * Verifies: content a page marks casTopbarActions is shown in the bar, so the project page can offer Ask AI there.
+   * Interacts with: the bar's content projection, the real PermissionService (no grants).
+   * Data: a host page that puts one button in the bar.
+   */
+  it('shows the actions a page puts in the bar', async () => {
+    await renderComponent(TopbarPageStub, {
+      imports: [
+        MatToolbarModule,
+        MatMenuModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSlideToggleModule,
+      ],
+      providers: [
+        ...permissionDataProviders({}),
+        {
+          provide: ComnAuthService,
+          useValue: { logout: () => Promise.resolve() },
+        },
+        {
+          provide: ProjectGroupsService,
+          useValue: { getProjectGroups: () => of([]) },
+        },
+      ],
+    });
+
+    expect(screen.getByRole('button', { name: 'Ask AI' })).toBeInTheDocument();
+  });
+
   /**
    * Verifies: a rejected logout from the user menu escapes through Angular's zone (current behavior).
    * Interacts with: ComnAuthService.logout, the rendered user menu, captureUnhandledRxErrors.

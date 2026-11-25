@@ -135,6 +135,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                       </a>
                     </div>
                   </mat-list-item>
+                  <mat-list-item>
+                    <div
+                      class="d-flex flex-row justify-content-start align-items-center"
+                      style="margin-left: 2%"
+                    >
+                      <mat-icon
+                        role="button"
+                        tabindex="0"
+                        (click)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.enter)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.space)="draftTerraformWithAi(parentDirectory); $event.preventDefault()"
+                        matTooltip="Draft Terraform for {{
+                          parentDirectory.name
+                        }} from a description"
+                        class="icon-space mdi-18px"
+                        fontIcon="mdi-creation-outline"
+                      />
+                      <a
+                        class="add-link-text"
+                        matTooltip="Draft Terraform for {{
+                          parentDirectory.name
+                        }} from a description"
+                        role="button"
+                        tabindex="0"
+                        (click)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.enter)="draftTerraformWithAi(parentDirectory)"
+                        (keydown.space)="draftTerraformWithAi(parentDirectory); $event.preventDefault()"
+                      >
+                        Draft Terraform with AI
+                      </a>
+                    </div>
+                  </mat-list-item>
                 }
               </mat-list>
             </mat-expansion-panel>
@@ -407,6 +439,38 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
                         (click)="createDesign(parentDirectory.id)"
                       >
                         Add Design
+                      </a>
+                    </div>
+                  </mat-list-item>
+                  <mat-list-item>
+                    <div
+                      class="d-flex flex-row justify-content-start align-items-center"
+                      style="margin-left: 2%"
+                    >
+                      <mat-icon
+                        role="button"
+                        tabindex="0"
+                        (click)="draftDesignWithAi(parentDirectory)"
+                        (keydown.enter)="draftDesignWithAi(parentDirectory)"
+                        (keydown.space)="draftDesignWithAi(parentDirectory); $event.preventDefault()"
+                        matTooltip="Draft a Design for {{
+                          parentDirectory.name
+                        }} from a description, using Caster's modules"
+                        class="icon-space mdi-18px"
+                        fontIcon="mdi-creation-outline"
+                      />
+                      <a
+                        class="add-link-text"
+                        matTooltip="Draft a Design for {{
+                          parentDirectory.name
+                        }} from a description, using Caster's modules"
+                        role="button"
+                        tabindex="0"
+                        (click)="draftDesignWithAi(parentDirectory)"
+                        (keydown.enter)="draftDesignWithAi(parentDirectory)"
+                        (keydown.space)="draftDesignWithAi(parentDirectory); $event.preventDefault()"
+                      >
+                        Draft Design with AI
                       </a>
                     </div>
                   </mat-list-item>

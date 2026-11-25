@@ -1,0 +1,54 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+:host ::ng-deep .mat-expansion-panel-header {
+  height: auto !important;
+  margin-top: 5px !important;
+  margin-bottom: 5px !important;
+}
+
+:host ::ng-deep .mat-expansion-panel-body {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  overflow-x: auto;
+}
+
+mat-icon {
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.hint {
+  font-size: small;
+  opacity: 0.8;
+  margin: 0.25rem 0;
+}
+
+.ai-usage-table {
+  border-collapse: collapse;
+  font-size: small;
+  width: 100%;
+
+  th,
+  td {
+    padding: 2px 4px;
+    text-align: right;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  th[scope='row'],
+  thead th:first-child {
+    text-align: left;
+    font-weight: normal;
+  }
+
+  thead th {
+    font-weight: 500;
+  }
+
+  tfoot th,
+  tfoot td {
+    font-weight: 500;
+    border-bottom: none;
+  }
+}

@@ -10,6 +10,9 @@
   max-height: 46px;
   min-height: 46px;
   --mat-icon-button-icon-color: currentColor;
+  // Material colours a button in a toolbar from this, not from the bar's colour, so without it a button a page puts
+  // in the bar, such as a project's Ask AI, is drawn in the theme's dark text colour on the bar
+  --mat-toolbar-container-text-color: var(--crucible-topbar-text);
 }
 .team-text {
   text-align: right;
