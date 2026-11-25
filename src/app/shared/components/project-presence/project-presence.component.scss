@@ -1,0 +1,87 @@
+// Copyright 2026 Carnegie Mellon University. All Rights Reserved.
+// Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
+
+// Set apart from the user menu beside it, so a lone chip isn't read as the signed-in user.
+.presence-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 0 12px;
+  padding-left: 12px;
+  border-left: 1px solid currentColor;
+  min-width: 0;
+}
+
+.presence-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.presence-heading-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.presence-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.presence-more-wrapper {
+  display: inline-flex;
+}
+
+.presence-more {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+// Green, as in Blueprint's presence bar; fixed colours read in both themes.
+.presence-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  background-color: #a5d6a7;
+  color: #1b5e20;
+}
+
+.presence-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.presence-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The rest of the users, listed in full when there are too many for the bar.
+::ng-deep .presence-more-menu .mat-mdc-menu-content {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+::ng-deep .presence-more-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+}

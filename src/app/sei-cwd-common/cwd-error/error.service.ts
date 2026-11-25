@@ -22,6 +22,11 @@ export class ErrorService implements ErrorHandler {
     if (err instanceof HttpErrorResponse) {
       // Backend returns unsuccessful response codes such as 404, 500 etc.
       const apiError = err as HttpErrorResponse;
+      if (apiError.status === 0) {
+        // The browser could not reach the API at all (it is down, or the network is).
+        this.showApiUnreachable(messageService, apiError);
+        return;
+      }
       let problemDetails: ProblemDetails = null;
 
       if (this.isProblemDetails(err)) {
@@ -48,6 +53,10 @@ export class ErrorService implements ErrorHandler {
 
       console.log(title);
       console.log(apiError);
+    } else if (this.isApiUnreachable(err)) {
+      // SignalR or another request failed because the API is down.
+      this.showApiUnreachable(messageService, err);
+      return;
     } else {
       // A client-side or network error occurred.
       const error = err as Error;
@@ -58,6 +67,35 @@ export class ErrorService implements ErrorHandler {
     }
     // Delay 1 second to allow page to load.  This prevents error message from popping up irregularly
     messageService.displayMessage(title, message, 1000);
+  }
+
+  private showApiUnreachable(
+    messageService: SystemMessageService,
+    cause: unknown,
+  ) {
+    // SystemMessageService drops a repeat of a message that is already open.
+    console.log('API unreachable:', cause);
+    messageService.displayMessage(
+      'API Error',
+      'The API could not be reached.',
+      1000,
+    );
+  }
+
+  private isApiUnreachable(err: unknown): boolean {
+    // A SignalR or promise failure carries the cause in `rejection`.
+    const failure = err as {
+      message?: string;
+      rejection?: { message?: string };
+    } | null;
+
+    const text = `${failure?.message ?? ''} ${failure?.rejection?.message ?? ''}`;
+    return [
+      'Failed to fetch',
+      'Failed to start the connection',
+      'Failed to complete negotiation',
+      'Network Error',
+    ].some((fragment) => text.includes(fragment));
   }
 
   private isProblemDetails(error: HttpErrorResponse): boolean {

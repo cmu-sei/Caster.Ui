@@ -38,19 +38,29 @@
 }
 
 html {
-  @include mat.theme((color: theme.$primary-palette,
+  @include mat.theme(
+    (
+      color: theme.$primary-palette,
       typography: '"Open Sans", sans-serif',
-    ));
-  @include mat.icon-button-overrides((icon-color: var(--mat-sys-primary),
-    ));
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-primary),
+    )
+  );
 }
 
 .darkMode {
-  @include mat.theme((color: (primary: dark-theme.$dark-primary-palette,
+  @include mat.theme(
+    (
+      color: (
+        primary: dark-theme.$dark-primary-palette,
         typography: '"Open Sans", sans-serif',
         theme-type: dark,
       ),
-    ));
+    )
+  );
 }
 
 html,
@@ -125,7 +135,6 @@ mat-paginator {
 .scrollable-tabs .mat-mdc-tab-body-content {
   overflow: auto;
 }
-
 
 // A tooltip that shows one long value, such as a repository URL or a Terraform
 // source, on one line where it fits instead of wrapping it at Material's 200px.

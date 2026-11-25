@@ -757,7 +757,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       this.fileService
         .export(obj.object.id)
         .pipe(take(1))
-               .subscribe((result) => {
+        .subscribe((result) => {
           FileDownloadUtils.downloadFile(result.blob, result.filename);
         });
     } else {

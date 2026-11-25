@@ -9,7 +9,8 @@ import {
   OnInit,
   inject,
   input,
-  output, OnDestroy,
+  output,
+  OnDestroy,
 } from '@angular/core';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
@@ -45,7 +46,9 @@ import { AsyncPipe } from '@angular/common';
     AsyncPipe,
   ],
 })
-export class ProjectMembershipsComponent implements OnInit, OnChanges, OnDestroy {
+export class ProjectMembershipsComponent
+  implements OnInit, OnChanges, OnDestroy
+{
   private projectService = inject(ProjectService);
   private projectQuery = inject(ProjectQuery);
   private projectMembershipService = inject(ProjectMembershipService);

@@ -15,7 +15,11 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
             <tr>
               <td class="shortcut-description">{{ hotkey.description }}</td>
               <td class="shortcut-keys">
-                @for (key of hotkey.keys.split('.'); track key; let last = $last) {
+                @for (
+                  key of hotkey.keys.split('.');
+                  track key;
+                  let last = $last
+                ) {
                   <kbd>{{ key | titlecase }}</kbd>
                   @if (!last) {
                     <span class="separator">+</span>
@@ -30,7 +34,13 @@ Copyright 2021 Carnegie Mellon University. All Rights Reserved.
   </div>
 
   <ng-container crucibleDialogActions>
-    <button mat-flat-button color="primary" type="button" cdkFocusInitial (click)="close()">
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      cdkFocusInitial
+      (click)="close()"
+    >
       Close
     </button>
   </ng-container>

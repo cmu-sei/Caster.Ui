@@ -34,11 +34,7 @@ import {
   AiTerraformDraftDialogData,
 } from '../ai-terraform-draft-dialog/ai-terraform-draft-dialog.component';
 import { CurrentUserQuery } from 'src/app/users/state';
-import {
-  FileQuery,
-  FileService,
-  isSameContent,
-} from '../../../files/state';
+import { FileQuery, FileService, isSameContent } from '../../../files/state';
 import { ModuleQuery, ModuleService } from '../../../modules/state';
 import { ComnSettingsService } from '@cmusei/crucible-common';
 import {
@@ -421,7 +417,7 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   insertModuleFn(event) {
-       this.moduleService
+    this.moduleService
       .createVersionSnippet(event)
       .pipe(take(1))
       .subscribe((snippet) => {
@@ -431,12 +427,12 @@ export class EditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getModuleFn(event) {
-       this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
+    this.moduleService.loadModuleById(event.id).pipe(take(1)).subscribe();
     this.selectedModule$ = this.moduleQuery.selectByModuleId(event.id);
   }
 
   getVersionFn(event) {
-       this.fileVersionService
+    this.fileVersionService
       .loadFileVersionById(event.id)
       .pipe(take(1))
       .subscribe();

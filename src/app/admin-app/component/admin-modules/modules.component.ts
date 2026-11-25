@@ -65,7 +65,7 @@ export class AdminModulesComponent implements OnInit {
         take(1),
         finalize(() => this.loadSources(userRequested)),
       )
-           .subscribe();
+      .subscribe();
   }
 
   /** When an API instance last synced a source, in the viewer's time zone. */
@@ -84,7 +84,7 @@ export class AdminModulesComponent implements OnInit {
     this.modulesService
       .getModuleSources()
       .pipe(take(1))
-           .subscribe({
+      .subscribe({
         next: (sources) => {
           this.failedSources = sources.filter((s) => s.error);
           this.noSources = !sources.length;
@@ -116,11 +116,11 @@ export class AdminModulesComponent implements OnInit {
   }
 
   loadById(id: string) {
-       this.moduleService.loadModuleById(id).pipe(take(1)).subscribe();
+    this.moduleService.loadModuleById(id).pipe(take(1)).subscribe();
   }
 
   createOrUpdateById(id: string) {
-       this.moduleService
+    this.moduleService
       .createOrUpdateModuleById(id)
       .pipe(
         take(1),
@@ -141,7 +141,7 @@ export class AdminModulesComponent implements OnInit {
   }
 
   deleteModule(id: string) {
-       this.moduleService.delete(id).pipe(take(1)).subscribe();
+    this.moduleService.delete(id).pipe(take(1)).subscribe();
   }
 } // End Class
 

@@ -36,6 +36,10 @@ import { RoleService } from 'src/app/roles/roles.service.service';
 import { GroupMembershipService } from 'src/app/groups/group-membership.service';
 import { ProjectMembershipService } from 'src/app/project/state/project-membership.service';
 import { EnvironmentSetService } from 'src/app/environment-sets/environment-set.service';
+import {
+  PresenceState,
+  ProjectPresenceService,
+} from 'src/app/project/state/project-presence.service';
 
 @Injectable({
   providedIn: 'root',
@@ -57,6 +61,7 @@ export class SignalRService {
   private groupMembershipService = inject(GroupMembershipService);
   private projectMembershipService = inject(ProjectMembershipService);
   private environmentSetService = inject(EnvironmentSetService);
+  private projectPresenceService = inject(ProjectPresenceService);
 
   private hubConnection: signalR.HubConnection;
   private projectId: string;
@@ -68,10 +73,12 @@ export class SignalRService {
   private joinedVlansAdmin = false;
   private joinedRolesAdmin = false;
   private joinedEnvironmentSetsAdmin = false;
-  private connectionPromise: Promise<void>;
+  private connectionPromise: Promise<void> | undefined;
+  // The project JoinProject was sent for, on this connection.
+  private joinedProjectId: string | null = null;
 
   public startConnection(): Promise<void> {
-    if (this.connectionPromise) {
+    if (this.connectionPromise !== undefined) {
       return this.connectionPromise;
     }
 
@@ -85,8 +92,18 @@ export class SignalRService {
       .build();
 
     this.hubConnection.onreconnected(() => {
+      this.joinedProjectId = null;
       this.JoinGroups();
     });
+
+    // Presence is only as good as the connection; JoinProject refills it. Anyone who leaves while this
+    // client is reconnecting would otherwise stay listed.
+    const connectionLost = () => {
+      this.joinedProjectId = null;
+      this.projectPresenceService.clear();
+    };
+    this.hubConnection.onreconnecting(connectionLost);
+    this.hubConnection.onclose(connectionLost);
 
     this.addHandlers();
     this.connectionPromise = this.hubConnection.start();
@@ -142,17 +159,44 @@ export class SignalRService {
   }
 
   public joinProject(projectId: string) {
+    if (this.projectId && this.projectId !== projectId) {
+      this.leaveProject(this.projectId);
+    }
+
     this.projectId = projectId;
 
-    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('JoinProject', projectId);
+    // Callers ask on every sidebar toggle or project update; once is enough until the connection restarts.
+    if (
+      this.joinedProjectId === projectId ||
+      this.hubConnection.state !== signalR.HubConnectionState.Connected
+    ) {
+      return;
     }
+
+    this.joinedProjectId = projectId;
+
+    this.hubConnection.invoke('JoinProject', projectId).then(
+      (state: PresenceState) => {
+        this.projectPresenceService.apply(state, this.projectId);
+      },
+      (err) => {
+        if (this.joinedProjectId === projectId) {
+          this.joinedProjectId = null;
+        }
+
+        console.log(err);
+      },
+    );
   }
 
   public leaveProject(projectId: string) {
     this.projectId = null;
+    this.joinedProjectId = null;
+    this.projectPresenceService.clear();
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('LeaveProject', projectId);
+      this.hubConnection
+        .invoke('LeaveProject', projectId)
+        .catch((err) => console.log(err));
     }
   }
 
@@ -306,6 +350,7 @@ export class SignalRService {
     this.addGroupMembershipHandlers();
     this.addProjectMembershipHandlers();
     this.addEnvironmentSetHandlers();
+    this.addPresenceHandlers();
   }
 
   private addFileHandlers() {
@@ -588,6 +633,12 @@ export class SignalRService {
         this.environmentSetService.projectSetsUpdated(projectId, sets);
       },
     );
+  }
+
+  private addPresenceHandlers() {
+    this.hubConnection.on('PresenceChanged', (state: PresenceState) => {
+      this.projectPresenceService.apply(state, this.projectId);
+    });
   }
 
   private getModified(entity: any, modifiedProperties: string[]): any {

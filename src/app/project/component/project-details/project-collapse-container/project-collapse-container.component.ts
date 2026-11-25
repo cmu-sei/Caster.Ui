@@ -135,6 +135,9 @@ export class ProjectCollapseContainerComponent
   TopbarView = TopbarView;
 
   private unsubscribe$ = new Subject();
+  // Set once the page closes, so that a connection that finishes starting afterwards doesn't join the
+  // project the page has already left, and show this user as present to the others.
+  private destroyed = false;
 
   constructor() {
     this.theme$ = this.currentUserQuery.userTheme$;
@@ -191,7 +194,9 @@ export class ProjectCollapseContainerComponent
           this.signalRService
             .startConnection()
             .then(() => {
-              this.signalRService.joinProject(p.id);
+              if (!this.destroyed) {
+                this.signalRService.joinProject(p.id);
+              }
             })
             .catch((err) => {
               console.log(err);
@@ -300,6 +305,7 @@ export class ProjectCollapseContainerComponent
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
     this.unsubscribe$.next(null);
     this.unsubscribe$.complete();
     const activeProject = this.projectQuery.getActive();

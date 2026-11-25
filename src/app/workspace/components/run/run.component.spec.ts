@@ -88,9 +88,12 @@ describe('RunComponent', () => {
   ])('leaves a rejected $label connection start unhandled', async ({ run }) => {
     const failure = new Error('hub connection start failed');
     const errors = captureUnhandledRxErrors();
-    const { signalR, planOutput, applyOutput, firstLine } = await renderRun(run, {
-      startConnection: () => Promise.reject(failure),
-    });
+    const { signalR, planOutput, applyOutput, firstLine } = await renderRun(
+      run,
+      {
+        startConnection: () => Promise.reject(failure),
+      },
+    );
     await flush();
 
     expect(errors).toEqual([failure]);

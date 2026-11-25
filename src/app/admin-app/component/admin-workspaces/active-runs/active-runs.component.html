@@ -75,7 +75,9 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
             <button
               mat-icon-button
               disabled
-              [attr.aria-label]="'Open ' + row.workspaceName + ' (not available)'"
+              [attr.aria-label]="
+                'Open ' + row.workspaceName + ' (not available)'
+              "
             >
               <mat-icon class="mdi-24px" fontIcon="mdi-open-in-new" />
             </button>
@@ -199,7 +201,10 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
     ></tr>
     <tr class="mat-mdc-row" *matNoDataRow>
       @if (!loading()) {
-        <td class="mat-mdc-cell no-data" [attr.colspan]="displayedColumns.length">
+        <td
+          class="mat-mdc-cell no-data"
+          [attr.colspan]="displayedColumns.length"
+        >
           @if (filterString) {
             No active runs match "{{ filterString }}"
           } @else {
@@ -212,7 +217,11 @@ Released under a MIT (SEI)-style license. See LICENSE.md in the project root for
 
   @if (loading()) {
     <div class="loading">
-      <mat-progress-spinner color="primary" mode="indeterminate" diameter="48" />
+      <mat-progress-spinner
+        color="primary"
+        mode="indeterminate"
+        diameter="48"
+      />
     </div>
   }
 </div>

@@ -32,7 +32,11 @@ export interface TopologyRoleOption {
  */
 export const ROLE_OPTIONS: TopologyRoleOption[] = [
   { role: TopologyNodeRole.Server, label: 'Server', path: mdiServer },
-  { role: TopologyNodeRole.Workstation, label: 'Workstation', path: mdiMonitor },
+  {
+    role: TopologyNodeRole.Workstation,
+    label: 'Workstation',
+    path: mdiMonitor,
+  },
   {
     role: TopologyNodeRole.DomainController,
     label: 'Domain controller',
@@ -42,9 +46,17 @@ export const ROLE_OPTIONS: TopologyRoleOption[] = [
   { role: TopologyNodeRole.Router, label: 'Router', path: mdiRouterNetwork },
   { role: TopologyNodeRole.WebServer, label: 'Web server', path: mdiWeb },
   { role: TopologyNodeRole.Database, label: 'Database', path: mdiDatabase },
-  { role: TopologyNodeRole.MailServer, label: 'Mail server', path: mdiEmailOutline },
+  {
+    role: TopologyNodeRole.MailServer,
+    label: 'Mail server',
+    path: mdiEmailOutline,
+  },
   { role: TopologyNodeRole.Linux, label: 'Linux', path: mdiLinux },
-  { role: TopologyNodeRole.Windows, label: 'Windows', path: mdiMicrosoftWindows },
+  {
+    role: TopologyNodeRole.Windows,
+    label: 'Windows',
+    path: mdiMicrosoftWindows,
+  },
   { role: TopologyNodeRole.Attacker, label: 'Attacker', path: mdiIncognito },
 ];
 

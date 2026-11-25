@@ -12,11 +12,9 @@ export interface CanComponentDeactivate {
 @Injectable({
   providedIn: 'root',
 })
-export class CanDeactivateGuard
-  
-{
+export class CanDeactivateGuard {
   canDeactivate(
-    component: CanComponentDeactivate
+    component: CanComponentDeactivate,
   ): Observable<boolean> | Promise<boolean> | boolean {
     // if there are no pending changes, just allow deactivation; else confirm first
     return !component.canDeactivate || component.canDeactivate()
@@ -25,7 +23,7 @@ export class CanDeactivateGuard
         // when navigating away from your angular app, the browser will show a generic warning message
         // see http://stackoverflow.com/a/42207299/7307355
         confirm(
-          'WARNING: You have unsaved changes. Press Cancel to go back and save these changes, or OK to lose these changes.'
+          'WARNING: You have unsaved changes. Press Cancel to go back and save these changes, or OK to lose these changes.',
         );
   }
 }
